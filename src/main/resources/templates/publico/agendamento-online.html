@@ -4,21 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamento Online - FisioGestao</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         :root {
-            --primary: #0f8f7a;
-            --primary-dark: #0c7a68;
-            --primary-light: #17b79d;
-            --dark: #0f1720;
-            --gray-100: #eef3f2;
-            --gray-200: #dbe8e4;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --danger: #b24747;
-            --shadow-lg: 0 12px 28px rgba(15, 23, 32, 0.12);
+            --primary: #4ee7c2;
+            --primary-dark: #28c49f;
+            --primary-light: #7df4d8;
+            --text-main: #ecf5ff;
+            --text-soft: #a6bfd7;
+            --danger: #ff8f8f;
+            --shadow-lg: 0 20px 44px rgba(3, 8, 20, 0.55);
             --radius: 0.65rem;
             --radius-lg: 0.9rem;
             --radius-xl: 1.2rem;
@@ -33,12 +28,12 @@
         body {
             font-family: 'Inter', sans-serif;
             background:
-                radial-gradient(900px 450px at 12% -15%, rgba(15, 143, 122, 0.17), transparent 65%),
-                radial-gradient(850px 420px at 100% 0%, rgba(47, 111, 236, 0.08), transparent 70%),
-                #f4f7f6;
+                radial-gradient(900px 450px at 14% -12%, rgba(78, 231, 194, 0.18), transparent 65%),
+                radial-gradient(850px 420px at 100% 0%, rgba(87, 116, 255, 0.28), transparent 70%),
+                linear-gradient(145deg, #040913 0%, #0b1a2c 42%, #132744 100%);
             min-height: 100vh;
             padding: 2rem 1rem;
-            color: var(--dark);
+            color: var(--text-main);
         }
 
         .container {
@@ -47,11 +42,12 @@
         }
 
         .public-card {
-            background: #fff;
+            background: rgba(9, 20, 36, 0.78);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-lg);
             padding: 2.25rem;
-            border: 1px solid #d7e6e1;
+            border: 1px solid rgba(125, 244, 216, 0.22);
+            backdrop-filter: blur(14px);
         }
 
         .public-header {
@@ -79,7 +75,7 @@
         }
 
         .public-header p {
-            color: var(--gray-500);
+            color: var(--text-soft);
             margin-bottom: 0;
         }
 
@@ -89,7 +85,7 @@
 
         .form-label {
             font-weight: 630;
-            color: var(--dark);
+            color: #d8e8ff;
             margin-bottom: 0.45rem;
             display: block;
             font-size: 0.93rem;
@@ -97,20 +93,25 @@
 
         .form-control,
         .form-select {
-            border: 1px solid #cfe0da;
+            border: 1px solid rgba(132, 178, 223, 0.35);
             border-radius: var(--radius);
             padding: 0.78rem 0.95rem;
             font-size: 0.95rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             width: 100%;
-            color: var(--dark);
+            color: var(--text-main);
+            background: rgba(8, 18, 33, 0.68);
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #8ec4b7;
-            box-shadow: 0 0 0 3px rgba(15, 143, 122, 0.13);
+            border-color: rgba(125, 244, 216, 0.75);
+            box-shadow: 0 0 0 3px rgba(78, 231, 194, 0.22);
             outline: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(189, 211, 232, 0.68);
         }
 
         .form-error {
@@ -123,7 +124,7 @@
         .form-help {
             margin-top: 0.35rem;
             font-size: 0.79rem;
-            color: var(--gray-500);
+            color: var(--text-soft);
         }
 
         .btn-primary {
@@ -137,11 +138,15 @@
             color: #fff;
             cursor: pointer;
             font-size: 0.97rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(15, 143, 122, 0.35);
+            box-shadow: 0 12px 24px rgba(78, 231, 194, 0.33);
         }
 
         .alert {
@@ -153,22 +158,31 @@
         }
 
         .alert-danger {
-            background: #ffe7e7;
-            color: #8a3d3d;
-            border-color: #f6c3c3;
+            background: rgba(120, 14, 24, 0.38);
+            color: #ffd8d8;
+            border-color: rgba(255, 143, 143, 0.55);
         }
 
         .alert-info {
-            background: #e4f2ff;
-            color: #2a5d91;
-            border-color: #c8e3ff;
+            background: rgba(16, 52, 102, 0.4);
+            color: #d7e9ff;
+            border-color: rgba(131, 182, 255, 0.48);
+        }
+
+        .alert i {
+            width: 18px;
+            height: 18px;
         }
 
         .footer {
             text-align: center;
             margin-top: 1.8rem;
-            color: var(--gray-500);
+            color: var(--text-soft);
             font-size: 0.82rem;
+        }
+
+        .d-none {
+            display: none !important;
         }
 
         @media (max-width: 640px) {
@@ -183,19 +197,19 @@
         <div class="public-card">
             <div class="public-header">
                 <div class="public-header-icon">
-                    <i class="bi bi-calendar-plus"></i>
+                    <i data-lucide="calendar-plus"></i>
                 </div>
                 <h1>Agendamento Online</h1>
                 <p>Escolha o melhor horário para seu atendimento</p>
             </div>
 
             <div th:if="${errorMessage}" class="alert alert-danger">
-                <i class="bi bi-exclamation-circle me-2"></i>
+                <i data-lucide="triangle-alert"></i>
                 <span th:text="${errorMessage}"></span>
             </div>
 
             <div id="noSlotsAlert" class="alert alert-info" th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
-                <i class="bi bi-info-circle me-2"></i>
+                <i data-lucide="info"></i>
                 Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.
             </div>
 
@@ -243,7 +257,7 @@
                 </div>
 
                 <button type="submit" class="btn-primary">
-                    <i class="bi bi-send me-2"></i>Solicitar Agendamento
+                    <i data-lucide="send"></i>Solicitar Agendamento
                 </button>
             </form>
 
@@ -253,7 +267,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         (() => {
             const dataInput = document.getElementById('data');
@@ -328,6 +342,10 @@
             dataInput.addEventListener('change', () => {
                 carregarHorarios(dataInput.value);
             });
+
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
         })();
     </script>
 </body>

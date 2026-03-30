@@ -16,7 +16,13 @@ spring:
           time_zone: America/Campo_Grande
     show-sql: false
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration
+    default-schema: public
+    schemas: public
+    table: flyway_schema_history_fisiogestao
+    baseline-on-migrate: true
+    baseline-version: 0
   thymeleaf:
     cache: false
   mvc:

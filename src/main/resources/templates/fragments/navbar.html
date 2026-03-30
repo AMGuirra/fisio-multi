@@ -10,68 +10,68 @@
         <aside class="sidebar">
             <a href="/dashboard" class="sidebar-brand">
                 <div class="sidebar-brand-icon">
-                    <i class="bi bi-heart-pulse"></i>
+                    <i data-lucide="heart-pulse"></i>
                 </div>
                 <span class="sidebar-brand-text">FisioGestao</span>
             </a>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
                     <a href="/dashboard" class="sidebar-nav-link">
-                        <i class="bi bi-grid-1x2"></i>
+                        <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/agenda" class="sidebar-nav-link">
-                        <i class="bi bi-calendar-check"></i>
+                        <i data-lucide="calendar-check"></i>
                         <span>Agenda</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/calendario" class="sidebar-nav-link">
-                        <i class="bi bi-calendar-range"></i>
+                        <i data-lucide="calendar-range"></i>
                         <span>Calendário</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/solicitacoes" class="sidebar-nav-link">
-                        <i class="bi bi-calendar-plus"></i>
+                        <i data-lucide="calendar-plus"></i>
                         <span>Solicitações</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pacientes" class="sidebar-nav-link">
-                        <i class="bi bi-person-vcard"></i>
+                        <i data-lucide="id-card"></i>
                         <span>Pacientes</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/prontuario" class="sidebar-nav-link">
-                        <i class="bi bi-journal-medical"></i>
+                        <i data-lucide="notebook-pen"></i>
                         <span>Prontuário</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/financeiro" class="sidebar-nav-link">
-                        <i class="bi bi-cash-stack"></i>
+                        <i data-lucide="wallet"></i>
                         <span>Financeiro</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/usuarios" class="sidebar-nav-link">
-                        <i class="bi bi-people"></i>
+                        <i data-lucide="users"></i>
                         <span>Usuários</span>
                     </a>
                 </li>
             </ul>
             <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
                 <a href="/agendamento-online" target="_blank" class="sidebar-nav-link">
-                    <i class="bi bi-box-arrow-up-right"></i>
+                    <i data-lucide="external-link"></i>
                     <span>Agendamento Online</span>
                 </a>
                 <form th:action="@{/logout}" method="post" style="margin-top: 0.5rem;">
                     <button type="submit" class="sidebar-nav-link" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;">
-                        <i class="bi bi-box-arrow-left"></i>
+                        <i data-lucide="log-out"></i>
                         <span>Sair</span>
                     </button>
                 </form>

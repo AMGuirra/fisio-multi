@@ -58,6 +58,12 @@
     padding: 16px;
 }
 
+.section-block + .section-block {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e7efec;
+}
+
 .flash-stack {
     display: flex;
     flex-direction: column;

@@ -125,13 +125,13 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a href="/usuarios" class="user-menu-item" role="menuitem">
-                            <i data-lucide="user-round" aria-hidden="true"></i>
-                            <span>Perfil</span>
+                        <a href="/dashboard" class="user-menu-item" role="menuitem">
+                            <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+                            <span>Painel</span>
                         </a>
-                        <a href="/usuarios" class="user-menu-item" role="menuitem">
-                            <i data-lucide="settings" aria-hidden="true"></i>
-                            <span>Configurações</span>
+                        <a href="/agenda" class="user-menu-item" role="menuitem">
+                            <i data-lucide="calendar-days" aria-hidden="true"></i>
+                            <span>Agenda</span>
                         </a>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="user-menu-item" role="menuitem">

@@ -28,14 +28,19 @@ public class ProntuarioService {
 
     @Transactional
     public ProntuarioSoapEntity registrarSoap(ProntuarioSoapForm form, String usuario) {
+        var cliente = pacienteService.buscarPorId(form.getClienteId());
+
         SessaoEntity sessao = null;
         if (form.getSessaoId() != null) {
             sessao = sessaoRepository.findById(form.getSessaoId())
                     .orElseThrow(() -> new BusinessException("Sessão vinculada ao prontuário não encontrada."));
+            if (!sessao.getCliente().getId().equals(form.getClienteId())) {
+                throw new BusinessException("A sessão informada não pertence ao paciente selecionado.");
+            }
         }
 
         ProntuarioSoapEntity prontuario = ProntuarioSoapEntity.builder()
-                .cliente(pacienteService.buscarPorId(form.getClienteId()))
+                .cliente(cliente)
                 .sessao(sessao)
                 .subjetivo(form.getSubjetivo().trim())
                 .objetivo(form.getObjetivo().trim())
