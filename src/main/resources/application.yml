@@ -28,7 +28,7 @@ spring:
     time-zone: America/Campo_Grande
 
 server:
-  port: ${SERVER_PORT:8083}
+  port: ${PORT:${SERVER_PORT:8083}}
 
 app:
   timezone: America/Campo_Grande

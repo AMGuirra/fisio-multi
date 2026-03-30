@@ -24,6 +24,6 @@ databases:
     plan: free
     region: ohio
     postgresMajorVersion: "18"
-    databaseName: luzguirra_financeiro_banco
-    user: luzguirra_financeiro_banco_user
+    databaseName: fisio_anne
+    user: fisio_anne_user
     ipAllowList: []
