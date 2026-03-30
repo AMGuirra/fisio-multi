@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento Online - FisioGestao</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #0f8f7a;
+            --primary-dark: #0c7a68;
+            --primary-light: #17b79d;
+            --dark: #0f1720;
+            --gray-100: #eef3f2;
+            --gray-200: #dbe8e4;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --danger: #b24747;
+            --shadow-lg: 0 12px 28px rgba(15, 23, 32, 0.12);
+            --radius: 0.65rem;
+            --radius-lg: 0.9rem;
+            --radius-xl: 1.2rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(900px 450px at 12% -15%, rgba(15, 143, 122, 0.17), transparent 65%),
+                radial-gradient(850px 420px at 100% 0%, rgba(47, 111, 236, 0.08), transparent 70%),
+                #f4f7f6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .public-card {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2.25rem;
+            border: 1px solid #d7e6e1;
+        }
+
+        .public-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .public-header-icon {
+            width: 74px;
+            height: 74px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 1.25rem;
+            font-size: 2rem;
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(15, 143, 122, 0.32);
+        }
+
+        .public-header h1 {
+            font-size: 1.72rem;
+            margin-bottom: 0.55rem;
+            font-weight: 750;
+        }
+
+        .public-header p {
+            color: var(--gray-500);
+            margin-bottom: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            font-weight: 630;
+            color: var(--dark);
+            margin-bottom: 0.45rem;
+            display: block;
+            font-size: 0.93rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #cfe0da;
+            border-radius: var(--radius);
+            padding: 0.78rem 0.95rem;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            color: var(--dark);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #8ec4b7;
+            box-shadow: 0 0 0 3px rgba(15, 143, 122, 0.13);
+            outline: none;
+        }
+
+        .form-error {
+            margin-top: 0.35rem;
+            font-size: 0.8rem;
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .form-help {
+            margin-top: 0.35rem;
+            font-size: 0.79rem;
+            color: var(--gray-500);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 650;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.97rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(15, 143, 122, 0.35);
+        }
+
+        .alert {
+            padding: 0.9rem 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            font-size: 0.88rem;
+            border: 1px solid transparent;
+        }
+
+        .alert-danger {
+            background: #ffe7e7;
+            color: #8a3d3d;
+            border-color: #f6c3c3;
+        }
+
+        .alert-info {
+            background: #e4f2ff;
+            color: #2a5d91;
+            border-color: #c8e3ff;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 1.8rem;
+            color: var(--gray-500);
+            font-size: 0.82rem;
+        }
+
+        @media (max-width: 640px) {
+            .public-card {
+                padding: 1.5rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="public-card">
+            <div class="public-header">
+                <div class="public-header-icon">
+                    <i class="bi bi-calendar-plus"></i>
+                </div>
+                <h1>Agendamento Online</h1>
+                <p>Escolha o melhor horário para seu atendimento</p>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <div id="noSlotsAlert" class="alert alert-info" th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
+                <i class="bi bi-info-circle me-2"></i>
+                Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.
+            </div>
+
+            <form th:action="@{/agendamento-online}" th:object="${form}" method="post" novalidate>
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+                <div class="form-group">
+                    <label class="form-label" for="nomePaciente">Nome completo</label>
+                    <input type="text" id="nomePaciente" class="form-control" th:field="*{nomePaciente}" placeholder="Seu nome completo" required>
+                    <p class="form-error" th:if="${#fields.hasErrors('nomePaciente')}" th:errors="*{nomePaciente}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="telefone">Telefone (WhatsApp)</label>
+                    <input type="tel" id="telefone" class="form-control" th:field="*{telefone}" placeholder="(00) 00000-0000" required>
+                    <p class="form-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">E-mail</label>
+                    <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="seu@email.com">
+                    <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="data">Data desejada</label>
+                    <input type="date" id="data" class="form-control" th:field="*{data}" required>
+                    <p class="form-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+                    <p class="form-help">Ao alterar a data, os horários são atualizados automaticamente.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="horario">Horário preferencial</label>
+                    <select id="horario" class="form-select" th:field="*{horario}" required>
+                        <option value="">Selecione um horário</option>
+                        <option th:each="slot : ${slots}" th:value="${slot.inicio()}" th:text="${slot.label()}">09:00</option>
+                    </select>
+                    <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="observacoes">Observações</label>
+                    <textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}" placeholder="Alguma informação adicional?"></textarea>
+                    <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-send me-2"></i>Solicitar Agendamento
+                </button>
+            </form>
+
+            <div class="footer">
+                <p>© 2026 FisioGestao - Sistema de Gestão para Clínicas</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            const dataInput = document.getElementById('data');
+            const horarioSelect = document.getElementById('horario');
+            const noSlotsAlert = document.getElementById('noSlotsAlert');
+
+            if (!dataInput || !horarioSelect) {
+                return;
+            }
+
+            const criarOpcao = (value, text) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                return option;
+            };
+
+            const limparHorarios = () => {
+                horarioSelect.innerHTML = '';
+                horarioSelect.appendChild(criarOpcao('', 'Selecione um horário'));
+            };
+
+            const atualizarMensagemSemSlots = (mostrar) => {
+                if (!noSlotsAlert) {
+                    return;
+                }
+                noSlotsAlert.classList.toggle('d-none', !mostrar);
+            };
+
+            const carregarHorarios = async (dataIso) => {
+                if (!dataIso) {
+                    limparHorarios();
+                    atualizarMensagemSemSlots(true);
+                    return;
+                }
+
+                horarioSelect.disabled = true;
+                const horarioSelecionadoAtual = horarioSelect.value;
+
+                try {
+                    const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!response.ok) {
+                        throw new Error('Falha ao buscar horários');
+                    }
+
+                    const slots = await response.json();
+                    limparHorarios();
+
+                    slots.forEach((slot) => {
+                        const value = slot.inicio || '';
+                        const label = slot.label || value;
+                        horarioSelect.appendChild(criarOpcao(value, label));
+                    });
+
+                    if (horarioSelecionadoAtual && slots.some((slot) => slot.inicio === horarioSelecionadoAtual)) {
+                        horarioSelect.value = horarioSelecionadoAtual;
+                    } else {
+                        horarioSelect.value = '';
+                    }
+
+                    atualizarMensagemSemSlots(slots.length === 0);
+                } catch (error) {
+                    limparHorarios();
+                    atualizarMensagemSemSlots(true);
+                } finally {
+                    horarioSelect.disabled = false;
+                }
+            };
+
+            dataInput.addEventListener('change', () => {
+                carregarHorarios(dataInput.value);
+            });
+        })();
+    </script>
+</body>
+</html>

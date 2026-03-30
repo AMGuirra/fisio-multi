@@ -1,0 +1,29 @@
+target/
+tmp/
+.mvn-local/
+.mvn-wrapper/
+.claude/worktrees/
+*.log
+*.out.log
+*.err.log
+*.dump
+*.dumpstream
+Thumbs.db
+.DS_Store
+render-db.env
+*.env
+/cookies*.txt
+/dashboard*.html
+/tmp_*.html
+/tmp_*.txt
+/tmp_*.log
+/compile_errors.txt
+
+# Eclipse/IDE
+.settings/
+
+# Temporários
+tmp-validate-transfer.pid
+
+# Claude local
+.claude/launch.json

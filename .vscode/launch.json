@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "FisioGestaoApplication",
+      "request": "launch",
+      "mainClass": "com.fisiogestao.FisioGestaoApplication",
+      "projectName": "entity-crud-12"
+    },
+    {
+      "type": "java",
+      "name": "FisioGestaoApplication",
+      "request": "launch",
+      "mainClass": "com.fisiogestao.FisioGestaoApplication",
+      "projectName": "fisiogestao"
+    }
+  ]
+}

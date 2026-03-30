@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse" aria-hidden="true"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/dashboard" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span>
+                    <span class="sidebar-link-label">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="/agenda" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span>
+                    <span class="sidebar-link-label">Agenda</span>
+                </a>
+            </li>
+            <li>
+                <a href="/calendario" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span>
+                    <span class="sidebar-link-label">Calendário</span>
+                </a>
+            </li>
+            <li>
+                <a href="/solicitacoes" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span>
+                    <span class="sidebar-link-label">Solicitações</span>
+                </a>
+            </li>
+            <li>
+                <a href="/pacientes" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span>
+                    <span class="sidebar-link-label">Pacientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="/prontuario" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span>
+                    <span class="sidebar-link-label">Prontuário</span>
+                </a>
+            </li>
+            <li>
+                <a href="/financeiro" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="wallet"></i></span>
+                    <span class="sidebar-link-label">Financeiro</span>
+                </a>
+            </li>
+            <li>
+                <a href="/usuarios" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="users"></i></span>
+                    <span class="sidebar-link-label">Usuários</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link">
+                <span class="sidebar-link-icon"><i data-lucide="external-link"></i></span>
+                <span class="sidebar-link-label">Agendamento Online</span>
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout">
+                    <span class="sidebar-link-icon"><i data-lucide="log-out"></i></span>
+                    <span class="sidebar-link-label">Sair</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar">
+                    <i data-lucide="panel-left"></i>
+                </button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting"
+                        th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">
+                        Bom dia, Usuário
+                    </h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar"
+                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name"
+                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="user-round"></i><span>Perfil</span></a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="settings"></i><span>Configurações</span></a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Gerenciamento de Usuários</h1>
+                    <p class="hero-subtitle">Cadastre e gerencie os usuários do sistema com visual moderno e objetivo.</p>
+                </div>
+                <span class="hero-pill">Usuários</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success">
+                    <i data-lucide="circle-check"></i>
+                    <span th:text="${successMessage}">Sucesso</span>
+                </div>
+                <div th:if="${errorMessage}" class="flash-message error">
+                    <i data-lucide="triangle-alert"></i>
+                    <span th:text="${errorMessage}">Erro</span>
+                </div>
+            </div>
+
+            <section class="crud-layout form-table">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title">
+                            <i data-lucide="user-round-plus"></i>
+                            <span th:text="${editMode} ? 'Editar Usuário' : 'Novo Usuário'">Novo Usuário</span>
+                        </h3>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="${editMode} ? @{/usuarios/{id}/editar(id=${editingUserId})} : @{/usuarios/novo}"
+                              th:object="${usuarioForm}"
+                              method="post"
+                              class="modern-form">
+                            <div class="form-field">
+                                <label for="username">Usuário</label>
+                                <input id="username"
+                                       type="text"
+                                       class="form-control"
+                                       th:field="*{username}"
+                                       maxlength="40"
+                                       required>
+                                <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
+                                <input id="password"
+                                       type="password"
+                                       class="form-control"
+                                       th:field="*{password}"
+                                       maxlength="120"
+                                       th:attr="required=${!editMode}">
+                                <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                                <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="role">Tipo</label>
+                                <select id="role" class="form-select" th:field="*{role}" required>
+                                    <option th:each="tipo : ${tiposUsuario}"
+                                            th:value="${tipo}"
+                                            th:text="${tipo.label}">
+                                        Administrador
+                                    </option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
+                            </div>
+
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
+                            </button>
+
+                            <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
+                                <i data-lucide="x"></i>
+                                Cancelar edição
+                            </a>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="users"></i> Usuários Cadastrados</h3>
+                        <p class="section-subtitle" th:text="${usuarios != null ? usuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                    </header>
+
+                    <div class="section-body" th:if="${usuarios.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="user-x"></i>
+                            <p>Nenhum usuário cadastrado.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap" th:unless="${usuarios.empty}">
+                        <table class="data-table compact">
+                            <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="user : ${usuarios}">
+                                <td>
+                                    <div class="entity-inline">
+                                        <span class="entity-avatar"
+                                              th:text="${user.username != null and !#strings.isEmpty(user.username) ? #strings.substring(user.username, 0, 1) : 'U'}">U</span>
+                                        <div>
+                                            <p class="entity-name" th:text="${user.username}">usuario</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="chip"
+                                          th:classappend="${' role-' + #strings.toLowerCase(user.role.name())}"
+                                          th:text="${user.label}">
+                                        Administrador
+                                    </span>
+                                </td>
+                                <td class="text-right">
+                                    <div class="table-actions">
+                                        <a th:href="@{/usuarios(editar=${user.id})}"
+                                           class="action-button ghost inline-icon"
+                                           aria-label="Editar usuário">
+                                            <i data-lucide="pencil"></i>
+                                        </a>
+
+                                        <form th:if="${loggedUsername != user.username}"
+                                              th:action="@{/usuarios/{id}/excluir(id=${user.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              onsubmit="return confirm('Deseja excluir este usuário?');">
+                                            <button type="submit"
+                                                    class="action-button danger inline-icon"
+                                                    aria-label="Excluir usuário">
+                                                <i data-lucide="trash-2"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+

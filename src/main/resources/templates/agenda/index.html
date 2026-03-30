@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="user-round"></i><span>Perfil</span></a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="settings"></i><span>Configurações</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Agenda do Dia</h1>
+                    <p class="hero-subtitle">Gerencie sessões e bloqueios em um fluxo rápido e responsivo.</p>
+                </div>
+                <span class="hero-pill">Agenda</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+                <div th:if="${agendaConfigurada == false}" class="flash-message error"><i data-lucide="settings"></i><span>Configure a clínica para habilitar os agendamentos.</span></div>
+            </div>
+
+            <section class="date-control">
+                <a th:href="@{/agenda(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
+                <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
+                <a th:href="@{/agenda(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
+            </section>
+
+            <section class="crud-layout two-column">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="clock-3"></i> Sessões do Dia</h3>
+                        <p class="section-subtitle" th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</p>
+                    </header>
+
+                    <div class="section-body" th:if="${sessoes.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="calendar-x"></i>
+                            <p>Nenhuma sessão agendada para hoje.</p>
+                        </div>
+                    </div>
+
+                    <div class="section-body" th:unless="${sessoes.empty}">
+                        <div class="session-list">
+                            <article class="session-card" th:each="sessao : ${sessoes}">
+                                <div class="session-row">
+                                    <span class="session-time" th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">09:00</span>
+                                    <div class="session-detail">
+                                        <p class="session-title" th:text="${sessao.cliente.nome}">Paciente</p>
+                                        <p class="session-text" th:text="${sessao.tipoAtendimento}">Tipo</p>
+                                    </div>
+                                    <div class="session-actions">
+                                        <span class="chip" th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}" th:text="${sessao.status.name()}">STATUS</span>
+                                        <form th:if="${sessao.status.name() == 'AGENDADA'}" th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}" method="post" class="inline-form">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button ghost inline-icon" aria-label="Marcar sessão como realizada"><i data-lucide="check"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="crud-layout">
+                    <article class="section-card">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="calendar-plus"></i> Nova Sessão</h3>
+                        </header>
+                        <div class="section-body">
+                            <form th:action="@{/agenda/sessoes}" th:object="${agendaManualForm}" method="post" class="modern-form">
+                                <input type="hidden" th:field="*{data}">
+
+                                <div class="form-field">
+                                    <label for="clienteId">Paciente</label>
+                                    <select id="clienteId" th:field="*{clienteId}" class="form-select" required th:disabled="${agendaConfigurada == false}">
+                                        <option value="">Selecione...</option>
+                                        <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nome}">Paciente</option>
+                                    </select>
+                                    <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="horario">Horário</label>
+                                    <select id="horario" th:field="*{horario}" class="form-select" required th:disabled="${agendaConfigurada == false}">
+                                        <option value="">Selecione...</option>
+                                        <option th:each="slot : ${slots}" th:value="${slot.horario()}" th:text="${slot.horario()}">09:00</option>
+                                    </select>
+                                    <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="tipoAtendimento">Tipo de Atendimento</label>
+                                    <input id="tipoAtendimento" type="text" th:field="*{tipoAtendimento}" class="form-control" placeholder="Ex: Pilates, RPG" th:disabled="${agendaConfigurada == false}">
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="observacoes">Observações</label>
+                                    <textarea id="observacoes" th:field="*{observacoes}" class="form-control" rows="2" th:disabled="${agendaConfigurada == false}"></textarea>
+                                </div>
+
+                                <button type="submit" class="action-button primary" th:disabled="${agendaConfigurada == false}">
+                                    <i data-lucide="check"></i>
+                                    Agendar Sessão
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+
+                    <article class="section-card">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="circle-off"></i> Bloquear Horário</h3>
+                        </header>
+                        <div class="section-body">
+                            <form th:action="@{/agenda/bloqueios}" th:object="${bloqueioAgendaForm}" method="post" class="modern-form">
+                                <input type="hidden" th:field="*{data}">
+
+                                <div class="form-field">
+                                    <label for="horaInicio">Hora Início</label>
+                                    <input id="horaInicio" type="time" th:field="*{horaInicio}" class="form-control" required th:disabled="${agendaConfigurada == false}">
+                                    <p class="form-error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="horaFim">Hora Fim</label>
+                                    <input id="horaFim" type="time" th:field="*{horaFim}" class="form-control" required th:disabled="${agendaConfigurada == false}">
+                                    <p class="form-error" th:if="${#fields.hasErrors('horaFim')}" th:errors="*{horaFim}"></p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="motivo">Motivo</label>
+                                    <input id="motivo" type="text" th:field="*{motivo}" class="form-control" placeholder="Ex: Reunião, almoço" required th:disabled="${agendaConfigurada == false}">
+                                    <p class="form-error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></p>
+                                </div>
+
+                                <button type="submit" class="action-button ghost" th:disabled="${agendaConfigurada == false}">
+                                    <i data-lucide="ban"></i>
+                                    Bloquear Período
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+

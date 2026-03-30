@@ -1,0 +1,29 @@
+# Ajuste os nomes abaixo para coincidir com os recursos já existentes no Render
+# antes do primeiro Blueprint Sync. Se os nomes não existirem, o Render criará
+# um novo web service e um novo Postgres.
+services:
+  - type: web
+    name: luzguirra-financeiro-aplicacao
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: luzguirra-financeiro-banco
+          property: connectionString
+      - key: SERVER_SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SPRING_THYMELEAF_CACHE
+        value: "true"
+
+databases:
+  - name: luzguirra-financeiro-banco
+    plan: free
+    region: ohio
+    postgresMajorVersion: "18"
+    databaseName: luzguirra_financeiro_banco
+    user: luzguirra_financeiro_banco_user
+    ipAllowList: []

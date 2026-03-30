@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento Realizado - FisioGestao</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #0f8f7a;
+            --primary-dark: #0c7a68;
+            --success: #10b981;
+            --dark: #0f1720;
+            --gray-500: #64748b;
+            --shadow-lg: 0 12px 28px rgba(15, 23, 32, 0.12);
+            --radius-xl: 1.2rem;
+            --radius: 0.65rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(900px 450px at 12% -15%, rgba(15, 143, 122, 0.17), transparent 65%),
+                radial-gradient(850px 420px at 100% 0%, rgba(47, 111, 236, 0.08), transparent 70%),
+                #f4f7f6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 520px;
+            text-align: center;
+        }
+
+        .success-card {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2.6rem 1.8rem;
+            border: 1px solid #d7e6e1;
+        }
+
+        .success-icon {
+            width: 82px;
+            height: 82px;
+            background: linear-gradient(135deg, var(--success) 0%, #34d399 100%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 1.3rem;
+            font-size: 2.3rem;
+            color: #fff;
+            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.3);
+        }
+
+        .success-title {
+            font-size: 1.72rem;
+            color: var(--dark);
+            margin-bottom: 0.85rem;
+            font-weight: 760;
+        }
+
+        .success-text {
+            color: var(--gray-500);
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            padding: 0.86rem 1.35rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 650;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(15, 143, 122, 0.35);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h1 class="success-title">Solicitação Enviada!</h1>
+            <p class="success-text">
+                Sua solicitação de agendamento foi recebida com sucesso.<br>
+                Em breve nossa equipe entrará em contato pelo WhatsApp
+                para confirmar seu horário.
+            </p>
+            <a href="/agendamento-online" class="btn-home">
+                <i class="bi bi-arrow-left"></i>
+                Fazer Novo Agendamento
+            </a>
+        </div>
+    </div>
+</body>
+</html>

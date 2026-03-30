@@ -1,0 +1,16 @@
+package com.fisiogestao.financeiro.repository;
+
+import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
+import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
+import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface LancamentoFinanceiroRepository extends JpaRepository<LancamentoFinanceiroEntity, UUID> {
+
+    List<LancamentoFinanceiroEntity> findAllByOrderByDataCompetenciaDescCreatedAtDesc();
+
+    long countByTipoAndStatus(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
+}

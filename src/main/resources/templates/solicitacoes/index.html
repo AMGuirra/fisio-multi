@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitações - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="user-round"></i><span>Perfil</span></a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="settings"></i><span>Configurações</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Solicitações de Agendamento</h1>
+                    <p class="hero-subtitle">Aprove ou rejeite pedidos do agendamento online com fluxo rápido.</p>
+                </div>
+                <span class="hero-pill">Solicitações</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="calendar-range"></i> Central de Solicitações</h3>
+                </header>
+
+                <div class="section-body">
+                    <ul class="nav nav-tabs tab-modern" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-pendentes" type="button" role="tab">
+                                <i data-lucide="hourglass"></i>
+                                Pendentes
+                                <span class="chip status-warning" th:text="${pendentes != null ? pendentes.size() : 0}">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab">
+                                <i data-lucide="history"></i>
+                                Histórico
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tab-pendentes" role="tabpanel">
+                            <div th:if="${pendentes == null or pendentes.empty}" class="empty-box">
+                                <i data-lucide="inbox"></i>
+                                <p>Nenhuma solicitação pendente.</p>
+                            </div>
+
+                            <div th:unless="${pendentes == null or pendentes.empty}" class="request-list">
+                                <article th:each="sol : ${pendentes}" class="request-card">
+                                    <div class="request-row">
+                                        <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
+
+                                        <div class="request-detail">
+                                            <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
+                                            <p class="request-text">
+                                                <span th:text="${sol.telefone}">Telefone</span>
+                                                <span> • </span>
+                                                <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Fisioterapia'}">Observações</span>
+                                            </p>
+                                            <p class="request-text">
+                                                <i data-lucide="calendar"></i>
+                                                <span th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</span>
+                                            </p>
+                                        </div>
+
+                                        <div class="request-actions">
+                                            <form th:action="@{/solicitacoes/{id}/aprovar(id=${sol.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <button type="submit" class="action-button success"><i data-lucide="check"></i>Aprovar</button>
+                                            </form>
+                                            <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-historico" role="tabpanel">
+                            <div th:if="${historico == null or historico.empty}" class="empty-box">
+                                <i data-lucide="history"></i>
+                                <p>Nenhuma solicitação no histórico.</p>
+                            </div>
+
+                            <div th:unless="${historico == null or historico.empty}" class="request-list">
+                                <article th:each="sol : ${historico}" class="request-card">
+                                    <div class="request-row">
+                                        <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
+                                        <div class="request-detail">
+                                            <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
+                                            <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Fisioterapia'}">Observações</p>
+                                            <p class="request-text" th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</p>
+                                        </div>
+                                        <div class="request-actions">
+                                            <span class="chip"
+                                                  th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? 'status-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? 'status-rejected' : 'status-pendente')"
+                                                  th:text="${sol.status != null ? sol.status.name() : 'PENDENTE'}">PENDENTE</span>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+

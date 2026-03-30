@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark">
+                <i data-lucide="heart-pulse" aria-hidden="true"></i>
+            </span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/dashboard"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="/agenda"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Agenda</span>
+                </a>
+            </li>
+            <li>
+                <a href="/calendario"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Calendário</span>
+                </a>
+            </li>
+            <li>
+                <a href="/solicitacoes"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Solicitações</span>
+                </a>
+            </li>
+            <li>
+                <a href="/pacientes"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Pacientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="/prontuario"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Prontuário</span>
+                </a>
+            </li>
+            <li>
+                <a href="/financeiro"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="wallet" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Financeiro</span>
+                </a>
+            </li>
+            <li>
+                <a href="/usuarios"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Usuários</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link">
+                <span class="sidebar-link-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
+                <span class="sidebar-link-label">Agendamento Online</span>
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout">
+                    <span class="sidebar-link-icon"><i data-lucide="log-out" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Sair</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu">
+                    <i data-lucide="menu" aria-hidden="true"></i>
+                </button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar">
+                    <i data-lucide="panel-left" aria-hidden="true"></i>
+                </button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting"
+                        th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">
+                        Bom dia, Usuário
+                    </h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar"
+                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name"
+                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem">
+                            <i data-lucide="user-round" aria-hidden="true"></i>
+                            <span>Perfil</span>
+                        </a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem">
+                            <i data-lucide="settings" aria-hidden="true"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="user-menu-item" role="menuitem">
+                                <i data-lucide="log-out" aria-hidden="true"></i>
+                                <span>Sair</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <section class="hero-card">
+                <div class="hero-content">
+                    <h1 class="hero-title">Visão geral da sua clínica</h1>
+                    <p class="hero-subtitle">Métricas em tempo real para acompanhar pacientes, sessões e saúde financeira.</p>
+                </div>
+                <span class="hero-pill">SaaS Premium UI</span>
+            </section>
+
+            <section class="metrics-grid" aria-label="Resumo de métricas">
+                <article class="metric-card metric-pacientes">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.pacientesAtivos()}">0</p>
+                    <p class="metric-label">Pacientes Ativos</p>
+                </article>
+
+                <article class="metric-card metric-sessoes">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.sessoesHoje()}">0</p>
+                    <p class="metric-label">Sessões Hoje</p>
+                </article>
+
+                <article class="metric-card metric-pendencias">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.solicitacoesPendentes()}">0</p>
+                    <p class="metric-label">Solicitações Pendentes</p>
+                </article>
+
+                <article class="metric-card metric-mensagens">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.mensagensPendentes()}">0</p>
+                    <p class="metric-label">Mensagens Pendentes</p>
+                </article>
+
+                <article class="metric-card metric-receita">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="arrow-up-circle" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.receitasPendentes(), 1, 2)}">R$ 0,00</p>
+                    <p class="metric-label">Receitas Pendentes</p>
+                </article>
+
+                <article class="metric-card metric-despesa">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="arrow-down-circle" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.despesasPendentes(), 1, 2)}">R$ 0,00</p>
+                    <p class="metric-label">Despesas Pendentes</p>
+                </article>
+
+                <article class="metric-card metric-saldo">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="piggy-bank" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.saldoProjetado(), 1, 2)}">R$ 0,00</p>
+                    <p class="metric-label">Saldo Projetado</p>
+                </article>
+            </section>
+
+            <section class="panels-grid">
+                <article class="panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="zap" aria-hidden="true"></i>
+                            Ações Rápidas
+                        </h3>
+                    </header>
+                    <div class="panel-body">
+                        <div class="quick-actions-grid">
+                            <a href="/agenda" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Nova Sessão</p>
+                                <p class="quick-action-hint">Criar atendimento</p>
+                            </a>
+                            <a href="/calendario" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Calendário</p>
+                                <p class="quick-action-hint">Gestão mensal</p>
+                            </a>
+                            <a href="/solicitacoes" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Solicitações</p>
+                                <p class="quick-action-hint">Aprovar agenda</p>
+                            </a>
+                            <a href="/pacientes" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Pacientes</p>
+                                <p class="quick-action-hint">Cadastro clínico</p>
+                            </a>
+                            <a href="/prontuario" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Prontuário</p>
+                                <p class="quick-action-hint">Evolução SOAP</p>
+                            </a>
+                            <a href="/usuarios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Usuários</p>
+                                <p class="quick-action-hint">Gerenciar equipe</p>
+                            </a>
+                            <a href="/financeiro" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="banknote" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Financeiro</p>
+                                <p class="quick-action-hint">Fluxo de caixa</p>
+                            </a>
+                            <a href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Agendamento Online</p>
+                                <p class="quick-action-hint">Abrir portal público</p>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="info" aria-hidden="true"></i>
+                            Informações
+                        </h3>
+                    </header>
+                    <div class="panel-body">
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-icon status"><i data-lucide="activity" aria-hidden="true"></i></span>
+                                <span class="info-content">
+                                    <span class="info-label">Status do Sistema</span>
+                                    <span class="info-value skeletonable system-status" id="systemStatus">Online</span>
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                                <span class="info-content">
+                                    <span class="info-label">Data Atual</span>
+                                    <span class="info-value skeletonable" id="infoDate">00/00/0000</span>
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
+                                <span class="info-content">
+                                    <span class="info-label">Hora Atual</span>
+                                    <span class="info-value skeletonable" id="infoTime">00:00:00</span>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            © 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+

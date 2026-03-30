@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="user-round"></i><span>Perfil</span></a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="settings"></i><span>Configurações</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Pacientes e Pacotes</h1>
+                    <p class="hero-subtitle">Cadastre pacientes, acompanhe dados clínicos e controle os pacotes de sessões.</p>
+                </div>
+                <span class="hero-pill">Pacientes</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="summary-grid">
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="users-round"></i></span>
+                    <p class="summary-label">Pacientes Ativos</p>
+                    <p class="summary-value" th:text="${pacientes != null ? pacientes.size() : 0}">0</p>
+                </article>
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="package"></i></span>
+                    <p class="summary-label">Pacotes do Paciente</p>
+                    <p class="summary-value" th:text="${pacotesPaciente != null ? pacotesPaciente.size() : 0}">0</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
+                    <p class="summary-label">Sessões Disponíveis</p>
+                    <p class="summary-value" th:text="${sessoesDisponiveis}">0</p>
+                </article>
+            </section>
+
+            <section class="crud-layout form-table">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="user-round-plus"></i> Novo Paciente</h3>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/pacientes}" th:object="${pacienteForm}" method="post" class="modern-form">
+                            <div class="form-field">
+                                <label for="nomeCompleto">Nome completo</label>
+                                <input id="nomeCompleto" type="text" class="form-control" th:field="*{nomeCompleto}" maxlength="160" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('nomeCompleto')}" th:errors="*{nomeCompleto}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="telefone">Telefone</label>
+                                <input id="telefone" type="text" class="form-control" th:field="*{telefone}" maxlength="20" placeholder="(00) 00000-0000">
+                                <p class="form-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="email">E-mail</label>
+                                <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="120" placeholder="paciente@email.com">
+                                <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataNascimento">Data de nascimento</label>
+                                <input id="dataNascimento" type="date" class="form-control" th:field="*{dataNascimento}">
+                                <p class="form-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="observacoes">Observações</label>
+                                <textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}" maxlength="2000"></textarea>
+                                <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
+                            </div>
+
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Cadastrar Paciente
+                            </button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="list"></i> Pacientes Cadastrados</h3>
+                        <p class="section-subtitle" th:text="${pacientes != null ? pacientes.size() + ' registros' : '0 registros'}">0 registros</p>
+                    </header>
+
+                    <div class="section-body" th:if="${pacientes == null or pacientes.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="user-x"></i>
+                            <p>Nenhum paciente cadastrado no momento.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap" th:unless="${pacientes == null or pacientes.empty}">
+                        <table class="data-table compact">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Contato</th>
+                                    <th class="text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="paciente : ${pacientes}">
+                                    <td>
+                                        <div class="entity-inline">
+                                            <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
+                                            <div>
+                                                <p class="entity-name" th:text="${paciente.nomeCompleto}">Paciente</p>
+                                                <p class="entity-meta" th:text="${paciente.dataNascimento != null ? #temporals.format(paciente.dataNascimento, 'dd/MM/yyyy') : 'Sem data de nascimento'}">Data</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="entity-name" th:text="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone) ? paciente.telefone : '-'}">-</p>
+                                        <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
+                                    </td>
+                                    <td class="text-right">
+                                        <a th:href="@{/pacientes(paciente=${paciente.id})}" class="action-button ghost">
+                                            <i data-lucide="eye"></i>
+                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Abrir'}">Abrir</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="section-card" th:if="${pacienteSelecionado == null}">
+                <div class="section-body">
+                    <div class="empty-box">
+                        <i data-lucide="notebook-pen"></i>
+                        <p>Selecione um paciente para gerenciar os pacotes de sessões.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Pacote</h3>
+                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/pacientes/{id}/pacotes(id=${pacienteSelecionado.id})}" th:object="${pacoteForm}" method="post" class="modern-form">
+                            <div class="form-field">
+                                <label for="nomePacote">Nome do pacote</label>
+                                <input id="nomePacote" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" placeholder="Ex: Plano mensal" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="sessoesContratadas">Sessões contratadas</label>
+                                <input id="sessoesContratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="valorTotal">Valor total</label>
+                                <input id="valorTotal" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataInicio">Data inicial</label>
+                                <input id="dataInicio" type="date" class="form-control" th:field="*{dataInicio}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataValidade">Data de validade</label>
+                                <input id="dataValidade" type="date" class="form-control" th:field="*{dataValidade}">
+                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
+                            </div>
+
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="check"></i>
+                                Salvar Pacote
+                            </button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="package-open"></i> Pacotes do Paciente</h3>
+                        <p class="section-subtitle" th:text="${pacotesPaciente != null ? pacotesPaciente.size() + ' pacotes' : '0 pacotes'}">0 pacotes</p>
+                    </header>
+
+                    <div class="section-body" th:if="${pacotesPaciente == null or pacotesPaciente.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="archive-x"></i>
+                            <p>Este paciente ainda não possui pacotes cadastrados.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap" th:unless="${pacotesPaciente == null or pacotesPaciente.empty}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Pacote</th>
+                                    <th>Sessões</th>
+                                    <th>Validade</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pacote : ${pacotesPaciente}">
+                                    <td>
+                                        <p class="entity-name" th:text="${pacote.nomePacote}">Pacote</p>
+                                        <p class="entity-meta" th:text="${#temporals.format(pacote.dataInicio, 'dd/MM/yyyy')}">Data</p>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
+                                    </td>
+                                    <td th:text="${pacote.dataValidade != null ? #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : '-'}">-</td>
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
+                                              th:text="${pacote.status.name()}">ATIVO</span>
+                                    </td>
+                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(pacote.valorTotal, 1, 2)}">R$ 0,00</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

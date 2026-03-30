@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="user-round"></i><span>Perfil</span></a>
+                        <a href="/usuarios" class="user-menu-item" role="menuitem"><i data-lucide="settings"></i><span>Configurações</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Controle Financeiro</h1>
+                    <p class="hero-subtitle">Registre receitas e despesas para acompanhar o saldo projetado da clínica em tempo real.</p>
+                </div>
+                <span class="hero-pill">Financeiro</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="summary-grid">
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="arrow-up-circle"></i></span>
+                    <p class="summary-label">Receitas Pendentes</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(totalReceitasPendentes, 1, 2)}">R$ 0,00</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="arrow-down-circle"></i></span>
+                    <p class="summary-label">Despesas Pendentes</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasPendentes, 1, 2)}">R$ 0,00</p>
+                </article>
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="piggy-bank"></i></span>
+                    <p class="summary-label">Saldo Projetado</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(saldoProjetado, 1, 2)}">R$ 0,00</p>
+                </article>
+            </section>
+
+            <section class="crud-layout form-table">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="plus-circle"></i> Novo Lançamento</h3>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/financeiro/lancamentos}" th:object="${lancamentoForm}" method="post" class="modern-form">
+                            <div class="form-field">
+                                <label for="tipo">Tipo</label>
+                                <select id="tipo" class="form-select" th:field="*{tipo}" required>
+                                    <option th:each="tipo : ${tiposLancamento}" th:value="${tipo}" th:text="${tipo}">RECEITA</option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="descricao">Descrição</label>
+                                <input id="descricao" type="text" class="form-control" th:field="*{descricao}" maxlength="180" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="categoria">Categoria</label>
+                                <input id="categoria" type="text" class="form-control" th:field="*{categoria}" maxlength="80" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="valor">Valor</label>
+                                <input id="valor" type="number" step="0.01" min="0.01" class="form-control" th:field="*{valor}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataCompetencia">Data de Competência</label>
+                                <input id="dataCompetencia" type="date" class="form-control" th:field="*{dataCompetencia}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataCompetencia')}" th:errors="*{dataCompetencia}"></p>
+                            </div>
+
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="check"></i>
+                                Salvar Lançamento
+                            </button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="list-checks"></i> Lançamentos</h3>
+                        <p class="section-subtitle" th:text="${lancamentos != null ? lancamentos.size() + ' itens' : '0 itens'}">0 itens</p>
+                    </header>
+
+                    <div class="section-body" th:if="${lancamentos.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="wallet"></i>
+                            <p>Nenhum lançamento financeiro cadastrado.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap" th:unless="${lancamentos.empty}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Competência</th>
+                                    <th>Descrição</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Valor</th>
+                                    <th class="text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="lancamento : ${lancamentos}">
+                                    <td th:text="${#temporals.format(lancamento.dataCompetencia, 'dd/MM/yyyy')}">01/01/2026</td>
+                                    <td>
+                                        <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
+                                        <p class="entity-meta" th:text="${lancamento.categoria}">Categoria</p>
+                                    </td>
+                                    <td>
+                                        <span class="chip" th:classappend="${lancamento.tipo.name() == 'RECEITA' ? 'tipo-receita' : 'tipo-despesa'}" th:text="${lancamento.tipo.name()}">RECEITA</span>
+                                    </td>
+                                    <td>
+                                        <span class="chip" th:classappend="${lancamento.status.name() == 'PAGO' ? 'status-pago' : (lancamento.status.name() == 'CANCELADO' ? 'status-cancelado' : 'status-pendente')}" th:text="${lancamento.status.name()}">PENDENTE</span>
+                                    </td>
+                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 2)}">R$ 0,00</strong></td>
+                                    <td class="text-right">
+                                        <form th:if="${lancamento.status.name() == 'PENDENTE'}" th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}" method="post" class="inline-form">
+                                            <button type="submit" class="action-button success">
+                                                <i data-lucide="check-check"></i>
+                                                Marcar Pago
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+
