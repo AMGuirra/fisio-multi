@@ -27,3 +27,9 @@ tmp-validate-transfer.pid
 
 # Claude local
 .claude/launch.json
+
+# Ferramentas locais do ambiente (nao versionar)
+.claude/
+.codex/
+.opencode/
+.cursor/
