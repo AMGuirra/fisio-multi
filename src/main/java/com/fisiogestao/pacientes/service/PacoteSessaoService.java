@@ -29,6 +29,12 @@ public class PacoteSessaoService {
         return pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
     }
 
+    public List<PacoteSessaoEntity> listarDisponiveisParaAgenda() {
+        return pacoteSessaoRepository.findByStatusOrderByCreatedAtDesc(PacoteSessaoStatus.ATIVO).stream()
+                .filter(this::isDisponivel)
+                .toList();
+    }
+
     public Optional<PacoteSessaoEntity> buscarPorId(UUID id) {
         return pacoteSessaoRepository.findById(id);
     }

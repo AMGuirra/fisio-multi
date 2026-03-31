@@ -23,14 +23,16 @@
         </a>
 
         <ul class="sidebar-nav">
-            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
-            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
-            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
-            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/dashboard" class="sidebar-link" th:classappend="${currentPath == '/dashboard' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link" th:classappend="${currentPath == '/agenda' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link" th:classappend="${currentPath == '/calendario' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/bloqueios" class="sidebar-link" th:classappend="${currentPath == '/bloqueios' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link" th:classappend="${currentPath == '/solicitacoes' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
             <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
-            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+            <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
         </ul>
 
         <div class="sidebar-footer">
@@ -98,12 +100,19 @@
                     <div class="calendar-grid-body">
                         <th:block th:each="semana : ${calendarioSemanas}">
                             <th:block th:each="dia : ${semana}">
-                                <article class="calendar-day" th:classappend="${!dia.pertenceAoMes} ? ' day-empty' : '' + (${dia.hoje} ? ' day-today' : '')">
+                                <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '')}">
                                     <th:block th:if="${dia.pertenceAoMes}">
                                         <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
                                         <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
                                         <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
                                         <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                        <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
+                                            <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
+                                        </div>
+                                        <div class="calendar-day-links">
+                                            <a class="calendar-link" th:href="@{/agenda(data=${dia.data})}">Abrir agenda</a>
+                                            <a class="calendar-link" th:href="@{/bloqueios(data=${dia.data})}">Bloquear</a>
+                                        </div>
                                     </th:block>
                                 </article>
                             </th:block>
@@ -191,49 +200,19 @@
                 <div class="crud-layout">
                     <article class="section-card">
                         <header class="section-head">
-                            <h3 class="section-title"><i data-lucide="ban"></i> Novo Bloqueio de Período</h3>
+                            <h3 class="section-title"><i data-lucide="calendar-x-2"></i> Gestão Oficial de Bloqueios</h3>
                         </header>
                         <div class="section-body">
-                            <form th:action="@{/calendario/bloqueios}" th:object="${bloqueioPeriodoForm}" method="post" class="modern-form">
-                                <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
-                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-
-                                <div class="calendar-inline-grid">
-                                    <div class="form-field">
-                                        <label>Data inicial</label>
-                                        <input type="date" class="form-control" th:field="*{dataInicio}" required>
-                                    </div>
-                                    <div class="form-field">
-                                        <label>Data final</label>
-                                        <input type="date" class="form-control" th:field="*{dataFim}" required>
-                                    </div>
+                            <div class="helper-card">
+                                <div class="helper-copy">
+                                    <h4>Bloqueie períodos com governança</h4>
+                                    <p>Use o módulo de bloqueios para cadastrar indisponibilidades por faixa de horário ou dia inteiro, com edição segura, histórico e integração real com agenda e agendamento online.</p>
                                 </div>
-
-                                <div class="form-field">
-                                    <label class="checkbox-inline">
-                                        <input type="checkbox" th:field="*{diaInteiro}">
-                                        Bloquear dia inteiro (horário da clínica)
-                                    </label>
+                                <div class="form-actions">
+                                    <a th:href="@{/bloqueios(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
+                                    <a href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
                                 </div>
-
-                                <div class="calendar-inline-grid">
-                                    <div class="form-field">
-                                        <label>Hora início</label>
-                                        <input type="time" class="form-control" th:field="*{horaInicio}">
-                                    </div>
-                                    <div class="form-field">
-                                        <label>Hora fim</label>
-                                        <input type="time" class="form-control" th:field="*{horaFim}">
-                                    </div>
-                                </div>
-
-                                <div class="form-field">
-                                    <label>Motivo</label>
-                                    <input type="text" class="form-control" th:field="*{motivo}" maxlength="255" placeholder="Ex: congresso, férias, evento externo" required>
-                                </div>
-
-                                <button type="submit" class="action-button primary"><i data-lucide="plus-circle"></i>Criar Bloqueio</button>
-                            </form>
+                            </div>
                         </div>
                     </article>
 
@@ -253,18 +232,17 @@
                         <div class="section-body" th:unless="${bloqueiosAtivosMes == null or bloqueiosAtivosMes.empty}">
                             <div class="request-list">
                                 <article class="request-card" th:each="bloqueio : ${bloqueiosAtivosMes}">
-                                    <div class="request-row">
+                                    <div class="request-row" style="align-items:flex-start;">
                                         <div class="request-detail">
-                                            <p class="request-title" th:text="${#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy HH:mm') + ' - ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm')}">Data</p>
+                                            <p class="request-title" th:text="${bloqueio.diaInteiro ? (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy') + ' - Dia inteiro') : (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy HH:mm') + ' - ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm'))}">Data</p>
                                             <p class="request-text" th:text="${bloqueio.motivo}">Motivo</p>
-                                            <p class="request-text" th:text="${'Criado por: ' + (bloqueio.criadoPor != null ? bloqueio.criadoPor : 'sistema')}">Usuário</p>
+                                            <p class="request-text" th:text="${bloqueio.observacao != null ? bloqueio.observacao : 'Sem observações complementares.'}">Observação</p>
+                                            <p class="request-text" th:text="${'Criado por: ' + (bloqueio.criadoPor != null ? bloqueio.criadoPor : 'sistema')} + ' • Origem: ' + bloqueio.origem">Usuário</p>
                                         </div>
                                         <div class="request-actions">
-                                            <form th:action="@{/calendario/bloqueios/{id}/desativar(id=${bloqueio.id})}" method="post" class="inline-form">
-                                                <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
-                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <button type="submit" class="action-button danger"><i data-lucide="trash-2"></i>Desativar</button>
-                                            </form>
+                                            <span class="chip status-warning" th:if="${bloqueio.diaInteiro}">Dia inteiro</span>
+                                            <span class="chip status-success" th:text="${bloqueio.status}">ATIVO</span>
+                                            <a th:href="@{/bloqueios(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
                                         </div>
                                     </div>
                                 </article>
@@ -282,4 +260,3 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
-

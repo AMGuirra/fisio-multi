@@ -232,6 +232,10 @@
             <i data-lucide="circle-check"></i>
             Você foi desconectado com sucesso
         </div>
+        <div th:if="${successMessage}" class="alert" style="background: #d1fae5; color: #065f46;">
+            <i data-lucide="circle-check"></i>
+            <span th:text="${successMessage}">Sucesso</span>
+        </div>
 
         <form th:action="@{/login}" method="post">
             
@@ -260,7 +264,7 @@
         </form>
 
         <div class="forgot-password">
-            <a href="#">
+            <a th:href="@{/esqueci-minha-senha}">
                 <i data-lucide="circle-help"></i>
                 Esqueci minha senha
             </a>

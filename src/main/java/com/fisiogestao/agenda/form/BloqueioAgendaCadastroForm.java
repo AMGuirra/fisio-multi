@@ -1,4 +1,4 @@
-package com.fisiogestao.calendario.form;
+package com.fisiogestao.agenda.form;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,15 +12,15 @@ import java.time.LocalTime;
 
 @Getter
 @Setter
-public class BloqueioPeriodoForm {
+public class BloqueioAgendaCadastroForm {
 
     @NotNull(message = "Informe a data inicial.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate dataInicio;
+    private LocalDate dataInicial;
 
     @NotNull(message = "Informe a data final.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate dataFim;
+    private LocalDate dataFinal;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     private LocalTime horaInicio;
@@ -28,9 +28,12 @@ public class BloqueioPeriodoForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     private LocalTime horaFim;
 
-    private boolean diaInteiro;
+    private boolean bloqueioDiaInteiro;
 
     @NotBlank(message = "Informe o motivo do bloqueio.")
-    @Size(max = 255)
+    @Size(max = 255, message = "O motivo deve ter até 255 caracteres.")
     private String motivo;
+
+    @Size(max = 2000, message = "A observação deve ter até 2000 caracteres.")
+    private String observacao;
 }

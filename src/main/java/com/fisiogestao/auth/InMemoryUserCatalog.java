@@ -29,6 +29,7 @@ public class InMemoryUserCatalog {
         }
         UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
                 .username("admin")
+                .email("admin@fisiogestao.local")
                 .passwordHash(passwordEncoder.encode("admin"))
                 .role(UserRole.ADMIN)
                 .build();
@@ -60,15 +61,18 @@ public class InMemoryUserCatalog {
     }
 
     @Transactional
-    public SystemUserView criar(String username, String password, UserRole role) {
+    public SystemUserView criar(String username, String email, String password, UserRole role) {
         String normalizedUsername = normalizeUsername(username);
+        String normalizedEmail = normalizeEmail(email);
         String normalizedPassword = normalizePassword(password, true);
         UserRole normalizedRole = normalizeRole(role);
 
         ensureUsernameDisponivel(normalizedUsername, null);
+        ensureEmailDisponivel(normalizedEmail, null);
 
         UsuarioSistemaEntity user = UsuarioSistemaEntity.builder()
                 .username(normalizedUsername)
+                .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(normalizedPassword))
                 .role(normalizedRole)
                 .build();
@@ -79,6 +83,7 @@ public class InMemoryUserCatalog {
     public SystemUserView atualizar(
             UUID id,
             String username,
+            String email,
             String password,
             UserRole role,
             String loggedUsername
@@ -87,8 +92,10 @@ public class InMemoryUserCatalog {
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
         String normalizedUsername = normalizeUsername(username);
+        String normalizedEmail = normalizeEmail(email);
         UserRole normalizedRole = normalizeRole(role);
         ensureUsernameDisponivel(normalizedUsername, id);
+        ensureEmailDisponivel(normalizedEmail, id);
 
         if (existing.getRole() == UserRole.ADMIN
                 && normalizedRole != UserRole.ADMIN
@@ -107,6 +114,7 @@ public class InMemoryUserCatalog {
         }
 
         existing.setUsername(normalizedUsername);
+        existing.setEmail(normalizedEmail);
         existing.setRole(normalizedRole);
 
         String normalizedPassword = normalizePassword(password, false);
@@ -143,6 +151,15 @@ public class InMemoryUserCatalog {
         }
     }
 
+    private void ensureEmailDisponivel(String email, UUID ignoredId) {
+        boolean emailEmUso = ignoredId == null
+                ? repository.existsByEmailIgnoreCase(email)
+                : repository.existsByEmailIgnoreCaseAndIdNot(email, ignoredId);
+        if (emailEmUso) {
+            throw new BusinessException("Já existe um usuário cadastrado com esse e-mail.");
+        }
+    }
+
     private UserRole normalizeRole(UserRole role) {
         if (role == null) {
             throw new BusinessException("Selecione o tipo de usuário.");
@@ -164,6 +181,20 @@ public class InMemoryUserCatalog {
         }
         String normalized = username.trim().toLowerCase(Locale.ROOT);
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            throw new BusinessException("Informe o e-mail.");
+        }
+        String normalized = email.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            throw new BusinessException("Informe o e-mail.");
+        }
+        if (!normalized.contains("@") || normalized.startsWith("@") || normalized.endsWith("@")) {
+            throw new BusinessException("Informe um e-mail válido.");
+        }
+        return normalized;
     }
 
     private String normalizePassword(String password, boolean required) {
@@ -188,12 +219,12 @@ public class InMemoryUserCatalog {
     }
 
     private SystemUserView toView(UsuarioSistemaEntity user) {
-        return new SystemUserView(user.getId(), user.getUsername(), user.getRole(), user.getRole().getLabel());
+        return new SystemUserView(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getRole().getLabel());
     }
 
     public record SystemUserCredentials(String username, String passwordHash, UserRole role) {
     }
 
-    public record SystemUserView(UUID id, String username, UserRole role, String label) {
+    public record SystemUserView(UUID id, String username, String email, UserRole role, String label) {
     }
 }

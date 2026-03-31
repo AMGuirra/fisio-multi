@@ -1,4 +1,4 @@
-CREATE TABLE lancamento_financeiro (
+CREATE TABLE IF NOT EXISTS lancamento_financeiro (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tipo VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL,
@@ -13,4 +13,4 @@ CREATE TABLE lancamento_financeiro (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_lancamento_financeiro_data_competencia ON lancamento_financeiro(data_competencia);
+CREATE INDEX IF NOT EXISTS idx_lancamento_financeiro_data_competencia ON lancamento_financeiro(data_competencia);

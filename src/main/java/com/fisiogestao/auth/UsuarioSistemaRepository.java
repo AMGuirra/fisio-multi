@@ -9,9 +9,15 @@ public interface UsuarioSistemaRepository extends JpaRepository<UsuarioSistemaEn
 
     Optional<UsuarioSistemaEntity> findByUsername(String username);
 
+    Optional<UsuarioSistemaEntity> findByEmailIgnoreCase(String email);
+
     boolean existsByUsername(String username);
 
+    boolean existsByEmailIgnoreCase(String email);
+
     boolean existsByUsernameAndIdNot(String username, UUID id);
+
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
 
     long countByRole(UserRole role);
 }

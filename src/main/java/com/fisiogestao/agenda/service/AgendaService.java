@@ -8,11 +8,10 @@ import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.dto.SlotDisponivelDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
-import com.fisiogestao.agenda.form.BloqueioAgendaForm;
-import com.fisiogestao.agenda.repository.BloqueioAgendaRepository;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PacoteSessaoService;
@@ -43,9 +42,10 @@ public class AgendaService {
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
     private final SessaoRepository sessaoRepository;
     private final HorarioBloqueadoRepository horarioBloqueadoRepository;
-    private final BloqueioAgendaRepository bloqueioAgendaRepository;
     private final PacienteService pacienteService;
     private final PacoteSessaoService pacoteSessaoService;
+    private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
+    private final BloqueioAgendaService bloqueioAgendaService;
 
     public record IntervaloAgenda(OffsetDateTime inicio, OffsetDateTime fim) {
     }
@@ -75,8 +75,7 @@ public class AgendaService {
                         janelaDia.fim(),
                         janelaDia.inicio()
                 );
-        List<BloqueioAgendaEntity> bloqueiosAgenda = bloqueioAgendaRepository
-                .findByAtivoTrueAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(janelaDia.fim(), janelaDia.inicio());
+        List<BloqueioAgendaEntity> bloqueiosAgenda = bloqueioAgendaService.listarAtivosDoDia(data);
 
         ZoneId zoneId = zoneId(configuracao);
         OffsetDateTime agora = OffsetDateTime.now(zoneId);
@@ -179,10 +178,9 @@ public class AgendaService {
             throw new BusinessException("Esse horário acabou de ser reservado por outro atendimento.");
         }
 
-        boolean conflitoBloqueioAgenda = bloqueioAgendaRepository
-                .existsByAtivoTrueAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(fim, inicio);
+        boolean conflitoBloqueioAgenda = bloqueioAgendaService.existeBloqueioAtivo(inicio, fim, null);
         if (conflitoBloqueioAgenda) {
-            throw new BusinessException("Esse horário está bloqueado na agenda da clínica.");
+            throw new BusinessException("Este horário está indisponível por bloqueio da clínica.");
         }
     }
 
@@ -193,6 +191,11 @@ public class AgendaService {
 
     public List<SessaoEntity> listarSessoesDoPaciente(UUID clienteId) {
         return sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteId);
+    }
+
+    public SessaoEntity buscarSessao(UUID sessaoId) {
+        return sessaoRepository.findById(sessaoId)
+                .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
     }
 
     public List<SessaoEntity> listarSessoesNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
@@ -213,30 +216,19 @@ public class AgendaService {
     }
 
     public List<BloqueioAgendaEntity> listarBloqueiosAgendaDoDia(LocalDate data) {
-        IntervaloAgenda janela = janelaDoDia(data, obterConfiguracaoAtiva());
-        return bloqueioAgendaRepository.findByAtivoTrueAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(
-                janela.fim(),
-                janela.inicio()
-        );
+        return bloqueioAgendaService.listarAtivosDoDia(data);
     }
 
     public List<BloqueioAgendaEntity> listarBloqueiosAgendaNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
-        ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
-        ZoneId zoneId = zoneId(configuracao);
-        OffsetDateTime inicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
-        OffsetDateTime fim = fimExclusive.atStartOfDay(zoneId).toOffsetDateTime();
-        return bloqueioAgendaRepository.findByAtivoTrueAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(fim, inicio);
+        return bloqueioAgendaService.listarAtivosNoPeriodo(inicioInclusive, fimExclusive);
     }
 
     @Transactional
-    public SessaoEntity agendarSessaoManual(AgendaManualForm form) {
+    public SessaoEntity agendarSessaoManual(AgendaManualForm form, String profissionalResponsavel) {
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
         validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
-        PacoteSessaoEntity pacote = null;
-        if (form.getPacoteSessaoId() != null) {
-            pacote = pacoteSessaoService.validarDisponivel(form.getPacoteSessaoId());
-        }
+        PacoteSessaoEntity pacote = resolverPacote(form.getClienteId(), form.getPacoteSessaoId(), null);
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(form.getClienteId()))
@@ -247,7 +239,40 @@ public class AgendaService {
                 .tipoAtendimento(texto(form.getTipoAtendimento()))
                 .observacoes(texto(form.getObservacoes()))
                 .build();
-        return sessaoRepository.save(sessao);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        agendamentoEmailNotificationService.notificarConfirmadoPorSessao(salva, profissionalResponsavel);
+        return salva;
+    }
+
+    @Transactional
+    public SessaoEntity atualizarSessaoManual(UUID sessaoId, AgendaManualForm form, String profissionalResponsavel) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+
+        if (sessao.getStatus() != SessaoStatus.AGENDADA) {
+            throw new BusinessException("Somente sessões agendadas podem ser alteradas.");
+        }
+
+        OffsetDateTime inicioAnterior = sessao.getDataHoraInicio();
+        OffsetDateTime fimAnterior = sessao.getDataHoraFim();
+        IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
+        validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, sessaoId);
+
+        sessao.setCliente(pacienteService.buscarPorId(form.getClienteId()));
+        sessao.setPacoteSessao(resolverPacote(
+                form.getClienteId(),
+                form.getPacoteSessaoId(),
+                sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null
+        ));
+        sessao.setDataHoraInicio(intervalo.inicio());
+        sessao.setDataHoraFim(intervalo.fim());
+        sessao.setTipoAtendimento(texto(form.getTipoAtendimento()));
+        sessao.setObservacoes(texto(form.getObservacoes()));
+
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        if (!inicioAnterior.equals(salva.getDataHoraInicio()) || !fimAnterior.equals(salva.getDataHoraFim())) {
+            agendamentoEmailNotificationService.notificarReagendado(salva, inicioAnterior, fimAnterior, profissionalResponsavel);
+        }
+        return salva;
     }
 
     @Transactional
@@ -274,7 +299,7 @@ public class AgendaService {
     }
 
     @Transactional
-    public SessaoEntity reagendarSessao(UUID sessaoId, LocalDate data, LocalTime horario) {
+    public SessaoEntity reagendarSessao(UUID sessaoId, LocalDate data, LocalTime horario, String profissionalResponsavel) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
 
@@ -282,109 +307,35 @@ public class AgendaService {
             throw new BusinessException("Apenas sessões agendadas podem ser reagendadas.");
         }
 
+        OffsetDateTime inicioAnterior = sessao.getDataHoraInicio();
+        OffsetDateTime fimAnterior = sessao.getDataHoraFim();
         IntervaloAgenda intervalo = montarIntervalo(data, horario);
         validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, sessaoId);
 
         sessao.setDataHoraInicio(intervalo.inicio());
         sessao.setDataHoraFim(intervalo.fim());
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        agendamentoEmailNotificationService.notificarReagendado(salva, inicioAnterior, fimAnterior, profissionalResponsavel);
+        return salva;
+    }
+
+    @Transactional
+    public SessaoEntity cancelarSessao(UUID sessaoId, String observacoes) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+        if (sessao.getStatus() == SessaoStatus.REALIZADA) {
+            throw new BusinessException("Sessões realizadas permanecem no histórico e não podem ser canceladas.");
+        }
+        if (sessao.getStatus() == SessaoStatus.CANCELADA) {
+            return sessao;
+        }
+        sessao.setStatus(SessaoStatus.CANCELADA);
+        if (texto(observacoes) != null) {
+            String historico = texto(sessao.getObservacoes());
+            sessao.setObservacoes(historico == null
+                    ? "Cancelamento: " + texto(observacoes)
+                    : (historico + System.lineSeparator() + "Cancelamento: " + texto(observacoes)));
+        }
         return sessaoRepository.save(sessao);
-    }
-
-    @Transactional
-    public BloqueioAgendaEntity criarBloqueioAgenda(BloqueioAgendaForm form, String usuario) {
-        ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
-        ZoneId zoneId = zoneId(configuracao);
-        OffsetDateTime inicio = form.getData().atTime(form.getHoraInicio()).atZone(zoneId).toOffsetDateTime();
-        OffsetDateTime fim = form.getData().atTime(form.getHoraFim()).atZone(zoneId).toOffsetDateTime();
-
-        if (!inicio.isBefore(fim)) {
-            throw new BusinessException("O bloqueio precisa terminar depois do horário inicial.");
-        }
-        validarHorarioDisponivel(inicio, fim, null, null);
-
-        BloqueioAgendaEntity bloqueio = BloqueioAgendaEntity.builder()
-                .dataHoraInicio(inicio)
-                .dataHoraFim(fim)
-                .motivo(form.getMotivo().trim())
-                .criadoPor(usuario)
-                .ativo(true)
-                .build();
-        return bloqueioAgendaRepository.save(bloqueio);
-    }
-
-    @Transactional
-    public List<BloqueioAgendaEntity> criarBloqueioPeriodo(
-            LocalDate dataInicio,
-            LocalDate dataFim,
-            LocalTime horaInicio,
-            LocalTime horaFim,
-            boolean diaInteiro,
-            String motivo,
-            String usuario
-    ) {
-        if (dataInicio == null || dataFim == null) {
-            throw new BusinessException("Informe o período inicial e final do bloqueio.");
-        }
-        if (dataFim.isBefore(dataInicio)) {
-            throw new BusinessException("A data final não pode ser anterior à data inicial.");
-        }
-        if (motivo == null || motivo.isBlank()) {
-            throw new BusinessException("Informe o motivo do bloqueio.");
-        }
-
-        ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
-        ZoneId zoneId = zoneId(configuracao);
-
-        LocalTime inicioHoraReal = diaInteiro ? configuracao.getHorarioAbertura() : horaInicio;
-        LocalTime fimHoraReal = diaInteiro ? configuracao.getHorarioFechamento() : horaFim;
-
-        if (inicioHoraReal == null || fimHoraReal == null || !inicioHoraReal.isBefore(fimHoraReal)) {
-            throw new BusinessException("Horário de bloqueio inválido.");
-        }
-
-        ArrayList<BloqueioAgendaEntity> criados = new ArrayList<>();
-
-        LocalDate cursor = dataInicio;
-        while (!cursor.isAfter(dataFim)) {
-            OffsetDateTime inicio = cursor.atTime(inicioHoraReal).atZone(zoneId).toOffsetDateTime();
-            OffsetDateTime fim = cursor.atTime(fimHoraReal).atZone(zoneId).toOffsetDateTime();
-
-            boolean possuiSessaoNoPeriodo = sessaoRepository.existsByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(
-                    STATUS_SESSAO_OCUPADA, fim, inicio
-            );
-            if (possuiSessaoNoPeriodo) {
-                throw new BusinessException("Há sessão agendada no dia " + cursor + ". Reagende/cancele as sessões antes de bloquear.");
-            }
-
-            boolean jaExisteBloqueio = bloqueioAgendaRepository.existsByAtivoTrueAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(
-                    fim, inicio
-            );
-            if (!jaExisteBloqueio) {
-                BloqueioAgendaEntity bloqueio = BloqueioAgendaEntity.builder()
-                        .dataHoraInicio(inicio)
-                        .dataHoraFim(fim)
-                        .motivo(motivo.trim())
-                        .criadoPor(usuario)
-                        .ativo(true)
-                        .build();
-                criados.add(bloqueioAgendaRepository.save(bloqueio));
-            }
-
-            cursor = cursor.plusDays(1);
-        }
-
-        if (criados.isEmpty()) {
-            throw new BusinessException("Nenhum bloqueio foi criado. O período já estava bloqueado.");
-        }
-        return criados;
-    }
-
-    @Transactional
-    public void desativarBloqueioAgenda(UUID bloqueioId) {
-        BloqueioAgendaEntity bloqueio = bloqueioAgendaRepository.findById(bloqueioId)
-                .orElseThrow(() -> new BusinessException("Bloqueio não encontrado."));
-        bloqueio.setAtivo(false);
-        bloqueioAgendaRepository.save(bloqueio);
     }
 
     private IntervaloAgenda janelaDoDia(LocalDate data, ConfiguracaoClinicaEntity configuracao) {
@@ -407,6 +358,22 @@ public class AgendaService {
         }
         return inicio.isBefore(configuracao.getHorarioFimAlmoco())
                 && fim.isAfter(configuracao.getHorarioInicioAlmoco());
+    }
+
+    private PacoteSessaoEntity resolverPacote(UUID clienteId, UUID pacoteSessaoId, UUID pacoteAtualId) {
+        if (pacoteSessaoId == null) {
+            return null;
+        }
+
+        PacoteSessaoEntity pacote = pacoteSessaoService.buscarPorId(pacoteSessaoId)
+                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+        if (!pacote.getCliente().getId().equals(clienteId)) {
+            throw new BusinessException("O pacote selecionado não pertence ao paciente informado.");
+        }
+        if (pacoteAtualId != null && pacoteAtualId.equals(pacoteSessaoId)) {
+            return pacote;
+        }
+        return pacoteSessaoService.validarDisponivel(pacoteSessaoId);
     }
 
     private String texto(String valor) {

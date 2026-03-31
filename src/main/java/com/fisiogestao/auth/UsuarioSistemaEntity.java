@@ -26,6 +26,9 @@ public class UsuarioSistemaEntity extends BaseEntity {
     @Column(nullable = false, unique = true, length = 40)
     private String username;
 
+    @Column(length = 160)
+    private String email;
+
     @Column(name = "password_hash", nullable = false, length = 120)
     private String passwordHash;
 

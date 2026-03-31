@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Agendamento reagendado', ~{::section})}">
+<section>
+    <p>Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p>Seu atendimento foi reagendado.</p>
+    <p><strong>Horário anterior:</strong> <span th:text="${dataAnterior}">01/01/2026</span> às <span th:text="${horaAnterior}">09:00</span></p>
+    <p><strong>Novo horário:</strong> <span th:text="${data}">01/01/2026</span> às <span th:text="${hora}">10:00</span></p>
+    <p><strong>Unidade/local:</strong> <span th:text="${local}">Clínica</span></p>
+    <p><strong>Profissional:</strong> <span th:text="${profissional}">Equipe da clínica</span></p>
+    <p><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações.</span></p>
+</section>
+</body>
+</html>

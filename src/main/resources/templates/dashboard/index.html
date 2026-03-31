@@ -26,28 +26,40 @@
         <ul class="sidebar-nav">
             <li>
                 <a href="/dashboard"
-                   class="sidebar-link">
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/dashboard' ? ' active' : ''}">
                     <span class="sidebar-link-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>
                     <span class="sidebar-link-label">Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="/agenda"
-                   class="sidebar-link">
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/agenda' ? ' active' : ''}">
                     <span class="sidebar-link-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
                     <span class="sidebar-link-label">Agenda</span>
                 </a>
             </li>
             <li>
                 <a href="/calendario"
-                   class="sidebar-link">
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/calendario' ? ' active' : ''}">
                     <span class="sidebar-link-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
                     <span class="sidebar-link-label">Calendário</span>
                 </a>
             </li>
             <li>
+                <a href="/bloqueios"
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/bloqueios' ? ' active' : ''}">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Bloqueios</span>
+                </a>
+            </li>
+            <li>
                 <a href="/solicitacoes"
-                   class="sidebar-link">
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/solicitacoes' ? ' active' : ''}">
                     <span class="sidebar-link-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
                     <span class="sidebar-link-label">Solicitações</span>
                 </a>
@@ -74,6 +86,13 @@
                 </a>
             </li>
             <li>
+                <a href="/relatorios"
+                   class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Relatórios</span>
+                </a>
+            </li>
+            <li th:if="${loggedUserRole == 'ADMIN'}">
                 <a href="/usuarios"
                    class="sidebar-link">
                     <span class="sidebar-link-icon"><i data-lucide="users" aria-hidden="true"></i></span>
@@ -150,7 +169,6 @@
                     <h1 class="hero-title">Visão geral da sua clínica</h1>
                     <p class="hero-subtitle">Métricas em tempo real para acompanhar pacientes, sessões e saúde financeira.</p>
                 </div>
-                <span class="hero-pill">SaaS Premium UI</span>
             </section>
 
             <section class="metrics-grid" aria-label="Resumo de métricas">
@@ -231,6 +249,11 @@
                                 <p class="quick-action-label">Calendário</p>
                                 <p class="quick-action-hint">Gestão mensal</p>
                             </a>
+                            <a href="/bloqueios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Bloqueios</p>
+                                <p class="quick-action-hint">Indisponibilidades</p>
+                            </a>
                             <a href="/solicitacoes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Solicitações</p>
@@ -255,6 +278,11 @@
                                 <span class="quick-action-icon"><i data-lucide="banknote" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Financeiro</p>
                                 <p class="quick-action-hint">Fluxo de caixa</p>
+                            </a>
+                            <a href="/relatorios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Relatórios</p>
+                                <p class="quick-action-hint">Exportar e enviar</p>
                             </a>
                             <a href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
@@ -310,4 +338,3 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
-

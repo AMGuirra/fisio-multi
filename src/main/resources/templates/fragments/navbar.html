@@ -34,6 +34,12 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="/bloqueios" class="sidebar-nav-link">
+                        <i data-lucide="calendar-x-2"></i>
+                        <span>Bloqueios</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="/solicitacoes" class="sidebar-nav-link">
                         <i data-lucide="calendar-plus"></i>
                         <span>Solicitações</span>
@@ -58,6 +64,12 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="/relatorios" class="sidebar-nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
                     <a href="/usuarios" class="sidebar-nav-link">
                         <i data-lucide="users"></i>
                         <span>Usuários</span>

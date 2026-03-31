@@ -29,6 +29,11 @@ public class FinanceiroService {
         return lancamentoFinanceiroRepository.findAllByOrderByDataCompetenciaDescCreatedAtDesc();
     }
 
+    public LancamentoFinanceiroEntity buscarPorId(UUID id) {
+        return lancamentoFinanceiroRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
+    }
+
     @Transactional
     public LancamentoFinanceiroEntity criarManual(LancamentoFinanceiroForm form) {
         LancamentoFinanceiroEntity lancamento = LancamentoFinanceiroEntity.builder()

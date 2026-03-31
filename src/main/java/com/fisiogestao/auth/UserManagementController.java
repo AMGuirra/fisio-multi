@@ -1,7 +1,10 @@
 package com.fisiogestao.auth;
 
 import com.fisiogestao.auth.form.UsuarioForm;
+import com.fisiogestao.auth.service.PasswordResetService;
+import com.fisiogestao.email.service.EmailDispatchResult;
 import com.fisiogestao.shared.web.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -24,6 +27,7 @@ import java.util.UUID;
 public class UserManagementController {
 
     private final InMemoryUserCatalog userCatalog;
+    private final PasswordResetService passwordResetService;
 
     @GetMapping
     public String listar(
@@ -36,6 +40,7 @@ public class UserManagementController {
         if (editarId != null) {
             userCatalog.buscarPorId(editarId).ifPresentOrElse(usuario -> {
                 form.setUsername(usuario.username());
+                form.setEmail(usuario.email());
                 form.setRole(usuario.role());
                 model.addAttribute("editingUserId", usuario.id());
                 model.addAttribute("editMode", true);
@@ -50,6 +55,7 @@ public class UserManagementController {
     public String criar(
             @Valid @ModelAttribute("usuarioForm") UsuarioForm form,
             BindingResult bindingResult,
+            HttpServletRequest request,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -62,8 +68,16 @@ public class UserManagementController {
         }
 
         try {
-            userCatalog.criar(form.getUsername(), form.getPassword(), form.getRole());
+            InMemoryUserCatalog.SystemUserView user = userCatalog.criar(form.getUsername(), form.getEmail(), form.getPassword(), form.getRole());
+            EmailDispatchResult onboardingResult = passwordResetService.enviarEmailBoasVindasParaUsuarioId(
+                    user.id(),
+                    request.getRemoteAddr(),
+                    request.getHeader("User-Agent")
+            );
             redirectAttributes.addFlashAttribute("successMessage", "Usuário cadastrado com sucesso.");
+            if (!onboardingResult.sent()) {
+                redirectAttributes.addFlashAttribute("warningMessage", "O usuário foi cadastrado, mas o e-mail de acesso não pôde ser enviado agora.");
+            }
             return "redirect:/usuarios";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
@@ -95,6 +109,7 @@ public class UserManagementController {
             userCatalog.atualizar(
                     id,
                     form.getUsername(),
+                    form.getEmail(),
                     form.getPassword(),
                     form.getRole(),
                     authentication != null ? authentication.getName() : null
@@ -119,6 +134,25 @@ public class UserManagementController {
         try {
             userCatalog.excluir(id, authentication != null ? authentication.getName() : null);
             redirectAttributes.addFlashAttribute("successMessage", "Usuário excluído com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/usuarios";
+    }
+
+    @PostMapping("/{id}/reenviar-acesso")
+    public String reenviarAcesso(
+            @PathVariable UUID id,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            EmailDispatchResult result = passwordResetService.enviarEmailBoasVindasParaUsuarioId(
+                    id,
+                    request.getRemoteAddr(),
+                    request.getHeader("User-Agent")
+            );
+            redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

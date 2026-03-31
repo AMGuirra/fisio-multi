@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Agendamento não confirmado', ~{::section})}">
+<section>
+    <p>Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p>Infelizmente não foi possível confirmar o horário solicitado.</p>
+    <p><strong>Horário solicitado:</strong> <span th:text="${dataHora}">01/01/2026 10:00</span></p>
+    <p><strong>Unidade/local:</strong> <span th:text="${local}">Clínica</span></p>
+    <p><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações.</span></p>
+</section>
+</body>
+</html>

@@ -1,10 +1,10 @@
 package com.fisiogestao.agenda;
 
 import com.fisiogestao.agenda.form.AgendaManualForm;
-import com.fisiogestao.agenda.form.BloqueioAgendaForm;
-import com.fisiogestao.agenda.form.EditarHorarioSessaoForm;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
+import com.fisiogestao.pacientes.service.PacoteSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +32,16 @@ public class AgendaController {
 
     private final AgendaService agendaService;
     private final PacienteService pacienteService;
+    private final PacoteSessaoService pacoteSessaoService;
 
     @GetMapping
     public String agenda(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(required = false) UUID editar,
             Model model
     ) {
         LocalDate dataSelecionada = data != null ? data : LocalDate.now();
-        prepararPaginaComFallback(model, dataSelecionada, new AgendaManualForm(), new BloqueioAgendaForm(), null);
+        prepararPaginaComFallback(model, dataSelecionada, new AgendaManualForm(), editar, null);
         return "agenda/index";
     }
 
@@ -47,49 +49,69 @@ public class AgendaController {
     public String criarSessao(
             @Valid @ModelAttribute("agendaManualForm") AgendaManualForm form,
             BindingResult bindingResult,
+            Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate dataSelecionada = form.getData() != null ? form.getData() : LocalDate.now();
 
         if (bindingResult.hasErrors()) {
-            prepararPaginaComFallback(model, dataSelecionada, form, new BloqueioAgendaForm(), null);
+            prepararPaginaComFallback(model, dataSelecionada, form, null, null);
             return "agenda/index";
         }
 
         try {
-            agendaService.agendarSessaoManual(form);
+            agendaService.agendarSessaoManual(form, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Sessão agendada com sucesso.");
             return "redirect:/agenda?data=" + form.getData();
         } catch (BusinessException ex) {
-            prepararPaginaComFallback(model, dataSelecionada, form, new BloqueioAgendaForm(), ex.getMessage());
+            prepararPaginaComFallback(model, dataSelecionada, form, null, ex.getMessage());
             return "agenda/index";
         }
     }
 
-    @PostMapping("/bloqueios")
-    public String criarBloqueio(
-            @Valid @ModelAttribute("bloqueioAgendaForm") BloqueioAgendaForm form,
+    @PostMapping("/sessoes/{id}")
+    public String editarSessao(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("sessaoEdicaoForm") AgendaManualForm form,
             BindingResult bindingResult,
-            Model model,
             Authentication authentication,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
-        LocalDate dataSelecionada = form.getData() != null ? form.getData() : LocalDate.now();
-
+        LocalDate retorno = form.getData() != null ? form.getData() : LocalDate.now();
         if (bindingResult.hasErrors()) {
-            prepararPaginaComFallback(model, dataSelecionada, new AgendaManualForm(), form, null);
+            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, "Revise os dados da sessão antes de salvar.");
+            model.addAttribute("sessaoEdicaoForm", form);
             return "agenda/index";
         }
 
         try {
-            agendaService.criarBloqueioAgenda(form, authentication.getName());
-            redirectAttributes.addFlashAttribute("successMessage", "Bloqueio criado com sucesso.");
-            return "redirect:/agenda?data=" + form.getData();
+            agendaService.atualizarSessaoManual(id, form, authentication != null ? authentication.getName() : "Equipe da clínica");
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão atualizada com sucesso.");
         } catch (BusinessException ex) {
-            prepararPaginaComFallback(model, dataSelecionada, new AgendaManualForm(), form, ex.getMessage());
+            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, ex.getMessage());
+            model.addAttribute("sessaoEdicaoForm", form);
             return "agenda/index";
         }
+        return "redirect:/agenda?data=" + retorno;
+    }
+
+    @PostMapping("/sessoes/{id}/cancelar")
+    public String cancelarSessao(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String observacoes,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = data != null ? data : LocalDate.now();
+        try {
+            agendaService.cancelarSessao(id, observacoes);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão cancelada com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/agenda?data=" + retorno;
     }
 
     @PostMapping("/sessoes/{id}/realizar")
@@ -105,37 +127,15 @@ public class AgendaController {
         return "redirect:/agenda?data=" + retorno;
     }
 
-    @PostMapping("/sessoes/{id}/horario")
-    public String editarHorarioSessao(
-            @PathVariable UUID id,
-            @Valid @ModelAttribute EditarHorarioSessaoForm form,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes
-    ) {
-        LocalDate retorno = form.getData() != null ? form.getData() : LocalDate.now();
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Informe data e horário válidos para reagendar a sessão.");
-            return "redirect:/agenda?data=" + retorno;
-        }
-
-        try {
-            agendaService.reagendarSessao(id, form.getData(), form.getHorario());
-            redirectAttributes.addFlashAttribute("successMessage", "Sessão reagendada com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/agenda?data=" + retorno;
-    }
-
     private void prepararPaginaComFallback(
             Model model,
             LocalDate data,
             AgendaManualForm agendaForm,
-            BloqueioAgendaForm bloqueioForm,
+            UUID sessaoEdicaoId,
             String errorMessage
     ) {
         try {
-            prepararPagina(model, data, agendaForm, bloqueioForm);
+            prepararPagina(model, data, agendaForm, sessaoEdicaoId);
             model.addAttribute("agendaConfigurada", true);
             if (errorMessage != null) {
                 model.addAttribute("errorMessage", errorMessage);
@@ -143,9 +143,6 @@ public class AgendaController {
         } catch (BusinessException ex) {
             if (agendaForm.getData() == null) {
                 agendaForm.setData(data);
-            }
-            if (bloqueioForm.getData() == null) {
-                bloqueioForm.setData(data);
             }
 
             model.addAttribute("agendaConfigurada", false);
@@ -156,19 +153,25 @@ public class AgendaController {
             model.addAttribute("horariosBloqueados", List.of());
             model.addAttribute("bloqueiosAgenda", List.of());
             model.addAttribute("pacientes", List.of());
+            model.addAttribute("pacotesAgenda", List.of());
             model.addAttribute("agendaManualForm", agendaForm);
-            model.addAttribute("bloqueioAgendaForm", bloqueioForm);
+            model.addAttribute("editMode", false);
             model.addAttribute("errorMessage", errorMessage != null ? errorMessage : ex.getMessage());
         }
     }
 
-    private void prepararPagina(Model model, LocalDate data, AgendaManualForm agendaForm, BloqueioAgendaForm bloqueioForm) {
+    private void prepararPagina(Model model, LocalDate data, AgendaManualForm agendaForm, UUID sessaoEdicaoId) {
         if (agendaForm.getData() == null) {
             agendaForm.setData(data);
         }
-        if (bloqueioForm.getData() == null) {
-            bloqueioForm.setData(data);
+        AgendaManualForm sessaoEdicaoForm = null;
+        SessaoEntity sessaoEmEdicao = null;
+        if (sessaoEdicaoId != null) {
+            sessaoEmEdicao = agendaService.buscarSessao(sessaoEdicaoId);
+            sessaoEdicaoForm = mapearSessaoParaFormulario(sessaoEmEdicao);
         }
+
+        List<PacoteSessaoEntity> pacotesAgenda = listarPacotesAgenda(sessaoEmEdicao);
         model.addAttribute("dataSelecionada", data);
         model.addAttribute("configuracaoClinica", agendaService.obterConfiguracaoAtiva());
         model.addAttribute("slots", agendaService.gerarSlotsDisponiveis(data, false));
@@ -176,7 +179,34 @@ public class AgendaController {
         model.addAttribute("horariosBloqueados", agendaService.listarHorariosBloqueadosDoDia(data));
         model.addAttribute("bloqueiosAgenda", agendaService.listarBloqueiosAgendaDoDia(data));
         model.addAttribute("pacientes", pacienteService.listarAtivos());
+        model.addAttribute("pacotesAgenda", pacotesAgenda);
         model.addAttribute("agendaManualForm", agendaForm);
-        model.addAttribute("bloqueioAgendaForm", bloqueioForm);
+        model.addAttribute("editMode", sessaoEmEdicao != null);
+        model.addAttribute("sessaoEmEdicao", sessaoEmEdicao);
+        if (!model.containsAttribute("sessaoEdicaoForm")) {
+            model.addAttribute("sessaoEdicaoForm", sessaoEdicaoForm != null ? sessaoEdicaoForm : new AgendaManualForm());
+        }
+    }
+
+    private AgendaManualForm mapearSessaoParaFormulario(SessaoEntity sessao) {
+        AgendaManualForm form = new AgendaManualForm();
+        form.setClienteId(sessao.getCliente().getId());
+        form.setPacoteSessaoId(sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null);
+        form.setData(sessao.getDataHoraInicio().toLocalDate());
+        form.setHorario(sessao.getDataHoraInicio().toLocalTime());
+        form.setTipoAtendimento(sessao.getTipoAtendimento());
+        form.setObservacoes(sessao.getObservacoes());
+        return form;
+    }
+
+    private List<PacoteSessaoEntity> listarPacotesAgenda(SessaoEntity sessaoEmEdicao) {
+        List<PacoteSessaoEntity> pacotes = new java.util.ArrayList<>(pacoteSessaoService.listarDisponiveisParaAgenda());
+        if (sessaoEmEdicao != null && sessaoEmEdicao.getPacoteSessao() != null) {
+            boolean presente = pacotes.stream().anyMatch(item -> item.getId().equals(sessaoEmEdicao.getPacoteSessao().getId()));
+            if (!presente) {
+                pacotes.add(sessaoEmEdicao.getPacoteSessao());
+            }
+        }
+        return pacotes;
     }
 }

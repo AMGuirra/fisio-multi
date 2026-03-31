@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+<button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+<aside class="app-sidebar" id="appSidebar">
+    <a href="/dashboard" class="sidebar-brand"><span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span><span class="sidebar-brand-copy"><span class="sidebar-brand-title">FisioGestao</span><span class="sidebar-brand-subtitle">Painel Clínico</span></span></a>
+    <ul class="sidebar-nav">
+        <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+        <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+        <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+        <li><a href="/bloqueios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
+        <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+        <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+        <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+        <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+        <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+        <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+        <form th:action="@{/logout}" method="post"><button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button></form>
+    </div>
+</aside>
+<div class="app-shell">
+    <header class="app-header">
+        <div class="header-left"><button class="header-toggle mobile-toggle" id="mobileMenuToggle"><i data-lucide="menu"></i></button><button class="header-toggle desktop-toggle" id="sidebarCollapseToggle"><i data-lucide="panel-left"></i></button><div class="header-copy"><h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername}">Bom dia</h2><p class="header-date skeletonable" id="headerFullDate"></p></div></div>
+        <div class="header-right"><div class="header-clock skeletonable" id="liveClock"></div></div>
+    </header>
+    <main class="dashboard-main crud-main">
+        <section class="hero-card crud-hero">
+            <div class="hero-content"><h1 class="hero-title">Central de Relatórios e E-mails</h1><p class="hero-subtitle">Visualize indicadores, exporte PDF/Excel e dispare relatórios, lembretes e cobranças usando a infraestrutura central de e-mail.</p></div>
+            <a th:if="${loggedUserRole == 'ADMIN'}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="settings"></i>SMTP</a>
+        </section>
+        <div class="flash-stack">
+            <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+            <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+        </div>
+
+        <section class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="filter"></i> Filtros do relatório</h3></header>
+            <div class="section-body">
+                <form th:action="@{/relatorios}" th:object="${filtroRelatorioForm}" method="get" class="modern-form">
+                    <div class="form-grid form-grid-two">
+                        <div class="form-field"><label for="dataInicial">Data inicial</label><input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}"></div>
+                        <div class="form-field"><label for="dataFinal">Data final</label><input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}"></div>
+                    </div>
+                    <div class="form-grid form-grid-two">
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirPacientes}"> Pacientes</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirAgenda}"> Agenda</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirFinanceiro}"> Financeiro</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirSolicitacoes}"> Solicitações</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="action-button primary"><i data-lucide="search"></i>Atualizar visão</button>
+                        <a th:href="@{/relatorios/exportar(formato='PDF',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="file-text"></i>PDF</a>
+                        <a th:href="@{/relatorios/exportar(formato='EXCEL',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="sheet"></i>Excel</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-card receita"><span class="summary-icon"><i data-lucide="users"></i></span><p class="summary-label">Pacientes</p><p class="summary-value" th:text="${relatorio.pacientes.size()}">0</p></article>
+            <article class="summary-card saldo"><span class="summary-icon"><i data-lucide="calendar-check"></i></span><p class="summary-label">Sessões</p><p class="summary-value" th:text="${relatorio.sessoes.size()}">0</p></article>
+            <article class="summary-card despesa"><span class="summary-icon"><i data-lucide="wallet"></i></span><p class="summary-label">Receitas / Despesas</p><p class="summary-value" th:text="${'R$ ' + relatorio.totalReceitas + ' / ' + relatorio.totalDespesas}">R$ 0,00</p></article>
+        </section>
+
+        <section class="crud-layout two-column">
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="mail"></i> Enviar relatório</h3></header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios/enviar}" th:object="${envioRelatorioForm}" method="post" class="modern-form">
+                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
+                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
+                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
+                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
+                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
+                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
+                        <div class="form-field"><label for="destinatario">Destinatário</label><input id="destinatario" type="email" class="form-control" th:field="*{destinatario}"></div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="formato">Formato</label><select id="formato" class="form-select" th:field="*{formato}"><option value="PDF">PDF</option><option value="EXCEL">Excel</option></select></div>
+                            <div class="form-field"><label for="assunto">Assunto</label><input id="assunto" class="form-control" th:field="*{assunto}"></div>
+                        </div>
+                        <div class="form-field"><label for="mensagem">Mensagem</label><textarea id="mensagem" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
+                        <button type="submit" class="action-button primary"><i data-lucide="send"></i>Enviar relatório</button>
+                    </form>
+                </div>
+            </article>
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="bell-ring"></i> Lembretes</h3></header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios/lembretes}" th:object="${lembreteEmailForm}" method="post" class="modern-form">
+                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
+                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
+                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
+                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
+                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
+                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
+                        <div class="form-field"><label for="emailDestinatario">E-mail</label><input id="emailDestinatario" type="email" class="form-control" th:field="*{emailDestinatario}"></div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="nomeDestinatario">Nome</label><input id="nomeDestinatario" class="form-control" th:field="*{nomeDestinatario}"></div>
+                            <div class="form-field"><label for="tipo">Tipo</label><select id="tipo" class="form-select" th:field="*{tipo}"><option th:each="tipo : ${tiposLembrete}" th:value="${tipo}" th:text="${tipo}"></option></select></div>
+                        </div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="dataReferencia">Data</label><input id="dataReferencia" type="date" class="form-control" th:field="*{dataReferencia}"></div>
+                            <div class="form-field"><label for="horaReferencia">Hora</label><input id="horaReferencia" type="time" class="form-control" th:field="*{horaReferencia}"></div>
+                        </div>
+                        <div class="form-field"><label for="assuntoLembrete">Assunto</label><input id="assuntoLembrete" class="form-control" th:field="*{assunto}"></div>
+                        <div class="form-field"><label for="mensagemLembrete">Mensagem</label><textarea id="mensagemLembrete" rows="3" class="form-control" th:field="*{mensagem}"></textarea></div>
+                        <button type="submit" class="action-button success"><i data-lucide="bell-ring"></i>Enviar lembrete</button>
+                    </form>
+                </div>
+            </article>
+        </section>
+
+        <section class="crud-layout form-table">
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="badge-dollar-sign"></i> Cobrança por e-mail</h3></header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios/cobrancas}" th:object="${cobrancaEmailForm}" method="post" class="modern-form">
+                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
+                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
+                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
+                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
+                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
+                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
+                        <div class="form-field">
+                            <label for="lancamentoId">Lançamento</label>
+                            <select id="lancamentoId" class="form-select" th:field="*{lancamentoId}">
+                                <option value="">Selecione...</option>
+                                <option th:each="item : ${lancamentosPendentes}" th:value="${item.id}" th:text="${item.descricao + ' - R$ ' + item.valor}"></option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label for="emailDestinatarioCobranca">E-mail</label><input id="emailDestinatarioCobranca" type="email" class="form-control" th:field="*{emailDestinatario}"></div>
+                        <div class="form-field"><label for="assuntoCobranca">Assunto</label><input id="assuntoCobranca" class="form-control" th:field="*{assunto}"></div>
+                        <div class="form-field"><label for="mensagemCobranca">Mensagem</label><textarea id="mensagemCobranca" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
+                        <button type="submit" class="action-button danger"><i data-lucide="mail-warning"></i>Enviar cobrança</button>
+                    </form>
+                </div>
+            </article>
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="table-properties"></i> Dados filtrados</h3></header>
+                <div class="section-body">
+                    <div class="section-block" th:if="${!relatorio.sessoes.isEmpty()}">
+                        <h4 class="section-subtitle">Sessões</h4>
+                        <div class="data-table-wrap"><table class="data-table compact"><thead><tr><th>Paciente</th><th>Início</th><th>Status</th></tr></thead><tbody><tr th:each="sessao : ${relatorio.sessoes}"><td th:text="${sessao.cliente.nomeCompleto}">Paciente</td><td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td><td th:text="${sessao.status}">Status</td></tr></tbody></table></div>
+                    </div>
+                    <div class="section-block" th:if="${!relatorio.lancamentos.isEmpty()}">
+                        <h4 class="section-subtitle">Financeiro</h4>
+                        <div class="data-table-wrap"><table class="data-table compact"><thead><tr><th>Descrição</th><th>Tipo</th><th>Valor</th></tr></thead><tbody><tr th:each="item : ${relatorio.lancamentos}"><td th:text="${item.descricao}">Desc</td><td th:text="${item.tipo}">Tipo</td><td th:text="${'R$ ' + item.valor}">0</td></tr></tbody></table></div>
+                    </div>
+                    <div class="section-block" th:if="${!relatorio.solicitacoes.isEmpty()}">
+                        <h4 class="section-subtitle">Solicitações</h4>
+                        <div class="data-table-wrap"><table class="data-table compact"><thead><tr><th>Paciente</th><th>Data</th><th>Status</th></tr></thead><tbody><tr th:each="item : ${relatorio.solicitacoes}"><td th:text="${item.nomePaciente}">Paciente</td><td th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td><td th:text="${item.status}">Status</td></tr></tbody></table></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+    <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+<script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

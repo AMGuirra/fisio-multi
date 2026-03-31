@@ -38,3 +38,6 @@ server:
 
 app:
   timezone: America/Campo_Grande
+  base-url: ${APP_BASE_URL:http://localhost:8083}
+  security:
+    encryption-key: ${APP_ENCRYPTION_KEY:}

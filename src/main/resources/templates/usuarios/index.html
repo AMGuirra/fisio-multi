@@ -42,6 +42,12 @@
                 </a>
             </li>
             <li>
+                <a href="/bloqueios" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span>
+                    <span class="sidebar-link-label">Bloqueios</span>
+                </a>
+            </li>
+            <li>
                 <a href="/solicitacoes" class="sidebar-link">
                     <span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span>
                     <span class="sidebar-link-label">Solicitações</span>
@@ -63,6 +69,12 @@
                 <a href="/financeiro" class="sidebar-link">
                     <span class="sidebar-link-icon"><i data-lucide="wallet"></i></span>
                     <span class="sidebar-link-label">Financeiro</span>
+                </a>
+            </li>
+            <li>
+                <a href="/relatorios" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="file-text"></i></span>
+                    <span class="sidebar-link-label">Relatórios</span>
                 </a>
             </li>
             <li>
@@ -139,6 +151,10 @@
                     <i data-lucide="circle-check"></i>
                     <span th:text="${successMessage}">Sucesso</span>
                 </div>
+                <div th:if="${warningMessage}" class="flash-message warning">
+                    <i data-lucide="triangle-alert"></i>
+                    <span th:text="${warningMessage}">Aviso</span>
+                </div>
                 <div th:if="${errorMessage}" class="flash-message error">
                     <i data-lucide="triangle-alert"></i>
                     <span th:text="${errorMessage}">Erro</span>
@@ -158,50 +174,68 @@
                               th:object="${usuarioForm}"
                               method="post"
                               class="modern-form">
-                            <div class="form-field">
-                                <label for="username">Usuário</label>
-                                <input id="username"
-                                       type="text"
-                                       class="form-control"
-                                       th:field="*{username}"
-                                       maxlength="40"
-                                       required>
-                                <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="username">Usuário</label>
+                                    <input id="username"
+                                           type="text"
+                                           class="form-control"
+                                           th:field="*{username}"
+                                           maxlength="40"
+                                           required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="email">E-mail</label>
+                                    <input id="email"
+                                           type="email"
+                                           class="form-control"
+                                           th:field="*{email}"
+                                           maxlength="160"
+                                           placeholder="usuario@clinica.com"
+                                           required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                                </div>
                             </div>
 
-                            <div class="form-field">
-                                <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
-                                <input id="password"
-                                       type="password"
-                                       class="form-control"
-                                       th:field="*{password}"
-                                       maxlength="120"
-                                       th:attr="required=${!editMode}">
-                                <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
-                                <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
+                                    <input id="password"
+                                           type="password"
+                                           class="form-control"
+                                           th:field="*{password}"
+                                           maxlength="120"
+                                           th:attr="required=${!editMode}">
+                                    <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                                    <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="role">Tipo</label>
+                                    <select id="role" class="form-select" th:field="*{role}" required>
+                                        <option th:each="tipo : ${tiposUsuario}"
+                                                th:value="${tipo}"
+                                                th:text="${tipo.label}">
+                                            Administrador
+                                        </option>
+                                    </select>
+                                    <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
+                                </div>
                             </div>
 
-                            <div class="form-field">
-                                <label for="role">Tipo</label>
-                                <select id="role" class="form-select" th:field="*{role}" required>
-                                    <option th:each="tipo : ${tiposUsuario}"
-                                            th:value="${tipo}"
-                                            th:text="${tipo.label}">
-                                        Administrador
-                                    </option>
-                                </select>
-                                <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
+                            <div class="form-actions">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="save"></i>
+                                    <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
+                                </button>
+
+                                <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
+                                    <i data-lucide="x"></i>
+                                    Cancelar edição
+                                </a>
                             </div>
-
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="save"></i>
-                                <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
-                            </button>
-
-                            <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
-                                <i data-lucide="x"></i>
-                                Cancelar edição
-                            </a>
                         </form>
                     </div>
                 </article>
@@ -224,6 +258,7 @@
                             <thead>
                             <tr>
                                 <th>Usuário</th>
+                                <th>E-mail</th>
                                 <th>Tipo</th>
                                 <th class="text-right">Ações</th>
                             </tr>
@@ -240,6 +275,12 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div>
+                                        <p class="entity-name" th:text="${user.email}">email@exemplo.com</p>
+                                        <p class="entity-meta">Canal principal de acesso</p>
+                                    </div>
+                                </td>
+                                <td>
                                     <span class="chip"
                                           th:classappend="${' role-' + #strings.toLowerCase(user.role.name())}"
                                           th:text="${user.label}">
@@ -253,6 +294,16 @@
                                            aria-label="Editar usuário">
                                             <i data-lucide="pencil"></i>
                                         </a>
+
+                                        <form th:action="@{/usuarios/{id}/reenviar-acesso(id=${user.id})}"
+                                              method="post"
+                                              class="inline-form">
+                                            <button type="submit"
+                                                    class="action-button success inline-icon"
+                                                    aria-label="Reenviar acesso por e-mail">
+                                                <i data-lucide="send"></i>
+                                            </button>
+                                        </form>
 
                                         <form th:if="${loggedUsername != user.username}"
                                               th:action="@{/usuarios/{id}/excluir(id=${user.id})}"
@@ -282,5 +333,3 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
-
-

@@ -4,10 +4,14 @@ import com.fisiogestao.agenda.HorarioBloqueadoEntity;
 import com.fisiogestao.agenda.HorarioBloqueadoStatus;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.BloqueioAgendaOrigem;
+import com.fisiogestao.agenda.form.BloqueioAgendaCadastroForm;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.agenda.service.BloqueioAgendaService;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.config.TimezoneConfig;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
@@ -41,9 +45,11 @@ public class SolicitacaoAgendamentoService {
     private final HorarioBloqueadoRepository horarioBloqueadoRepository;
     private final SessaoRepository sessaoRepository;
     private final AgendaService agendaService;
+    private final BloqueioAgendaService bloqueioAgendaService;
     private final PacienteService pacienteService;
     private final PacoteSessaoService pacoteSessaoService;
     private final WhatsAppService whatsAppService;
+    private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
 
     public List<SolicitacaoAgendamentoEntity> listarPendentes() {
         return solicitacaoAgendamentoRepository.findByStatusOrderByCreatedAtAsc(SolicitacaoStatus.PENDENTE);
@@ -107,6 +113,7 @@ public class SolicitacaoAgendamentoService {
                 "Nova solicitação de agendamento para " + salva.getNomePaciente() + " às " + form.getHorario() + ".",
                 "SOLICITACAO:" + salva.getId()
         );
+        agendamentoEmailNotificationService.notificarAguardandoConfirmacao(salva);
         return salva;
     }
 
@@ -171,6 +178,7 @@ public class SolicitacaoAgendamentoService {
                         + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0) + ".",
                 "APROVACAO:" + solicitacao.getId()
         );
+        agendamentoEmailNotificationService.notificarConfirmadoPorSolicitacao(solicitacao);
         return salva;
     }
 
@@ -195,6 +203,7 @@ public class SolicitacaoAgendamentoService {
                 "Seu pedido de agendamento não pôde ser confirmado. Entre em contato para escolher outro horário.",
                 "REJEICAO:" + solicitacao.getId()
         );
+        agendamentoEmailNotificationService.notificarRecusado(solicitacao);
     }
 
     @Transactional
@@ -247,10 +256,15 @@ public class SolicitacaoAgendamentoService {
             motivoBloqueio = "Bloqueio originado da solicitação de " + solicitacao.getNomePaciente();
         }
 
-        LocalDate data = solicitacao.getDataHoraInicio().toLocalDate();
-        LocalTime inicio = solicitacao.getDataHoraInicio().toLocalTime();
-        LocalTime fim = solicitacao.getDataHoraFim().toLocalTime();
-        agendaService.criarBloqueioPeriodo(data, data, inicio, fim, false, motivoBloqueio, usuario);
+        BloqueioAgendaCadastroForm form = new BloqueioAgendaCadastroForm();
+        form.setDataInicial(solicitacao.getDataHoraInicio().toLocalDate());
+        form.setDataFinal(solicitacao.getDataHoraInicio().toLocalDate());
+        form.setHoraInicio(solicitacao.getDataHoraInicio().toLocalTime());
+        form.setHoraFim(solicitacao.getDataHoraFim().toLocalTime());
+        form.setBloqueioDiaInteiro(false);
+        form.setMotivo(motivoBloqueio);
+        form.setObservacao("Bloqueio criado a partir da solicitação online de " + solicitacao.getNomePaciente() + ".");
+        bloqueioAgendaService.criar(form, usuario, BloqueioAgendaOrigem.ONLINE);
 
         solicitacao.setStatus(SolicitacaoStatus.CANCELADA);
         solicitacaoAgendamentoRepository.save(solicitacao);

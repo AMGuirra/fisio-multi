@@ -3,21 +3,17 @@ package com.fisiogestao.calendario;
 import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.service.AgendaService;
-import com.fisiogestao.calendario.form.BloqueioPeriodoForm;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +25,7 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,59 +48,6 @@ public class CalendarioController {
         YearMonth mesSelecionado = parseMes(mes);
         carregarPagina(model, mesSelecionado);
         return "calendario/index";
-    }
-
-    @PostMapping("/bloqueios")
-    public String criarBloqueio(
-            @Valid @ModelAttribute("bloqueioPeriodoForm") BloqueioPeriodoForm form,
-            BindingResult bindingResult,
-            @RequestParam(name = "mesContexto", required = false) String mesContexto,
-            Authentication authentication,
-            RedirectAttributes redirectAttributes
-    ) {
-        YearMonth mesSelecionado = parseMes(mesContexto);
-
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Preencha corretamente os dados do bloqueio.");
-            return redirectMes(mesSelecionado);
-        }
-
-        try {
-            String usuario = authentication != null ? authentication.getName() : "sistema";
-            agendaService.criarBloqueioPeriodo(
-                    form.getDataInicio(),
-                    form.getDataFim(),
-                    form.getHoraInicio(),
-                    form.getHoraFim(),
-                    form.isDiaInteiro(),
-                    form.getMotivo(),
-                    usuario
-            );
-            redirectAttributes.addFlashAttribute("successMessage", "Bloqueio criado com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível criar o bloqueio.");
-        }
-        return redirectMes(mesSelecionado);
-    }
-
-    @PostMapping("/bloqueios/{id}/desativar")
-    public String desativarBloqueio(
-            @PathVariable UUID id,
-            @RequestParam(name = "mesContexto", required = false) String mesContexto,
-            RedirectAttributes redirectAttributes
-    ) {
-        YearMonth mesSelecionado = parseMes(mesContexto);
-        try {
-            agendaService.desativarBloqueioAgenda(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Bloqueio removido com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível remover o bloqueio.");
-        }
-        return redirectMes(mesSelecionado);
     }
 
     @PostMapping("/solicitacoes/{id}/aprovar")
@@ -212,13 +156,6 @@ public class CalendarioController {
         model.addAttribute("bloqueiosAtivosMes", bloqueiosMes.stream()
                 .sorted((a, b) -> a.getDataHoraInicio().compareTo(b.getDataHoraInicio()))
                 .toList());
-
-        BloqueioPeriodoForm bloqueioForm = new BloqueioPeriodoForm();
-        bloqueioForm.setDataInicio(LocalDate.now());
-        bloqueioForm.setDataFim(LocalDate.now());
-        bloqueioForm.setDiaInteiro(true);
-        bloqueioForm.setMotivo("Evento externo");
-        model.addAttribute("bloqueioPeriodoForm", bloqueioForm);
     }
 
     private List<List<CalendarioDiaView>> montarSemanas(
@@ -232,6 +169,10 @@ public class CalendarioController {
                 .filter(sol -> sol.getStatus() == SolicitacaoStatus.PENDENTE)
                 .collect(Collectors.groupingBy(sol -> sol.getDataHoraInicio().toLocalDate(), Collectors.counting()));
         Map<LocalDate, Long> bloqueiosPorDia = countByDate(bloqueiosMes, bloqueio -> bloqueio.getDataHoraInicio().toLocalDate());
+        Map<LocalDate, List<BloqueioAgendaEntity>> bloqueiosDetalhadosPorDia = new HashMap<>();
+        bloqueiosMes.forEach(bloqueio -> bloqueiosDetalhadosPorDia
+                .computeIfAbsent(bloqueio.getDataHoraInicio().toLocalDate(), ignored -> new ArrayList<>())
+                .add(bloqueio));
 
         ArrayList<CalendarioDiaView> dias = new ArrayList<>();
         LocalDate primeiroDia = mesSelecionado.atDay(1);
@@ -248,6 +189,7 @@ public class CalendarioController {
                     sessoesPorDia.getOrDefault(data, 0L),
                     solicitacoesPendentesPorDia.getOrDefault(data, 0L),
                     bloqueiosPorDia.getOrDefault(data, 0L),
+                    resumoBloqueios(bloqueiosDetalhadosPorDia.getOrDefault(data, List.of())),
                     data.equals(LocalDate.now())
             ));
         }
@@ -279,16 +221,30 @@ public class CalendarioController {
         return "redirect:/calendario?mes=" + mesSelecionado;
     }
 
+    private List<String> resumoBloqueios(List<BloqueioAgendaEntity> bloqueios) {
+        return bloqueios.stream()
+                .sorted((a, b) -> a.getDataHoraInicio().compareTo(b.getDataHoraInicio()))
+                .limit(2)
+                .map(bloqueio -> {
+                    if (Boolean.TRUE.equals(bloqueio.getDiaInteiro())) {
+                        return "Dia inteiro - " + bloqueio.getMotivo();
+                    }
+                    return bloqueio.getHoraInicio() + " às " + bloqueio.getHoraFim() + " - " + bloqueio.getMotivo();
+                })
+                .toList();
+    }
+
     public record CalendarioDiaView(
             LocalDate data,
             boolean pertenceAoMes,
             long sessoes,
             long solicitacoesPendentes,
             long bloqueios,
+            List<String> resumosBloqueio,
             boolean hoje
     ) {
         public static CalendarioDiaView vazio() {
-            return new CalendarioDiaView(null, false, 0, 0, 0, false);
+            return new CalendarioDiaView(null, false, 0, 0, 0, List.of(), false);
         }
     }
 }
