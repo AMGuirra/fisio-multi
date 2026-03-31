@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfig {
@@ -19,6 +20,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Avoid sporadic 403 on custom form login when CSRF/session token is lost between requests.
+                .csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/login", "POST")))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/login",

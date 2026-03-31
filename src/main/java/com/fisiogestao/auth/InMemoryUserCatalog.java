@@ -28,9 +28,7 @@ public class InMemoryUserCatalog {
         if (!users.isEmpty()) {
             return;
         }
-        addSeed("admin", "admin123", UserRole.ADMIN);
-        addSeed("adm", "adm123", UserRole.ADMINISTRATIVO);
-        addSeed("fisio", "fisio123", UserRole.FISIOTERAPEUTA);
+        addSeed("admin", "admin", UserRole.ADMIN);
     }
 
     public synchronized List<SystemUserView> listar() {
