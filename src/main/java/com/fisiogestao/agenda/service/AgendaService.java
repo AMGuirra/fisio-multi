@@ -56,6 +56,10 @@ public class AgendaService {
     }
 
     public List<SlotDisponivelDto> gerarSlotsDisponiveis(LocalDate data) {
+        return gerarSlotsDisponiveis(data, true);
+    }
+
+    public List<SlotDisponivelDto> gerarSlotsDisponiveis(LocalDate data, boolean filtrarPassados) {
         ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
         if (!configuracao.diasFuncionamentoSet().contains(data.getDayOfWeek())) {
             return List.of();
@@ -85,7 +89,7 @@ public class AgendaService {
             OffsetDateTime inicioSlot = data.atTime(cursor).atZone(zoneId).toOffsetDateTime();
             OffsetDateTime fimSlot = data.atTime(fim).atZone(zoneId).toOffsetDateTime();
 
-            if (inicioSlot.isBefore(agora)) {
+            if (filtrarPassados && inicioSlot.isBefore(agora)) {
                 cursor = fim;
                 continue;
             }

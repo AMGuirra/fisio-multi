@@ -171,7 +171,7 @@ public class AgendaController {
         }
         model.addAttribute("dataSelecionada", data);
         model.addAttribute("configuracaoClinica", agendaService.obterConfiguracaoAtiva());
-        model.addAttribute("slots", agendaService.gerarSlotsDisponiveis(data));
+        model.addAttribute("slots", agendaService.gerarSlotsDisponiveis(data, false));
         model.addAttribute("sessoes", agendaService.listarSessoesDoDia(data));
         model.addAttribute("horariosBloqueados", agendaService.listarHorariosBloqueadosDoDia(data));
         model.addAttribute("bloqueiosAgenda", agendaService.listarBloqueiosAgendaDoDia(data));

@@ -5,11 +5,10 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,138 +20,124 @@ public class InMemoryUserCatalog {
     private static final int MIN_PASSWORD_LENGTH = 4;
 
     private final PasswordEncoder passwordEncoder;
-    private final Map<UUID, SystemUser> users = new LinkedHashMap<>();
+    private final UsuarioSistemaRepository repository;
 
     @PostConstruct
     void seedDefaults() {
-        if (!users.isEmpty()) {
+        if (repository.count() > 0) {
             return;
         }
-        addSeed("admin", "admin", UserRole.ADMIN);
+        UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
+                .username("admin")
+                .passwordHash(passwordEncoder.encode("admin"))
+                .role(UserRole.ADMIN)
+                .build();
+        repository.save(admin);
     }
 
-    public synchronized List<SystemUserView> listar() {
-        return users.values().stream()
+    public List<SystemUserView> listar() {
+        return repository.findAll().stream()
                 .map(this::toView)
                 .toList();
     }
 
-    public synchronized List<UserRole> listarPerfis() {
+    public List<UserRole> listarPerfis() {
         return List.of(UserRole.values());
     }
 
-    public synchronized Optional<SystemUserView> buscarPorId(UUID id) {
-        return Optional.ofNullable(users.get(id))
+    public Optional<SystemUserView> buscarPorId(UUID id) {
+        return repository.findById(id)
                 .map(this::toView);
     }
 
-    public synchronized Optional<SystemUserCredentials> buscarCredenciais(String username) {
+    public Optional<SystemUserCredentials> buscarCredenciais(String username) {
         String normalized = normalizeUsernameForLookup(username);
         if (normalized == null) {
             return Optional.empty();
         }
-        return users.values().stream()
-                .filter(user -> user.username().equals(normalized))
-                .findFirst()
-                .map(user -> new SystemUserCredentials(user.username(), user.passwordHash(), user.role()));
+        return repository.findByUsername(normalized)
+                .map(user -> new SystemUserCredentials(user.getUsername(), user.getPasswordHash(), user.getRole()));
     }
 
-    public synchronized SystemUserView criar(String username, String password, UserRole role) {
+    @Transactional
+    public SystemUserView criar(String username, String password, UserRole role) {
         String normalizedUsername = normalizeUsername(username);
         String normalizedPassword = normalizePassword(password, true);
         UserRole normalizedRole = normalizeRole(role);
 
         ensureUsernameDisponivel(normalizedUsername, null);
 
-        SystemUser user = new SystemUser(
-                UUID.randomUUID(),
-                normalizedUsername,
-                passwordEncoder.encode(normalizedPassword),
-                normalizedRole
-        );
-        users.put(user.id(), user);
-        return toView(user);
+        UsuarioSistemaEntity user = UsuarioSistemaEntity.builder()
+                .username(normalizedUsername)
+                .passwordHash(passwordEncoder.encode(normalizedPassword))
+                .role(normalizedRole)
+                .build();
+        return toView(repository.save(user));
     }
 
-    public synchronized SystemUserView atualizar(
+    @Transactional
+    public SystemUserView atualizar(
             UUID id,
             String username,
             String password,
             UserRole role,
             String loggedUsername
     ) {
-        SystemUser existing = users.get(id);
-        if (existing == null) {
-            throw new BusinessException("Usuário não encontrado.");
-        }
+        UsuarioSistemaEntity existing = repository.findById(id)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
         String normalizedUsername = normalizeUsername(username);
         UserRole normalizedRole = normalizeRole(role);
         ensureUsernameDisponivel(normalizedUsername, id);
 
-        if (existing.role() == UserRole.ADMIN
+        if (existing.getRole() == UserRole.ADMIN
                 && normalizedRole != UserRole.ADMIN
-                && contarAdminsInterno() == 1) {
+                && repository.countByRole(UserRole.ADMIN) == 1) {
             throw new BusinessException("Não é possível remover o papel de administrador do único admin do sistema.");
         }
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
         boolean editingCurrentSession = normalizedLoggedUsername != null
-                && existing.username().equals(normalizedLoggedUsername);
-        if (editingCurrentSession && !existing.username().equals(normalizedUsername)) {
+                && existing.getUsername().equals(normalizedLoggedUsername);
+        if (editingCurrentSession && !existing.getUsername().equals(normalizedUsername)) {
             throw new BusinessException("Não é permitido alterar o usuário da sessão atual.");
         }
-        if (editingCurrentSession && existing.role() != normalizedRole) {
+        if (editingCurrentSession && existing.getRole() != normalizedRole) {
             throw new BusinessException("Não é permitido alterar o tipo do usuário da sessão atual.");
         }
 
-        String updatedPasswordHash = existing.passwordHash();
+        existing.setUsername(normalizedUsername);
+        existing.setRole(normalizedRole);
+
         String normalizedPassword = normalizePassword(password, false);
         if (normalizedPassword != null) {
-            updatedPasswordHash = passwordEncoder.encode(normalizedPassword);
+            existing.setPasswordHash(passwordEncoder.encode(normalizedPassword));
         }
 
-        SystemUser updated = new SystemUser(
-                existing.id(),
-                normalizedUsername,
-                updatedPasswordHash,
-                normalizedRole
-        );
-        users.put(updated.id(), updated);
-        return toView(updated);
+        return toView(repository.save(existing));
     }
 
-    public synchronized void excluir(UUID id, String loggedUsername) {
-        SystemUser existing = users.get(id);
-        if (existing == null) {
-            throw new BusinessException("Usuário não encontrado.");
-        }
+    @Transactional
+    public void excluir(UUID id, String loggedUsername) {
+        UsuarioSistemaEntity existing = repository.findById(id)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
-        if (normalizedLoggedUsername != null && existing.username().equals(normalizedLoggedUsername)) {
+        if (normalizedLoggedUsername != null && existing.getUsername().equals(normalizedLoggedUsername)) {
             throw new BusinessException("Você não pode excluir o usuário que está logado.");
         }
 
-        if (existing.role() == UserRole.ADMIN && contarAdminsInterno() == 1) {
+        if (existing.getRole() == UserRole.ADMIN && repository.countByRole(UserRole.ADMIN) == 1) {
             throw new BusinessException("Não é possível excluir o único administrador do sistema.");
         }
 
-        users.remove(id);
-    }
-
-    private void addSeed(String username, String rawPassword, UserRole role) {
-        SystemUser user = new SystemUser(
-                UUID.randomUUID(),
-                username,
-                passwordEncoder.encode(rawPassword),
-                role
-        );
-        users.put(user.id(), user);
+        repository.delete(existing);
     }
 
     private void ensureUsernameDisponivel(String username, UUID ignoredId) {
-        boolean usernameEmUso = users.values().stream()
-                .anyMatch(user -> user.username().equals(username) && !Objects.equals(user.id(), ignoredId));
+        boolean usernameEmUso = ignoredId == null
+                ? repository.existsByUsername(username)
+                : repository.existsByUsernameAndIdNot(username, ignoredId);
         if (usernameEmUso) {
             throw new BusinessException("Já existe um usuário cadastrado com esse nome.");
         }
@@ -202,38 +187,13 @@ public class InMemoryUserCatalog {
         return normalized;
     }
 
-    private long contarAdminsInterno() {
-        return users.values().stream()
-                .filter(user -> user.role() == UserRole.ADMIN)
-                .count();
-    }
-
-    private SystemUserView toView(SystemUser user) {
-        return new SystemUserView(user.id(), user.username(), user.role(), user.role().getLabel());
-    }
-
-    private record SystemUser(UUID id, String username, String passwordHash, UserRole role) {
+    private SystemUserView toView(UsuarioSistemaEntity user) {
+        return new SystemUserView(user.getId(), user.getUsername(), user.getRole(), user.getRole().getLabel());
     }
 
     public record SystemUserCredentials(String username, String passwordHash, UserRole role) {
     }
 
     public record SystemUserView(UUID id, String username, UserRole role, String label) {
-    }
-
-    public enum UserRole {
-        ADMIN("Administrador"),
-        ADMINISTRATIVO("Administrativo"),
-        FISIOTERAPEUTA("Fisioterapeuta");
-
-        private final String label;
-
-        UserRole(String label) {
-            this.label = label;
-        }
-
-        public String getLabel() {
-            return label;
-        }
     }
 }

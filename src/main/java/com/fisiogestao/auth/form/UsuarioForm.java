@@ -1,6 +1,6 @@
 package com.fisiogestao.auth.form;
 
-import com.fisiogestao.auth.InMemoryUserCatalog;
+import com.fisiogestao.auth.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,5 +19,5 @@ public class UsuarioForm {
     private String password;
 
     @NotNull(message = "Selecione o tipo de usuário.")
-    private InMemoryUserCatalog.UserRole role;
+    private UserRole role;
 }
