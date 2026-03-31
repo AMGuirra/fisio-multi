@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumo de Pacotes - FisioGestao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Consumo Pacotes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Consumo de Pacotes</h1>
+                    <p class="hero-subtitle">CRUD completo para criar, ajustar consumo, atualizar status e cancelar pacotes dos pacientes.</p>
+                </div>
+                <span class="hero-pill">Pacotes</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="summary-grid">
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="package-open"></i></span>
+                    <p class="summary-label">Pacotes do Paciente</p>
+                    <p class="summary-value" th:text="${totalPacotes}">0</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="calendar-check-2"></i></span>
+                    <p class="summary-label">Sessões Contratadas</p>
+                    <p class="summary-value" th:text="${totalSessoesContratadas}">0</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="timer"></i></span>
+                    <p class="summary-label">Sessões Disponíveis</p>
+                    <p class="summary-value" th:text="${totalSessoesDisponiveis}">0</p>
+                </article>
+            </section>
+
+            <section class="section-card">
+                <div class="section-body">
+                    <form method="get" th:action="@{/pacotes-consumo}" class="modern-form">
+                        <div class="form-field">
+                            <label for="paciente">Paciente</label>
+                            <select id="paciente" name="paciente" class="form-select" onchange="this.form.submit()" required>
+                                <option th:if="${pacientes == null or pacientes.empty}" value="">Nenhum paciente disponível</option>
+                                <option th:each="paciente : ${pacientes}" th:value="${paciente.id}" th:selected="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id}" th:text="${paciente.nomeCompleto}">Paciente</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="section-card" th:if="${pacienteSelecionado == null}">
+                <div class="section-body">
+                    <div class="empty-box">
+                        <i data-lucide="user-x"></i>
+                        <p>Cadastre um paciente para começar a gerenciar consumo de pacotes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Pacote</h3>
+                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/pacotes-consumo}" th:object="${pacoteConsumoForm}" method="post" class="modern-form">
+                            <input type="hidden" th:field="*{clienteId}">
+                            <div class="form-field">
+                                <label for="novo-nome">Nome do pacote</label>
+                                <input id="novo-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-contratadas">Sessões contratadas</label>
+                                <input id="novo-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-consumidas">Sessões consumidas</label>
+                                <input id="novo-consumidas" type="number" min="0" class="form-control" th:field="*{sessoesConsumidas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesConsumidas')}" th:errors="*{sessoesConsumidas}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-valor">Valor total</label>
+                                <input id="novo-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-data-inicio">Data inicial</label>
+                                <input id="novo-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-data-validade">Data de validade</label>
+                                <input id="novo-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
+                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="novo-status">Status</label>
+                                <select id="novo-status" class="form-select" th:field="*{status}" required>
+                                    <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+                            </div>
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Criar Pacote
+                            </button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="package-open"></i> Pacotes Cadastrados</h3>
+                        <p class="section-subtitle" th:text="${pacotes != null ? pacotes.size() + ' registros' : '0 registros'}">0 registros</p>
+                    </header>
+                    <div class="section-body" th:if="${pacotes == null or pacotes.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="archive-x"></i>
+                            <p>Nenhum pacote cadastrado para este paciente.</p>
+                        </div>
+                    </div>
+                    <div class="data-table-wrap" th:unless="${pacotes == null or pacotes.empty}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Pacote</th>
+                                    <th>Consumo</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pacote : ${pacotes}">
+                                    <td>
+                                        <p class="entity-name" th:text="${pacote.nomePacote}">Pacote</p>
+                                        <p class="entity-meta" th:text="${'Início: ' + #temporals.format(pacote.dataInicio, 'dd/MM/yyyy')}">Início</p>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
+                                        <p class="entity-meta" th:text="${pacote.dataValidade != null ? 'Validade: ' + #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : 'Sem validade'}">Validade</p>
+                                    </td>
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
+                                              th:text="${pacote.status.name()}">ATIVO</span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="table-actions">
+                                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id})}" class="action-button ghost">
+                                                <i data-lucide="pencil"></i>
+                                                Editar
+                                            </a>
+                                            <form th:action="@{/pacotes-consumo/{id}/cancelar(id=${pacote.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
+                                                <button type="submit" class="action-button danger"
+                                                        th:disabled="${pacote.status.name() == 'CANCELADO'}">
+                                                    <i data-lucide="x-circle"></i>
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="section-card" th:if="${pacoteEmEdicao != null}">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="square-pen"></i> Editar Pacote</h3>
+                    <p class="section-subtitle" th:text="${pacoteEmEdicao.nomePacote}">Pacote</p>
+                </header>
+                <div class="section-body">
+                    <form th:action="@{/pacotes-consumo/{id}(id=${pacoteEmEdicao.id})}" th:object="${pacoteEdicaoForm}" method="post" class="modern-form">
+                        <div class="calendar-inline-grid">
+                            <div class="form-field">
+                                <label for="editar-cliente">Paciente</label>
+                                <select id="editar-cliente" class="form-select" th:field="*{clienteId}" required>
+                                    <option th:each="paciente : ${pacientes}" th:value="${paciente.id}" th:text="${paciente.nomeCompleto}">Paciente</option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="editar-status">Status</label>
+                                <select id="editar-status" class="form-select" th:field="*{status}" required>
+                                    <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+                            </div>
+                        </div>
+                        <div class="calendar-inline-grid">
+                            <div class="form-field">
+                                <label for="editar-nome">Nome do pacote</label>
+                                <input id="editar-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="editar-valor">Valor total</label>
+                                <input id="editar-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                            </div>
+                        </div>
+                        <div class="calendar-inline-grid">
+                            <div class="form-field">
+                                <label for="editar-contratadas">Sessões contratadas</label>
+                                <input id="editar-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="editar-consumidas">Sessões consumidas</label>
+                                <input id="editar-consumidas" type="number" min="0" class="form-control" th:field="*{sessoesConsumidas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesConsumidas')}" th:errors="*{sessoesConsumidas}"></p>
+                            </div>
+                        </div>
+                        <div class="calendar-inline-grid">
+                            <div class="form-field">
+                                <label for="editar-data-inicio">Data inicial</label>
+                                <input id="editar-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="editar-data-validade">Data de validade</label>
+                                <input id="editar-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
+                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
+                            </div>
+                        </div>
+                        <div class="table-actions">
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Atualizar Pacote
+                            </button>
+                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId})}" class="action-button ghost">
+                                <i data-lucide="x"></i>
+                                Fechar Edição
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

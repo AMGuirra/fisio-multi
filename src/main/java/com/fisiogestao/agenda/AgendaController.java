@@ -2,6 +2,7 @@ package com.fisiogestao.agenda;
 
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.form.BloqueioAgendaForm;
+import com.fisiogestao.agenda.form.EditarHorarioSessaoForm;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/agenda")
@@ -100,6 +102,28 @@ public class AgendaController {
         agendaService.marcarComoRealizada(id, observacoes);
         redirectAttributes.addFlashAttribute("successMessage", "Sessão marcada como realizada.");
         LocalDate retorno = data != null ? data : LocalDate.now();
+        return "redirect:/agenda?data=" + retorno;
+    }
+
+    @PostMapping("/sessoes/{id}/horario")
+    public String editarHorarioSessao(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute EditarHorarioSessaoForm form,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = form.getData() != null ? form.getData() : LocalDate.now();
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Informe data e horário válidos para reagendar a sessão.");
+            return "redirect:/agenda?data=" + retorno;
+        }
+
+        try {
+            agendaService.reagendarSessao(id, form.getData(), form.getHorario());
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão reagendada com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
         return "redirect:/agenda?data=" + retorno;
     }
 

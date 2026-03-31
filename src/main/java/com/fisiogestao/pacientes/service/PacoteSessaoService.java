@@ -3,6 +3,7 @@ package com.fisiogestao.pacientes.service;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.form.PacoteConsumoForm;
 import com.fisiogestao.pacientes.form.PacoteSessaoForm;
 import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
@@ -41,9 +42,7 @@ public class PacoteSessaoService {
 
     @Transactional
     public PacoteSessaoEntity criar(UUID clienteId, PacoteSessaoForm form) {
-        if (form.getDataValidade() != null && form.getDataValidade().isBefore(form.getDataInicio())) {
-            throw new BusinessException("A validade do pacote não pode ser anterior à data inicial.");
-        }
+        validarPeriodo(form.getDataInicio(), form.getDataValidade());
 
         PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(clienteId))
@@ -58,6 +57,58 @@ public class PacoteSessaoService {
         PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
         financeiroService.registrarReceitaPacote(salvo);
         return salvo;
+    }
+
+    @Transactional
+    public PacoteSessaoEntity criarViaCrud(PacoteConsumoForm form) {
+        validarPeriodo(form.getDataInicio(), form.getDataValidade());
+        validarConsumo(form.getSessoesConsumidas(), form.getSessoesContratadas());
+
+        PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
+                .cliente(pacienteService.buscarPorId(form.getClienteId()))
+                .nomePacote(form.getNomePacote().trim())
+                .sessoesContratadas(form.getSessoesContratadas())
+                .sessoesConsumidas(form.getSessoesConsumidas())
+                .valorTotal(form.getValorTotal())
+                .dataInicio(form.getDataInicio())
+                .dataValidade(form.getDataValidade())
+                .status(statusAjustado(form.getStatus(), form.getSessoesConsumidas(), form.getSessoesContratadas(), form.getDataValidade()))
+                .build();
+        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        financeiroService.registrarReceitaPacote(salvo);
+        return salvo;
+    }
+
+    @Transactional
+    public PacoteSessaoEntity atualizarViaCrud(UUID pacoteId, PacoteConsumoForm form) {
+        validarPeriodo(form.getDataInicio(), form.getDataValidade());
+        validarConsumo(form.getSessoesConsumidas(), form.getSessoesContratadas());
+
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+
+        pacote.setCliente(pacienteService.buscarPorId(form.getClienteId()));
+        pacote.setNomePacote(form.getNomePacote().trim());
+        pacote.setSessoesContratadas(form.getSessoesContratadas());
+        pacote.setSessoesConsumidas(form.getSessoesConsumidas());
+        pacote.setValorTotal(form.getValorTotal());
+        pacote.setDataInicio(form.getDataInicio());
+        pacote.setDataValidade(form.getDataValidade());
+        pacote.setStatus(statusAjustado(
+                form.getStatus(),
+                form.getSessoesConsumidas(),
+                form.getSessoesContratadas(),
+                form.getDataValidade()
+        ));
+        return pacoteSessaoRepository.save(pacote);
+    }
+
+    @Transactional
+    public void cancelar(UUID pacoteId) {
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+        pacote.setStatus(PacoteSessaoStatus.CANCELADO);
+        pacoteSessaoRepository.save(pacote);
     }
 
     @Transactional
@@ -87,5 +138,35 @@ public class PacoteSessaoService {
             return false;
         }
         return pacote.getSessoesConsumidas() < pacote.getSessoesContratadas();
+    }
+
+    private void validarPeriodo(LocalDate dataInicio, LocalDate dataValidade) {
+        if (dataValidade != null && dataValidade.isBefore(dataInicio)) {
+            throw new BusinessException("A validade do pacote não pode ser anterior à data inicial.");
+        }
+    }
+
+    private void validarConsumo(Integer sessoesConsumidas, Integer sessoesContratadas) {
+        if (sessoesConsumidas > sessoesContratadas) {
+            throw new BusinessException("As sessões consumidas não podem ser maiores do que as sessões contratadas.");
+        }
+    }
+
+    private PacoteSessaoStatus statusAjustado(
+            PacoteSessaoStatus statusSolicitado,
+            Integer sessoesConsumidas,
+            Integer sessoesContratadas,
+            LocalDate dataValidade
+    ) {
+        if (statusSolicitado == PacoteSessaoStatus.CANCELADO) {
+            return PacoteSessaoStatus.CANCELADO;
+        }
+        if (sessoesConsumidas >= sessoesContratadas) {
+            return PacoteSessaoStatus.CONCLUIDO;
+        }
+        if (dataValidade != null && dataValidade.isBefore(LocalDate.now())) {
+            return PacoteSessaoStatus.EXPIRADO;
+        }
+        return PacoteSessaoStatus.ATIVO;
     }
 }

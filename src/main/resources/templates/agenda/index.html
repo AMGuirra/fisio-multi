@@ -28,6 +28,7 @@
             <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
             <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
             <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Consumo Pacotes</span></a></li>
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
             <li><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
@@ -114,6 +115,19 @@
                                     </div>
                                     <div class="session-actions">
                                         <span class="chip" th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}" th:text="${sessao.status.name()}">STATUS</span>
+                                        <details th:if="${sessao.status.name() == 'AGENDADA'}">
+                                            <summary class="action-button ghost">Editar horário</summary>
+                                            <form th:action="@{/agenda/sessoes/{id}/horario(id=${sessao.id})}" method="post" class="modern-form" style="margin-top:8px; min-width:220px;">
+                                                <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                <div class="form-field">
+                                                    <label th:for="${'horario-' + sessao.id}">Novo horário</label>
+                                                    <input th:id="${'horario-' + sessao.id}" type="time" name="horario" class="form-control"
+                                                           step="60" required
+                                                           th:value="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">
+                                                </div>
+                                                <button type="submit" class="action-button primary">Salvar</button>
+                                            </form>
+                                        </details>
                                         <form th:if="${sessao.status.name() == 'AGENDADA'}" th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button ghost inline-icon" aria-label="Marcar sessão como realizada"><i data-lucide="check"></i></button>

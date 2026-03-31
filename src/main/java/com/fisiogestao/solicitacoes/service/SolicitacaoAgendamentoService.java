@@ -79,7 +79,7 @@ public class SolicitacaoAgendamentoService {
     public SolicitacaoAgendamentoEntity criarSolicitacaoPublica(AgendamentoOnlineForm form) {
         LocalTime horario = parseHorario(form.getHorario());
         AgendaService.IntervaloAgenda intervalo = agendaService.montarIntervalo(form.getData(), horario);
-        agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null);
+        agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
         SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
                 .nomePaciente(form.getNomePaciente().trim())
@@ -127,7 +127,8 @@ public class SolicitacaoAgendamentoService {
         agendaService.validarHorarioDisponivel(
                 solicitacao.getDataHoraInicio(),
                 solicitacao.getDataHoraFim(),
-                bloqueio.getId()
+                bloqueio.getId(),
+                null
         );
 
         ClienteEntity cliente = pacienteService.localizarOuCriar(
@@ -205,7 +206,7 @@ public class SolicitacaoAgendamentoService {
                 .orElseThrow(() -> new BusinessException("Bloqueio temporário da solicitação não encontrado."));
 
         AgendaService.IntervaloAgenda novoIntervalo = agendaService.montarIntervalo(form.getData(), form.getHorario());
-        agendaService.validarHorarioDisponivel(novoIntervalo.inicio(), novoIntervalo.fim(), bloqueio.getId());
+        agendaService.validarHorarioDisponivel(novoIntervalo.inicio(), novoIntervalo.fim(), bloqueio.getId(), null);
 
         solicitacao.setDataHoraInicio(novoIntervalo.inicio());
         solicitacao.setDataHoraFim(novoIntervalo.fim());

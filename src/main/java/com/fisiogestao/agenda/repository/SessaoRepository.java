@@ -17,6 +17,12 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             OffsetDateTime dataHoraInicio
     );
 
+    List<SessaoEntity> findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(
+            Collection<SessaoStatus> statuses,
+            OffsetDateTime dataHoraFim,
+            OffsetDateTime dataHoraInicio
+    );
+
     List<SessaoEntity> findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(
             OffsetDateTime inicio,
             OffsetDateTime fim
