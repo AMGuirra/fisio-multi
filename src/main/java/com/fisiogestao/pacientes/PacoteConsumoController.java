@@ -103,6 +103,23 @@ public class PacoteConsumoController {
         return "redirect:/pacotes-consumo" + (destinoPaciente.isBlank() ? "" : "?paciente=" + destinoPaciente);
     }
 
+    @PostMapping("/{id}/excluir")
+    public String excluir(
+            @PathVariable UUID id,
+            @RequestParam(name = "paciente", required = false) UUID pacienteId,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            pacoteSessaoService.excluir(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Pacote excluído com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        String destinoPaciente = pacienteId != null ? pacienteId.toString() : "";
+        return "redirect:/pacotes-consumo" + (destinoPaciente.isBlank() ? "" : "?paciente=" + destinoPaciente);
+    }
+
     private void prepararPagina(
             Model model,
             UUID pacienteId,

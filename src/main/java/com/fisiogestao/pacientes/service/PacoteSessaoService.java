@@ -2,6 +2,8 @@ package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
+import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.PacoteSessaoStatus;
@@ -32,6 +34,7 @@ public class PacoteSessaoService {
     private final PacienteService pacienteService;
     private final FinanceiroService financeiroService;
     private final SessaoRepository sessaoRepository;
+    private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
     public List<PacoteSessaoEntity> listarPorCliente(UUID clienteId) {
         return pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
@@ -123,6 +126,28 @@ public class PacoteSessaoService {
         validarCancelamento(pacote);
         pacote.setStatus(PacoteSessaoStatus.CANCELADO);
         pacoteSessaoRepository.save(pacote);
+    }
+
+    @Transactional
+    public void excluir(UUID pacoteId) {
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+
+        if (pacote.getSessoesConsumidas() > 0) {
+            throw new BusinessException("Este pacote já possui consumo registrado e não pode ser excluído.");
+        }
+        if (sessaoRepository.existsByPacoteSessaoId(pacote.getId())) {
+            throw new BusinessException("Este pacote possui histórico de sessões vinculado e não pode ser excluído.");
+        }
+        if (lancamentoFinanceiroRepository.existsByPacoteSessaoIdAndStatus(pacote.getId(), StatusLancamentoFinanceiro.PAGO)) {
+            throw new BusinessException("Este pacote possui movimentação financeira paga e não pode ser excluído.");
+        }
+
+        var lancamentosVinculados = lancamentoFinanceiroRepository.findByPacoteSessaoId(pacote.getId());
+        if (!lancamentosVinculados.isEmpty()) {
+            lancamentoFinanceiroRepository.deleteAll(lancamentosVinculados);
+        }
+        pacoteSessaoRepository.delete(pacote);
     }
 
     @Transactional

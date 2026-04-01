@@ -12,5 +12,11 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
 
     List<LancamentoFinanceiroEntity> findAllByOrderByDataCompetenciaDescCreatedAtDesc();
 
+    boolean existsByClienteId(UUID clienteId);
+
+    List<LancamentoFinanceiroEntity> findByPacoteSessaoId(UUID pacoteSessaoId);
+
+    boolean existsByPacoteSessaoIdAndStatus(UUID pacoteSessaoId, StatusLancamentoFinanceiro status);
+
     long countByTipoAndStatus(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 }

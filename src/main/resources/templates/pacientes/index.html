@@ -195,6 +195,14 @@
                                             <i data-lucide="eye"></i>
                                             <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Gerenciar abaixo' : 'Selecionar'}">Selecionar</span>
                                         </a>
+                                        <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}" method="post" class="inline-form"
+                                              onsubmit="return confirm('Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações.');">
+                                            <input type="hidden" name="pacienteSelecionado" th:value="${pacienteSelecionadoId}">
+                                            <button type="submit" class="action-button danger">
+                                                <i data-lucide="trash-2"></i>
+                                                Excluir
+                                            </button>
+                                        </form>
                                         <span th:if="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id}" class="chip status-approved">Selecionado</span>
                                         </div>
                                     </td>
@@ -220,10 +228,20 @@
                         <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
                         <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
                     </div>
-                    <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
-                        <i data-lucide="calendar-plus"></i>
-                        Agendar Sessão
-                    </a>
+                    <div class="table-actions">
+                        <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
+                            <i data-lucide="calendar-plus"></i>
+                            Agendar Sessão
+                        </a>
+                        <form th:action="@{/pacientes/{id}/excluir(id=${pacienteSelecionado.id})}" method="post" class="inline-form"
+                              onsubmit="return confirm('Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações.');">
+                            <input type="hidden" name="pacienteSelecionado" th:value="${pacienteSelecionadoId}">
+                            <button type="submit" class="action-button danger">
+                                <i data-lucide="trash-2"></i>
+                                Excluir Paciente
+                            </button>
+                        </form>
+                    </div>
                 </header>
                 <div class="section-body">
                     <div class="summary-grid">

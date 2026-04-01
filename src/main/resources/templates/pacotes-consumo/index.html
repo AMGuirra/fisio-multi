@@ -232,6 +232,14 @@
                                                     Cancelar
                                                 </button>
                                             </form>
+                                            <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}" method="post" class="inline-form"
+                                                  onsubmit="return confirm('Deseja excluir este pacote? Isso removerá também lançamentos financeiros pendentes vinculados a ele.');">
+                                                <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
+                                                <button type="submit" class="action-button danger">
+                                                    <i data-lucide="trash-2"></i>
+                                                    Excluir
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

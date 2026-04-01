@@ -1,9 +1,14 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
+import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
+import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +24,11 @@ public class PacienteService {
 
     private final ClienteRepository clienteRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final PacoteSessaoRepository pacoteSessaoRepository;
+    private final SessaoRepository sessaoRepository;
+    private final ProntuarioSoapRepository prontuarioSoapRepository;
+    private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
+    private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private volatile boolean esquemaClienteValidado = false;
 
     public List<ClienteEntity> listarAtivos() {
@@ -82,6 +92,29 @@ public class PacienteService {
                 .ativo(true)
                 .build();
         return clienteRepository.save(novo);
+    }
+
+    @Transactional
+    public void excluir(UUID clienteId) {
+        ClienteEntity cliente = buscarPorId(clienteId);
+
+        if (pacoteSessaoRepository.existsByClienteId(clienteId)) {
+            throw new BusinessException("Exclua primeiro os pacotes vinculados a este paciente.");
+        }
+        if (sessaoRepository.existsByClienteId(clienteId)) {
+            throw new BusinessException("Este paciente possui histórico de sessões e não pode ser excluído.");
+        }
+        if (prontuarioSoapRepository.existsByClienteId(clienteId)) {
+            throw new BusinessException("Este paciente possui prontuário registrado e não pode ser excluído.");
+        }
+        if (solicitacaoAgendamentoRepository.existsByClienteId(clienteId)) {
+            throw new BusinessException("Este paciente possui histórico de solicitações e não pode ser excluído.");
+        }
+        if (lancamentoFinanceiroRepository.existsByClienteId(clienteId)) {
+            throw new BusinessException("Este paciente possui movimentação financeira vinculada e não pode ser excluído.");
+        }
+
+        clienteRepository.delete(cliente);
     }
 
     private String normalizarTelefone(String telefone) {

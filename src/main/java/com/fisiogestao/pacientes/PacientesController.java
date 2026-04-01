@@ -103,6 +103,25 @@ public class PacientesController {
         }
     }
 
+    @PostMapping("/{id}/excluir")
+    public String excluirPaciente(
+            @PathVariable UUID id,
+            @RequestParam(name = "pacienteSelecionado", required = false) UUID pacienteSelecionadoId,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            pacienteService.excluir(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Paciente excluído com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        if (pacienteSelecionadoId != null && !pacienteSelecionadoId.equals(id)) {
+            return "redirect:/pacientes?paciente=" + pacienteSelecionadoId;
+        }
+        return "redirect:/pacientes";
+    }
+
     private void prepararPagina(
             Model model,
             List<ClienteEntity> pacientes,

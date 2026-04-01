@@ -29,6 +29,15 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class ConfiguracaoClinicaEntity extends BaseEntity {
 
+    private static final Set<DayOfWeek> DIAS_FUNCIONAMENTO_PADRAO =
+            EnumSet.of(
+                    DayOfWeek.MONDAY,
+                    DayOfWeek.TUESDAY,
+                    DayOfWeek.WEDNESDAY,
+                    DayOfWeek.THURSDAY,
+                    DayOfWeek.FRIDAY
+            );
+
     @NonNull
     @Column(name = "nome_clinica", nullable = false, length = 150)
     private String nomeClinica;
@@ -73,13 +82,13 @@ public class ConfiguracaoClinicaEntity extends BaseEntity {
     public Set<DayOfWeek> diasFuncionamentoSet() {
         EnumSet<DayOfWeek> dias = EnumSet.noneOf(DayOfWeek.class);
         if (diasFuncionamento == null || diasFuncionamento.isBlank()) {
-            return dias;
+            return EnumSet.copyOf(DIAS_FUNCIONAMENTO_PADRAO);
         }
         Arrays.stream(diasFuncionamento.split(","))
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .map(value -> DayOfWeek.valueOf(value.toUpperCase(Locale.ROOT)))
                 .forEach(dias::add);
-        return dias;
+        return dias.isEmpty() ? EnumSet.copyOf(DIAS_FUNCIONAMENTO_PADRAO) : dias;
     }
 }

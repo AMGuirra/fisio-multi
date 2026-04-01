@@ -11,5 +11,7 @@ public interface PacoteSessaoRepository extends JpaRepository<PacoteSessaoEntity
 
     List<PacoteSessaoEntity> findByClienteIdOrderByCreatedAtDesc(UUID clienteId);
 
+    boolean existsByClienteId(UUID clienteId);
+
     List<PacoteSessaoEntity> findByStatusOrderByCreatedAtDesc(PacoteSessaoStatus status);
 }

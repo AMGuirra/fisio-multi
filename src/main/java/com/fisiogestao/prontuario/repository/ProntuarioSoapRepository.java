@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface ProntuarioSoapRepository extends JpaRepository<ProntuarioSoapEntity, UUID> {
 
     List<ProntuarioSoapEntity> findByClienteIdOrderByCreatedAtDesc(UUID clienteId);
+
+    boolean existsByClienteId(UUID clienteId);
 }
