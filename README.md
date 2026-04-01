@@ -16,7 +16,7 @@ Sistema monolítico em Spring Boot para gestão de clínica de fisioterapia com 
 - Dashboard operacional e financeiro
 - Agenda de sessões e bloqueios de horários
 - Solicitações de agendamento online
-- Usuários (catálogo em memória para acesso local)
+- Usuários persistidos em PostgreSQL
 - Financeiro:
   - lançamento manual de receitas e despesas
   - baixa de lançamentos pendentes
@@ -47,6 +47,12 @@ $env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
 .\mvnw.cmd test
 .\mvnw.cmd -DskipTests compile
 ```
+
+## Deploy no Render
+
+- Em ambiente Render, mantenha `DATABASE_URL` ou `SPRING_DATASOURCE_*` configurados no proprio servico para apontar sempre para o mesmo PostgreSQL persistente.
+- O arquivo `render.yaml` foi ajustado para nao sobrescrever automaticamente a conexao do banco em syncs futuros do Blueprint.
+- A aplicacao agora bloqueia o boot no Render se tentar subir sem uma configuracao explicita de banco ou apontando para `localhost`, evitando deploys em base errada/vazia.
 
 ## Estrutura principal
 

@@ -1,6 +1,8 @@
-# Ajuste os nomes abaixo para coincidir com os recursos já existentes no Render
-# antes do primeiro Blueprint Sync. Se os nomes não existirem, o Render criará
-# um novo web service e um novo Postgres.
+# Em serviços existentes no Render, NAO permita que o Blueprint sobrescreva a
+# conexao de banco a cada sync. As variaveis abaixo ficam com sync: false para
+# preservar o Postgres persistente configurado no painel do servico.
+# Se este arquivo apontar para outro banco, a aplicacao pode subir em uma base
+# vazia e aparentar "perder" usuarios e demais cadastros.
 services:
   - type: web
     name: luzguirra-financeiro-aplicacao
@@ -11,14 +13,33 @@ services:
     region: ohio
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: luzguirra-financeiro-banco
-          property: connectionString
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSLMODE
+        value: "require"
+      - key: APP_BASE_URL
+        sync: false
+      - key: APP_ENCRYPTION_KEY
+        sync: false
       - key: SERVER_SESSION_COOKIE_SECURE
         value: "true"
       - key: SPRING_THYMELEAF_CACHE
         value: "true"
 
+# Este bloco deve ser usado apenas na criacao inicial de infraestrutura.
+# Em servicos ja existentes, confirme manualmente no painel do Render se os
+# nomes abaixo correspondem exatamente aos recursos persistentes corretos.
 databases:
   - name: luzguirra-financeiro-banco
     plan: free
