@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS prontuario_soap (
+CREATE TABLE prontuario_soap (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     cliente_id UUID NOT NULL REFERENCES cliente(id),
     sessao_id UUID REFERENCES sessao(id),
@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS prontuario_soap (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_prontuario_cliente ON prontuario_soap(cliente_id);
+CREATE INDEX idx_prontuario_cliente ON prontuario_soap(cliente_id);

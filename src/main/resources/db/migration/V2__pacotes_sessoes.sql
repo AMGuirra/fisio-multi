@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS pacote_sessao (
+CREATE TABLE pacote_sessao (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     cliente_id UUID NOT NULL REFERENCES cliente(id),
     nome_pacote VARCHAR(120) NOT NULL,
@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS pacote_sessao (
 );
 
 ALTER TABLE sessao
-    ADD COLUMN IF NOT EXISTS pacote_sessao_id UUID REFERENCES pacote_sessao(id);
+    ADD COLUMN pacote_sessao_id UUID REFERENCES pacote_sessao(id);
 
-CREATE INDEX IF NOT EXISTS idx_pacote_sessao_cliente ON pacote_sessao(cliente_id);
+CREATE INDEX idx_pacote_sessao_cliente ON pacote_sessao(cliente_id);

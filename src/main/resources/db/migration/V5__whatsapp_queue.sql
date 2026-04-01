@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS mensagem_whatsapp (
+CREATE TABLE mensagem_whatsapp (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     destinatario VARCHAR(20) NOT NULL,
     conteudo TEXT NOT NULL,
@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS mensagem_whatsapp (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_mensagem_whatsapp_status ON mensagem_whatsapp(status);
+CREATE INDEX idx_mensagem_whatsapp_status ON mensagem_whatsapp(status);

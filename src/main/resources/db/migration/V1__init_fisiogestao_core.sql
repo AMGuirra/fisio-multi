@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-CREATE TABLE IF NOT EXISTS configuracao_clinica (
+CREATE TABLE configuracao_clinica (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome_clinica VARCHAR(150) NOT NULL,
     dias_funcionamento VARCHAR(120) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS configuracao_clinica (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS cliente (
+CREATE TABLE cliente (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome_completo VARCHAR(160) NOT NULL,
     telefone VARCHAR(20),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS cliente (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS solicitacao_agendamento (
+CREATE TABLE solicitacao_agendamento (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome_paciente VARCHAR(160) NOT NULL,
     telefone VARCHAR(20) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS solicitacao_agendamento (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS horario_bloqueado (
+CREATE TABLE horario_bloqueado (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     data_hora_inicio TIMESTAMPTZ NOT NULL,
     data_hora_fim TIMESTAMPTZ NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS horario_bloqueado (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS bloqueio_agenda (
+CREATE TABLE bloqueio_agenda (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     data_hora_inicio TIMESTAMPTZ NOT NULL,
     data_hora_fim TIMESTAMPTZ NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS bloqueio_agenda (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS sessao (
+CREATE TABLE sessao (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     cliente_id UUID NOT NULL REFERENCES cliente(id),
     data_hora_inicio TIMESTAMPTZ NOT NULL,
@@ -79,14 +79,14 @@ CREATE TABLE IF NOT EXISTS sessao (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessao_data_hora_inicio ON sessao(data_hora_inicio);
-CREATE INDEX IF NOT EXISTS idx_sessao_data_hora_fim ON sessao(data_hora_fim);
-CREATE INDEX IF NOT EXISTS idx_solicitacao_data_hora_inicio ON solicitacao_agendamento(data_hora_inicio);
-CREATE INDEX IF NOT EXISTS idx_solicitacao_data_hora_fim ON solicitacao_agendamento(data_hora_fim);
-CREATE INDEX IF NOT EXISTS idx_horario_bloqueado_data_hora_inicio ON horario_bloqueado(data_hora_inicio);
-CREATE INDEX IF NOT EXISTS idx_horario_bloqueado_data_hora_fim ON horario_bloqueado(data_hora_fim);
-CREATE INDEX IF NOT EXISTS idx_bloqueio_agenda_data_hora_inicio ON bloqueio_agenda(data_hora_inicio);
-CREATE INDEX IF NOT EXISTS idx_bloqueio_agenda_data_hora_fim ON bloqueio_agenda(data_hora_fim);
+CREATE INDEX idx_sessao_data_hora_inicio ON sessao(data_hora_inicio);
+CREATE INDEX idx_sessao_data_hora_fim ON sessao(data_hora_fim);
+CREATE INDEX idx_solicitacao_data_hora_inicio ON solicitacao_agendamento(data_hora_inicio);
+CREATE INDEX idx_solicitacao_data_hora_fim ON solicitacao_agendamento(data_hora_fim);
+CREATE INDEX idx_horario_bloqueado_data_hora_inicio ON horario_bloqueado(data_hora_inicio);
+CREATE INDEX idx_horario_bloqueado_data_hora_fim ON horario_bloqueado(data_hora_fim);
+CREATE INDEX idx_bloqueio_agenda_data_hora_inicio ON bloqueio_agenda(data_hora_inicio);
+CREATE INDEX idx_bloqueio_agenda_data_hora_fim ON bloqueio_agenda(data_hora_fim);
 
 INSERT INTO configuracao_clinica (
     id,
@@ -100,9 +100,7 @@ INSERT INTO configuracao_clinica (
     timezone_id,
     telefone_whatsapp,
     email_contato,
-    ativo,
-    created_at,
-    updated_at
+    ativo
 ) VALUES (
     '4eb2ab50-fbc2-4ef0-a4f8-f42d5dc4c2fe',
     'FisioGestão Clínica',
@@ -115,7 +113,5 @@ INSERT INTO configuracao_clinica (
     'America/Campo_Grande',
     '67999999999',
     'contato@fisiogestao.local',
-    TRUE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
-) ON CONFLICT (id) DO NOTHING;
+    TRUE
+);

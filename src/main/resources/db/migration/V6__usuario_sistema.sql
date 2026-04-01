@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS usuario_sistema (
+CREATE TABLE usuario_sistema (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(40) NOT NULL UNIQUE,
     password_hash VARCHAR(120) NOT NULL,
