@@ -119,9 +119,15 @@ public class RelatoriosController {
             prepararPagina(model, filtro);
             return "relatorios/index";
         }
-        var result = relatoriosService.enviarLembrete(form, authentication != null ? authentication.getName() : "sistema");
-        redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
-        return "redirect:/relatorios" + queryString(filtro);
+        try {
+            var result = relatoriosService.enviarLembrete(form, authentication != null ? authentication.getName() : "sistema");
+            redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
+            return "redirect:/relatorios" + queryString(filtro);
+        } catch (BusinessException ex) {
+            model.addAttribute("errorMessage", ex.getMessage());
+            prepararPagina(model, filtro);
+            return "relatorios/index";
+        }
     }
 
     @PostMapping("/cobrancas")
@@ -137,9 +143,15 @@ public class RelatoriosController {
             prepararPagina(model, filtro);
             return "relatorios/index";
         }
-        var result = relatoriosService.enviarCobranca(form, authentication != null ? authentication.getName() : "sistema");
-        redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
-        return "redirect:/relatorios" + queryString(filtro);
+        try {
+            var result = relatoriosService.enviarCobranca(form, authentication != null ? authentication.getName() : "sistema");
+            redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
+            return "redirect:/relatorios" + queryString(filtro);
+        } catch (BusinessException ex) {
+            model.addAttribute("errorMessage", ex.getMessage());
+            prepararPagina(model, filtro);
+            return "relatorios/index";
+        }
     }
 
     private void prepararPagina(Model model, FiltroRelatorioForm filtro) {

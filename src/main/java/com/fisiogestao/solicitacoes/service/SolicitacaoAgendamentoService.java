@@ -9,7 +9,6 @@ import com.fisiogestao.agenda.form.BloqueioAgendaCadastroForm;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.agenda.service.BloqueioAgendaService;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
-import com.fisiogestao.config.TimezoneConfig;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
@@ -275,7 +274,7 @@ public class SolicitacaoAgendamentoService {
     }
 
     private IntervaloPeriodo periodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
-        ZoneId zoneId = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
+        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
         OffsetDateTime inicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
         OffsetDateTime fim = fimExclusive.atStartOfDay(zoneId).toOffsetDateTime();
         return new IntervaloPeriodo(inicio, fim);

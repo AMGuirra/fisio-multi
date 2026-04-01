@@ -8,6 +8,8 @@ import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.whatsapp.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +18,8 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DashboardService.class);
 
     private final PacienteService pacienteService;
     private final AgendaService agendaService;
@@ -30,6 +34,7 @@ public class DashboardService {
         try {
             sessoesHoje = agendaService.listarSessoesDoDia(LocalDate.now()).size();
         } catch (BusinessException e) {
+            LOGGER.warn("Nao foi possivel carregar a agenda do dia no dashboard: {}", e.getMessage());
         }
         
         long solicitacoesPendentes = solicitacaoAgendamentoRepository.countByStatus(SolicitacaoStatus.PENDENTE);
@@ -41,6 +46,7 @@ public class DashboardService {
             receitasPendentes = financeiroService.totalReceitasPendentes();
             despesasPendentes = financeiroService.totalDespesasPendentes();
         } catch (Exception e) {
+            LOGGER.warn("Nao foi possivel carregar os totais financeiros do dashboard", e);
         }
 
         return new DashboardSummary(

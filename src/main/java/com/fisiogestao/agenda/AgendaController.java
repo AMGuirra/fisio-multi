@@ -122,9 +122,13 @@ public class AgendaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             RedirectAttributes redirectAttributes
     ) {
-        agendaService.marcarComoRealizada(id, observacoes);
-        redirectAttributes.addFlashAttribute("successMessage", "Sessão marcada como realizada.");
         LocalDate retorno = data != null ? data : LocalDate.now();
+        try {
+            agendaService.marcarComoRealizada(id, observacoes);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão marcada como realizada.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
         return "redirect:/agenda?data=" + retorno;
     }
 

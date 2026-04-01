@@ -18,7 +18,7 @@ public record EmailRequest(
         String textBody,
         String htmlBody,
         String templateName,
-        @Builder.Default Map<String, Object> templateVariables,
+        Map<String, Object> templateVariables,
         @Singular("attachment") List<EmailAttachment> attachments,
         String triggeredBy,
         String entityType,
@@ -27,4 +27,7 @@ public record EmailRequest(
         String replyToOverride,
         String notes
 ) {
+    public EmailRequest {
+        templateVariables = templateVariables == null ? Map.of() : Map.copyOf(templateVariables);
+    }
 }

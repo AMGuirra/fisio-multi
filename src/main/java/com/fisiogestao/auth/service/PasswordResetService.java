@@ -4,6 +4,7 @@ import com.fisiogestao.auth.PasswordResetTokenEntity;
 import com.fisiogestao.auth.PasswordResetTokenRepository;
 import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.config.TimezoneConfig;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailDispatchResult;
 import com.fisiogestao.email.service.EmailRequest;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class PasswordResetService {
 
     private static final int TOKEN_TTL_MINUTES = 60;
+    private static final ZoneId APP_ZONE_ID = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UsuarioSistemaRepository usuarioSistemaRepository;
@@ -53,7 +55,7 @@ public class PasswordResetService {
     public PasswordResetLink gerarLinkDefinicaoSenha(UsuarioSistemaEntity usuario, String requestIp, String userAgent) {
         String token = gerarTokenSeguro();
         String tokenHash = hashToken(token);
-        OffsetDateTime agora = OffsetDateTime.now(ZoneId.systemDefault());
+        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
 
         passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId())
                 .forEach(item -> item.setUsedAt(agora));
@@ -82,7 +84,7 @@ public class PasswordResetService {
         PasswordResetTokenEntity token = validarToken(rawToken);
         UsuarioSistemaEntity usuario = token.getUsuario();
         usuario.setPasswordHash(passwordEncoder.encode(novaSenha.trim()));
-        token.setUsedAt(OffsetDateTime.now(ZoneId.systemDefault()));
+        token.setUsedAt(OffsetDateTime.now(APP_ZONE_ID));
         usuarioSistemaRepository.save(usuario);
         passwordResetTokenRepository.save(token);
     }
@@ -145,7 +147,7 @@ public class PasswordResetService {
         PasswordResetTokenEntity token = passwordResetTokenRepository.findByTokenHash(hash)
                 .orElseThrow(() -> new BusinessException("O link de redefinição é inválido ou já expirou."));
 
-        OffsetDateTime agora = OffsetDateTime.now(ZoneId.systemDefault());
+        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
         if (!token.ativoEm(agora)) {
             throw new BusinessException("O link de redefinição é inválido ou já expirou.");
         }
