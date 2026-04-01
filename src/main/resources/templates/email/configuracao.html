@@ -88,18 +88,27 @@
                         <div class="form-field"><label for="observacoes">Observações</label><textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}"></textarea></div>
                         <div class="form-actions">
                             <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuração</button>
+                            <a th:if="${emailConfiguracaoForm.id != null}" href="#teste-email-rapido" class="action-button success"><i data-lucide="send"></i>Enviar e-mail teste</a>
                             <a href="/relatorios" class="action-button ghost"><i data-lucide="file-text"></i>Voltar aos relatórios</a>
                         </div>
                     </form>
+                    <div th:if="${emailConfiguracaoForm.id != null}" class="section-block" id="teste-email-rapido">
+                        <h4 class="section-subtitle">Teste rápido de envio</h4>
+                        <form th:action="@{/configuracoes/email/{id}/testar(id=${emailConfiguracaoForm.id})}" th:object="${testeEmailForm}" method="post" class="modern-form">
+                            <div class="form-field">
+                                <label for="destinatarioTesteRapido">E-mail para teste</label>
+                                <input id="destinatarioTesteRapido" type="email" class="form-control" th:field="*{destinatario}" placeholder="nome@dominio.com" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="action-button success"><i data-lucide="mail-check"></i>Enviar teste agora</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </article>
             <article class="section-card">
-                <header class="section-head"><h3 class="section-title"><i data-lucide="send"></i> Teste e histórico</h3></header>
+                <header class="section-head"><h3 class="section-title"><i data-lucide="history"></i> Histórico técnico</h3></header>
                 <div class="section-body">
-                    <form th:if="${emailConfiguracaoForm.id != null}" th:action="@{/configuracoes/email/{id}/testar(id=${emailConfiguracaoForm.id})}" th:object="${testeEmailForm}" method="post" class="modern-form">
-                        <div class="form-field"><label for="destinatario">E-mail para teste</label><input id="destinatario" type="email" class="form-control" th:field="*{destinatario}" required></div>
-                        <button type="submit" class="action-button success"><i data-lucide="mail-check"></i>Enviar teste</button>
-                    </form>
                     <div class="section-block">
                         <h4 class="section-subtitle">Configurações cadastradas</h4>
                         <div class="request-list">
