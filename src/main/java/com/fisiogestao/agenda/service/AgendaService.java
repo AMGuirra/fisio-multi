@@ -8,6 +8,10 @@ import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.dto.SlotDisponivelDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
@@ -46,6 +50,7 @@ public class AgendaService {
     private final PacoteSessaoService pacoteSessaoService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
     private final BloqueioAgendaService bloqueioAgendaService;
+    private final AuditService auditService;
 
     public record IntervaloAgenda(OffsetDateTime inicio, OffsetDateTime fim) {
     }
@@ -242,6 +247,14 @@ public class AgendaService {
                 .pacoteConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordCreate(
+                AuditModule.AGENDA,
+                "sessao",
+                salva,
+                null,
+                "Agendamento manual criado na agenda.",
+                AuditEventOrigin.MANUAL
+        );
         agendamentoEmailNotificationService.notificarConfirmadoPorSessao(salva, profissionalResponsavel);
         return salva;
     }
@@ -249,6 +262,7 @@ public class AgendaService {
     @Transactional
     public SessaoEntity atualizarSessaoManual(UUID sessaoId, AgendaManualForm form, String profissionalResponsavel) {
         SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
 
         if (sessao.getStatus() != SessaoStatus.AGENDADA) {
             throw new BusinessException("Somente sessões agendadas podem ser alteradas.");
@@ -276,6 +290,21 @@ public class AgendaService {
         sessao.setObservacoes(texto(form.getObservacoes()));
 
         SessaoEntity salva = sessaoRepository.save(sessao);
+        AuditActionType actionType = (!inicioAnterior.equals(salva.getDataHoraInicio()) || !fimAnterior.equals(salva.getDataHoraFim()))
+                ? AuditActionType.RESCHEDULE
+                : AuditActionType.UPDATE;
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                actionType,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                actionType == AuditActionType.RESCHEDULE ? "Reagendamento manual de sessão." : "Edição manual de sessão.",
+                AuditEventOrigin.MANUAL
+        );
         if (!inicioAnterior.equals(salva.getDataHoraInicio()) || !fimAnterior.equals(salva.getDataHoraFim())) {
             agendamentoEmailNotificationService.notificarReagendado(salva, inicioAnterior, fimAnterior, profissionalResponsavel);
         }
@@ -286,6 +315,7 @@ public class AgendaService {
     public SessaoEntity marcarComoRealizada(UUID sessaoId, String observacoes) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
+        var snapshotAnterior = auditService.snapshotOf(sessao);
 
         if (sessao.getStatus() == SessaoStatus.CANCELADA) {
             throw new BusinessException("Não é possível concluir uma sessão cancelada.");
@@ -303,13 +333,27 @@ public class AgendaService {
         if (texto(observacoes) != null) {
             sessao.setObservacoes(texto(observacoes));
         }
-        return sessaoRepository.save(sessao);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.COMPLETE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Sessão marcada como realizada.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
     }
 
     @Transactional
     public SessaoEntity reagendarSessao(UUID sessaoId, LocalDate data, LocalTime horario, String profissionalResponsavel) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
+        var snapshotAnterior = auditService.snapshotOf(sessao);
 
         if (sessao.getStatus() != SessaoStatus.AGENDADA) {
             throw new BusinessException("Apenas sessões agendadas podem ser reagendadas.");
@@ -323,6 +367,18 @@ public class AgendaService {
         sessao.setDataHoraInicio(intervalo.inicio());
         sessao.setDataHoraFim(intervalo.fim());
         SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.RESCHEDULE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Sessão reagendada.",
+                AuditEventOrigin.MANUAL
+        );
         agendamentoEmailNotificationService.notificarReagendado(salva, inicioAnterior, fimAnterior, profissionalResponsavel);
         return salva;
     }
@@ -330,6 +386,7 @@ public class AgendaService {
     @Transactional
     public SessaoEntity cancelarSessao(UUID sessaoId, String observacoes) {
         SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
         if (sessao.getStatus() == SessaoStatus.REALIZADA) {
             throw new BusinessException("Sessões realizadas permanecem no histórico e não podem ser canceladas.");
         }
@@ -347,7 +404,20 @@ public class AgendaService {
                     ? "Cancelamento: " + texto(observacoes)
                     : (historico + System.lineSeparator() + "Cancelamento: " + texto(observacoes)));
         }
-        return sessaoRepository.save(sessao);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                texto(observacoes),
+                "Sessão cancelada.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
     }
 
     private IntervaloAgenda janelaDoDia(LocalDate data, ConfiguracaoClinicaEntity configuracao) {

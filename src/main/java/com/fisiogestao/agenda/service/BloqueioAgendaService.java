@@ -10,6 +10,10 @@ import com.fisiogestao.agenda.form.BloqueioAgendaFiltroForm;
 import com.fisiogestao.agenda.repository.BloqueioAgendaRepository;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +38,7 @@ public class BloqueioAgendaService {
     private final BloqueioAgendaRepository bloqueioAgendaRepository;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
     private final SessaoRepository sessaoRepository;
+    private final AuditService auditService;
 
     public List<BloqueioAgendaEntity> listarPorFiltro(BloqueioAgendaFiltroForm filtro) {
         LocalDate hoje = LocalDate.now();
@@ -103,6 +109,18 @@ public class BloqueioAgendaService {
     @Transactional
     public BloqueioAgendaEntity criar(BloqueioAgendaCadastroForm form, String usuario, BloqueioAgendaOrigem origem) {
         List<BloqueioAgendaEntity> criados = salvarLote(null, form, usuario, origem);
+        auditService.recordManual(
+                AuditModule.BLOQUEIOS,
+                "bloqueio_agenda",
+                resolveAuditEntityId(criados),
+                describeAuditRecord(criados),
+                AuditActionType.CREATE,
+                null,
+                snapshotGrupo(criados),
+                form.getMotivo(),
+                "Bloqueio cadastrado na agenda.",
+                mapAuditOrigin(origem)
+        );
         return criados.getFirst();
     }
 
@@ -110,30 +128,59 @@ public class BloqueioAgendaService {
     public BloqueioAgendaEntity atualizar(UUID id, BloqueioAgendaCadastroForm form, String usuario) {
         BloqueioAgendaEntity existente = buscarPorId(id);
         validarEdicaoPermitida(existente);
-        grupo(existente).forEach(item -> {
+        List<BloqueioAgendaEntity> grupoAnterior = grupo(existente);
+        LinkedHashMap<String, Object> snapshotAnterior = snapshotGrupo(grupoAnterior);
+        grupoAnterior.forEach(item -> {
             item.setStatus(BloqueioAgendaStatus.CANCELADO);
             item.setAtivo(false);
             item.setAtualizadoPor(usuario);
             bloqueioAgendaRepository.save(item);
         });
-        return salvarLote(
+        List<BloqueioAgendaEntity> atualizados = salvarLote(
                 existente.getGrupoReferencia() != null ? existente.getGrupoReferencia() : UUID.randomUUID(),
                 form,
                 usuario,
                 existente.getOrigem() != null ? existente.getOrigem() : BloqueioAgendaOrigem.MANUAL
-        ).getFirst();
+        );
+        auditService.recordManual(
+                AuditModule.BLOQUEIOS,
+                "bloqueio_agenda",
+                resolveAuditEntityId(atualizados),
+                describeAuditRecord(atualizados),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                snapshotGrupo(atualizados),
+                form.getMotivo(),
+                "Bloqueio atualizado na agenda.",
+                mapAuditOrigin(existente.getOrigem())
+        );
+        return atualizados.getFirst();
     }
 
     @Transactional
     public void cancelar(UUID id, String usuario) {
         BloqueioAgendaEntity existente = buscarPorId(id);
         validarEdicaoPermitida(existente);
-        grupo(existente).forEach(item -> {
+        List<BloqueioAgendaEntity> grupo = grupo(existente);
+        LinkedHashMap<String, Object> snapshotAnterior = snapshotGrupo(grupo);
+        grupo.forEach(item -> {
             item.setStatus(BloqueioAgendaStatus.CANCELADO);
             item.setAtivo(false);
             item.setAtualizadoPor(usuario);
             bloqueioAgendaRepository.save(item);
         });
+        auditService.recordManual(
+                AuditModule.BLOQUEIOS,
+                "bloqueio_agenda",
+                resolveAuditEntityId(grupo),
+                describeAuditRecord(grupo),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                snapshotGrupo(grupo),
+                existente.getMotivo(),
+                "Bloqueio cancelado na agenda.",
+                mapAuditOrigin(existente.getOrigem())
+        );
     }
 
     public ResumoBloqueio resumo(BloqueioAgendaFiltroForm filtro) {
@@ -260,6 +307,59 @@ public class BloqueioAgendaService {
 
     private String texto(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private LinkedHashMap<String, Object> snapshotGrupo(List<BloqueioAgendaEntity> grupo) {
+        LinkedHashMap<String, Object> snapshot = new LinkedHashMap<>();
+        if (grupo == null || grupo.isEmpty()) {
+            return snapshot;
+        }
+
+        BloqueioAgendaEntity primeiro = grupo.getFirst();
+        BloqueioAgendaEntity ultimo = grupo.getLast();
+        snapshot.put("grupoReferencia", primeiro.getGrupoReferencia() != null ? primeiro.getGrupoReferencia() : primeiro.getId());
+        snapshot.put("quantidadeRegistros", grupo.size());
+        snapshot.put("dataHoraInicio", primeiro.getDataHoraInicio());
+        snapshot.put("dataHoraFim", ultimo.getDataHoraFim());
+        snapshot.put("diaInteiro", primeiro.getDiaInteiro());
+        snapshot.put("motivo", primeiro.getMotivo());
+        snapshot.put("observacao", primeiro.getObservacao());
+        snapshot.put("status", primeiro.getStatus());
+        snapshot.put("origem", primeiro.getOrigem());
+        snapshot.put("ativo", primeiro.getAtivo());
+        return snapshot;
+    }
+
+    private String resolveAuditEntityId(List<BloqueioAgendaEntity> grupo) {
+        if (grupo == null || grupo.isEmpty()) {
+            return null;
+        }
+        BloqueioAgendaEntity primeiro = grupo.getFirst();
+        UUID auditId = primeiro.getGrupoReferencia() != null ? primeiro.getGrupoReferencia() : primeiro.getId();
+        return auditId != null ? auditId.toString() : null;
+    }
+
+    private String describeAuditRecord(List<BloqueioAgendaEntity> grupo) {
+        if (grupo == null || grupo.isEmpty()) {
+            return "Bloqueio de agenda";
+        }
+        BloqueioAgendaEntity primeiro = grupo.getFirst();
+        if (grupo.size() == 1) {
+            return texto(primeiro.getMotivo()) != null ? primeiro.getMotivo() : "Bloqueio de agenda";
+        }
+        return (texto(primeiro.getMotivo()) != null ? primeiro.getMotivo() : "Bloqueio recorrente")
+                + " (" + grupo.size() + " registros)";
+    }
+
+    private AuditEventOrigin mapAuditOrigin(BloqueioAgendaOrigem origem) {
+        if (origem == null) {
+            return AuditEventOrigin.MANUAL;
+        }
+        return switch (origem) {
+            case ONLINE -> AuditEventOrigin.ONLINE;
+            case SISTEMA -> AuditEventOrigin.SISTEMA;
+            default -> AuditEventOrigin.MANUAL;
+        };
     }
 
     private record Intervalo(OffsetDateTime inicio, OffsetDateTime fim) {}

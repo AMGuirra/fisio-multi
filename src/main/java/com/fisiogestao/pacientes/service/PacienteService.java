@@ -1,6 +1,10 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
@@ -29,6 +33,7 @@ public class PacienteService {
     private final ProntuarioSoapRepository prontuarioSoapRepository;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+    private final AuditService auditService;
     private volatile boolean esquemaClienteValidado = false;
 
     public List<ClienteEntity> listarAtivos() {
@@ -52,7 +57,16 @@ public class PacienteService {
                 .observacoes(normalizarTexto(form.getObservacoes()))
                 .ativo(true)
                 .build();
-        return clienteRepository.save(cliente);
+        ClienteEntity salvo = clienteRepository.save(cliente);
+        auditService.recordCreate(
+                AuditModule.PACIENTES,
+                "cliente",
+                salvo,
+                null,
+                "Cadastro manual de paciente.",
+                AuditEventOrigin.MANUAL
+        );
+        return salvo;
     }
 
     @Transactional
@@ -72,6 +86,7 @@ public class PacienteService {
 
         if (existente.isPresent()) {
             ClienteEntity cliente = existente.get();
+            var snapshotAnterior = auditService.snapshotOf(cliente);
             if (cliente.getTelefone() == null && telefoneNormalizado != null) {
                 cliente.setTelefone(telefoneNormalizado);
             }
@@ -82,7 +97,20 @@ public class PacienteService {
                 cliente.setNomeCompleto(nomePaciente.trim());
             }
             cliente.setAtivo(true);
-            return clienteRepository.save(cliente);
+            ClienteEntity salvo = clienteRepository.save(cliente);
+            auditService.recordManual(
+                    AuditModule.PACIENTES,
+                    "cliente",
+                    salvo.getId().toString(),
+                    salvo.getNomeCompleto(),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(salvo),
+                    null,
+                    "Atualização automática durante processamento de solicitação online.",
+                    AuditEventOrigin.ONLINE
+            );
+            return salvo;
         }
 
         ClienteEntity novo = ClienteEntity.builder()
@@ -91,12 +119,22 @@ public class PacienteService {
                 .email(emailNormalizado)
                 .ativo(true)
                 .build();
-        return clienteRepository.save(novo);
+        ClienteEntity salvo = clienteRepository.save(novo);
+        auditService.recordCreate(
+                AuditModule.PACIENTES,
+                "cliente",
+                salvo,
+                null,
+                "Paciente criado automaticamente a partir de solicitação online.",
+                AuditEventOrigin.ONLINE
+        );
+        return salvo;
     }
 
     @Transactional
     public void excluir(UUID clienteId) {
         ClienteEntity cliente = buscarPorId(clienteId);
+        var snapshotAnterior = auditService.snapshotOf(cliente);
 
         if (pacoteSessaoRepository.existsByClienteId(clienteId)) {
             throw new BusinessException("Exclua primeiro os pacotes vinculados a este paciente.");
@@ -114,6 +152,18 @@ public class PacienteService {
             throw new BusinessException("Este paciente possui movimentação financeira vinculada e não pode ser excluído.");
         }
 
+        auditService.recordManual(
+                AuditModule.PACIENTES,
+                "cliente",
+                cliente.getId().toString(),
+                cliente.getNomeCompleto(),
+                AuditActionType.DELETE_PHYSICAL,
+                snapshotAnterior,
+                null,
+                null,
+                "Exclusão física de paciente.",
+                AuditEventOrigin.MANUAL
+        );
         clienteRepository.delete(cliente);
     }
 

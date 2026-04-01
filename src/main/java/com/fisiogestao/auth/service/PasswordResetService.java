@@ -4,6 +4,10 @@ import com.fisiogestao.auth.PasswordResetTokenEntity;
 import com.fisiogestao.auth.PasswordResetTokenRepository;
 import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.config.TimezoneConfig;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailDispatchResult;
@@ -21,6 +25,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Map;
@@ -36,6 +41,7 @@ public class PasswordResetService {
     private final UsuarioSistemaRepository usuarioSistemaRepository;
     private final PasswordEncoder passwordEncoder;
     private final SystemEmailService systemEmailService;
+    private final AuditService auditService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -83,10 +89,24 @@ public class PasswordResetService {
 
         PasswordResetTokenEntity token = validarToken(rawToken);
         UsuarioSistemaEntity usuario = token.getUsuario();
+        Map<String, Object> snapshotAnterior = snapshotResetUsuario(usuario, null);
         usuario.setPasswordHash(passwordEncoder.encode(novaSenha.trim()));
-        token.setUsedAt(OffsetDateTime.now(APP_ZONE_ID));
+        OffsetDateTime redefinicao = OffsetDateTime.now(APP_ZONE_ID);
+        token.setUsedAt(redefinicao);
         usuarioSistemaRepository.save(usuario);
         passwordResetTokenRepository.save(token);
+        auditService.recordManual(
+                AuditModule.AUTENTICACAO,
+                "usuario_sistema",
+                usuario.getId().toString(),
+                usuario.getNome(),
+                AuditActionType.RESET_PASSWORD,
+                snapshotAnterior,
+                snapshotResetUsuario(usuario, redefinicao),
+                null,
+                "Senha redefinida pelo fluxo de recuperação.",
+                AuditEventOrigin.ONLINE
+        );
     }
 
     @Transactional(readOnly = true)
@@ -172,6 +192,17 @@ public class PasswordResetService {
 
     private String montarLink(String token) {
         return baseUrl + "/resetar-senha?token=" + token;
+    }
+
+    private Map<String, Object> snapshotResetUsuario(UsuarioSistemaEntity usuario, OffsetDateTime redefinicao) {
+        LinkedHashMap<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("id", usuario.getId());
+        snapshot.put("nome", usuario.getNome());
+        snapshot.put("username", usuario.getUsername());
+        snapshot.put("email", usuario.getEmail());
+        snapshot.put("senhaRedefinida", redefinicao != null);
+        snapshot.put("senhaRedefinidaEm", redefinicao);
+        return snapshot;
     }
 
     public record PasswordResetLink(String token, String link, OffsetDateTime expiresAt) {

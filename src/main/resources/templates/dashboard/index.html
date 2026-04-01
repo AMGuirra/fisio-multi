@@ -116,6 +116,14 @@
                     <span class="sidebar-link-label">Usuários</span>
                 </a>
             </li>
+            <li th:if="${loggedUserRole == 'ADMIN'}">
+                <a href="/auditoria"
+                   class="sidebar-link"
+                   th:classappend="${currentPath == '/auditoria' or #strings.startsWith(currentPath, '/auditoria/') ? ' active' : ''}">
+                    <span class="sidebar-link-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span>
+                    <span class="sidebar-link-label">Auditoria</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer">
@@ -143,7 +151,7 @@
                 </button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting"
-                        th:attr="data-username=${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">
+                        th:attr="data-username=${loggedUserDisplayName}">
                         Bom dia, Usuário
                     </h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -155,9 +163,9 @@
                 <div class="user-menu" id="userMenu">
                     <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
                         <span class="user-avatar"
-                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</span>
+                              th:text="${loggedUserInitial}">U</span>
                         <span class="user-menu-name"
-                              th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</span>
+                              th:text="${loggedUserDisplayName}">Usuário</span>
                         <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">

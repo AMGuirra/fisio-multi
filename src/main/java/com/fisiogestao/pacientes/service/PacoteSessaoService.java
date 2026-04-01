@@ -2,6 +2,10 @@ package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
@@ -35,6 +39,7 @@ public class PacoteSessaoService {
     private final FinanceiroService financeiroService;
     private final SessaoRepository sessaoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+    private final AuditService auditService;
 
     public List<PacoteSessaoEntity> listarPorCliente(UUID clienteId) {
         return pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
@@ -73,6 +78,14 @@ public class PacoteSessaoService {
                 .build();
         PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
         financeiroService.registrarReceitaPacote(salvo);
+        auditService.recordCreate(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo,
+                null,
+                "Pacote criado pelo fluxo vinculado ao paciente.",
+                AuditEventOrigin.MANUAL
+        );
         return salvo;
     }
 
@@ -92,6 +105,14 @@ public class PacoteSessaoService {
                 .build();
         PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
         financeiroService.registrarReceitaPacote(salvo);
+        auditService.recordCreate(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo,
+                null,
+                "Pacote criado pelo CRUD de pacotes.",
+                AuditEventOrigin.MANUAL
+        );
         return salvo;
     }
 
@@ -99,6 +120,7 @@ public class PacoteSessaoService {
     public PacoteSessaoEntity atualizarViaCrud(UUID pacoteId, PacoteConsumoForm form) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
                 .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(pacote);
 
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
         validarConsumo(pacote.getSessoesConsumidas(), form.getSessoesContratadas());
@@ -116,22 +138,49 @@ public class PacoteSessaoService {
                 form.getSessoesContratadas(),
                 form.getDataValidade()
         ));
-        return pacoteSessaoRepository.save(pacote);
+        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        auditService.recordManual(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo.getId().toString(),
+                salvo.getNomePacote(),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Atualização manual de pacote.",
+                AuditEventOrigin.MANUAL
+        );
+        return salvo;
     }
 
     @Transactional
     public void cancelar(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
                 .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(pacote);
         validarCancelamento(pacote);
         pacote.setStatus(PacoteSessaoStatus.CANCELADO);
-        pacoteSessaoRepository.save(pacote);
+        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        auditService.recordManual(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo.getId().toString(),
+                salvo.getNomePacote(),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Cancelamento de pacote.",
+                AuditEventOrigin.MANUAL
+        );
     }
 
     @Transactional
     public void excluir(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
                 .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(pacote);
 
         if (pacote.getSessoesConsumidas() > 0) {
             throw new BusinessException("Este pacote já possui consumo registrado e não pode ser excluído.");
@@ -147,12 +196,25 @@ public class PacoteSessaoService {
         if (!lancamentosVinculados.isEmpty()) {
             lancamentoFinanceiroRepository.deleteAll(lancamentosVinculados);
         }
+        auditService.recordManual(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                pacote.getId().toString(),
+                pacote.getNomePacote(),
+                AuditActionType.DELETE_PHYSICAL,
+                snapshotAnterior,
+                null,
+                null,
+                "Exclusão física de pacote.",
+                AuditEventOrigin.MANUAL
+        );
         pacoteSessaoRepository.delete(pacote);
     }
 
     @Transactional
     public void reservarSessao(UUID pacoteId) {
         PacoteSessaoEntity pacote = validarDisponivel(pacoteId);
+        var snapshotAnterior = auditService.snapshotOf(pacote);
         pacote.setSessoesConsumidas(pacote.getSessoesConsumidas() + 1);
         pacote.setStatus(statusAjustado(
                 pacote.getStatus(),
@@ -160,7 +222,19 @@ public class PacoteSessaoService {
                 pacote.getSessoesContratadas(),
                 pacote.getDataValidade()
         ));
-        pacoteSessaoRepository.save(pacote);
+        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        auditService.recordManual(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo.getId().toString(),
+                salvo.getNomePacote(),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Reserva/baixa automática de sessão no pacote.",
+                AuditEventOrigin.SISTEMA
+        );
     }
 
     @Transactional
@@ -170,6 +244,7 @@ public class PacoteSessaoService {
         if (pacote.getSessoesConsumidas() <= 0) {
             return;
         }
+        var snapshotAnterior = auditService.snapshotOf(pacote);
         pacote.setSessoesConsumidas(pacote.getSessoesConsumidas() - 1);
         pacote.setStatus(statusAjustado(
                 PacoteSessaoStatus.ATIVO,
@@ -177,7 +252,19 @@ public class PacoteSessaoService {
                 pacote.getSessoesContratadas(),
                 pacote.getDataValidade()
         ));
-        pacoteSessaoRepository.save(pacote);
+        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        auditService.recordManual(
+                AuditModule.PACOTES,
+                "pacote_sessao",
+                salvo.getId().toString(),
+                salvo.getNomePacote(),
+                AuditActionType.RESTORE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Estorno automático de sessão no pacote.",
+                AuditEventOrigin.SISTEMA
+        );
     }
 
     public PacoteSessaoEntity validarDisponivel(UUID pacoteId) {

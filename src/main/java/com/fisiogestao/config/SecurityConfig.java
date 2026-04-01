@@ -17,7 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuditAuthenticationSuccessHandler auditAuthenticationSuccessHandler,
+            AuditLogoutHandler auditLogoutHandler
+    ) throws Exception {
         http
                 // Avoid sporadic 403 on custom form login when CSRF/session token is lost between requests.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login"))
@@ -37,14 +41,16 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/configuracoes/email/**", "/configuracao/email/**").hasRole("ADMIN")
+                        .requestMatchers("/auditoria/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .successHandler(auditAuthenticationSuccessHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
+                        .addLogoutHandler(auditLogoutHandler)
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )

@@ -2,6 +2,9 @@ package com.fisiogestao.prontuario.service;
 
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.prontuario.form.ProntuarioSoapForm;
@@ -21,6 +24,7 @@ public class ProntuarioService {
     private final ProntuarioSoapRepository prontuarioSoapRepository;
     private final PacienteService pacienteService;
     private final SessaoRepository sessaoRepository;
+    private final AuditService auditService;
 
     public List<ProntuarioSoapEntity> listarPorPaciente(UUID clienteId) {
         return prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
@@ -48,6 +52,15 @@ public class ProntuarioService {
                 .plano(form.getPlano().trim())
                 .criadoPor(usuario)
                 .build();
-        return prontuarioSoapRepository.save(prontuario);
+        ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(prontuario);
+        auditService.recordCreate(
+                AuditModule.PRONTUARIO,
+                "prontuario_soap",
+                salvo,
+                null,
+                "Registro SOAP criado no prontuário.",
+                AuditEventOrigin.MANUAL
+        );
+        return salvo;
     }
 }

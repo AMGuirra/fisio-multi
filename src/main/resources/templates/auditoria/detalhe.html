@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhe da Auditoria - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/auditoria.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+            <span class="sidebar-brand-copy">
+                <span class="sidebar-brand-title">FisioGestao</span>
+                <span class="sidebar-brand-subtitle">Painel Clínico</span>
+            </span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
+            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
+            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
+            <li><a href="/bloqueios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
+            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Pacotes de Sessões</span></a></li>
+            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
+            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
+            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
+            <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}">
+                <a href="/auditoria" class="sidebar-link active">
+                    <span class="sidebar-link-icon"><i data-lucide="shield-check"></i></span>
+                    <span class="sidebar-link-label">Auditoria</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a href="/auditoria" class="user-menu-item" role="menuitem"><i data-lucide="shield-check"></i><span>Auditoria</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main audit-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Detalhe da Auditoria</h1>
+                    <p class="hero-subtitle" th:text="${eventoAuditoria.descricaoRegistro != null ? eventoAuditoria.descricaoRegistro : 'Registro auditado do sistema'}">Registro auditado do sistema</p>
+                </div>
+                <span class="hero-pill" th:text="${eventoAuditoria.modulo != null ? eventoAuditoria.modulo.label : 'Auditoria'}">Auditoria</span>
+            </section>
+
+            <section class="section-card">
+                <div class="section-body">
+                    <a href="/auditoria" class="audit-back-link"><i data-lucide="arrow-left"></i> Voltar para a Central de Auditoria</a>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="file-search"></i> Dados principais do evento</h3>
+                </header>
+                <div class="section-body audit-detail-grid">
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Módulo</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.modulo != null ? eventoAuditoria.modulo.label : '-'}">Agenda</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Entidade</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.entidade}">sessao</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">ID do registro</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.entidadeId != null ? eventoAuditoria.entidadeId : '-'}">UUID</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Ação executada</p>
+                        <p class="audit-detail-value"><span class="audit-action-badge" th:classappend="${eventoAuditoria.tipoAcao != null ? ' ' + eventoAuditoria.tipoAcao.badgeClass : ''}" th:text="${eventoAuditoria.tipoAcao != null ? eventoAuditoria.tipoAcao.label : '-'}">Inclusão</span></p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Usuário responsável</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.usuarioNome != null ? eventoAuditoria.usuarioNome : 'Sistema'}">Administrador</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Perfil do usuário</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.perfilUsuario != null ? eventoAuditoria.perfilUsuario : '-'}">ADMIN</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Data e hora</p>
+                        <p class="audit-detail-value" th:text="${#temporals.format(eventoAuditoria.createdAt, 'dd/MM/yyyy HH:mm:ss')}">01/04/2026 09:00:00</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Origem do evento</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.origemEvento != null ? eventoAuditoria.origemEvento.label : '-'}">Manual</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Sucesso da operação</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.sucessoOperacao ? 'Sucesso' : 'Falha'}">Sucesso</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Alteração crítica</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.alteracaoCritica ? 'Sim' : 'Não'}">Sim</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">IP de origem</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.ipOrigem != null ? eventoAuditoria.ipOrigem : '-'}">127.0.0.1</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">User agent</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.userAgent != null ? eventoAuditoria.userAgent : '-'}">Navegador</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Motivo</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.motivo != null ? eventoAuditoria.motivo : '-'}">Motivo</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Observação</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.observacao != null ? eventoAuditoria.observacao : '-'}">Observação</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Campo alterado</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.campoAlterado != null ? eventoAuditoria.campoAlterado : '-'}">status</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Valor anterior</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.valorAnterior != null ? eventoAuditoria.valorAnterior : '-'}">PENDENTE</p>
+                    </article>
+                    <article class="audit-detail-item">
+                        <p class="audit-detail-label">Valor novo</p>
+                        <p class="audit-detail-value" th:text="${eventoAuditoria.valorNovo != null ? eventoAuditoria.valorNovo : '-'}">PAGO</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="diff"></i> Alterações por campo</h3>
+                </header>
+                <div class="section-body audit-empty" th:if="${eventoAuditoria.fieldChanges.empty}">
+                    <i data-lucide="align-justify"></i>
+                    <p>Este evento não gerou diff detalhado por campo.</p>
+                </div>
+                <div class="data-table-wrap" th:unless="${eventoAuditoria.fieldChanges.empty}">
+                    <table class="data-table audit-field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Valor anterior</th>
+                                <th>Valor novo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="campo : ${eventoAuditoria.fieldChanges}">
+                                <td th:text="${campo.fieldName}">status</td>
+                                <td th:text="${campo.oldValue != null ? campo.oldValue : '-'}">AGENDADA</td>
+                                <td th:text="${campo.newValue != null ? campo.newValue : '-'}">CANCELADA</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="braces"></i> Payloads completos</h3>
+                </header>
+                <div class="section-body audit-payload-grid">
+                    <article class="audit-payload-card">
+                        <h4>Payload anterior</h4>
+                        <pre th:text="${eventoAuditoria.payloadAnteriorJson != null ? eventoAuditoria.payloadAnteriorJson : '{}'}">{}</pre>
+                    </article>
+                    <article class="audit-payload-card">
+                        <h4>Payload novo</h4>
+                        <pre th:text="${eventoAuditoria.payloadNovoJson != null ? eventoAuditoria.payloadNovoJson : '{}'}">{}</pre>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

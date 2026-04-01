@@ -10,6 +10,10 @@ import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.agenda.service.BloqueioAgendaService;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
@@ -49,6 +53,7 @@ public class SolicitacaoAgendamentoService {
     private final PacoteSessaoService pacoteSessaoService;
     private final WhatsAppService whatsAppService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
+    private final AuditService auditService;
 
     public List<SolicitacaoAgendamentoEntity> listarPendentes() {
         return solicitacaoAgendamentoRepository.findByStatusOrderByCreatedAtAsc(SolicitacaoStatus.PENDENTE);
@@ -96,6 +101,14 @@ public class SolicitacaoAgendamentoService {
                 .status(SolicitacaoStatus.PENDENTE)
                 .build();
         SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordCreate(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva,
+                null,
+                "Solicitação pública de agendamento criada.",
+                AuditEventOrigin.ONLINE
+        );
 
         HorarioBloqueadoEntity bloqueio = HorarioBloqueadoEntity.builder()
                 .dataHoraInicio(intervalo.inicio())
@@ -120,6 +133,7 @@ public class SolicitacaoAgendamentoService {
     public SessaoEntity aprovarSolicitacao(UUID solicitacaoId, AprovacaoSolicitacaoForm form) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        var snapshotSolicitacaoAnterior = auditService.snapshotOf(solicitacao);
         if (solicitacao.getStatus() != SolicitacaoStatus.PENDENTE) {
             throw new BusinessException("A solicitação não está pendente.");
         }
@@ -161,10 +175,30 @@ public class SolicitacaoAgendamentoService {
                 .pacoteConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordCreate(
+                AuditModule.AGENDA,
+                "sessao",
+                salva,
+                null,
+                "Sessão criada a partir da aprovação de solicitação online.",
+                AuditEventOrigin.MANUAL
+        );
 
         solicitacao.setCliente(cliente);
         solicitacao.setStatus(SolicitacaoStatus.APROVADA);
-        solicitacaoAgendamentoRepository.save(solicitacao);
+        SolicitacaoAgendamentoEntity solicitacaoSalva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                solicitacaoSalva.getId().toString(),
+                auditService.describeOf(solicitacaoSalva),
+                AuditActionType.CONFIRM,
+                snapshotSolicitacaoAnterior,
+                auditService.snapshotOf(solicitacaoSalva),
+                null,
+                "Solicitação aprovada e convertida em sessão.",
+                AuditEventOrigin.MANUAL
+        );
 
         bloqueio.setStatus(HorarioBloqueadoStatus.CONFIRMADO);
         horarioBloqueadoRepository.save(bloqueio);
@@ -183,6 +217,7 @@ public class SolicitacaoAgendamentoService {
     public void rejeitarSolicitacao(UUID solicitacaoId) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
         if (solicitacao.getStatus() != SolicitacaoStatus.PENDENTE) {
             throw new BusinessException("Somente solicitações pendentes podem ser rejeitadas.");
         }
@@ -193,7 +228,19 @@ public class SolicitacaoAgendamentoService {
         });
 
         solicitacao.setStatus(SolicitacaoStatus.REJEITADA);
-        solicitacaoAgendamentoRepository.save(solicitacao);
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.REJECT,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Solicitação rejeitada pela clínica.",
+                AuditEventOrigin.MANUAL
+        );
 
         whatsAppService.enfileirar(
                 solicitacao.getTelefone(),
@@ -207,6 +254,7 @@ public class SolicitacaoAgendamentoService {
     public SolicitacaoAgendamentoEntity reagendarSolicitacao(UUID solicitacaoId, ReagendarSolicitacaoForm form) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser reagendadas."));
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
         HorarioBloqueadoEntity bloqueio = horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Bloqueio temporário da solicitação não encontrado."));
@@ -220,7 +268,19 @@ public class SolicitacaoAgendamentoService {
             String historico = solicitacao.getObservacoes() == null ? "" : solicitacao.getObservacoes().trim() + "\n";
             solicitacao.setObservacoes((historico + "Reagendado: " + form.getMotivo().trim()).trim());
         }
-        solicitacaoAgendamentoRepository.save(solicitacao);
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.RESCHEDULE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                texto(form.getMotivo()),
+                "Solicitação online reagendada.",
+                AuditEventOrigin.MANUAL
+        );
 
         bloqueio.setDataHoraInicio(novoIntervalo.inicio());
         bloqueio.setDataHoraFim(novoIntervalo.fim());
@@ -242,6 +302,7 @@ public class SolicitacaoAgendamentoService {
     public void bloquearPeriodoDaSolicitacao(UUID solicitacaoId, String motivo, String usuario) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser bloqueadas."));
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
         horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId).ifPresent(bloqueio -> {
             bloqueio.setStatus(HorarioBloqueadoStatus.CANCELADO);
@@ -264,7 +325,19 @@ public class SolicitacaoAgendamentoService {
         bloqueioAgendaService.criar(form, usuario, BloqueioAgendaOrigem.ONLINE);
 
         solicitacao.setStatus(SolicitacaoStatus.CANCELADA);
-        solicitacaoAgendamentoRepository.save(solicitacao);
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                motivoBloqueio,
+                "Solicitação cancelada por indisponibilidade do horário.",
+                AuditEventOrigin.MANUAL
+        );
 
         whatsAppService.enfileirar(
                 solicitacao.getTelefone(),

@@ -1,6 +1,7 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
@@ -49,6 +50,9 @@ class PacienteServiceTest {
     @Mock
     private LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
+    @Mock
+    private AuditService auditService;
+
     @InjectMocks
     private PacienteService pacienteService;
 
@@ -59,6 +63,7 @@ class PacienteServiceTest {
                 .nomeCompleto("Maria")
                 .ativo(true)
                 .build();
+        cliente.setId(clienteId);
 
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
         when(pacoteSessaoRepository.existsByClienteId(clienteId)).thenReturn(false);
@@ -79,6 +84,7 @@ class PacienteServiceTest {
                 .nomeCompleto("Maria")
                 .ativo(true)
                 .build();
+        cliente.setId(clienteId);
 
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
         when(pacoteSessaoRepository.existsByClienteId(clienteId)).thenReturn(true);

@@ -1,6 +1,10 @@
 package com.fisiogestao.financeiro.service;
 
 import com.fisiogestao.config.TimezoneConfig;
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
@@ -24,6 +28,7 @@ import java.util.UUID;
 public class FinanceiroService {
 
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+    private final AuditService auditService;
 
     public List<LancamentoFinanceiroEntity> listarTodos() {
         return lancamentoFinanceiroRepository.findAllByOrderByDataCompetenciaDescCreatedAtDesc();
@@ -44,7 +49,16 @@ public class FinanceiroService {
                 .valor(form.getValor())
                 .dataCompetencia(paraInicioDoDia(form.getDataCompetencia()))
                 .build();
-        return lancamentoFinanceiroRepository.save(lancamento);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordCreate(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo,
+                null,
+                "Cadastro manual de lançamento financeiro.",
+                AuditEventOrigin.MANUAL
+        );
+        return salvo;
     }
 
     @Transactional
@@ -59,7 +73,15 @@ public class FinanceiroService {
                 .cliente(pacote.getCliente())
                 .pacoteSessao(pacote)
                 .build();
-        lancamentoFinanceiroRepository.save(receita);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(receita);
+        auditService.recordCreate(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo,
+                null,
+                "Receita gerada automaticamente a partir da venda de pacote.",
+                AuditEventOrigin.SISTEMA
+        );
     }
 
     public BigDecimal totalReceitasPendentes() {
@@ -78,6 +100,7 @@ public class FinanceiroService {
     public void marcarComoPago(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
                 .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(lancamento);
 
         if (lancamento.getStatus() != StatusLancamentoFinanceiro.PENDENTE) {
             throw new BusinessException("Apenas lançamentos pendentes podem ser marcados como pagos.");
@@ -85,7 +108,19 @@ public class FinanceiroService {
 
         lancamento.setStatus(StatusLancamentoFinanceiro.PAGO);
         lancamento.setDataPagamento(OffsetDateTime.now(ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE)));
-        lancamentoFinanceiroRepository.save(lancamento);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordManual(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo.getId().toString(),
+                salvo.getDescricao(),
+                AuditActionType.MARK_AS_PAID,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Baixa manual de lançamento financeiro.",
+                AuditEventOrigin.MANUAL
+        );
     }
 
     private BigDecimal somarPorFiltro(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status) {

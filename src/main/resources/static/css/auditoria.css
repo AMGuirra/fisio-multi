@@ -1,0 +1,249 @@
+.audit-main {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.audit-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.audit-toolbar-copy {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.audit-toolbar-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.audit-toolbar-text {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.96rem;
+}
+
+.audit-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.audit-filter-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.audit-checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.25rem;
+}
+
+.audit-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #334155;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.audit-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+}
+
+.audit-summary-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(241,245,249,0.9));
+    border: 1px solid rgba(148,163,184,0.18);
+    border-radius: 20px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 18px 40px rgba(15,23,42,0.08);
+    display: grid;
+    gap: 0.35rem;
+}
+
+.audit-summary-label {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.audit-summary-value {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.65rem;
+    font-weight: 800;
+}
+
+.audit-action-badge,
+.audit-origin-badge,
+.audit-critical-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.38rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.audit-action-badge.status-success {
+    background: rgba(16,185,129,0.14);
+    color: #047857;
+}
+
+.audit-action-badge.status-info {
+    background: rgba(59,130,246,0.14);
+    color: #1d4ed8;
+}
+
+.audit-action-badge.status-warning {
+    background: rgba(245,158,11,0.16);
+    color: #b45309;
+}
+
+.audit-action-badge.status-danger {
+    background: rgba(239,68,68,0.14);
+    color: #b91c1c;
+}
+
+.audit-origin-badge {
+    background: rgba(15,23,42,0.08);
+    color: #334155;
+}
+
+.audit-critical-badge {
+    background: rgba(127,29,29,0.12);
+    color: #991b1b;
+}
+
+.audit-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.9rem;
+}
+
+.audit-detail-item {
+    background: rgba(248,250,252,0.9);
+    border: 1px solid rgba(148,163,184,0.16);
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.audit-detail-label {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.audit-detail-value {
+    margin: 0;
+    color: #0f172a;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.audit-payload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.audit-payload-card {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 20px;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.audit-payload-card h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.audit-payload-card pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    max-height: 420px;
+    overflow: auto;
+}
+
+.audit-field-table td,
+.audit-field-table th {
+    vertical-align: top;
+}
+
+.audit-empty {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.audit-empty i {
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.audit-inline-stack {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.audit-inline-meta {
+    color: #64748b;
+    font-size: 0.84rem;
+}
+
+.audit-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #0f766e;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.audit-back-link:hover {
+    color: #115e59;
+}
+
+@media (max-width: 768px) {
+    .audit-button-row {
+        width: 100%;
+    }
+
+    .audit-button-row .action-button {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+}

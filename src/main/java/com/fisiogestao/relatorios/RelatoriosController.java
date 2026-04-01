@@ -1,5 +1,9 @@
 package com.fisiogestao.relatorios;
 
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.relatorios.form.CobrancaEmailForm;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.LinkedHashMap;
 import java.time.LocalDate;
 
 @Controller
@@ -39,6 +44,7 @@ public class RelatoriosController {
     private final RelatoriosService relatoriosService;
     private final PacienteService pacienteService;
     private final FinanceiroService financeiroService;
+    private final AuditService auditService;
 
     @GetMapping
     public String index(
@@ -71,6 +77,18 @@ public class RelatoriosController {
             @RequestParam FormatoRelatorio formato
     ) {
         RelatorioDocumento documento = relatoriosService.exportar(relatoriosService.gerarRelatorio(filtro), formato);
+        auditService.recordManual(
+                AuditModule.RELATORIOS,
+                "relatorio_operacional",
+                null,
+                "Relatório operacional",
+                formato == FormatoRelatorio.PDF ? AuditActionType.EXPORT_PDF : AuditActionType.EXPORT_EXCEL,
+                null,
+                payloadExportacao(filtro, formato),
+                null,
+                "Exportação manual de relatório operacional.",
+                AuditEventOrigin.MANUAL
+        );
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + documento.fileName() + "\"")
                 .contentType(MediaType.parseMediaType(documento.contentType()))
@@ -201,5 +219,17 @@ public class RelatoriosController {
                 + "&incluirAgenda=" + filtro.isIncluirAgenda()
                 + "&incluirFinanceiro=" + filtro.isIncluirFinanceiro()
                 + "&incluirSolicitacoes=" + filtro.isIncluirSolicitacoes();
+    }
+
+    private LinkedHashMap<String, Object> payloadExportacao(FiltroRelatorioForm filtro, FormatoRelatorio formato) {
+        LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
+        payload.put("formato", formato != null ? formato.name() : null);
+        payload.put("dataInicial", filtro.getDataInicial());
+        payload.put("dataFinal", filtro.getDataFinal());
+        payload.put("incluirPacientes", filtro.isIncluirPacientes());
+        payload.put("incluirAgenda", filtro.isIncluirAgenda());
+        payload.put("incluirFinanceiro", filtro.isIncluirFinanceiro());
+        payload.put("incluirSolicitacoes", filtro.isIncluirSolicitacoes());
+        return payload;
     }
 }

@@ -1,5 +1,9 @@
 package com.fisiogestao.auth;
 
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,7 @@ public class InMemoryUserCatalog {
 
     private final PasswordEncoder passwordEncoder;
     private final UsuarioSistemaRepository repository;
+    private final AuditService auditService;
 
     @PostConstruct
     void seedDefaults() {
@@ -61,6 +66,17 @@ public class InMemoryUserCatalog {
                 .map(user -> new SystemUserCredentials(user.getUsername(), user.getPasswordHash(), user.getRole()));
     }
 
+    public Optional<String> buscarNomeExibicao(String username) {
+        String normalized = normalizeUsernameForLookup(username);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        return repository.findByUsername(normalized)
+                .map(UsuarioSistemaEntity::getNome)
+                .map(String::trim)
+                .filter(nome -> !nome.isBlank());
+    }
+
     @Transactional
     public SystemUserView criar(String nome, String username, String email, String password, UserRole role) {
         String normalizedNome = normalizeNome(nome);
@@ -79,7 +95,16 @@ public class InMemoryUserCatalog {
                 .passwordHash(passwordEncoder.encode(normalizedPassword))
                 .role(normalizedRole)
                 .build();
-        return toView(repository.save(user));
+        UsuarioSistemaEntity salvo = repository.save(user);
+        auditService.recordCreate(
+                AuditModule.USUARIOS,
+                "usuario_sistema",
+                salvo,
+                null,
+                "Cadastro manual de usuário.",
+                AuditEventOrigin.MANUAL
+        );
+        return toView(salvo);
     }
 
     @Transactional
@@ -94,6 +119,7 @@ public class InMemoryUserCatalog {
     ) {
         UsuarioSistemaEntity existing = repository.findById(id)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(existing);
 
         String normalizedNome = normalizeNome(nome);
         String normalizedUsername = normalizeUsername(username);
@@ -128,13 +154,29 @@ public class InMemoryUserCatalog {
             existing.setPasswordHash(passwordEncoder.encode(normalizedPassword));
         }
 
-        return toView(repository.save(existing));
+        UsuarioSistemaEntity salvo = repository.save(existing);
+        auditService.recordManual(
+                AuditModule.USUARIOS,
+                "usuario_sistema",
+                salvo.getId().toString(),
+                salvo.getNome(),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                normalizedPassword != null
+                        ? "Atualização de usuário com alteração de credencial."
+                        : "Atualização manual de usuário.",
+                AuditEventOrigin.MANUAL
+        );
+        return toView(salvo);
     }
 
     @Transactional
     public void excluir(UUID id, String loggedUsername) {
         UsuarioSistemaEntity existing = repository.findById(id)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(existing);
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
         if (normalizedLoggedUsername != null && existing.getUsername().equals(normalizedLoggedUsername)) {
@@ -145,6 +187,18 @@ public class InMemoryUserCatalog {
             throw new BusinessException("Não é possível excluir o único administrador do sistema.");
         }
 
+        auditService.recordManual(
+                AuditModule.USUARIOS,
+                "usuario_sistema",
+                existing.getId().toString(),
+                existing.getNome(),
+                AuditActionType.DELETE_PHYSICAL,
+                snapshotAnterior,
+                null,
+                null,
+                "Exclusão física de usuário.",
+                AuditEventOrigin.MANUAL
+        );
         repository.delete(existing);
     }
 

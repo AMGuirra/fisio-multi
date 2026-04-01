@@ -88,6 +88,12 @@
                         <span>Usuários</span>
                     </a>
                 </li>
+                <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
+                    <a href="/auditoria" class="sidebar-nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Auditoria</span>
+                    </a>
+                </li>
             </ul>
             <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
                 <a href="/agendamento-online" target="_blank" class="sidebar-nav-link">
@@ -109,10 +115,10 @@
             <div class="topbar-title" th:text="${pageTitle != null ? pageTitle : 'Dashboard'}">Dashboard</div>
             <div class="topbar-user">
                 <div>
-                    <div class="topbar-user-name" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? loggedUsername : 'Usuário'}">Usuário</div>
+                    <div class="topbar-user-name" th:text="${loggedUserDisplayName}">Usuário</div>
                     <div class="topbar-user-role">Fisioterapeuta</div>
                 </div>
-                <div class="topbar-user-avatar" th:text="${loggedUsername != null and !#strings.isEmpty(loggedUsername) ? #strings.substring(loggedUsername, 0, 1) : 'U'}">U</div>
+                <div class="topbar-user-avatar" th:text="${loggedUserInitial}">U</div>
             </div>
         </header>
     </th:block>

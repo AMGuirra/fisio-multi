@@ -1,5 +1,9 @@
 package com.fisiogestao.email.service;
 
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.EmailConfiguracaoEntity;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.repository.EmailConfiguracaoRepository;
@@ -21,6 +25,7 @@ public class EmailConfiguracaoService {
     private final EmailLogRepository emailLogRepository;
     private final SecretCryptoService secretCryptoService;
     private final SystemEmailService systemEmailService;
+    private final AuditService auditService;
 
     public Optional<EmailConfiguracaoEntity> buscarAtiva() {
         return emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
@@ -55,9 +60,11 @@ public class EmailConfiguracaoService {
             boolean ativo,
             String observacoes
     ) {
-        EmailConfiguracaoEntity entity = id == null
+        boolean novoCadastro = id == null;
+        EmailConfiguracaoEntity entity = novoCadastro
                 ? new EmailConfiguracaoEntity()
                 : buscarPorId(id);
+        var snapshotAnterior = novoCadastro ? null : auditService.snapshotOf(entity);
 
         entity.setNomeRemetente(textoObrigatorio(nomeRemetente, "Informe o nome do remetente."));
         entity.setEmailRemetente(email(emailRemetente, "Informe o e-mail do remetente."));
@@ -85,15 +92,52 @@ public class EmailConfiguracaoService {
             desativarDemaisConfiguracoes(id);
         }
 
-        return emailConfiguracaoRepository.save(entity);
+        EmailConfiguracaoEntity salva = emailConfiguracaoRepository.save(entity);
+        if (novoCadastro) {
+            auditService.recordCreate(
+                    AuditModule.CONFIGURACOES,
+                    "email_configuracao",
+                    salva,
+                    null,
+                    "Cadastro de configuração SMTP.",
+                    AuditEventOrigin.MANUAL
+            );
+        } else {
+            auditService.recordManual(
+                    AuditModule.CONFIGURACOES,
+                    "email_configuracao",
+                    salva.getId().toString(),
+                    auditService.describeOf(salva),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(salva),
+                    null,
+                    "Atualização de configuração SMTP.",
+                    AuditEventOrigin.MANUAL
+            );
+        }
+        return salva;
     }
 
     @Transactional
     public void definirAtiva(UUID id) {
         desativarDemaisConfiguracoes(id);
         EmailConfiguracaoEntity entity = buscarPorId(id);
+        var snapshotAnterior = auditService.snapshotOf(entity);
         entity.setAtivo(true);
-        emailConfiguracaoRepository.save(entity);
+        EmailConfiguracaoEntity salva = emailConfiguracaoRepository.save(entity);
+        auditService.recordManual(
+                AuditModule.CONFIGURACOES,
+                "email_configuracao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.ACTIVATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Configuração SMTP ativada.",
+                AuditEventOrigin.MANUAL
+        );
     }
 
     public EmailDispatchResult testarEnvio(EmailConfiguracaoEntity configuracao, String destinatarioTeste, String usuario) {
@@ -126,7 +170,23 @@ public class EmailConfiguracaoService {
         emailConfiguracaoRepository.findAllByOrderByAtivoDescUpdatedAtDesc().stream()
                 .filter(item -> !item.getId().equals(configuracaoAtivaId))
                 .filter(item -> Boolean.TRUE.equals(item.getAtivo()))
-                .forEach(item -> item.setAtivo(false));
+                .forEach(item -> {
+                    var snapshotAnterior = auditService.snapshotOf(item);
+                    item.setAtivo(false);
+                    EmailConfiguracaoEntity salva = emailConfiguracaoRepository.save(item);
+                    auditService.recordManual(
+                            AuditModule.CONFIGURACOES,
+                            "email_configuracao",
+                            salva.getId().toString(),
+                            auditService.describeOf(salva),
+                            AuditActionType.INACTIVATE,
+                            snapshotAnterior,
+                            auditService.snapshotOf(salva),
+                            null,
+                            "Configuração SMTP desativada automaticamente para manter uma única configuração ativa.",
+                            AuditEventOrigin.MANUAL
+                    );
+                });
     }
 
     private Integer validarPorta(Integer porta) {

@@ -1,6 +1,7 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
@@ -46,6 +47,9 @@ class PacoteSessaoServiceTest {
 
     @Mock
     private LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private PacoteSessaoService pacoteSessaoService;

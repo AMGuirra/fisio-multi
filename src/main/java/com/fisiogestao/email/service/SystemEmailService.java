@@ -1,10 +1,15 @@
 package com.fisiogestao.email.service;
 
+import com.fisiogestao.auditoria.AuditActionType;
+import com.fisiogestao.auditoria.AuditEventOrigin;
+import com.fisiogestao.auditoria.AuditEventCommand;
+import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.email.EmailConfiguracaoEntity;
 import com.fisiogestao.email.EmailLogEntity;
 import com.fisiogestao.email.EmailLogStatus;
 import com.fisiogestao.email.repository.EmailConfiguracaoRepository;
 import com.fisiogestao.email.repository.EmailLogRepository;
+import com.fisiogestao.auditoria.service.AuditService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -30,11 +36,14 @@ public class SystemEmailService {
     private final EmailLogRepository emailLogRepository;
     private final EmailTemplateService emailTemplateService;
     private final SecretCryptoService secretCryptoService;
+    private final AuditService auditService;
 
     public EmailDispatchResult send(EmailRequest request) {
         Optional<EmailConfiguracaoEntity> configuracao = emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
         if (configuracao.isEmpty()) {
-            registrarLog(null, request, EmailLogStatus.FALHA, "Nenhuma configuração SMTP ativa encontrada.");
+            String mensagemErro = "Nenhuma configuração SMTP ativa encontrada.";
+            registrarLog(null, request, EmailLogStatus.FALHA, mensagemErro);
+            registrarAuditoria(request, EmailLogStatus.FALHA, mensagemErro, false);
             return EmailDispatchResult.failure("Nenhuma configuração SMTP ativa encontrada.");
         }
         return sendWithConfiguration(configuracao.get(), request);
@@ -44,6 +53,7 @@ public class SystemEmailService {
     public EmailDispatchResult sendWithConfiguration(EmailConfiguracaoEntity configuracao, EmailRequest request) {
         List<String> destinatarios = sanitizarDestinatarios(request.to());
         if (destinatarios.isEmpty()) {
+            registrarAuditoria(request, EmailLogStatus.FALHA, "Informe pelo menos um destinatário.", false);
             return EmailDispatchResult.failure("Informe pelo menos um destinatário.");
         }
 
@@ -88,10 +98,13 @@ public class SystemEmailService {
 
             mailSender.send(mimeMessage);
             registrarLog(configuracao, request, EmailLogStatus.ENVIADO, null);
+            registrarAuditoria(request, EmailLogStatus.ENVIADO, null, true);
             return EmailDispatchResult.success("E-mail enviado com sucesso.");
         } catch (Exception ex) {
             LOGGER.error("Falha ao enviar e-mail tipo {} para {}", request.type(), destinatarios, ex);
-            registrarLog(configuracao, request, EmailLogStatus.FALHA, mensagemLimpa(ex));
+            String mensagemErro = mensagemLimpa(ex);
+            registrarLog(configuracao, request, EmailLogStatus.FALHA, mensagemErro);
+            registrarAuditoria(request, EmailLogStatus.FALHA, mensagemErro, false);
             return EmailDispatchResult.failure("Não foi possível enviar o e-mail. Verifique a configuração SMTP e tente novamente.");
         }
     }
@@ -155,5 +168,60 @@ public class SystemEmailService {
             return ex.getClass().getSimpleName();
         }
         return mensagem.length() > 400 ? mensagem.substring(0, 400) : mensagem;
+    }
+
+    private void registrarAuditoria(
+            EmailRequest request,
+            EmailLogStatus status,
+            String mensagemErro,
+            boolean sucesso
+    ) {
+        LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
+        payload.put("tipoEmail", request.type() != null ? request.type().name() : null);
+        payload.put("assunto", request.subject());
+        payload.put("destinatarios", request.to());
+        payload.put("cc", request.cc());
+        payload.put("bcc", request.bcc());
+        payload.put("template", request.templateId() != null ? request.templateId() : request.templateName());
+        payload.put("entityType", request.entityType());
+        payload.put("entityId", request.entityId());
+        payload.put("observacoes", request.notes());
+        payload.put("statusEnvio", status != null ? status.name() : null);
+        payload.put("erro", mensagemErro);
+
+        auditService.record(AuditEventCommand.builder()
+                .module(resolveModule(request))
+                .entity(request.entityType() != null && !request.entityType().isBlank() ? request.entityType() : "email")
+                .entityId(request.entityId() != null ? request.entityId().toString() : null)
+                .recordDescription(request.subject())
+                .actionType(AuditActionType.SEND_EMAIL)
+                .newPayload(payload)
+                .reason(mensagemErro)
+                .observation(sucesso ? "Envio de e-mail processado com sucesso." : "Falha no envio de e-mail.")
+                .origin(resolveOrigin(request))
+                .success(sucesso)
+                .build());
+    }
+
+    private AuditModule resolveModule(EmailRequest request) {
+        String entityType = request.entityType();
+        if (entityType == null || entityType.isBlank()) {
+            return AuditModule.EMAIL;
+        }
+        return switch (entityType) {
+            case "agendamento", "sessao" -> AuditModule.AGENDA;
+            case "usuario_sistema" -> AuditModule.USUARIOS;
+            case "lancamento_financeiro" -> AuditModule.FINANCEIRO;
+            case "relatorio_operacional", "lembrete" -> AuditModule.RELATORIOS;
+            case "email_configuracao" -> AuditModule.CONFIGURACOES;
+            default -> AuditModule.EMAIL;
+        };
+    }
+
+    private AuditEventOrigin resolveOrigin(EmailRequest request) {
+        if (request.triggeredBy() == null || request.triggeredBy().isBlank() || "sistema".equalsIgnoreCase(request.triggeredBy())) {
+            return AuditEventOrigin.SISTEMA;
+        }
+        return AuditEventOrigin.MANUAL;
     }
 }
