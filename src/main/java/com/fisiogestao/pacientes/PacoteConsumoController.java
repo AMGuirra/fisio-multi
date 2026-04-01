@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -31,11 +32,12 @@ public class PacoteConsumoController {
 
     @GetMapping
     public String index(
+            @RequestParam(name = "busca", required = false) String buscaPaciente,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             @RequestParam(name = "editar", required = false) UUID pacoteEdicaoId,
             Model model
     ) {
-        prepararPagina(model, pacienteId, pacoteEdicaoId, null, null);
+        prepararPagina(model, pacienteId, pacoteEdicaoId, buscaPaciente, null, null);
         return "pacotes-consumo/index";
     }
 
@@ -43,21 +45,22 @@ public class PacoteConsumoController {
     public String criar(
             @Valid @ModelAttribute("pacoteConsumoForm") PacoteConsumoForm form,
             BindingResult bindingResult,
+            @RequestParam(name = "busca", required = false) String buscaPaciente,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form.getClienteId(), null, form, null);
+            prepararPagina(model, form.getClienteId(), null, buscaPaciente, form, null);
             return "pacotes-consumo/index";
         }
 
         try {
             PacoteSessaoEntity salvo = pacoteSessaoService.criarViaCrud(form);
             redirectAttributes.addFlashAttribute("successMessage", "Pacote criado com sucesso.");
-            return "redirect:/pacotes-consumo?paciente=" + salvo.getCliente().getId();
+            return construirDestino(salvo.getCliente().getId(), null, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form.getClienteId(), null, form, null);
+            prepararPagina(model, form.getClienteId(), null, buscaPaciente, form, null);
             return "pacotes-consumo/index";
         }
     }
@@ -67,21 +70,22 @@ public class PacoteConsumoController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("pacoteEdicaoForm") PacoteConsumoForm form,
             BindingResult bindingResult,
+            @RequestParam(name = "busca", required = false) String buscaPaciente,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form.getClienteId(), id, null, form);
+            prepararPagina(model, form.getClienteId(), id, buscaPaciente, null, form);
             return "pacotes-consumo/index";
         }
 
         try {
             PacoteSessaoEntity salvo = pacoteSessaoService.atualizarViaCrud(id, form);
             redirectAttributes.addFlashAttribute("successMessage", "Pacote atualizado com sucesso.");
-            return "redirect:/pacotes-consumo?paciente=" + salvo.getCliente().getId() + "&editar=" + id;
+            return construirDestino(salvo.getCliente().getId(), id, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form.getClienteId(), id, null, form);
+            prepararPagina(model, form.getClienteId(), id, buscaPaciente, null, form);
             return "pacotes-consumo/index";
         }
     }
@@ -89,6 +93,7 @@ public class PacoteConsumoController {
     @PostMapping("/{id}/cancelar")
     public String cancelar(
             @PathVariable UUID id,
+            @RequestParam(name = "busca", required = false) String buscaPaciente,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             RedirectAttributes redirectAttributes
     ) {
@@ -99,13 +104,13 @@ public class PacoteConsumoController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
 
-        String destinoPaciente = pacienteId != null ? pacienteId.toString() : "";
-        return "redirect:/pacotes-consumo" + (destinoPaciente.isBlank() ? "" : "?paciente=" + destinoPaciente);
+        return construirDestino(pacienteId, null, buscaPaciente);
     }
 
     @PostMapping("/{id}/excluir")
     public String excluir(
             @PathVariable UUID id,
+            @RequestParam(name = "busca", required = false) String buscaPaciente,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             RedirectAttributes redirectAttributes
     ) {
@@ -116,19 +121,20 @@ public class PacoteConsumoController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
 
-        String destinoPaciente = pacienteId != null ? pacienteId.toString() : "";
-        return "redirect:/pacotes-consumo" + (destinoPaciente.isBlank() ? "" : "?paciente=" + destinoPaciente);
+        return construirDestino(pacienteId, null, buscaPaciente);
     }
 
     private void prepararPagina(
             Model model,
             UUID pacienteId,
             UUID pacoteEdicaoId,
+            String buscaPaciente,
             PacoteConsumoForm pacoteConsumoForm,
             PacoteConsumoForm pacoteEdicaoForm
     ) {
-        List<ClienteEntity> pacientes = pacienteService.listarAtivos();
-        UUID pacienteSelecionadoId = resolverPacienteSelecionado(pacientes, pacienteId);
+        List<ClienteEntity> pacientesAtivos = pacienteService.listarAtivos();
+        List<ClienteEntity> pacientes = filtrarPacientes(pacientesAtivos, buscaPaciente);
+        UUID pacienteSelecionadoId = resolverPacienteSelecionado(model, pacientesAtivos, pacienteId);
         ClienteEntity pacienteSelecionado = pacienteSelecionadoId == null
                 ? null
                 : pacienteService.buscarPorId(pacienteSelecionadoId);
@@ -157,6 +163,9 @@ public class PacoteConsumoController {
         int totalConsumidas = pacotes.stream().mapToInt(PacoteSessaoEntity::getSessoesConsumidas).sum();
 
         model.addAttribute("pacientes", pacientes);
+        model.addAttribute("buscaPaciente", buscaPaciente == null ? "" : buscaPaciente.trim());
+        model.addAttribute("totalPacientesAtivos", pacientesAtivos.size());
+        model.addAttribute("totalPacientesEncontrados", pacientes.size());
         model.addAttribute("pacienteSelecionadoId", pacienteSelecionadoId);
         model.addAttribute("pacienteSelecionado", pacienteSelecionado);
         model.addAttribute("pacotes", pacotes);
@@ -170,15 +179,53 @@ public class PacoteConsumoController {
         model.addAttribute("totalSessoesDisponiveis", Math.max(0, totalContratadas - totalConsumidas));
     }
 
-    private UUID resolverPacienteSelecionado(List<ClienteEntity> pacientes, UUID solicitadoId) {
-        if (pacientes.isEmpty()) {
+    private UUID resolverPacienteSelecionado(Model model, List<ClienteEntity> pacientes, UUID solicitadoId) {
+        if (solicitadoId == null || pacientes.isEmpty()) {
             return null;
         }
-        if (solicitadoId == null) {
-            return pacientes.get(0).getId();
-        }
         boolean existe = pacientes.stream().anyMatch(paciente -> paciente.getId().equals(solicitadoId));
-        return existe ? solicitadoId : pacientes.get(0).getId();
+        if (!existe && !model.containsAttribute("errorMessage")) {
+            model.addAttribute("errorMessage", "Paciente selecionado não está disponível.");
+        }
+        return existe ? solicitadoId : null;
+    }
+
+    private List<ClienteEntity> filtrarPacientes(List<ClienteEntity> pacientes, String buscaPaciente) {
+        if (buscaPaciente == null || buscaPaciente.isBlank()) {
+            return pacientes;
+        }
+
+        String termo = buscaPaciente.trim().toLowerCase();
+        String termoTelefone = termo.replaceAll("\\D", "");
+
+        return pacientes.stream()
+                .filter(paciente -> correspondeBusca(paciente, termo, termoTelefone))
+                .toList();
+    }
+
+    private boolean correspondeBusca(ClienteEntity paciente, String termo, String termoTelefone) {
+        boolean correspondeNome = paciente.getNomeCompleto() != null
+                && paciente.getNomeCompleto().toLowerCase().contains(termo);
+        boolean correspondeEmail = paciente.getEmail() != null
+                && paciente.getEmail().toLowerCase().contains(termo);
+        boolean correspondeTelefone = paciente.getTelefone() != null
+                && !termoTelefone.isBlank()
+                && paciente.getTelefone().replaceAll("\\D", "").contains(termoTelefone);
+        return correspondeNome || correspondeEmail || correspondeTelefone;
+    }
+
+    private String construirDestino(UUID pacienteId, UUID pacoteEdicaoId, String buscaPaciente) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/pacotes-consumo");
+        if (buscaPaciente != null && !buscaPaciente.isBlank()) {
+            builder.queryParam("busca", buscaPaciente.trim());
+        }
+        if (pacienteId != null) {
+            builder.queryParam("paciente", pacienteId);
+        }
+        if (pacoteEdicaoId != null) {
+            builder.queryParam("editar", pacoteEdicaoId);
+        }
+        return "redirect:" + builder.build().encode().toUriString();
     }
 
     private PacoteConsumoForm criarFormPadrao(UUID pacienteId) {

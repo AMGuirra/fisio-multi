@@ -75,13 +75,10 @@
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
-                    <h1 class="hero-title">Pacientes e Pacotes</h1>
-                    <p class="hero-subtitle">Cadastre pacientes, acompanhe dados clínicos e controle os pacotes de sessões.</p>
+                    <h1 class="hero-title">Pacientes</h1>
+                    <p class="hero-subtitle">Cadastre e mantenha a base de pacientes da clínica em um único lugar.</p>
                 </div>
-                <a th:href="${pacienteSelecionadoId != null ? '/pacientes?paciente=' + pacienteSelecionadoId + '#paciente-pacotes' : '/pacotes-consumo'}" class="action-button ghost">
-                    <i data-lucide="package-open"></i>
-                    Gerenciar Pacotes
-                </a>
+                <span class="hero-pill">Cadastro</span>
             </section>
 
             <div class="flash-stack">
@@ -93,17 +90,17 @@
                 <article class="summary-card receita">
                     <span class="summary-icon"><i data-lucide="users-round"></i></span>
                     <p class="summary-label">Pacientes Ativos</p>
-                    <p class="summary-value" th:text="${pacientes != null ? pacientes.size() : 0}">0</p>
+                    <p class="summary-value" th:text="${totalPacientesAtivos}">0</p>
                 </article>
                 <article class="summary-card saldo">
-                    <span class="summary-icon"><i data-lucide="package"></i></span>
-                    <p class="summary-label">Pacotes do Paciente</p>
-                    <p class="summary-value" th:text="${pacotesPaciente != null ? pacotesPaciente.size() : 0}">0</p>
+                    <span class="summary-icon"><i data-lucide="phone"></i></span>
+                    <p class="summary-label">Com Telefone</p>
+                    <p class="summary-value" th:text="${totalPacientesComTelefone}">0</p>
                 </article>
                 <article class="summary-card despesa">
-                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
-                    <p class="summary-label">Sessões Disponíveis</p>
-                    <p class="summary-value" th:text="${sessoesDisponiveis}">0</p>
+                    <span class="summary-icon"><i data-lucide="mail"></i></span>
+                    <p class="summary-label">Com E-mail</p>
+                    <p class="summary-value" th:text="${totalPacientesComEmail}">0</p>
                 </article>
             </section>
 
@@ -175,7 +172,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="paciente : ${pacientes}" th:classappend="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'row-selected' : ''}">
+                                <tr th:each="paciente : ${pacientes}">
                                     <td>
                                         <div class="entity-inline">
                                             <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
@@ -191,19 +188,13 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="table-actions" style="justify-content:flex-end;">
-                                        <a th:href="${'/pacientes?paciente=' + paciente.id + '#paciente-pacotes'}" class="action-button ghost">
-                                            <i data-lucide="eye"></i>
-                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Gerenciar abaixo' : 'Selecionar'}">Selecionar</span>
-                                        </a>
                                         <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}" method="post" class="inline-form"
                                               onsubmit="return confirm('Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações.');">
-                                            <input type="hidden" name="pacienteSelecionado" th:value="${pacienteSelecionadoId}">
                                             <button type="submit" class="action-button danger">
                                                 <i data-lucide="trash-2"></i>
                                                 Excluir
                                             </button>
                                         </form>
-                                        <span th:if="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id}" class="chip status-approved">Selecionado</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -211,188 +202,6 @@
                         </table>
                     </div>
                 </article>
-            </section>
-
-            <section class="section-card" th:if="${pacienteSelecionado == null}">
-                <div class="section-body">
-                    <div class="empty-box">
-                        <i data-lucide="notebook-pen"></i>
-                        <p>Selecione um paciente para gerenciar os pacotes de sessões.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="section-card" th:if="${pacienteSelecionado != null}" id="paciente-pacotes">
-                <header class="section-head">
-                    <div>
-                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
-                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
-                    </div>
-                    <div class="table-actions">
-                        <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
-                            <i data-lucide="calendar-plus"></i>
-                            Agendar Sessão
-                        </a>
-                        <form th:action="@{/pacientes/{id}/excluir(id=${pacienteSelecionado.id})}" method="post" class="inline-form"
-                              onsubmit="return confirm('Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações.');">
-                            <input type="hidden" name="pacienteSelecionado" th:value="${pacienteSelecionadoId}">
-                            <button type="submit" class="action-button danger">
-                                <i data-lucide="trash-2"></i>
-                                Excluir Paciente
-                            </button>
-                        </form>
-                    </div>
-                </header>
-                <div class="section-body">
-                    <div class="summary-grid">
-                        <article class="summary-card saldo">
-                            <span class="summary-icon"><i data-lucide="package-check"></i></span>
-                            <p class="summary-label">Pacote Ativo</p>
-                            <p class="summary-value" th:text="${pacoteAtivoPaciente != null ? pacoteAtivoPaciente.nomePacote : 'Sem pacote'}">Sem pacote</p>
-                        </article>
-                        <article class="summary-card receita">
-                            <span class="summary-icon"><i data-lucide="badge-plus"></i></span>
-                            <p class="summary-label">Sessões Disponíveis</p>
-                            <p class="summary-value" th:text="${sessoesDisponiveis}">0</p>
-                        </article>
-                        <article class="summary-card despesa">
-                            <span class="summary-icon"><i data-lucide="history"></i></span>
-                            <p class="summary-label">Sessões no Histórico</p>
-                            <p class="summary-value" th:text="${sessoesPaciente != null ? sessoesPaciente.size() : 0}">0</p>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Pacote</h3>
-                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
-                    </header>
-                    <div class="section-body">
-                        <form th:action="@{/pacientes/{id}/pacotes(id=${pacienteSelecionado.id})}" th:object="${pacoteForm}" method="post" class="modern-form">
-                            <div class="form-field">
-                                <label for="nomePacote">Nome do pacote</label>
-                                <input id="nomePacote" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" placeholder="Ex: Plano mensal" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="sessoesContratadas">Sessões contratadas</label>
-                                <input id="sessoesContratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="valorTotal">Valor total</label>
-                                <input id="valorTotal" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="dataInicio">Data inicial</label>
-                                <input id="dataInicio" type="date" class="form-control" th:field="*{dataInicio}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="dataValidade">Data de validade</label>
-                                <input id="dataValidade" type="date" class="form-control" th:field="*{dataValidade}">
-                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
-                            </div>
-
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="check"></i>
-                                Salvar Pacote
-                            </button>
-                            <p class="helper-text">Cada sessão confirmada ou realizada consumirá automaticamente uma sessão deste saldo quando o pacote for vinculado ao paciente.</p>
-                        </form>
-                    </div>
-                </article>
-
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-open"></i> Pacotes do Paciente</h3>
-                        <p class="section-subtitle" th:text="${pacotesPaciente != null ? pacotesPaciente.size() + ' pacotes' : '0 pacotes'}">0 pacotes</p>
-                    </header>
-
-                    <div class="section-body" th:if="${pacotesPaciente == null or pacotesPaciente.empty}">
-                        <div class="empty-box">
-                            <i data-lucide="archive-x"></i>
-                            <p>Este paciente ainda não possui pacotes cadastrados.</p>
-                        </div>
-                    </div>
-
-                    <div class="data-table-wrap" th:unless="${pacotesPaciente == null or pacotesPaciente.empty}">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Pacote</th>
-                                    <th>Sessões</th>
-                                    <th>Validade</th>
-                                    <th>Status</th>
-                                    <th class="text-right">Valor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="pacote : ${pacotesPaciente}">
-                                    <td>
-                                        <p class="entity-name" th:text="${pacote.nomePacote}">Pacote</p>
-                                        <p class="entity-meta" th:text="${#temporals.format(pacote.dataInicio, 'dd/MM/yyyy')}">Data</p>
-                                    </td>
-                                    <td>
-                                        <strong th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
-                                    </td>
-                                    <td th:text="${pacote.dataValidade != null ? #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : '-'}">-</td>
-                                    <td>
-                                        <span class="chip"
-                                              th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
-                                              th:text="${pacote.status.name()}">ATIVO</span>
-                                    </td>
-                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(pacote.valorTotal, 1, 2)}">R$ 0,00</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </article>
-            </section>
-
-            <section class="section-card" th:if="${pacienteSelecionado != null}">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="history"></i> Histórico de Sessões</h3>
-                    <p class="section-subtitle" th:text="${sessoesPaciente != null ? sessoesPaciente.size() + ' sessões registradas' : '0 sessões'}">0 sessões</p>
-                </header>
-                <div class="section-body" th:if="${sessoesPaciente == null or sessoesPaciente.empty}">
-                    <div class="empty-box">
-                        <i data-lucide="calendar-x"></i>
-                        <p>Este paciente ainda não possui sessões registradas.</p>
-                    </div>
-                </div>
-                <div class="data-table-wrap" th:unless="${sessoesPaciente == null or sessoesPaciente.empty}">
-                    <table class="data-table compact">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Pacote</th>
-                                <th>Status</th>
-                                <th>Consumo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="sessao : ${sessoesPaciente}">
-                                <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">01/04/2026 08:00</td>
-                                <td th:text="${sessao.pacoteSessao != null ? sessao.pacoteSessao.nomePacote : 'Sem pacote'}">Pacote</td>
-                                <td>
-                                    <span class="chip"
-                                          th:classappend="${sessao.status.name() == 'REALIZADA' ? 'status-completed' : (sessao.status.name() == 'CANCELADA' ? 'status-danger' : 'status-approved')}"
-                                          th:text="${sessao.status.name() == 'AGENDADA' ? 'CONFIRMADA' : sessao.status.name()}">CONFIRMADA</span>
-                                </td>
-                                <td th:text="${sessao.pacoteSessao != null and sessao.pacoteConsumoRegistrado ? 'Consumida' : 'Não consumida'}">Consumida</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </section>
         </main>
 

@@ -337,6 +337,14 @@
     gap: 10px;
 }
 
+.form-actions.align-end {
+    align-items: flex-end;
+}
+
+.search-grid {
+    align-items: end;
+}
+
 .data-table-wrap {
     overflow-x: auto;
 }

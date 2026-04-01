@@ -76,7 +76,7 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Pacotes de Sessões</h1>
-                    <p class="hero-subtitle">CRUD completo para criar, ajustar consumo, atualizar status e cancelar pacotes dos pacientes.</p>
+                    <p class="hero-subtitle">Busque o paciente, selecione-o e então gerencie os pacotes de sessões desse paciente.</p>
                 </div>
                 <span class="hero-pill">Pacotes</span>
             </section>
@@ -105,24 +105,112 @@
             </section>
 
             <section class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="search"></i> Buscar Paciente</h3>
+                        <p class="section-subtitle" th:text="${totalPacientesAtivos + ' pacientes ativos cadastrados'}">0 pacientes ativos cadastrados</p>
+                    </div>
+                    <a th:if="${!#strings.isEmpty(buscaPaciente)}" th:href="@{/pacotes-consumo}" class="action-button ghost">
+                        <i data-lucide="x"></i>
+                        Limpar Busca
+                    </a>
+                </header>
                 <div class="section-body">
                     <form method="get" th:action="@{/pacotes-consumo}" class="modern-form">
-                        <div class="form-field">
-                            <label for="paciente">Paciente</label>
-                            <select id="paciente" name="paciente" class="form-select" onchange="this.form.submit()" required>
-                                <option th:if="${pacientes == null or pacientes.empty}" value="">Nenhum paciente disponível</option>
-                                <option th:each="paciente : ${pacientes}" th:value="${paciente.id}" th:selected="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id}" th:text="${paciente.nomeCompleto}">Paciente</option>
-                            </select>
+                        <div class="form-grid form-grid-two search-grid">
+                            <div class="form-field">
+                                <label for="buscaPaciente">Buscar pacientes</label>
+                                <input id="buscaPaciente" name="busca" type="text" class="form-control"
+                                       th:value="${buscaPaciente}"
+                                       placeholder="Digite nome, telefone ou e-mail">
+                            </div>
+                            <div class="form-actions align-end">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="search"></i>
+                                    Buscar
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
+                <div class="data-table-wrap" th:if="${pacientes != null and !pacientes.empty}">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Contato</th>
+                                <th class="text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="paciente : ${pacientes}" th:classappend="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'row-selected' : ''}">
+                                <td>
+                                    <div class="entity-inline">
+                                        <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
+                                        <div>
+                                            <p class="entity-name" th:text="${paciente.nomeCompleto}">Paciente</p>
+                                            <p class="entity-meta" th:text="${paciente.dataNascimento != null ? #temporals.format(paciente.dataNascimento, 'dd/MM/yyyy') : 'Sem data de nascimento'}">Data</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="entity-name" th:text="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone) ? paciente.telefone : '-'}">-</p>
+                                    <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
+                                </td>
+                                <td class="text-right">
+                                    <div class="table-actions" style="justify-content:flex-end;">
+                                        <a th:href="@{/pacotes-consumo(paciente=${paciente.id},busca=${buscaPaciente})}" class="action-button ghost">
+                                            <i data-lucide="check"></i>
+                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Selecionar'}">Selecionar</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="section-body" th:if="${pacientes == null or pacientes.empty}">
+                    <div class="empty-box">
+                        <i data-lucide="user-search"></i>
+                        <p th:if="${totalPacientesAtivos == 0}">Cadastre um paciente para começar a gerenciar pacotes de sessões.</p>
+                        <p th:unless="${totalPacientesAtivos == 0}">Nenhum paciente encontrado para a busca informada.</p>
+                    </div>
+                </div>
             </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado == null}">
+            <section class="section-card" th:if="${pacienteSelecionado == null and totalPacientesAtivos > 0}">
                 <div class="section-body">
                     <div class="empty-box">
-                        <i data-lucide="user-x"></i>
-                        <p>Cadastre um paciente para começar a gerenciar pacotes de sessões.</p>
+                        <i data-lucide="mouse-pointer-click"></i>
+                        <p>Busque e selecione um paciente para liberar o gerenciamento dos pacotes de sessões.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card" th:if="${pacienteSelecionado != null}">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
+                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                    </div>
+                    <a th:href="@{/pacotes-consumo(busca=${buscaPaciente})}" class="action-button ghost">
+                        <i data-lucide="refresh-ccw"></i>
+                        Trocar Paciente
+                    </a>
+                </header>
+                <div class="section-body">
+                    <div class="helper-card">
+                        <div class="helper-copy">
+                            <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
+                            <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
+                            <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
+                        </div>
+                        <div class="table-actions">
+                            <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
+                                <i data-lucide="calendar-plus"></i>
+                                Agendar Sessão
+                            </a>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -136,6 +224,7 @@
                     <div class="section-body">
                         <form th:action="@{/pacotes-consumo}" th:object="${pacoteConsumoForm}" method="post" class="modern-form">
                             <input type="hidden" th:field="*{clienteId}">
+                            <input type="hidden" name="busca" th:value="${buscaPaciente}">
                             <div class="form-field">
                                 <label for="novo-nome">Nome do pacote</label>
                                 <input id="novo-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
@@ -220,11 +309,12 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="table-actions">
-                                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id})}" class="action-button ghost">
+                                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id},busca=${buscaPaciente})}" class="action-button ghost">
                                                 <i data-lucide="pencil"></i>
                                                 Editar
                                             </a>
                                             <form th:action="@{/pacotes-consumo/{id}/cancelar(id=${pacote.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="busca" th:value="${buscaPaciente}">
                                                 <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
                                                 <button type="submit" class="action-button danger"
                                                         th:disabled="${pacote.status.name() == 'CANCELADO'}">
@@ -234,6 +324,7 @@
                                             </form>
                                             <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}" method="post" class="inline-form"
                                                   onsubmit="return confirm('Deseja excluir este pacote? Isso removerá também lançamentos financeiros pendentes vinculados a ele.');">
+                                                <input type="hidden" name="busca" th:value="${buscaPaciente}">
                                                 <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
                                                 <button type="submit" class="action-button danger">
                                                     <i data-lucide="trash-2"></i>
@@ -256,12 +347,12 @@
                 </header>
                 <div class="section-body">
                     <form th:action="@{/pacotes-consumo/{id}(id=${pacoteEmEdicao.id})}" th:object="${pacoteEdicaoForm}" method="post" class="modern-form">
+                        <input type="hidden" name="busca" th:value="${buscaPaciente}">
+                        <input type="hidden" th:field="*{clienteId}">
                         <div class="calendar-inline-grid">
                             <div class="form-field">
-                                <label for="editar-cliente">Paciente</label>
-                                <select id="editar-cliente" class="form-select" th:field="*{clienteId}" required>
-                                    <option th:each="paciente : ${pacientes}" th:value="${paciente.id}" th:text="${paciente.nomeCompleto}">Paciente</option>
-                                </select>
+                                <label>Paciente</label>
+                                <div class="form-control read-only-field" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</div>
                                 <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
                             </div>
                             <div class="form-field">
@@ -313,7 +404,7 @@
                                 <i data-lucide="save"></i>
                                 Atualizar Pacote
                             </button>
-                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId})}" class="action-button ghost">
+                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},busca=${buscaPaciente})}" class="action-button ghost">
                                 <i data-lucide="x"></i>
                                 Fechar Edição
                             </a>
