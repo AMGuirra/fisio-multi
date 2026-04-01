@@ -37,11 +37,12 @@ public class AgendaController {
     @GetMapping
     public String agenda(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(required = false) UUID paciente,
             @RequestParam(required = false) UUID editar,
             Model model
     ) {
         LocalDate dataSelecionada = data != null ? data : LocalDate.now();
-        prepararPaginaComFallback(model, dataSelecionada, new AgendaManualForm(), editar, null);
+        prepararPaginaComFallback(model, dataSelecionada, criarFormularioPadrao(dataSelecionada, paciente), editar, null);
         return "agenda/index";
     }
 
@@ -208,5 +209,16 @@ public class AgendaController {
             }
         }
         return pacotes;
+    }
+
+    private AgendaManualForm criarFormularioPadrao(LocalDate dataSelecionada, UUID pacienteId) {
+        AgendaManualForm form = new AgendaManualForm();
+        form.setData(dataSelecionada);
+        if (pacienteId != null) {
+            form.setClienteId(pacienteId);
+            pacoteSessaoService.buscarPrimeiroDisponivel(pacienteId)
+                    .ifPresent(pacote -> form.setPacoteSessaoId(pacote.getId()));
+        }
+        return form;
     }
 }

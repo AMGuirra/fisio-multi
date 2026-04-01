@@ -814,6 +814,26 @@
     min-width: 84px;
 }
 
+.helper-text {
+    margin: 4px 0 0;
+    color: #6b7a90;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.read-only-field {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    background: #f6fbfb;
+    color: #34506a;
+    font-weight: 600;
+}
+
+.row-selected td {
+    background: rgba(26, 156, 126, 0.06);
+}
+
 @media (max-width: 1160px) {
     .crud-layout.two-column,
     .crud-layout.form-table {

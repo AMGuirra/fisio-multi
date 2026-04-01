@@ -28,6 +28,7 @@ public class InMemoryUserCatalog {
             return;
         }
         UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
+                .nome("Administrador")
                 .username("admin")
                 .email("admin@fisiogestao.local")
                 .passwordHash(passwordEncoder.encode("admin"))
@@ -61,7 +62,8 @@ public class InMemoryUserCatalog {
     }
 
     @Transactional
-    public SystemUserView criar(String username, String email, String password, UserRole role) {
+    public SystemUserView criar(String nome, String username, String email, String password, UserRole role) {
+        String normalizedNome = normalizeNome(nome);
         String normalizedUsername = normalizeUsername(username);
         String normalizedEmail = normalizeEmail(email);
         String normalizedPassword = normalizePassword(password, true);
@@ -71,6 +73,7 @@ public class InMemoryUserCatalog {
         ensureEmailDisponivel(normalizedEmail, null);
 
         UsuarioSistemaEntity user = UsuarioSistemaEntity.builder()
+                .nome(normalizedNome)
                 .username(normalizedUsername)
                 .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(normalizedPassword))
@@ -82,6 +85,7 @@ public class InMemoryUserCatalog {
     @Transactional
     public SystemUserView atualizar(
             UUID id,
+            String nome,
             String username,
             String email,
             String password,
@@ -91,6 +95,7 @@ public class InMemoryUserCatalog {
         UsuarioSistemaEntity existing = repository.findById(id)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
+        String normalizedNome = normalizeNome(nome);
         String normalizedUsername = normalizeUsername(username);
         String normalizedEmail = normalizeEmail(email);
         UserRole normalizedRole = normalizeRole(role);
@@ -113,6 +118,7 @@ public class InMemoryUserCatalog {
             throw new BusinessException("Não é permitido alterar o tipo do usuário da sessão atual.");
         }
 
+        existing.setNome(normalizedNome);
         existing.setUsername(normalizedUsername);
         existing.setEmail(normalizedEmail);
         existing.setRole(normalizedRole);
@@ -167,6 +173,17 @@ public class InMemoryUserCatalog {
         return role;
     }
 
+    private String normalizeNome(String nome) {
+        if (nome == null) {
+            throw new BusinessException("Informe o nome.");
+        }
+        String normalized = nome.trim();
+        if (normalized.isBlank()) {
+            throw new BusinessException("Informe o nome.");
+        }
+        return normalized;
+    }
+
     private String normalizeUsername(String username) {
         String normalized = normalizeUsernameForLookup(username);
         if (normalized == null) {
@@ -219,12 +236,12 @@ public class InMemoryUserCatalog {
     }
 
     private SystemUserView toView(UsuarioSistemaEntity user) {
-        return new SystemUserView(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getRole().getLabel());
+        return new SystemUserView(user.getId(), user.getNome(), user.getUsername(), user.getEmail(), user.getRole(), user.getRole().getLabel());
     }
 
     public record SystemUserCredentials(String username, String passwordHash, UserRole role) {
     }
 
-    public record SystemUserView(UUID id, String username, String email, UserRole role, String label) {
+    public record SystemUserView(UUID id, String nome, String username, String email, UserRole role, String label) {
     }
 }

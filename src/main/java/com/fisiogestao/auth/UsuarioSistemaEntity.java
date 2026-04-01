@@ -23,6 +23,9 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 public class UsuarioSistemaEntity extends BaseEntity {
 
+    @Column(nullable = false, length = 160)
+    private String nome;
+
     @Column(nullable = false, unique = true, length = 40)
     private String username;
 

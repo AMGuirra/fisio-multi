@@ -12,6 +12,10 @@ import lombok.Setter;
 @Setter
 public class UsuarioForm {
 
+    @NotBlank(message = "Informe o nome.")
+    @Size(max = 160, message = "O nome deve ter até 160 caracteres.")
+    private String nome;
+
     @NotBlank(message = "Informe o nome de usuário.")
     @Size(max = 40, message = "O nome de usuário deve ter até 40 caracteres.")
     private String username;

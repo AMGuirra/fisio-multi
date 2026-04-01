@@ -28,10 +28,12 @@
             <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
             <li><a href="/bloqueios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
             <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
+            <li><a href="/pacotes-consumo" class="sidebar-link" th:classappend="${currentPath == '/pacotes-consumo' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Pacotes de Sessões</span></a></li>
             <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
             <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
             <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
         </ul>
 

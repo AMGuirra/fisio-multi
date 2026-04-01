@@ -39,6 +39,7 @@ public class UserManagementController {
 
         if (editarId != null) {
             userCatalog.buscarPorId(editarId).ifPresentOrElse(usuario -> {
+                form.setNome(usuario.nome());
                 form.setUsername(usuario.username());
                 form.setEmail(usuario.email());
                 form.setRole(usuario.role());
@@ -68,7 +69,7 @@ public class UserManagementController {
         }
 
         try {
-            InMemoryUserCatalog.SystemUserView user = userCatalog.criar(form.getUsername(), form.getEmail(), form.getPassword(), form.getRole());
+            InMemoryUserCatalog.SystemUserView user = userCatalog.criar(form.getNome(), form.getUsername(), form.getEmail(), form.getPassword(), form.getRole());
             EmailDispatchResult onboardingResult = passwordResetService.enviarEmailBoasVindasParaUsuarioId(
                     user.id(),
                     request.getRemoteAddr(),
@@ -108,6 +109,7 @@ public class UserManagementController {
         try {
             userCatalog.atualizar(
                     id,
+                    form.getNome(),
                     form.getUsername(),
                     form.getEmail(),
                     form.getPassword(),

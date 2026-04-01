@@ -46,6 +46,12 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="/pacotes-consumo" class="sidebar-nav-link">
+                        <i data-lucide="package-open"></i>
+                        <span>Pacotes de Sessões</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="/pacientes" class="sidebar-nav-link">
                         <i data-lucide="id-card"></i>
                         <span>Pacientes</span>
@@ -67,6 +73,12 @@
                     <a href="/relatorios" class="sidebar-nav-link">
                         <i data-lucide="file-text"></i>
                         <span>Relatórios</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
+                    <a href="/configuracoes/email" class="sidebar-nav-link">
+                        <i data-lucide="mail-check"></i>
+                        <span>Config. E-mail</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">

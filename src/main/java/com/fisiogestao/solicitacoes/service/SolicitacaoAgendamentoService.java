@@ -144,15 +144,12 @@ public class SolicitacaoAgendamentoService {
                 solicitacao.getEmail()
         );
 
-        PacoteSessaoEntity pacote = null;
-        if (form != null && form.getPacoteSessaoId() != null) {
-            pacote = pacoteSessaoService.validarDisponivel(form.getPacoteSessaoId());
-            if (!pacote.getCliente().getId().equals(cliente.getId())) {
-                throw new BusinessException("O pacote selecionado não pertence ao paciente da solicitação.");
-            }
-        } else {
-            pacote = pacoteSessaoService.buscarPrimeiroDisponivel(cliente.getId()).orElse(null);
-        }
+        PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(
+                cliente.getId(),
+                form != null ? form.getPacoteSessaoId() : null,
+                null
+        );
+        pacoteSessaoService.reservarSessao(pacote.getId());
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(cliente)
@@ -162,6 +159,7 @@ public class SolicitacaoAgendamentoService {
                 .status(SessaoStatus.AGENDADA)
                 .tipoAtendimento("Fisioterapia")
                 .observacoes(solicitacao.getObservacoes())
+                .pacoteConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
 

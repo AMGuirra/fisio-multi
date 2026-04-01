@@ -127,7 +127,7 @@ public class PasswordResetService {
                         .entityId(usuario.getId())
                         .triggeredBy("sistema")
                         .templateVariables(Map.of(
-                                "nomeUsuario", usuario.getUsername(),
+                                "nomeUsuario", usuario.getNome(),
                                 "email", usuario.getEmail(),
                                 "linkRedefinicao", link.link(),
                                 "expiraEm", link.expiresAt(),

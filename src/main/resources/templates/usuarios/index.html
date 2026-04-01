@@ -54,6 +54,12 @@
                 </a>
             </li>
             <li>
+                <a href="/pacotes-consumo" class="sidebar-link" th:classappend="${currentPath == '/pacotes-consumo' ? ' active' : ''}">
+                    <span class="sidebar-link-icon"><i data-lucide="package-open"></i></span>
+                    <span class="sidebar-link-label">Pacotes de Sessões</span>
+                </a>
+            </li>
+            <li>
                 <a href="/pacientes" class="sidebar-link">
                     <span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span>
                     <span class="sidebar-link-label">Pacientes</span>
@@ -75,6 +81,14 @@
                 <a href="/relatorios" class="sidebar-link">
                     <span class="sidebar-link-icon"><i data-lucide="file-text"></i></span>
                     <span class="sidebar-link-label">Relatórios</span>
+                </a>
+            </li>
+            <li>
+                <a href="/configuracoes/email"
+                   class="sidebar-link"
+                   th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}">
+                    <span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span>
+                    <span class="sidebar-link-label">Config. E-mail</span>
                 </a>
             </li>
             <li>
@@ -176,6 +190,18 @@
                               class="modern-form">
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
+                                    <label for="nome">Nome</label>
+                                    <input id="nome"
+                                           type="text"
+                                           class="form-control"
+                                           th:field="*{nome}"
+                                           maxlength="160"
+                                           placeholder="Nome completo"
+                                           required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+                                </div>
+
+                                <div class="form-field">
                                     <label for="username">Usuário</label>
                                     <input id="username"
                                            type="text"
@@ -257,6 +283,7 @@
                         <table class="data-table compact">
                             <thead>
                             <tr>
+                                <th>Nome</th>
                                 <th>Usuário</th>
                                 <th>E-mail</th>
                                 <th>Tipo</th>
@@ -266,11 +293,15 @@
                             <tbody>
                             <tr th:each="user : ${usuarios}">
                                 <td>
+                                    <p class="entity-name" th:text="${user.nome}">Nome</p>
+                                </td>
+                                <td>
                                     <div class="entity-inline">
                                         <span class="entity-avatar"
-                                              th:text="${user.username != null and !#strings.isEmpty(user.username) ? #strings.substring(user.username, 0, 1) : 'U'}">U</span>
+                                              th:text="${user.nome != null and !#strings.isEmpty(user.nome) ? #strings.substring(user.nome, 0, 1) : 'U'}">U</span>
                                         <div>
                                             <p class="entity-name" th:text="${user.username}">usuario</p>
+                                            <p class="entity-meta">Login do sistema</p>
                                         </div>
                                     </div>
                                 </td>

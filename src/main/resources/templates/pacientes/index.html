@@ -33,6 +33,7 @@
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
             <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
             <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
         </ul>
 
@@ -77,9 +78,9 @@
                     <h1 class="hero-title">Pacientes e Pacotes</h1>
                     <p class="hero-subtitle">Cadastre pacientes, acompanhe dados clínicos e controle os pacotes de sessões.</p>
                 </div>
-                <a href="/pacotes-consumo" class="action-button ghost">
+                <a th:href="${pacienteSelecionadoId != null ? '/pacientes?paciente=' + pacienteSelecionadoId + '#paciente-pacotes' : '/pacotes-consumo'}" class="action-button ghost">
                     <i data-lucide="package-open"></i>
-                    CRUD de Consumo
+                    Gerenciar Pacotes
                 </a>
             </section>
 
@@ -174,7 +175,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="paciente : ${pacientes}">
+                                <tr th:each="paciente : ${pacientes}" th:classappend="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'row-selected' : ''}">
                                     <td>
                                         <div class="entity-inline">
                                             <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
@@ -189,10 +190,13 @@
                                         <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
                                     </td>
                                     <td class="text-right">
-                                        <a th:href="@{/pacientes(paciente=${paciente.id})}" class="action-button ghost">
+                                        <div class="table-actions" style="justify-content:flex-end;">
+                                        <a th:href="${'/pacientes?paciente=' + paciente.id + '#paciente-pacotes'}" class="action-button ghost">
                                             <i data-lucide="eye"></i>
-                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Abrir'}">Abrir</span>
+                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Gerenciar abaixo' : 'Selecionar'}">Selecionar</span>
                                         </a>
+                                        <span th:if="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id}" class="chip status-approved">Selecionado</span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -206,6 +210,38 @@
                     <div class="empty-box">
                         <i data-lucide="notebook-pen"></i>
                         <p>Selecione um paciente para gerenciar os pacotes de sessões.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card" th:if="${pacienteSelecionado != null}" id="paciente-pacotes">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
+                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                    </div>
+                    <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
+                        <i data-lucide="calendar-plus"></i>
+                        Agendar Sessão
+                    </a>
+                </header>
+                <div class="section-body">
+                    <div class="summary-grid">
+                        <article class="summary-card saldo">
+                            <span class="summary-icon"><i data-lucide="package-check"></i></span>
+                            <p class="summary-label">Pacote Ativo</p>
+                            <p class="summary-value" th:text="${pacoteAtivoPaciente != null ? pacoteAtivoPaciente.nomePacote : 'Sem pacote'}">Sem pacote</p>
+                        </article>
+                        <article class="summary-card receita">
+                            <span class="summary-icon"><i data-lucide="badge-plus"></i></span>
+                            <p class="summary-label">Sessões Disponíveis</p>
+                            <p class="summary-value" th:text="${sessoesDisponiveis}">0</p>
+                        </article>
+                        <article class="summary-card despesa">
+                            <span class="summary-icon"><i data-lucide="history"></i></span>
+                            <p class="summary-label">Sessões no Histórico</p>
+                            <p class="summary-value" th:text="${sessoesPaciente != null ? sessoesPaciente.size() : 0}">0</p>
+                        </article>
                     </div>
                 </div>
             </section>
@@ -252,6 +288,7 @@
                                 <i data-lucide="check"></i>
                                 Salvar Pacote
                             </button>
+                            <p class="helper-text">Cada sessão confirmada ou realizada consumirá automaticamente uma sessão deste saldo quando o pacote for vinculado ao paciente.</p>
                         </form>
                     </div>
                 </article>
@@ -301,6 +338,43 @@
                         </table>
                     </div>
                 </article>
+            </section>
+
+            <section class="section-card" th:if="${pacienteSelecionado != null}">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="history"></i> Histórico de Sessões</h3>
+                    <p class="section-subtitle" th:text="${sessoesPaciente != null ? sessoesPaciente.size() + ' sessões registradas' : '0 sessões'}">0 sessões</p>
+                </header>
+                <div class="section-body" th:if="${sessoesPaciente == null or sessoesPaciente.empty}">
+                    <div class="empty-box">
+                        <i data-lucide="calendar-x"></i>
+                        <p>Este paciente ainda não possui sessões registradas.</p>
+                    </div>
+                </div>
+                <div class="data-table-wrap" th:unless="${sessoesPaciente == null or sessoesPaciente.empty}">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Pacote</th>
+                                <th>Status</th>
+                                <th>Consumo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sessao : ${sessoesPaciente}">
+                                <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">01/04/2026 08:00</td>
+                                <td th:text="${sessao.pacoteSessao != null ? sessao.pacoteSessao.nomePacote : 'Sem pacote'}">Pacote</td>
+                                <td>
+                                    <span class="chip"
+                                          th:classappend="${sessao.status.name() == 'REALIZADA' ? 'status-completed' : (sessao.status.name() == 'CANCELADA' ? 'status-danger' : 'status-approved')}"
+                                          th:text="${sessao.status.name() == 'AGENDADA' ? 'CONFIRMADA' : sessao.status.name()}">CONFIRMADA</span>
+                                </td>
+                                <td th:text="${sessao.pacoteSessao != null and sessao.pacoteConsumoRegistrado ? 'Consumida' : 'Não consumida'}">Consumida</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </main>
 

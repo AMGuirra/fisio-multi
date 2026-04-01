@@ -1,5 +1,7 @@
 package com.fisiogestao.pacientes;
 
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.form.PacoteSessaoForm;
 import com.fisiogestao.pacientes.service.PacienteService;
@@ -29,6 +31,7 @@ public class PacientesController {
 
     private final PacienteService pacienteService;
     private final PacoteSessaoService pacoteSessaoService;
+    private final AgendaService agendaService;
 
     @GetMapping
     public String index(
@@ -115,6 +118,8 @@ public class PacientesController {
         if (pacienteSelecionadoId == null) {
             model.addAttribute("pacienteSelecionado", null);
             model.addAttribute("pacotesPaciente", List.of());
+            model.addAttribute("sessoesPaciente", List.of());
+            model.addAttribute("pacoteAtivoPaciente", null);
             model.addAttribute("sessoesDisponiveis", 0);
             return;
         }
@@ -126,11 +131,14 @@ public class PacientesController {
         model.addAttribute("pacienteSelecionado", pacienteSelecionado);
 
         List<PacoteSessaoEntity> pacotes = pacoteSessaoService.listarPorCliente(pacienteSelecionadoId);
+        List<SessaoEntity> sessoesPaciente = agendaService.listarSessoesDoPaciente(pacienteSelecionadoId);
         model.addAttribute("pacotesPaciente", pacotes);
+        model.addAttribute("sessoesPaciente", sessoesPaciente);
+        model.addAttribute("pacoteAtivoPaciente", pacoteSessaoService.buscarPrimeiroDisponivel(pacienteSelecionadoId).orElse(null));
 
         int sessoesDisponiveis = pacotes.stream()
                 .filter(pacote -> pacote.getStatus() == PacoteSessaoStatus.ATIVO)
-                .mapToInt(pacote -> Math.max(0, pacote.getSessoesContratadas() - pacote.getSessoesConsumidas()))
+                .mapToInt(pacoteSessaoService::calcularSessoesDisponiveis)
                 .sum();
         model.addAttribute("sessoesDisponiveis", sessoesDisponiveis);
     }

@@ -59,4 +59,9 @@ public class SessaoEntity extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;
+
+    @NonNull
+    @Column(name = "pacote_consumo_registrado", nullable = false)
+    @Builder.Default
+    private Boolean pacoteConsumoRegistrado = Boolean.FALSE;
 }

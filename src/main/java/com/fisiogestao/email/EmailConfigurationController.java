@@ -21,7 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/configuracoes/email")
+@RequestMapping({"/configuracoes/email", "/configuracao/email"})
 @RequiredArgsConstructor
 public class EmailConfigurationController {
 

@@ -33,6 +33,7 @@
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
             <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
             <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
         </ul>
 
@@ -118,7 +119,9 @@
                                         <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
                                     </div>
                                     <div class="session-actions">
-                                        <span class="chip" th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}" th:text="${sessao.status.name()}">STATUS</span>
+                                        <span class="chip"
+                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
+                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'CONFIRMADA' : sessao.status.name()}">STATUS</span>
                                         <a th:if="${sessao.status.name() == 'AGENDADA'}" th:href="@{/agenda(data=${dataSelecionada},editar=${sessao.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
                                         <form th:if="${sessao.status.name() == 'AGENDADA'}" th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
@@ -161,7 +164,7 @@
                                 <div class="form-field">
                                     <label for="pacoteSessaoId">Pacote de sessões</label>
                                     <select id="pacoteSessaoId" th:field="*{pacoteSessaoId}" class="form-select js-pacote-select" th:disabled="${agendaConfigurada == false}">
-                                        <option value="">Sem pacote vinculado</option>
+                                        <option value="">Selecionar automaticamente o pacote ativo</option>
                                         <option th:each="pacote : ${pacotesAgenda}"
                                                 th:value="${pacote.id}"
                                                 th:attr="data-cliente-id=${pacote.cliente.id}"
@@ -169,6 +172,7 @@
                                             Pacote
                                         </option>
                                     </select>
+                                    <p class="helper-text">Toda sessão confirmada precisa estar vinculada a um pacote disponível. Se você não escolher, o sistema usa automaticamente o pacote ativo mais adequado do paciente.</p>
                                 </div>
 
                                 <div class="form-field">
@@ -230,7 +234,7 @@
                                 <div class="form-field">
                                     <label for="editPacoteSessaoId">Pacote de sessões</label>
                                     <select id="editPacoteSessaoId" th:field="*{pacoteSessaoId}" class="form-select js-pacote-select">
-                                        <option value="">Sem pacote vinculado</option>
+                                        <option value="">Selecionar automaticamente o pacote ativo</option>
                                         <option th:each="pacote : ${pacotesAgenda}"
                                                 th:value="${pacote.id}"
                                                 th:attr="data-cliente-id=${pacote.cliente.id}"
@@ -238,6 +242,7 @@
                                             Pacote
                                         </option>
                                     </select>
+                                    <p class="helper-text">Ao trocar o pacote, o sistema estorna o consumo do pacote anterior e reserva no novo automaticamente.</p>
                                 </div>
 
                                 <div class="form-field">

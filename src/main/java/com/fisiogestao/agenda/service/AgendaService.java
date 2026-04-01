@@ -228,7 +228,8 @@ public class AgendaService {
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
         validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
-        PacoteSessaoEntity pacote = resolverPacote(form.getClienteId(), form.getPacoteSessaoId(), null);
+        PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(form.getClienteId(), form.getPacoteSessaoId(), null);
+        pacoteSessaoService.reservarSessao(pacote.getId());
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(form.getClienteId()))
@@ -238,6 +239,7 @@ public class AgendaService {
                 .status(SessaoStatus.AGENDADA)
                 .tipoAtendimento(texto(form.getTipoAtendimento()))
                 .observacoes(texto(form.getObservacoes()))
+                .pacoteConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
         agendamentoEmailNotificationService.notificarConfirmadoPorSessao(salva, profissionalResponsavel);
@@ -254,15 +256,20 @@ public class AgendaService {
 
         OffsetDateTime inicioAnterior = sessao.getDataHoraInicio();
         OffsetDateTime fimAnterior = sessao.getDataHoraFim();
+        UUID pacoteAnteriorId = sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null;
+        boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado());
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
         validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, sessaoId);
 
-        sessao.setCliente(pacienteService.buscarPorId(form.getClienteId()));
-        sessao.setPacoteSessao(resolverPacote(
+        PacoteSessaoEntity novoPacote = pacoteSessaoService.resolverPacoteParaSessao(
                 form.getClienteId(),
                 form.getPacoteSessaoId(),
-                sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null
-        ));
+                pacoteAnteriorId
+        );
+        sincronizarPacoteDaSessao(sessao, novoPacote, pacoteAnteriorId, consumoAnteriorRegistrado);
+
+        sessao.setCliente(pacienteService.buscarPorId(form.getClienteId()));
+        sessao.setPacoteSessao(novoPacote);
         sessao.setDataHoraInicio(intervalo.inicio());
         sessao.setDataHoraFim(intervalo.fim());
         sessao.setTipoAtendimento(texto(form.getTipoAtendimento()));
@@ -287,8 +294,9 @@ public class AgendaService {
             return sessao;
         }
 
-        if (sessao.getPacoteSessao() != null) {
-            pacoteSessaoService.consumirSessao(sessao.getPacoteSessao().getId());
+        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
+            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
+            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
         }
 
         sessao.setStatus(SessaoStatus.REALIZADA);
@@ -328,6 +336,10 @@ public class AgendaService {
         if (sessao.getStatus() == SessaoStatus.CANCELADA) {
             return sessao;
         }
+        if (sessao.getPacoteSessao() != null && Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
+            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
+            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+        }
         sessao.setStatus(SessaoStatus.CANCELADA);
         if (texto(observacoes) != null) {
             String historico = texto(sessao.getObservacoes());
@@ -360,20 +372,26 @@ public class AgendaService {
                 && fim.isAfter(configuracao.getHorarioInicioAlmoco());
     }
 
-    private PacoteSessaoEntity resolverPacote(UUID clienteId, UUID pacoteSessaoId, UUID pacoteAtualId) {
-        if (pacoteSessaoId == null) {
-            return null;
+    private void sincronizarPacoteDaSessao(
+            SessaoEntity sessao,
+            PacoteSessaoEntity novoPacote,
+            UUID pacoteAnteriorId,
+            boolean consumoAnteriorRegistrado
+    ) {
+        UUID novoPacoteId = novoPacote != null ? novoPacote.getId() : null;
+        boolean mudouPacote = pacoteAnteriorId == null
+                ? novoPacoteId != null
+                : !pacoteAnteriorId.equals(novoPacoteId);
+
+        if (consumoAnteriorRegistrado && pacoteAnteriorId != null && mudouPacote) {
+            pacoteSessaoService.estornarSessao(pacoteAnteriorId);
+            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
         }
 
-        PacoteSessaoEntity pacote = pacoteSessaoService.buscarPorId(pacoteSessaoId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
-        if (!pacote.getCliente().getId().equals(clienteId)) {
-            throw new BusinessException("O pacote selecionado não pertence ao paciente informado.");
+        if (novoPacoteId != null && (!consumoAnteriorRegistrado || mudouPacote)) {
+            pacoteSessaoService.reservarSessao(novoPacoteId);
+            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
         }
-        if (pacoteAtualId != null && pacoteAtualId.equals(pacoteSessaoId)) {
-            return pacote;
-        }
-        return pacoteSessaoService.validarDisponivel(pacoteSessaoId);
     }
 
     private String texto(String valor) {

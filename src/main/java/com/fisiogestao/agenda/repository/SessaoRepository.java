@@ -30,5 +30,7 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     List<SessaoEntity> findByClienteIdOrderByDataHoraInicioDesc(UUID clienteId);
 
+    boolean existsByPacoteSessaoIdAndStatusIn(UUID pacoteSessaoId, Collection<SessaoStatus> statuses);
+
     long countByStatus(SessaoStatus status);
 }

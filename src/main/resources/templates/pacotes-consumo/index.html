@@ -33,6 +33,7 @@
             <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
             <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
             <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
+            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
             <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
         </ul>
 
@@ -146,9 +147,9 @@
                                 <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
                             </div>
                             <div class="form-field">
-                                <label for="novo-consumidas">Sessões consumidas</label>
-                                <input id="novo-consumidas" type="number" min="0" class="form-control" th:field="*{sessoesConsumidas}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('sessoesConsumidas')}" th:errors="*{sessoesConsumidas}"></p>
+                                <label>Sessões consumidas</label>
+                                <input type="hidden" th:field="*{sessoesConsumidas}">
+                                <div class="form-control read-only-field">0 sessões no momento da criação</div>
                             </div>
                             <div class="form-field">
                                 <label for="novo-valor">Valor total</label>
@@ -176,6 +177,7 @@
                                 <i data-lucide="save"></i>
                                 Criar Pacote
                             </button>
+                            <p class="helper-text">O consumo será atualizado automaticamente quando a sessão for confirmada e mantido no histórico quando ela for realizada.</p>
                         </form>
                     </div>
                 </article>
@@ -281,9 +283,9 @@
                                 <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
                             </div>
                             <div class="form-field">
-                                <label for="editar-consumidas">Sessões consumidas</label>
-                                <input id="editar-consumidas" type="number" min="0" class="form-control" th:field="*{sessoesConsumidas}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('sessoesConsumidas')}" th:errors="*{sessoesConsumidas}"></p>
+                                <label>Sessões consumidas</label>
+                                <input type="hidden" th:field="*{sessoesConsumidas}">
+                                <div class="form-control read-only-field" th:text="${pacoteEmEdicao != null ? pacoteEmEdicao.sessoesConsumidas + ' sessões já consumidas' : '0 sessões'}">0 sessões</div>
                             </div>
                         </div>
                         <div class="calendar-inline-grid">
