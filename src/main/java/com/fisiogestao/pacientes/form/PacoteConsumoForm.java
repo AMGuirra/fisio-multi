@@ -21,29 +21,29 @@ public class PacoteConsumoForm {
     @NotNull(message = "Selecione o paciente.")
     private UUID clienteId;
 
-    @NotBlank(message = "Informe o nome do pacote.")
+    @NotBlank(message = "Informe o nome do plano de tratamento.")
     @Size(max = 120)
     private String nomePacote;
 
     @NotNull(message = "Informe a quantidade de sessões.")
-    @Min(value = 1, message = "O pacote precisa ter ao menos uma sessão.")
+    @Min(value = 1, message = "O plano de tratamento precisa ter ao menos uma sessão.")
     private Integer sessoesContratadas;
 
     @NotNull(message = "Informe as sessões consumidas.")
     @Min(value = 0, message = "As sessões consumidas não podem ser negativas.")
     private Integer sessoesConsumidas;
 
-    @NotNull(message = "Informe o valor do pacote.")
-    @DecimalMin(value = "0.01", message = "O valor do pacote deve ser positivo.")
+    @NotNull(message = "Informe o valor do plano de tratamento.")
+    @DecimalMin(value = "0.01", message = "O valor do plano de tratamento deve ser positivo.")
     private BigDecimal valorTotal;
 
-    @NotNull(message = "Informe a data inicial do pacote.")
+    @NotNull(message = "Informe a data inicial do plano de tratamento.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataInicio;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataValidade;
 
-    @NotNull(message = "Informe o status do pacote.")
+    @NotNull(message = "Informe o status do plano de tratamento.")
     private PacoteSessaoStatus status;
 }

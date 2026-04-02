@@ -416,6 +416,21 @@
     color: #2f58ac;
 }
 
+.chip.role-recepcao {
+    background: #ffe8df;
+    color: #a14d22;
+}
+
+.chip.role-assessoria {
+    background: #efe5ff;
+    color: #6b33a8;
+}
+
+.chip.role-financeiro {
+    background: #e5f7da;
+    color: #356f12;
+}
+
 .chip.role-user,
 .chip.status-completed,
 .chip.status-success {
@@ -829,6 +844,31 @@
     line-height: 1.5;
 }
 
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.field-inline-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.inline-helper {
+    margin: 0;
+}
+
+.action-button.action-button-inline {
+    width: auto;
+    padding-inline: 14px;
+}
+
 .read-only-field {
     display: flex;
     align-items: center;
@@ -840,6 +880,206 @@
 
 .row-selected td {
     background: rgba(26, 156, 126, 0.06);
+}
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.section-card-highlight {
+    box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.18), var(--shadow-sm);
+}
+
+.permissions-layout {
+    display: grid;
+    gap: 16px;
+}
+
+.permissions-card .section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.permission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.permission-grid-readonly {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.permission-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 1px solid #d9e7e3;
+    border-radius: 14px;
+    background: #fbfefd;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color var(--ease-standard), box-shadow var(--ease-standard), transform var(--ease-standard);
+}
+
+.permission-option:hover {
+    border-color: #a9cfc5;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.permission-option.is-selected {
+    border-color: #87c2b3;
+    background: #f3fbf8;
+}
+
+.permission-option input {
+    margin-top: 4px;
+    accent-color: #0f8f7a;
+}
+
+.permission-option-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #e6f4f0;
+    color: #0f7f6c;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.permission-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.permission-option-copy strong,
+.permission-option-static strong {
+    color: var(--text-strong);
+    font-size: 0.9rem;
+}
+
+.permission-option-copy span,
+.permission-option-static p {
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.permission-option-static {
+    cursor: default;
+}
+
+.permission-option-static:hover {
+    transform: none;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.app-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+}
+
+.app-modal.is-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.app-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 33, 40, 0.56);
+    backdrop-filter: blur(4px);
+}
+
+.app-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(680px, 100%);
+    max-height: calc(100vh - 48px);
+}
+
+.app-modal-card {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dce9e4;
+    border-radius: 24px;
+    box-shadow: 0 26px 65px rgba(17, 56, 62, 0.2);
+}
+
+.app-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #e2ece8;
+}
+
+.app-modal-title-block h3 {
+    margin: 0;
+    font-size: 1.22rem;
+    color: var(--text-strong);
+}
+
+.app-modal-title-block p {
+    margin: 6px 0 0;
+    color: var(--text-soft);
+    line-height: 1.5;
+}
+
+.app-modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid #d8e6e1;
+    background: #f6fbfa;
+    color: var(--text-strong);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.app-modal-close:hover,
+.app-modal-close:focus-visible {
+    background: #eef7f4;
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.app-modal-body {
+    padding: 22px 24px 24px;
+    overflow-y: auto;
+}
+
+.modal-helper-card {
+    margin-bottom: 18px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
 }
 
 @media (max-width: 1160px) {
@@ -888,6 +1128,16 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .field-label-row,
+    .field-inline-actions {
+        align-items: flex-start;
+    }
+
+    .permission-grid,
+    .permission-grid-readonly {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 768px) {
@@ -911,5 +1161,28 @@
     .request-actions .action-button,
     .session-actions .action-button {
         width: auto;
+    }
+
+    .app-modal.is-open {
+        align-items: flex-end;
+        padding: 14px;
+    }
+
+    .app-modal-dialog {
+        width: 100%;
+        max-height: calc(100vh - 28px);
+    }
+
+    .app-modal-header,
+    .app-modal-body {
+        padding-inline: 16px;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions .action-button {
+        width: 100%;
     }
 }

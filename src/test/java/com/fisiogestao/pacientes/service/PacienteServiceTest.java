@@ -91,7 +91,7 @@ class PacienteServiceTest {
 
         BusinessException ex = assertThrows(BusinessException.class, () -> pacienteService.excluir(clienteId));
 
-        assertEquals("Exclua primeiro os pacotes vinculados a este paciente.", ex.getMessage());
+        assertEquals("Exclua primeiro os planos de tratamento vinculados a este paciente.", ex.getMessage());
         verify(clienteRepository, never()).delete(cliente);
     }
 }

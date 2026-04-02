@@ -1,7 +1,7 @@
 (() => {
     const body = document.body;
-    const sidebarCollapseToggle = document.getElementById('sidebarCollapseToggle');
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const appSidebar = document.getElementById('appSidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     const userMenu = document.getElementById('userMenu');
     const userMenuToggle = document.getElementById('userMenuToggle');
@@ -12,7 +12,8 @@
     const infoTimeElement = document.getElementById('infoTime');
     const systemStatusElement = document.getElementById('systemStatus');
 
-    const storageKey = 'fisiogestao.sidebar.collapsed';
+    const SIDEBAR_STORAGE_KEY = 'sidebarCollapsed';
+    const MOBILE_BREAKPOINT = 920;
 
     const capitalize = (text) => {
         if (!text) {
@@ -36,6 +37,24 @@
             return 'Boa tarde';
         }
         return 'Boa noite';
+    };
+
+    const isMobileViewport = () => window.innerWidth <= MOBILE_BREAKPOINT;
+
+    const readSidebarPreference = () => {
+        try {
+            return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const saveSidebarPreference = (collapsed) => {
+        try {
+            localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
+        } catch (error) {
+            // Ignore storage failures to keep the interface functional.
+        }
     };
 
     const updateDateTime = () => {
@@ -104,26 +123,54 @@
         }
     };
 
-    const toggleSidebarCollapsed = () => {
-        const nextState = !body.classList.contains('sidebar-collapsed');
-        body.classList.toggle('sidebar-collapsed', nextState);
-        localStorage.setItem(storageKey, String(nextState));
-    };
+    const updateSidebarAccessibility = () => {
+        const mobileViewport = isMobileViewport();
+        const sidebarOpen = body.classList.contains('sidebar-open');
+        const sidebarCollapsed = body.classList.contains('sidebar-collapsed');
+        const sidebarExpanded = mobileViewport ? sidebarOpen : !sidebarCollapsed;
+        const sidebarHidden = mobileViewport && !sidebarOpen;
 
-    const toggleMobileSidebar = () => {
-        body.classList.toggle('sidebar-open');
+        if (sidebarToggle) {
+            sidebarToggle.setAttribute('aria-expanded', String(sidebarExpanded));
+        }
+
+        if (appSidebar) {
+            appSidebar.setAttribute('aria-hidden', String(sidebarHidden));
+        }
+
+        if (sidebarBackdrop) {
+            sidebarBackdrop.setAttribute('aria-hidden', String(!sidebarOpen));
+            sidebarBackdrop.tabIndex = sidebarOpen ? 0 : -1;
+        }
     };
 
     const closeMobileSidebar = () => {
         body.classList.remove('sidebar-open');
+        updateSidebarAccessibility();
     };
 
-    const restoreSidebarState = () => {
-        const saved = localStorage.getItem(storageKey);
-        if (saved === 'true' && window.innerWidth > 920) {
-            body.classList.add('sidebar-collapsed');
+    const syncSidebarLayout = () => {
+        if (isMobileViewport()) {
+            body.classList.remove('sidebar-collapsed');
+        } else {
+            body.classList.remove('sidebar-open');
+            body.classList.toggle('sidebar-collapsed', readSidebarPreference());
         }
+
+        updateSidebarAccessibility();
     };
+
+    function toggleSidebar() {
+        if (isMobileViewport()) {
+            body.classList.toggle('sidebar-open');
+        } else {
+            const nextCollapsedState = !body.classList.contains('sidebar-collapsed');
+            body.classList.toggle('sidebar-collapsed', nextCollapsedState);
+            saveSidebarPreference(nextCollapsedState);
+        }
+
+        updateSidebarAccessibility();
+    }
 
     const setActiveSidebarLink = () => {
         const navLinks = document.querySelectorAll('.app-sidebar .sidebar-link[href]');
@@ -143,12 +190,8 @@
         });
     };
 
-    if (sidebarCollapseToggle) {
-        sidebarCollapseToggle.addEventListener('click', toggleSidebarCollapsed);
-    }
-
-    if (mobileMenuToggle) {
-        mobileMenuToggle.addEventListener('click', toggleMobileSidebar);
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
     }
 
     if (sidebarBackdrop) {
@@ -177,20 +220,17 @@
         }
     });
 
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 920) {
-            closeMobileSidebar();
-        }
-    });
-
+    window.addEventListener('resize', syncSidebarLayout);
     window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
 
-    restoreSidebarState();
+    syncSidebarLayout();
     setActiveSidebarLink();
     updateConnectionStatus();
     updateDateTime();
     setInterval(updateDateTime, 1000);
+
+    window.toggleSidebar = toggleSidebar;
 
     window.setTimeout(() => {
         body.classList.remove('dashboard-loading');

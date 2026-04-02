@@ -35,7 +35,7 @@ public class UserManagementController {
             Model model
     ) {
         UsuarioForm form = new UsuarioForm();
-        form.setRole(UserRole.ADMINISTRATIVO);
+        form.setRole(UserRole.RECEPCAO);
 
         if (editarId != null) {
             userCatalog.buscarPorId(editarId).ifPresentOrElse(usuario -> {

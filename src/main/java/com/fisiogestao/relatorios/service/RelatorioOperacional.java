@@ -16,6 +16,10 @@ public record RelatorioOperacional(
         List<LancamentoFinanceiroEntity> lancamentos,
         List<SolicitacaoAgendamentoEntity> solicitacoes,
         BigDecimal totalReceitas,
-        BigDecimal totalDespesas
+        BigDecimal totalDespesas,
+        RelatorioAnalytics analytics
 ) {
+    public BigDecimal saldoFinanceiro() {
+        return totalReceitas.subtract(totalDespesas);
+    }
 }

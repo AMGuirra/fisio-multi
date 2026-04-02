@@ -12,46 +12,14 @@
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
-    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
-    <aside class="app-sidebar" id="appSidebar">
-        <a href="/dashboard" class="sidebar-brand">
-            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
-            <span class="sidebar-brand-copy">
-                <span class="sidebar-brand-title">FisioGestao</span>
-                <span class="sidebar-brand-subtitle">Painel Clínico</span>
-            </span>
-        </a>
-
-        <ul class="sidebar-nav">
-            <li><a href="/dashboard" class="sidebar-link" th:classappend="${currentPath == '/dashboard' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
-            <li><a href="/agenda" class="sidebar-link" th:classappend="${currentPath == '/agenda' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
-            <li><a href="/calendario" class="sidebar-link" th:classappend="${currentPath == '/calendario' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
-            <li><a href="/bloqueios" class="sidebar-link" th:classappend="${currentPath == '/bloqueios' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
-            <li><a href="/solicitacoes" class="sidebar-link" th:classappend="${currentPath == '/solicitacoes' ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
-            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Pacotes de Sessões</span></a></li>
-            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
-            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
-            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
-            <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/auditoria" class="sidebar-link" th:classappend="${currentPath == '/auditoria' or #strings.startsWith(currentPath, '/auditoria/') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="shield-check"></i></span><span class="sidebar-link-label">Auditoria</span></a></li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
-            </form>
-        </div>
-    </aside>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
-                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -66,8 +34,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -117,7 +85,7 @@
                                     <div class="session-detail">
                                         <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
                                         <p class="session-text" th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</p>
-                                        <p class="session-text" th:text="${sessao.pacoteSessao != null ? 'Pacote: ' + sessao.pacoteSessao.nomePacote : 'Sem pacote vinculado'}">Pacote</p>
+                                        <p class="session-text" th:text="${sessao.pacoteSessao != null ? 'Plano: ' + sessao.pacoteSessao.nomePacote : 'Sem plano vinculado'}">Plano</p>
                                         <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
                                     </div>
                                     <div class="session-actions">
@@ -164,9 +132,19 @@
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="pacoteSessaoId">Pacote de sessões</label>
+                                    <div class="field-label-row">
+                                        <label for="pacoteSessaoId">Plano de tratamento</label>
+                                        <button type="button"
+                                                id="openPacoteAgendaModal"
+                                                class="action-button ghost action-button-inline"
+                                                th:disabled="${agendaConfigurada == false}"
+                                                th:attr="data-locked=${agendaConfigurada == false}">
+                                            <i data-lucide="package-plus"></i>
+                                            Novo plano
+                                        </button>
+                                    </div>
                                     <select id="pacoteSessaoId" th:field="*{pacoteSessaoId}" class="form-select js-pacote-select" th:disabled="${agendaConfigurada == false}">
-                                        <option value="">Selecionar automaticamente o pacote ativo</option>
+                                        <option value="">Selecionar automaticamente o plano ativo</option>
                                         <option th:each="pacote : ${pacotesAgenda}"
                                                 th:value="${pacote.id}"
                                                 th:attr="data-cliente-id=${pacote.cliente.id}"
@@ -174,7 +152,10 @@
                                             Pacote
                                         </option>
                                     </select>
-                                    <p class="helper-text">Toda sessão confirmada precisa estar vinculada a um pacote disponível. Se você não escolher, o sistema usa automaticamente o pacote ativo mais adequado do paciente.</p>
+                                    <p class="helper-text">Toda sessão confirmada precisa estar vinculada a um plano de tratamento disponível. Se você não escolher, o sistema usa automaticamente o plano ativo mais adequado do paciente.</p>
+                                    <div class="field-inline-actions">
+                                        <p id="pacoteAgendaEmptyState" class="helper-text inline-helper" hidden>Esse paciente ainda não possui plano ativo disponível. Crie um novo sem sair da agenda.</p>
+                                    </div>
                                 </div>
 
                                 <div class="form-field">
@@ -234,9 +215,9 @@
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="editPacoteSessaoId">Pacote de sessões</label>
+                                    <label for="editPacoteSessaoId">Plano de tratamento</label>
                                     <select id="editPacoteSessaoId" th:field="*{pacoteSessaoId}" class="form-select js-pacote-select">
-                                        <option value="">Selecionar automaticamente o pacote ativo</option>
+                                        <option value="">Selecionar automaticamente o plano ativo</option>
                                         <option th:each="pacote : ${pacotesAgenda}"
                                                 th:value="${pacote.id}"
                                                 th:attr="data-cliente-id=${pacote.cliente.id}"
@@ -244,7 +225,7 @@
                                             Pacote
                                         </option>
                                     </select>
-                                    <p class="helper-text">Ao trocar o pacote, o sistema estorna o consumo do pacote anterior e reserva no novo automaticamente.</p>
+                                    <p class="helper-text">Ao trocar o plano de tratamento, o sistema estorna o consumo do anterior e reserva no novo automaticamente.</p>
                                 </div>
 
                                 <div class="form-field">
@@ -324,6 +305,94 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <div id="pacoteAgendaModal"
+         class="app-modal"
+         th:classappend="${pacoteModalOpen ? ' is-open' : ''}"
+         th:attr="aria-hidden=${pacoteModalOpen ? 'false' : 'true'}">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pacoteAgendaModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="pacoteAgendaModalTitle">Novo plano para o agendamento</h3>
+                        <p>Cadastre um plano ativo e volte com ele selecionado no agendamento manual.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form id="pacoteAgendaForm" th:action="@{/agenda/pacotes}" th:object="${pacoteAgendaForm}" method="post" class="modern-form">
+                        <input type="hidden" th:field="*{clienteId}" id="pacoteAgendaClienteId">
+                        <input type="hidden" th:field="*{sessoesConsumidas}">
+                        <input type="hidden" th:field="*{status}">
+                        <input type="hidden" name="editar" th:value="${sessaoEmEdicao != null ? sessaoEmEdicao.id : null}">
+                        <input type="hidden" name="agendaPacoteSessaoId" id="pacoteAgendaAtualId" th:value="${agendaManualForm.pacoteSessaoId}">
+                        <input type="hidden" name="agendaData" id="pacoteAgendaDataSync" th:value="${agendaManualForm.data != null ? #temporals.format(agendaManualForm.data, 'yyyy-MM-dd') : ''}">
+                        <input type="hidden" name="agendaHorario" id="pacoteAgendaHorarioSync" th:value="${agendaManualForm.horario != null ? #temporals.format(agendaManualForm.horario, 'HH:mm') : ''}">
+                        <input type="hidden" name="agendaTipoAtendimento" id="pacoteAgendaTipoSync" th:value="${agendaManualForm.tipoAtendimento}">
+                        <input type="hidden" name="agendaObservacoes" id="pacoteAgendaObservacoesSync" th:value="${agendaManualForm.observacoes}">
+
+                        <div class="helper-card modal-helper-card">
+                            <div class="helper-copy">
+                                <h4 id="pacoteAgendaPacienteNome">Selecione um paciente no agendamento manual</h4>
+                            <p>O plano criado aqui será devolvido automaticamente para o formulário de agendamento.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label>Paciente</label>
+                            <div class="form-control read-only-field" id="pacoteAgendaPacienteResumo">Selecione um paciente no agendamento manual</div>
+                            <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
+                        </div>
+
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="pacoteAgendaNome">Nome do plano</label>
+                                <input id="pacoteAgendaNome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" placeholder="Ex: Plano 10 sessões" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="pacoteAgendaContratadas">Sessões contratadas</label>
+                                <input id="pacoteAgendaContratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="pacoteAgendaValorTotal">Valor total</label>
+                                <input id="pacoteAgendaValorTotal" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="pacoteAgendaDataInicio">Data inicial</label>
+                                <input id="pacoteAgendaDataInicio" type="date" class="form-control" th:field="*{dataInicio}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="pacoteAgendaDataValidade">Data de validade</label>
+                            <input id="pacoteAgendaDataValidade" type="date" class="form-control" th:field="*{dataValidade}">
+                            <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
+                        </div>
+
+                            <p class="helper-text">O plano de tratamento é criado como ativo e já fica pronto para ser consumido quando a sessão for confirmada.</p>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                    Criar plano
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script>
@@ -331,13 +400,14 @@
             const syncPacotes = (pacienteSelect) => {
                 const targetId = pacienteSelect.dataset.packageTarget;
                 if (!targetId) {
-                    return;
+                    return 0;
                 }
                 const pacoteSelect = document.getElementById(targetId);
                 if (!pacoteSelect) {
-                    return;
+                    return 0;
                 }
                 const clienteId = pacienteSelect.value;
+                let visibleCount = 0;
                 Array.from(pacoteSelect.options).forEach((option, index) => {
                     if (index === 0) {
                         option.hidden = false;
@@ -346,18 +416,145 @@
                     const optionCliente = option.getAttribute('data-cliente-id');
                     const visivel = !clienteId || optionCliente === clienteId;
                     option.hidden = !visivel;
+                    if (visivel) {
+                        visibleCount += 1;
+                    }
                 });
                 const selecionada = pacoteSelect.selectedOptions[0];
                 if (selecionada && selecionada.getAttribute('data-cliente-id') && selecionada.getAttribute('data-cliente-id') !== clienteId) {
                     pacoteSelect.value = '';
                 }
+                return visibleCount;
+            };
+
+            const body = document.body;
+            const mainPacienteSelect = document.getElementById('clienteId');
+            const mainPacoteSelect = document.getElementById('pacoteSessaoId');
+            const openPacoteModalButton = document.getElementById('openPacoteAgendaModal');
+            const pacoteEmptyState = document.getElementById('pacoteAgendaEmptyState');
+            const modal = document.getElementById('pacoteAgendaModal');
+            const pacoteAgendaForm = document.getElementById('pacoteAgendaForm');
+            const pacoteAgendaClienteId = document.getElementById('pacoteAgendaClienteId');
+            const pacoteAgendaPacienteNome = document.getElementById('pacoteAgendaPacienteNome');
+            const pacoteAgendaPacienteResumo = document.getElementById('pacoteAgendaPacienteResumo');
+            const pacoteAgendaDataInicio = document.getElementById('pacoteAgendaDataInicio');
+            const pacoteAgendaAtualId = document.getElementById('pacoteAgendaAtualId');
+            const pacoteAgendaDataSync = document.getElementById('pacoteAgendaDataSync');
+            const pacoteAgendaHorarioSync = document.getElementById('pacoteAgendaHorarioSync');
+            const pacoteAgendaTipoSync = document.getElementById('pacoteAgendaTipoSync');
+            const pacoteAgendaObservacoesSync = document.getElementById('pacoteAgendaObservacoesSync');
+            const agendaDataInput = document.getElementById('dataAgendamento');
+            const agendaHorarioInput = document.getElementById('horario');
+            const agendaTipoInput = document.getElementById('tipoAtendimento');
+            const agendaObservacoesInput = document.getElementById('observacoes');
+
+            const setModalOpen = (open) => {
+                if (!modal) {
+                    return;
+                }
+                modal.classList.toggle('is-open', open);
+                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                body.classList.toggle('modal-open', open);
+            };
+
+            const syncAgendaState = () => {
+                if (pacoteAgendaAtualId && mainPacoteSelect) {
+                    pacoteAgendaAtualId.value = mainPacoteSelect.value || '';
+                }
+                if (pacoteAgendaDataSync && agendaDataInput) {
+                    pacoteAgendaDataSync.value = agendaDataInput.value || '';
+                }
+                if (pacoteAgendaHorarioSync && agendaHorarioInput) {
+                    pacoteAgendaHorarioSync.value = agendaHorarioInput.value || '';
+                }
+                if (pacoteAgendaTipoSync && agendaTipoInput) {
+                    pacoteAgendaTipoSync.value = agendaTipoInput.value || '';
+                }
+                if (pacoteAgendaObservacoesSync && agendaObservacoesInput) {
+                    pacoteAgendaObservacoesSync.value = agendaObservacoesInput.value || '';
+                }
+            };
+
+            const syncPacoteModalContext = () => {
+                const clienteId = mainPacienteSelect ? mainPacienteSelect.value : '';
+                const pacienteNome = clienteId && mainPacienteSelect && mainPacienteSelect.selectedOptions.length > 0
+                    ? mainPacienteSelect.selectedOptions[0].textContent.trim()
+                    : 'Selecione um paciente no agendamento manual';
+                const visiblePackages = mainPacoteSelect
+                    ? Array.from(mainPacoteSelect.options).filter((option, index) => index > 0 && !option.hidden).length
+                    : 0;
+                const locked = openPacoteModalButton && openPacoteModalButton.dataset.locked === 'true';
+
+                if (pacoteAgendaClienteId) {
+                    pacoteAgendaClienteId.value = clienteId || '';
+                }
+                if (pacoteAgendaPacienteNome) {
+                    pacoteAgendaPacienteNome.textContent = pacienteNome;
+                }
+                if (pacoteAgendaPacienteResumo) {
+                    pacoteAgendaPacienteResumo.textContent = pacienteNome;
+                }
+                if (pacoteAgendaDataInicio && !pacoteAgendaDataInicio.value && agendaDataInput) {
+                    pacoteAgendaDataInicio.value = agendaDataInput.value || '';
+                }
+                if (openPacoteModalButton) {
+                    openPacoteModalButton.disabled = Boolean(locked || !clienteId);
+                }
+                if (pacoteEmptyState) {
+                    pacoteEmptyState.hidden = Boolean(!clienteId || visiblePackages > 0);
+                }
             };
 
             document.querySelectorAll('.js-paciente-select').forEach((select) => {
-                select.addEventListener('change', () => syncPacotes(select));
+                select.addEventListener('change', () => {
+                    syncPacotes(select);
+                    if (select === mainPacienteSelect) {
+                        syncPacoteModalContext();
+                    }
+                });
                 syncPacotes(select);
+            });
+
+            if (mainPacienteSelect) {
+                syncPacoteModalContext();
+            }
+            syncAgendaState();
+            setModalOpen(modal ? modal.classList.contains('is-open') : false);
+
+            if (openPacoteModalButton) {
+                openPacoteModalButton.addEventListener('click', () => {
+                    syncAgendaState();
+                    syncPacoteModalContext();
+                    if (!openPacoteModalButton.disabled) {
+                        setModalOpen(true);
+                    }
+                });
+            }
+
+            if (modal) {
+                modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                    element.addEventListener('click', () => setModalOpen(false));
+                });
+            }
+
+            if (pacoteAgendaForm) {
+                pacoteAgendaForm.addEventListener('submit', () => {
+                    syncAgendaState();
+                    syncPacoteModalContext();
+                });
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal && modal.classList.contains('is-open')) {
+                    setModalOpen(false);
+                }
             });
         })();
     </script>
 </body>
 </html>
+
+
+
+
+

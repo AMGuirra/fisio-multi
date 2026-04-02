@@ -83,7 +83,7 @@ public class PacoteSessaoService {
                 "pacote_sessao",
                 salvo,
                 null,
-                "Pacote criado pelo fluxo vinculado ao paciente.",
+                "Plano de tratamento criado pelo fluxo vinculado ao paciente.",
                 AuditEventOrigin.MANUAL
         );
         return salvo;
@@ -110,7 +110,7 @@ public class PacoteSessaoService {
                 "pacote_sessao",
                 salvo,
                 null,
-                "Pacote criado pelo CRUD de pacotes.",
+                "Plano de tratamento criado pelo CRUD de planos de tratamento.",
                 AuditEventOrigin.MANUAL
         );
         return salvo;
@@ -119,7 +119,7 @@ public class PacoteSessaoService {
     @Transactional
     public PacoteSessaoEntity atualizarViaCrud(UUID pacoteId, PacoteConsumoForm form) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(pacote);
 
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
@@ -148,7 +148,7 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
                 null,
-                "Atualização manual de pacote.",
+                "Atualização manual de plano de tratamento.",
                 AuditEventOrigin.MANUAL
         );
         return salvo;
@@ -157,7 +157,7 @@ public class PacoteSessaoService {
     @Transactional
     public void cancelar(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(pacote);
         validarCancelamento(pacote);
         pacote.setStatus(PacoteSessaoStatus.CANCELADO);
@@ -171,7 +171,7 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
                 null,
-                "Cancelamento de pacote.",
+                "Cancelamento de plano de tratamento.",
                 AuditEventOrigin.MANUAL
         );
     }
@@ -179,17 +179,17 @@ public class PacoteSessaoService {
     @Transactional
     public void excluir(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(pacote);
 
         if (pacote.getSessoesConsumidas() > 0) {
-            throw new BusinessException("Este pacote já possui consumo registrado e não pode ser excluído.");
+            throw new BusinessException("Este plano de tratamento já possui consumo registrado e não pode ser excluído.");
         }
         if (sessaoRepository.existsByPacoteSessaoId(pacote.getId())) {
-            throw new BusinessException("Este pacote possui histórico de sessões vinculado e não pode ser excluído.");
+            throw new BusinessException("Este plano de tratamento possui histórico de sessões vinculado e não pode ser excluído.");
         }
         if (lancamentoFinanceiroRepository.existsByPacoteSessaoIdAndStatus(pacote.getId(), StatusLancamentoFinanceiro.PAGO)) {
-            throw new BusinessException("Este pacote possui movimentação financeira paga e não pode ser excluído.");
+            throw new BusinessException("Este plano de tratamento possui movimentação financeira paga e não pode ser excluído.");
         }
 
         var lancamentosVinculados = lancamentoFinanceiroRepository.findByPacoteSessaoId(pacote.getId());
@@ -205,7 +205,7 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 null,
                 null,
-                "Exclusão física de pacote.",
+                "Exclusão física de plano de tratamento.",
                 AuditEventOrigin.MANUAL
         );
         pacoteSessaoRepository.delete(pacote);
@@ -232,7 +232,7 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
                 null,
-                "Reserva/baixa automática de sessão no pacote.",
+                "Reserva/baixa automática de sessão no plano de tratamento.",
                 AuditEventOrigin.SISTEMA
         );
     }
@@ -240,7 +240,7 @@ public class PacoteSessaoService {
     @Transactional
     public void estornarSessao(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         if (pacote.getSessoesConsumidas() <= 0) {
             return;
         }
@@ -262,16 +262,16 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
                 null,
-                "Estorno automático de sessão no pacote.",
+                "Estorno automático de sessão no plano de tratamento.",
                 AuditEventOrigin.SISTEMA
         );
     }
 
     public PacoteSessaoEntity validarDisponivel(UUID pacoteId) {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         if (!isDisponivel(pacote)) {
-            throw new BusinessException("O pacote selecionado não possui sessões disponíveis.");
+            throw new BusinessException("O plano de tratamento selecionado não possui sessões disponíveis.");
         }
         return pacote;
     }
@@ -280,14 +280,14 @@ public class PacoteSessaoService {
         if (pacoteId == null) {
             return buscarPrimeiroDisponivel(clienteId)
                     .orElseThrow(() -> new BusinessException(
-                            "O paciente não possui pacote de sessões disponível. Cadastre ou renove um pacote antes de confirmar a sessão."
+                            "O paciente não possui plano de tratamento disponível. Cadastre ou renove um plano antes de confirmar a sessão."
                     ));
         }
 
         PacoteSessaoEntity pacote = buscarPorId(pacoteId)
-                .orElseThrow(() -> new BusinessException("Pacote de sessões não encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         if (!pacote.getCliente().getId().equals(clienteId)) {
-            throw new BusinessException("O pacote selecionado não pertence ao paciente informado.");
+            throw new BusinessException("O plano de tratamento selecionado não pertence ao paciente informado.");
         }
         if (pacoteAtualId != null && pacoteAtualId.equals(pacoteId)) {
             return pacote;
@@ -311,7 +311,7 @@ public class PacoteSessaoService {
 
     private void validarPeriodo(LocalDate dataInicio, LocalDate dataValidade) {
         if (dataValidade != null && dataValidade.isBefore(dataInicio)) {
-            throw new BusinessException("A validade do pacote não pode ser anterior à data inicial.");
+            throw new BusinessException("A validade do plano de tratamento não pode ser anterior à data inicial.");
         }
     }
 
@@ -323,7 +323,7 @@ public class PacoteSessaoService {
 
     private void validarCancelamento(PacoteSessaoEntity pacote) {
         if (sessaoRepository.existsByPacoteSessaoIdAndStatusIn(pacote.getId(), STATUS_SESSAO_COM_PACOTE_ATIVO)) {
-            throw new BusinessException("Este pacote possui sessões confirmadas ou realizadas vinculadas e não pode ser cancelado.");
+            throw new BusinessException("Este plano de tratamento possui sessões confirmadas ou realizadas vinculadas e não pode ser cancelado.");
         }
     }
 

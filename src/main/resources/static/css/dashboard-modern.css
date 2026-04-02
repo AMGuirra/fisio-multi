@@ -60,13 +60,15 @@ a {
 }
 
 .sidebar-backdrop {
-    display: none;
     position: fixed;
     inset: 0;
     background: rgba(10, 18, 26, 0.48);
     backdrop-filter: blur(2px);
     z-index: 998;
     border: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ease-standard);
 }
 
 .app-sidebar {
@@ -82,6 +84,7 @@ a {
     background: linear-gradient(165deg, #0f2321 0%, #122a2b 48%, #183f38 100%);
     border-right: 1px solid rgba(206, 238, 231, 0.14);
     box-shadow: 0 18px 45px rgba(5, 15, 18, 0.28);
+    overflow-x: hidden;
     z-index: 1000;
     transition: width var(--ease-standard), transform var(--ease-standard);
 }
@@ -111,7 +114,9 @@ a {
     flex-direction: column;
     gap: 2px;
     color: #e6f4f1;
-    transition: opacity var(--ease-standard), transform var(--ease-standard);
+    max-width: 180px;
+    overflow: hidden;
+    transition: opacity var(--ease-standard), transform var(--ease-standard), max-width var(--ease-standard);
 }
 
 .sidebar-brand-title {
@@ -150,7 +155,7 @@ a {
     font-size: 0.94rem;
     font-weight: 500;
     background: transparent;
-    transition: transform var(--ease-standard), background var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard);
+    transition: transform var(--ease-standard), background var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard), gap var(--ease-standard), padding var(--ease-standard);
     overflow: hidden;
 }
 
@@ -187,11 +192,14 @@ a {
 .sidebar-link-icon {
     display: grid;
     place-items: center;
+    transition: transform var(--ease-standard), color var(--ease-standard);
 }
 
 .sidebar-link-label {
     white-space: nowrap;
-    transition: opacity var(--ease-standard), transform var(--ease-standard);
+    max-width: 160px;
+    overflow: hidden;
+    transition: opacity var(--ease-standard), transform var(--ease-standard), max-width var(--ease-standard);
 }
 
 .sidebar-footer {
@@ -257,6 +265,23 @@ a {
     box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
     outline: none;
+}
+
+.sidebar-toggle-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-toggle-btn i {
+    transition: transform var(--ease-standard), opacity var(--ease-standard);
+}
+
+body.sidebar-collapsed .sidebar-toggle-btn i {
+    transform: rotate(180deg);
+}
+
+body.sidebar-open .sidebar-toggle-btn i {
+    transform: rotate(90deg);
 }
 
 .header-copy {
@@ -810,6 +835,7 @@ body.sidebar-collapsed .sidebar-brand {
 body.sidebar-collapsed .sidebar-brand-copy,
 body.sidebar-collapsed .sidebar-link-label,
 body.sidebar-collapsed .sidebar-link-badge {
+    max-width: 0;
     opacity: 0;
     transform: translateX(-10px);
     pointer-events: none;
@@ -818,15 +844,12 @@ body.sidebar-collapsed .sidebar-link-badge {
 body.sidebar-collapsed .sidebar-link {
     grid-template-columns: 1fr;
     justify-items: center;
+    gap: 0;
     padding-inline: 8px;
 }
 
 body.sidebar-collapsed .sidebar-link::before {
     left: 4px;
-}
-
-.mobile-toggle {
-    display: none;
 }
 
 @media (max-width: 1280px) {
@@ -851,14 +874,6 @@ body.sidebar-collapsed .sidebar-link::before {
 }
 
 @media (max-width: 920px) {
-    .mobile-toggle {
-        display: grid;
-    }
-
-    .desktop-toggle {
-        display: none;
-    }
-
     .app-sidebar {
         transform: translateX(-100%);
     }
@@ -872,7 +887,8 @@ body.sidebar-collapsed .sidebar-link::before {
     }
 
     body.sidebar-open .sidebar-backdrop {
-        display: block;
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 

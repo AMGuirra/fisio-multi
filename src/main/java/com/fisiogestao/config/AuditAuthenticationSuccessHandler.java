@@ -4,6 +4,8 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.auth.InMemoryUserCatalog;
+import com.fisiogestao.auth.UserMenuAccessService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +22,8 @@ import java.util.Map;
 public class AuditAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuditService auditService;
+    private final InMemoryUserCatalog userCatalog;
+    private final UserMenuAccessService userMenuAccessService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -39,6 +43,9 @@ public class AuditAuthenticationSuccessHandler implements AuthenticationSuccessH
                 "Autenticação concluída com sucesso.",
                 AuditEventOrigin.MANUAL
         );
-        response.sendRedirect("/dashboard");
+        var role = authentication != null
+                ? userCatalog.buscarRole(authentication.getName()).orElse(null)
+                : null;
+        response.sendRedirect(userMenuAccessService.resolverDestinoInicial(role));
     }
 }

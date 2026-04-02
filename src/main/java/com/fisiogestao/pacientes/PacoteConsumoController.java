@@ -56,7 +56,7 @@ public class PacoteConsumoController {
 
         try {
             PacoteSessaoEntity salvo = pacoteSessaoService.criarViaCrud(form);
-            redirectAttributes.addFlashAttribute("successMessage", "Pacote criado com sucesso.");
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento criado com sucesso.");
             return construirDestino(salvo.getCliente().getId(), null, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
@@ -81,7 +81,7 @@ public class PacoteConsumoController {
 
         try {
             PacoteSessaoEntity salvo = pacoteSessaoService.atualizarViaCrud(id, form);
-            redirectAttributes.addFlashAttribute("successMessage", "Pacote atualizado com sucesso.");
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento atualizado com sucesso.");
             return construirDestino(salvo.getCliente().getId(), id, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
@@ -99,7 +99,7 @@ public class PacoteConsumoController {
     ) {
         try {
             pacoteSessaoService.cancelar(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Pacote cancelado com sucesso.");
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento cancelado com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
@@ -116,7 +116,7 @@ public class PacoteConsumoController {
     ) {
         try {
             pacoteSessaoService.excluir(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Pacote excluído com sucesso.");
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento excluído com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

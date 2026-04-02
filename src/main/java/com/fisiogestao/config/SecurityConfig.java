@@ -40,8 +40,7 @@ public class SecurityConfig {
                                 "/js/**"
                         ).permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers("/configuracoes/email/**", "/configuracao/email/**").hasRole("ADMIN")
-                        .requestMatchers("/auditoria/**").hasRole("ADMIN")
+                        .requestMatchers("/funcoes-usuarios/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

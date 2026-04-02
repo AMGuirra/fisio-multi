@@ -66,8 +66,8 @@ public class FinanceiroService {
         LancamentoFinanceiroEntity receita = LancamentoFinanceiroEntity.builder()
                 .tipo(TipoLancamentoFinanceiro.RECEITA)
                 .status(StatusLancamentoFinanceiro.PENDENTE)
-                .descricao("Pacote de sessões: " + pacote.getNomePacote())
-                .categoria("Pacotes")
+                .descricao("Plano de tratamento: " + pacote.getNomePacote())
+                .categoria("Planos de tratamento")
                 .valor(pacote.getValorTotal())
                 .dataCompetencia(paraInicioDoDia(pacote.getDataInicio()))
                 .cliente(pacote.getCliente())
@@ -79,7 +79,7 @@ public class FinanceiroService {
                 "lancamento_financeiro",
                 salvo,
                 null,
-                "Receita gerada automaticamente a partir da venda de pacote.",
+                "Receita gerada automaticamente a partir da venda de plano de tratamento.",
                 AuditEventOrigin.SISTEMA
         );
     }

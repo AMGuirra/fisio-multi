@@ -13,51 +13,14 @@
     <link rel="stylesheet" th:href="@{/css/auditoria.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
-    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
-    <aside class="app-sidebar" id="appSidebar">
-        <a href="/dashboard" class="sidebar-brand">
-            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
-            <span class="sidebar-brand-copy">
-                <span class="sidebar-brand-title">FisioGestao</span>
-                <span class="sidebar-brand-subtitle">Painel Clínico</span>
-            </span>
-        </a>
-
-        <ul class="sidebar-nav">
-            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
-            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
-            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
-            <li><a href="/bloqueios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
-            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
-            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Pacotes de Sessões</span></a></li>
-            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
-            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
-            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
-            <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}">
-                <a href="/auditoria" class="sidebar-link active">
-                    <span class="sidebar-link-icon"><i data-lucide="shield-check"></i></span>
-                    <span class="sidebar-link-label">Auditoria</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
-            </form>
-        </div>
-    </aside>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
-                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -72,7 +35,7 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
                         <a href="/auditoria" class="user-menu-item" role="menuitem"><i data-lucide="shield-check"></i><span>Auditoria</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
@@ -223,3 +186,8 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
+
+
+
+
+

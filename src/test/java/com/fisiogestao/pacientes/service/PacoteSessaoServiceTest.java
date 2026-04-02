@@ -69,8 +69,8 @@ class PacoteSessaoServiceTest {
         pacote.setId(pacoteId);
         LancamentoFinanceiroEntity lancamento = LancamentoFinanceiroEntity.builder()
                 .status(StatusLancamentoFinanceiro.PENDENTE)
-                .descricao("Pacote")
-                .categoria("Pacotes")
+                .descricao("Plano de tratamento")
+                .categoria("Planos de tratamento")
                 .tipo(com.fisiogestao.financeiro.TipoLancamentoFinanceiro.RECEITA)
                 .valor(BigDecimal.TEN)
                 .dataCompetencia(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
@@ -106,7 +106,7 @@ class PacoteSessaoServiceTest {
 
         BusinessException ex = assertThrows(BusinessException.class, () -> pacoteSessaoService.excluir(pacoteId));
 
-        assertEquals("Este pacote possui histórico de sessões vinculado e não pode ser excluído.", ex.getMessage());
+        assertEquals("Este plano de tratamento possui histórico de sessões vinculado e não pode ser excluído.", ex.getMessage());
         verify(pacoteSessaoRepository, never()).delete(pacote);
     }
 }

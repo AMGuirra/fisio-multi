@@ -7,7 +7,7 @@ public enum AuditModule {
     USUARIOS("Usuários"),
     AUTENTICACAO("Autenticação"),
     PRONTUARIO("Prontuário"),
-    PACOTES("Pacotes"),
+    PACOTES("Planos de Tratamentos"),
     FINANCEIRO("Financeiro"),
     RELATORIOS("Relatórios"),
     CONFIGURACOES("Configurações"),

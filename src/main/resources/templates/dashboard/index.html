@@ -9,146 +9,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
-    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
-    <aside class="app-sidebar" id="appSidebar">
-        <a href="/dashboard" class="sidebar-brand">
-            <span class="sidebar-brand-mark">
-                <i data-lucide="heart-pulse" aria-hidden="true"></i>
-            </span>
-            <span class="sidebar-brand-copy">
-                <span class="sidebar-brand-title">FisioGestao</span>
-                <span class="sidebar-brand-subtitle">Painel Clínico</span>
-            </span>
-        </a>
-
-        <ul class="sidebar-nav">
-            <li>
-                <a href="/dashboard"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/dashboard' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="/agenda"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/agenda' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Agenda</span>
-                </a>
-            </li>
-            <li>
-                <a href="/calendario"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/calendario' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Calendário</span>
-                </a>
-            </li>
-            <li>
-                <a href="/bloqueios"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/bloqueios' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Bloqueios</span>
-                </a>
-            </li>
-            <li>
-                <a href="/solicitacoes"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/solicitacoes' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Solicitações</span>
-                </a>
-            </li>
-            <li>
-                <a href="/pacotes-consumo"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/pacotes-consumo' ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="package-open" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Pacotes de Sessões</span>
-                </a>
-            </li>
-            <li>
-                <a href="/pacientes"
-                   class="sidebar-link">
-                    <span class="sidebar-link-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Pacientes</span>
-                </a>
-            </li>
-            <li>
-                <a href="/prontuario"
-                   class="sidebar-link">
-                    <span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Prontuário</span>
-                </a>
-            </li>
-            <li>
-                <a href="/financeiro"
-                   class="sidebar-link">
-                    <span class="sidebar-link-icon"><i data-lucide="wallet" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Financeiro</span>
-                </a>
-            </li>
-            <li>
-                <a href="/relatorios"
-                   class="sidebar-link">
-                    <span class="sidebar-link-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Relatórios</span>
-                </a>
-            </li>
-            <li th:if="${loggedUserRole == 'ADMIN'}">
-                <a href="/configuracoes/email"
-                   class="sidebar-link"
-                   th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="mail-check" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Config. E-mail</span>
-                </a>
-            </li>
-            <li th:if="${loggedUserRole == 'ADMIN'}">
-                <a href="/usuarios"
-                   class="sidebar-link">
-                    <span class="sidebar-link-icon"><i data-lucide="users" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Usuários</span>
-                </a>
-            </li>
-            <li th:if="${loggedUserRole == 'ADMIN'}">
-                <a href="/auditoria"
-                   class="sidebar-link"
-                   th:classappend="${currentPath == '/auditoria' or #strings.startsWith(currentPath, '/auditoria/') ? ' active' : ''}">
-                    <span class="sidebar-link-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Auditoria</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link">
-                <span class="sidebar-link-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
-                <span class="sidebar-link-label">Agendamento Online</span>
-            </a>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="sidebar-link sidebar-logout">
-                    <span class="sidebar-link-icon"><i data-lucide="log-out" aria-hidden="true"></i></span>
-                    <span class="sidebar-link-label">Sair</span>
-                </button>
-            </form>
-        </div>
-    </aside>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu">
-                    <i data-lucide="menu" aria-hidden="true"></i>
-                </button>
-                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar">
-                    <i data-lucide="panel-left" aria-hidden="true"></i>
-                </button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting"
                         th:attr="data-username=${loggedUserDisplayName}">
@@ -169,11 +40,11 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a href="/dashboard" class="user-menu-item" role="menuitem">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem">
                             <i data-lucide="layout-dashboard" aria-hidden="true"></i>
                             <span>Painel</span>
                         </a>
-                        <a href="/agenda" class="user-menu-item" role="menuitem">
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem">
                             <i data-lucide="calendar-days" aria-hidden="true"></i>
                             <span>Agenda</span>
                         </a>
@@ -195,6 +66,13 @@
                     <p class="hero-subtitle">Métricas em tempo real para acompanhar pacientes, sessões e saúde financeira.</p>
                 </div>
             </section>
+
+            <div class="flash-stack" th:if="${errorMessage}">
+                <div class="flash-message error">
+                    <i data-lucide="triangle-alert" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Erro</span>
+                </div>
+            </div>
 
             <section class="metrics-grid" aria-label="Resumo de métricas">
                 <article class="metric-card metric-pacientes">
@@ -264,52 +142,57 @@
                     </header>
                     <div class="panel-body">
                         <div class="quick-actions-grid">
-                            <a href="/agenda" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Nova Sessão</p>
                                 <p class="quick-action-hint">Criar atendimento</p>
                             </a>
-                            <a href="/calendario" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('CALENDARIO')}" href="/calendario" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Calendário</p>
                                 <p class="quick-action-hint">Gestão mensal</p>
                             </a>
-                            <a href="/bloqueios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" href="/bloqueios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Bloqueios</p>
                                 <p class="quick-action-hint">Indisponibilidades</p>
                             </a>
-                            <a href="/solicitacoes" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" href="/solicitacoes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Solicitações</p>
                                 <p class="quick-action-hint">Aprovar agenda</p>
                             </a>
-                            <a href="/pacientes" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('PACIENTES')}" href="/pacientes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Pacientes</p>
                                 <p class="quick-action-hint">Cadastro clínico</p>
                             </a>
-                            <a href="/prontuario" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('PRONTUARIO')}" href="/prontuario" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Prontuário</p>
                                 <p class="quick-action-hint">Evolução SOAP</p>
                             </a>
-                            <a href="/usuarios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('USUARIOS')}" href="/usuarios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Usuários</p>
                                 <p class="quick-action-hint">Gerenciar equipe</p>
                             </a>
-                            <a href="/financeiro" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('FUNCOES_USUARIOS')}" href="/funcoes-usuarios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="sliders-horizontal" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Funções</p>
+                                <p class="quick-action-hint">Permissões por tipo</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('FINANCEIRO')}" href="/financeiro" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="banknote" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Financeiro</p>
                                 <p class="quick-action-hint">Fluxo de caixa</p>
                             </a>
-                            <a href="/relatorios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('RELATORIOS')}" href="/relatorios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Relatórios</p>
                                 <p class="quick-action-hint">Exportar e enviar</p>
                             </a>
-                            <a href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Agendamento Online</p>
                                 <p class="quick-action-hint">Abrir portal público</p>
@@ -363,3 +246,8 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
+
+
+
+
+

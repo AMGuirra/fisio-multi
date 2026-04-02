@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pacotes de Sessões - FisioGestao</title>
+    <title>Planos de Tratamentos - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,46 +12,14 @@
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
-    <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Fechar menu lateral"></button>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
-    <aside class="app-sidebar" id="appSidebar">
-        <a href="/dashboard" class="sidebar-brand">
-            <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
-            <span class="sidebar-brand-copy">
-                <span class="sidebar-brand-title">FisioGestao</span>
-                <span class="sidebar-brand-subtitle">Painel Clínico</span>
-            </span>
-        </a>
-
-        <ul class="sidebar-nav">
-            <li><a href="/dashboard" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-link-label">Dashboard</span></a></li>
-            <li><a href="/agenda" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-days"></i></span><span class="sidebar-link-label">Agenda</span></a></li>
-            <li><a href="/calendario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-range"></i></span><span class="sidebar-link-label">Calendário</span></a></li>
-            <li><a href="/bloqueios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-x-2"></i></span><span class="sidebar-link-label">Bloqueios</span></a></li>
-            <li><a href="/solicitacoes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="calendar-plus"></i></span><span class="sidebar-link-label">Solicitações</span></a></li>
-            <li><a href="/pacotes-consumo" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="package-open"></i></span><span class="sidebar-link-label">Pacotes de Sessões</span></a></li>
-            <li><a href="/pacientes" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="stethoscope"></i></span><span class="sidebar-link-label">Pacientes</span></a></li>
-            <li><a href="/prontuario" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="clipboard-pen-line"></i></span><span class="sidebar-link-label">Prontuário</span></a></li>
-            <li><a href="/financeiro" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="wallet"></i></span><span class="sidebar-link-label">Financeiro</span></a></li>
-            <li><a href="/relatorios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="file-text"></i></span><span class="sidebar-link-label">Relatórios</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/configuracoes/email" class="sidebar-link" th:classappend="${#strings.startsWith(currentPath, '/configuracoes/email') or #strings.startsWith(currentPath, '/configuracao/email') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="mail-check"></i></span><span class="sidebar-link-label">Config. E-mail</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/usuarios" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="users"></i></span><span class="sidebar-link-label">Usuários</span></a></li>
-            <li th:if="${loggedUserRole == 'ADMIN'}"><a href="/auditoria" class="sidebar-link" th:classappend="${currentPath == '/auditoria' or #strings.startsWith(currentPath, '/auditoria/') ? ' active' : ''}"><span class="sidebar-link-icon"><i data-lucide="shield-check"></i></span><span class="sidebar-link-label">Auditoria</span></a></li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <a href="/agendamento-online" target="_blank" rel="noopener" class="sidebar-link"><span class="sidebar-link-icon"><i data-lucide="external-link"></i></span><span class="sidebar-link-label">Agendamento Online</span></a>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="sidebar-link sidebar-logout"><span class="sidebar-link-icon"><i data-lucide="log-out"></i></span><span class="sidebar-link-label">Sair</span></button>
-            </form>
-        </div>
-    </aside>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle mobile-toggle" id="mobileMenuToggle" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
-                <button class="header-toggle desktop-toggle" id="sidebarCollapseToggle" aria-label="Expandir ou recolher sidebar"><i data-lucide="panel-left"></i></button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -66,8 +34,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -77,10 +45,10 @@
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
-                    <h1 class="hero-title">Pacotes de Sessões</h1>
-                    <p class="hero-subtitle">Busque o paciente, selecione-o e então gerencie os pacotes de sessões desse paciente.</p>
+                    <h1 class="hero-title">Planos de Tratamentos</h1>
+                    <p class="hero-subtitle">Busque o paciente, selecione-o e então gerencie os planos de tratamento desse paciente.</p>
                 </div>
-                <span class="hero-pill">Pacotes</span>
+                <span class="hero-pill">Planos</span>
             </section>
 
             <div class="flash-stack">
@@ -91,7 +59,7 @@
             <section class="summary-grid">
                 <article class="summary-card saldo">
                     <span class="summary-icon"><i data-lucide="package-open"></i></span>
-                    <p class="summary-label">Pacotes do Paciente</p>
+                    <p class="summary-label">Planos do Paciente</p>
                     <p class="summary-value" th:text="${totalPacotes}">0</p>
                 </article>
                 <article class="summary-card receita">
@@ -174,7 +142,7 @@
                 <div class="section-body" th:if="${pacientes == null or pacientes.empty}">
                     <div class="empty-box">
                         <i data-lucide="user-search"></i>
-                        <p th:if="${totalPacientesAtivos == 0}">Cadastre um paciente para começar a gerenciar pacotes de sessões.</p>
+                        <p th:if="${totalPacientesAtivos == 0}">Cadastre um paciente para começar a gerenciar planos de tratamento.</p>
                         <p th:unless="${totalPacientesAtivos == 0}">Nenhum paciente encontrado para a busca informada.</p>
                     </div>
                 </div>
@@ -184,7 +152,7 @@
                 <div class="section-body">
                     <div class="empty-box">
                         <i data-lucide="mouse-pointer-click"></i>
-                        <p>Busque e selecione um paciente para liberar o gerenciamento dos pacotes de sessões.</p>
+                        <p>Busque e selecione um paciente para liberar o gerenciamento dos planos de tratamento.</p>
                     </div>
                 </div>
             </section>
@@ -220,7 +188,7 @@
             <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Pacote</h3>
+                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Plano</h3>
                         <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
                     </header>
                     <div class="section-body">
@@ -228,7 +196,7 @@
                             <input type="hidden" th:field="*{clienteId}">
                             <input type="hidden" name="busca" th:value="${buscaPaciente}">
                             <div class="form-field">
-                                <label for="novo-nome">Nome do pacote</label>
+                                <label for="novo-nome">Nome do plano</label>
                                 <input id="novo-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
                                 <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
                             </div>
@@ -266,7 +234,7 @@
                             </div>
                             <button type="submit" class="action-button primary">
                                 <i data-lucide="save"></i>
-                                Criar Pacote
+                                Criar Plano
                             </button>
                             <p class="helper-text">O consumo será atualizado automaticamente quando a sessão for confirmada e mantido no histórico quando ela for realizada.</p>
                         </form>
@@ -275,20 +243,20 @@
 
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-open"></i> Pacotes Cadastrados</h3>
+                        <h3 class="section-title"><i data-lucide="package-open"></i> Planos Cadastrados</h3>
                         <p class="section-subtitle" th:text="${pacotes != null ? pacotes.size() + ' registros' : '0 registros'}">0 registros</p>
                     </header>
                     <div class="section-body" th:if="${pacotes == null or pacotes.empty}">
                         <div class="empty-box">
                             <i data-lucide="archive-x"></i>
-                            <p>Nenhum pacote cadastrado para este paciente.</p>
+                            <p>Nenhum plano de tratamento cadastrado para este paciente.</p>
                         </div>
                     </div>
                     <div class="data-table-wrap" th:unless="${pacotes == null or pacotes.empty}">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Pacote</th>
+                                    <th>Plano</th>
                                     <th>Consumo</th>
                                     <th>Status</th>
                                     <th class="text-right">Ações</th>
@@ -297,7 +265,7 @@
                             <tbody>
                                 <tr th:each="pacote : ${pacotes}">
                                     <td>
-                                        <p class="entity-name" th:text="${pacote.nomePacote}">Pacote</p>
+                                        <p class="entity-name" th:text="${pacote.nomePacote}">Plano</p>
                                         <p class="entity-meta" th:text="${'Início: ' + #temporals.format(pacote.dataInicio, 'dd/MM/yyyy')}">Início</p>
                                     </td>
                                     <td>
@@ -325,7 +293,7 @@
                                                 </button>
                                             </form>
                                             <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}" method="post" class="inline-form"
-                                                  onsubmit="return confirm('Deseja excluir este pacote? Isso removerá também lançamentos financeiros pendentes vinculados a ele.');">
+                                                  onsubmit="return confirm('Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele.');">
                                                 <input type="hidden" name="busca" th:value="${buscaPaciente}">
                                                 <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
                                                 <button type="submit" class="action-button danger">
@@ -344,8 +312,8 @@
 
             <section class="section-card" th:if="${pacoteEmEdicao != null}">
                 <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="square-pen"></i> Editar Pacote</h3>
-                    <p class="section-subtitle" th:text="${pacoteEmEdicao.nomePacote}">Pacote</p>
+                        <h3 class="section-title"><i data-lucide="square-pen"></i> Editar Plano</h3>
+                        <p class="section-subtitle" th:text="${pacoteEmEdicao.nomePacote}">Plano</p>
                 </header>
                 <div class="section-body">
                     <form th:action="@{/pacotes-consumo/{id}(id=${pacoteEmEdicao.id})}" th:object="${pacoteEdicaoForm}" method="post" class="modern-form">
@@ -367,7 +335,7 @@
                         </div>
                         <div class="calendar-inline-grid">
                             <div class="form-field">
-                                <label for="editar-nome">Nome do pacote</label>
+                                <label for="editar-nome">Nome do plano</label>
                                 <input id="editar-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
                                 <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
                             </div>
@@ -404,7 +372,7 @@
                         <div class="table-actions">
                             <button type="submit" class="action-button primary">
                                 <i data-lucide="save"></i>
-                                Atualizar Pacote
+                                Atualizar Plano
                             </button>
                             <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},busca=${buscaPaciente})}" class="action-button ghost">
                                 <i data-lucide="x"></i>
@@ -423,3 +391,8 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
+
+
+
+
+

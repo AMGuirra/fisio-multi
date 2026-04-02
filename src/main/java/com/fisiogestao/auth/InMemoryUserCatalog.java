@@ -227,6 +227,15 @@ public class InMemoryUserCatalog {
         return role;
     }
 
+    public Optional<UserRole> buscarRole(String username) {
+        String normalized = normalizeUsernameForLookup(username);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        return repository.findByUsername(normalized)
+                .map(UsuarioSistemaEntity::getRole);
+    }
+
     private String normalizeNome(String nome) {
         if (nome == null) {
             throw new BusinessException("Informe o nome.");

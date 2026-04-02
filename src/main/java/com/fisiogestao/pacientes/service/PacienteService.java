@@ -137,7 +137,7 @@ public class PacienteService {
         var snapshotAnterior = auditService.snapshotOf(cliente);
 
         if (pacoteSessaoRepository.existsByClienteId(clienteId)) {
-            throw new BusinessException("Exclua primeiro os pacotes vinculados a este paciente.");
+            throw new BusinessException("Exclua primeiro os planos de tratamento vinculados a este paciente.");
         }
         if (sessaoRepository.existsByClienteId(clienteId)) {
             throw new BusinessException("Este paciente possui histórico de sessões e não pode ser excluído.");
