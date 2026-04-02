@@ -197,8 +197,10 @@ a {
 
 .sidebar-link-label {
     white-space: nowrap;
-    max-width: 160px;
+    max-width: 100%;
+    min-width: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
     transition: opacity var(--ease-standard), transform var(--ease-standard), max-width var(--ease-standard);
 }
 
