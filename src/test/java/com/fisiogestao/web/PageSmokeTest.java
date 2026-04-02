@@ -1,12 +1,23 @@
 package com.fisiogestao.web;
 
+import com.fisiogestao.agenda.ConfiguracaoClinicaEntity;
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
+import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventEntity;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.pacientes.ClienteEntity;
+import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.repository.ClienteRepository;
+import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +27,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -35,8 +52,22 @@ class PageSmokeTest {
     @Autowired
     private UsuarioSistemaRepository usuarioSistemaRepository;
 
+    @Autowired
+    private ConfiguracaoClinicaRepository configuracaoClinicaRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
+    private PacoteSessaoRepository pacoteSessaoRepository;
+
+    @Autowired
+    private SessaoRepository sessaoRepository;
+
     private UUID auditEventId;
     private UUID adminUserId;
+    private LocalDate agendaDate;
+    private UUID sessaoAgendaId;
 
     @BeforeEach
     void setUp() {
@@ -59,6 +90,8 @@ class PageSmokeTest {
                         .sucessoOperacao(true)
                         .alteracaoCritica(false)
                         .build()).getId());
+
+        prepararCenarioAgenda();
     }
 
     @ParameterizedTest
@@ -115,5 +148,68 @@ class PageSmokeTest {
 
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaRenderizaComPlanoESessaoMesmoComOpenInViewDesabilitado() throws Exception {
+        mockMvc.perform(get("/agenda")
+                        .param("data", agendaDate.toString())
+                        .param("editar", sessaoAgendaId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente Teste Agenda")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar sessão")));
+    }
+
+    private void prepararCenarioAgenda() {
+        sessaoRepository.deleteAll();
+        pacoteSessaoRepository.deleteAll();
+        clienteRepository.deleteAll();
+        configuracaoClinicaRepository.deleteAll();
+
+        agendaDate = LocalDate.now().plusDays(1);
+        ZoneId zoneId = ZoneId.of("America/Campo_Grande");
+
+        configuracaoClinicaRepository.save(ConfiguracaoClinicaEntity.builder()
+                .nomeClinica("Clínica Teste")
+                .diasFuncionamento("MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY")
+                .horarioAbertura(LocalTime.of(8, 0))
+                .horarioFechamento(LocalTime.of(18, 0))
+                .duracaoSessaoMinutos(50)
+                .timezoneId("America/Campo_Grande")
+                .ativo(true)
+                .build());
+
+        ClienteEntity cliente = clienteRepository.save(ClienteEntity.builder()
+                .nomeCompleto("Paciente Teste Agenda")
+                .telefone("65999990000")
+                .email("paciente.agenda@example.com")
+                .ativo(true)
+                .build());
+
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.save(PacoteSessaoEntity.builder()
+                .cliente(cliente)
+                .nomePacote("Plano Teste Agenda")
+                .sessoesContratadas(10)
+                .sessoesConsumidas(1)
+                .valorTotal(new BigDecimal("1200.00"))
+                .dataInicio(agendaDate.minusDays(7))
+                .dataValidade(agendaDate.plusDays(30))
+                .status(PacoteSessaoStatus.ATIVO)
+                .build());
+
+        SessaoEntity sessao = sessaoRepository.save(SessaoEntity.builder()
+                .cliente(cliente)
+                .pacoteSessao(pacote)
+                .dataHoraInicio(agendaDate.atTime(9, 0).atZone(zoneId).toOffsetDateTime())
+                .dataHoraFim(agendaDate.atTime(9, 50).atZone(zoneId).toOffsetDateTime())
+                .status(SessaoStatus.AGENDADA)
+                .tipoAtendimento("Pilates")
+                .observacoes("Sessão criada no smoke test.")
+                .pacoteConsumoRegistrado(Boolean.TRUE)
+                .build());
+
+        sessaoAgendaId = sessao.getId();
     }
 }
