@@ -41,6 +41,7 @@ class UserMenuAccessServiceTest {
                         AppMenuItem.CALENDARIO,
                         AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
+                        AppMenuItem.WHATSAPP,
                         AppMenuItem.PACOTES_SESSOES,
                         AppMenuItem.PACIENTES,
                         AppMenuItem.AGENDAMENTO_ONLINE

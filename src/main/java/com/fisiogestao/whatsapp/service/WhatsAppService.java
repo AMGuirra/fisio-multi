@@ -20,8 +20,22 @@ public class WhatsAppService {
         return mensagemWhatsAppRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public List<MensagemWhatsAppEntity> listarFila(StatusMensagemWhatsApp status) {
+        if (status == null) {
+            return listarFila();
+        }
+        return mensagemWhatsAppRepository.findAllByStatusOrderByCreatedAtDesc(status);
+    }
+
     public long totalPendentes() {
         return mensagemWhatsAppRepository.countByStatus(StatusMensagemWhatsApp.PENDENTE);
+    }
+
+    public long totalPorStatus(StatusMensagemWhatsApp status) {
+        if (status == null) {
+            return mensagemWhatsAppRepository.count();
+        }
+        return mensagemWhatsAppRepository.countByStatus(status);
     }
 
     @Transactional

@@ -162,6 +162,11 @@
                                 <p class="quick-action-label">Solicitações</p>
                                 <p class="quick-action-hint">Aprovar agenda</p>
                             </a>
+                            <a th:if="${accessibleMenuKeys.contains('WHATSAPP')}" href="/whatsapp" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Fila WhatsApp</p>
+                                <p class="quick-action-hint">Monitorar mensagens</p>
+                            </a>
                             <a th:if="${accessibleMenuKeys.contains('PACIENTES')}" href="/pacientes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Pacientes</p>
@@ -191,6 +196,11 @@
                                 <span class="quick-action-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Relatórios</p>
                                 <p class="quick-action-hint">Exportar e enviar</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('CONFIG_CLINICA')}" href="/configuracoes/clinica" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Config. Clínica</p>
+                                <p class="quick-action-hint">Expediente e canais</p>
                             </a>
                             <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>

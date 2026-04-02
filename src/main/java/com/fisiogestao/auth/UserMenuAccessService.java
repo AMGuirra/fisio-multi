@@ -206,6 +206,7 @@ public class UserMenuAccessService {
                     AppMenuItem.CALENDARIO,
                     AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
+                    AppMenuItem.WHATSAPP,
                     AppMenuItem.PACOTES_SESSOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.AGENDAMENTO_ONLINE
@@ -213,6 +214,7 @@ public class UserMenuAccessService {
             case ASSESSORIA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.SOLICITACOES,
+                    AppMenuItem.WHATSAPP,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.RELATORIOS,
                     AppMenuItem.AUDITORIA

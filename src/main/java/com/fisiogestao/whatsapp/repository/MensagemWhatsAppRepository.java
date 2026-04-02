@@ -11,5 +11,7 @@ public interface MensagemWhatsAppRepository extends JpaRepository<MensagemWhatsA
 
     List<MensagemWhatsAppEntity> findAllByOrderByCreatedAtDesc();
 
+    List<MensagemWhatsAppEntity> findAllByStatusOrderByCreatedAtDesc(StatusMensagemWhatsApp status);
+
     long countByStatus(StatusMensagemWhatsApp status);
 }

@@ -43,7 +43,7 @@ public class PasswordResetService {
     private final SystemEmailService systemEmailService;
     private final AuditService auditService;
 
-    @Value("${app.base-url}")
+    @Value("${app.base-url:http://localhost:8083}")
     private String baseUrl;
 
     @Transactional

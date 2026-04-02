@@ -57,6 +57,21 @@
                 <div th:if="${agendaConfigurada == false}" class="flash-message error"><i data-lucide="settings"></i><span>Configure a clínica para habilitar os agendamentos.</span></div>
             </div>
 
+            <section th:if="${agendaConfigurada == false and accessibleMenuKeys.contains('CONFIG_CLINICA')}" class="section-card">
+                <div class="section-body">
+                    <div class="helper-card">
+                        <div class="helper-copy">
+                            <h4>Agenda indisponível até concluir a configuração da clínica</h4>
+                            <p>Defina expediente, duração das sessões, fuso horário e canais oficiais para liberar a agenda manual e o portal de agendamento online.</p>
+                        </div>
+                        <a href="/configuracoes/clinica" class="action-button primary">
+                            <i data-lucide="building-2"></i>
+                            Configurar clínica
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <section class="date-control">
                 <a th:href="@{/agenda(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
                 <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
