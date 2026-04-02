@@ -272,12 +272,31 @@ a {
     overflow: hidden;
 }
 
+.app-sidebar > .sidebar-toggle-btn {
+    align-self: flex-end;
+    margin: -10px 8px -8px 0;
+    color: var(--brand-700);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(226, 241, 236, 0.72);
+    box-shadow: 0 12px 24px rgba(5, 15, 18, 0.2);
+}
+
+.app-sidebar > .sidebar-toggle-btn:hover,
+.app-sidebar > .sidebar-toggle-btn:focus-visible {
+    background: #ffffff;
+}
+
 .sidebar-toggle-btn i {
     transition: transform var(--ease-standard), opacity var(--ease-standard);
 }
 
 body.sidebar-collapsed .sidebar-toggle-btn i {
     transform: rotate(180deg);
+}
+
+body.sidebar-collapsed .app-sidebar > .sidebar-toggle-btn {
+    align-self: center;
+    margin-right: 0;
 }
 
 body.sidebar-open .sidebar-toggle-btn i {

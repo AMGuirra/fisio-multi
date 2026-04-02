@@ -14,6 +14,11 @@
 
     const SIDEBAR_STORAGE_KEY = 'sidebarCollapsed';
     const MOBILE_BREAKPOINT = 920;
+    const sidebarToggleHome = sidebarToggle ? document.createComment('sidebar-toggle-home') : null;
+
+    if (sidebarToggle && sidebarToggle.parentNode && sidebarToggleHome) {
+        sidebarToggle.parentNode.insertBefore(sidebarToggleHome, sidebarToggle);
+    }
 
     const capitalize = (text) => {
         if (!text) {
@@ -149,6 +154,25 @@
         updateSidebarAccessibility();
     };
 
+    const relocateSidebarToggle = () => {
+        if (!sidebarToggle || !appSidebar || !sidebarToggleHome) {
+            return;
+        }
+
+        if (isMobileViewport()) {
+            const homeParent = sidebarToggleHome.parentNode;
+            if (homeParent && (sidebarToggle.parentNode !== homeParent || sidebarToggle.previousSibling !== sidebarToggleHome)) {
+                homeParent.insertBefore(sidebarToggle, sidebarToggleHome.nextSibling);
+            }
+            return;
+        }
+
+        const sidebarNav = appSidebar.querySelector('.sidebar-nav');
+        if (sidebarNav && (sidebarToggle.parentNode !== appSidebar || sidebarToggle.nextElementSibling !== sidebarNav)) {
+            appSidebar.insertBefore(sidebarToggle, sidebarNav);
+        }
+    };
+
     const syncSidebarLayout = () => {
         if (isMobileViewport()) {
             body.classList.remove('sidebar-collapsed');
@@ -157,6 +181,7 @@
             body.classList.toggle('sidebar-collapsed', readSidebarPreference());
         }
 
+        relocateSidebarToggle();
         updateSidebarAccessibility();
     };
 
