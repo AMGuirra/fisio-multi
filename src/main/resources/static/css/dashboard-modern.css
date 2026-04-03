@@ -453,12 +453,14 @@ body.sidebar-open .sidebar-toggle-btn svg {
     padding: 9px 14px;
 }
 
-.dashboard-header {
+.dashboard-header,
+.app-header {
     height: auto;
     min-height: var(--header-height);
 }
 
-.dashboard-header .header-right {
+.dashboard-header .header-right,
+.app-header .header-right {
     gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;

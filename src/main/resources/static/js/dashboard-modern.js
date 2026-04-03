@@ -12,14 +12,17 @@
         const appSidebar = document.getElementById('appSidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const appHeader = document.querySelector('.app-header');
+        const headerCopy = appHeader ? appHeader.querySelector('.header-copy') : null;
+        const headerRight = appHeader ? appHeader.querySelector('.header-right') : null;
         const userMenu = document.getElementById('userMenu');
         const userMenuToggle = document.getElementById('userMenuToggle');
         const greetingElement = document.getElementById('dynamicGreeting');
-        const headerDateElement = document.getElementById('headerFullDate');
-        const infoDateElement = document.getElementById('infoDate');
-        const liveClockElement = document.getElementById('liveClock');
-        const infoTimeElement = document.getElementById('infoTime');
-        const systemStatusElement = document.getElementById('systemStatus');
+        let headerDateElement = document.getElementById('headerFullDate');
+        let infoDateElement = document.getElementById('infoDate');
+        let liveClockElement = document.getElementById('liveClock');
+        let infoTimeElement = document.getElementById('infoTime');
+        let systemStatusElement = document.getElementById('systemStatus');
 
         const SIDEBAR_STORAGE_KEY = 'sidebarCollapsed';
         const MOBILE_BREAKPOINT = 920;
@@ -71,6 +74,58 @@
             }
         };
 
+        const ensureSharedHeader = () => {
+            if (!appHeader || !headerRight) {
+                return;
+            }
+
+            appHeader.classList.add('dashboard-header');
+
+            if (headerDateElement && headerCopy && headerDateElement.classList.contains('header-date')) {
+                headerDateElement.className = 'header-context';
+                headerDateElement.textContent = 'Painel clínico em tempo real para a sua rotina.';
+            }
+
+            if (!headerRight.querySelector('.header-insights')) {
+                const insights = document.createElement('div');
+                insights.className = 'header-insights';
+                insights.setAttribute('aria-label', 'Informações do sistema');
+                insights.innerHTML = `
+                    <div class="header-info-chip">
+                        <span class="header-info-icon status"><i data-lucide="activity" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Status do sistema</span>
+                            <span class="header-info-value skeletonable system-status" id="systemStatus">Online</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Data atual</span>
+                            <span class="header-info-value skeletonable" id="infoDate">00/00/0000</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Hora atual</span>
+                            <span class="header-info-value skeletonable" id="infoTime">00:00:00</span>
+                        </span>
+                    </div>
+                `;
+                headerRight.insertBefore(insights, headerRight.firstChild);
+
+                infoDateElement = insights.querySelector('#infoDate');
+                infoTimeElement = insights.querySelector('#infoTime');
+                systemStatusElement = insights.querySelector('#systemStatus');
+            }
+
+            if (liveClockElement) {
+                liveClockElement.style.display = 'none';
+                liveClockElement.setAttribute('aria-hidden', 'true');
+            }
+        };
+
         const updateDateTime = () => {
             const now = new Date();
 
@@ -98,7 +153,7 @@
                 minute: '2-digit'
             });
 
-            if (headerDateElement) {
+            if (headerDateElement && headerDateElement.classList.contains('header-date')) {
                 headerDateElement.textContent = fullDate;
             }
 
@@ -106,7 +161,7 @@
                 infoDateElement.textContent = shortDate;
             }
 
-            if (liveClockElement) {
+            if (liveClockElement && liveClockElement.style.display !== 'none') {
                 liveClockElement.textContent = timeNoSeconds;
             }
 
@@ -258,6 +313,7 @@
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
 
+        ensureSharedHeader();
         syncSidebarLayout();
         setActiveSidebarLink();
         updateConnectionStatus();

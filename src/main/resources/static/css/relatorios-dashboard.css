@@ -1,3 +1,79 @@
+:root {
+    --report-kicker-color: var(--brand-700);
+    --report-highlight-border: #d8e7e2;
+    --report-highlight-bg: rgba(255, 255, 255, 0.72);
+    --report-highlight-success: #127247;
+    --report-highlight-info: #2a61b7;
+    --report-highlight-warning: #8a6400;
+    --report-period-border: #d4e4df;
+    --report-period-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(236, 247, 244, 0.9));
+    --report-period-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --report-kpi-border: #d8e7e2;
+    --report-kpi-bg:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 249, 0.96)),
+        var(--bg-surface);
+    --report-pill-success-bg: #def5ea;
+    --report-pill-success-text: #127247;
+    --report-pill-info-bg: #e2ecff;
+    --report-pill-info-text: #2454b4;
+    --report-pill-warning-bg: #fff4d8;
+    --report-pill-warning-text: #8a6400;
+    --report-pill-danger-bg: #ffe7e7;
+    --report-pill-danger-text: #9a3d3d;
+    --report-pill-neutral-bg: #eef3f2;
+    --report-pill-neutral-text: #6f7f88;
+    --report-chart-border: #dbe9e5;
+    --report-chart-bg: linear-gradient(180deg, #fbfdfc, #f3f8f6);
+    --report-chart-track-bg: linear-gradient(180deg, #f0f6f4, #e4efec);
+    --report-chart-track-border: #d5e4df;
+    --report-legend-bg: #c5d6d2;
+    --report-donut-border: #dbe9e5;
+    --report-donut-bg: linear-gradient(180deg, #fbfdfc, #f4f8f7);
+    --report-donut-core-bg: #ffffff;
+    --report-donut-core-shadow: inset 0 0 0 1px #deebe7;
+    --report-ranking-border: #dbe9e5;
+    --report-ranking-bg: linear-gradient(180deg, #ffffff, #f5faf8);
+    --report-ranking-value: var(--brand-700);
+}
+
+body[data-theme='dark'] {
+    --report-kicker-color: #74ead3;
+    --report-highlight-border: rgba(107, 194, 175, 0.24);
+    --report-highlight-bg: rgba(8, 27, 33, 0.78);
+    --report-highlight-success: #8ce7c6;
+    --report-highlight-info: #97beff;
+    --report-highlight-warning: #ffd481;
+    --report-period-border: rgba(107, 194, 175, 0.24);
+    --report-period-bg: linear-gradient(145deg, rgba(16, 39, 44, 0.96), rgba(9, 28, 34, 0.94));
+    --report-period-shadow: inset 0 1px 0 rgba(227, 255, 248, 0.05);
+    --report-kpi-border: rgba(62, 89, 98, 0.62);
+    --report-kpi-bg:
+        linear-gradient(180deg, rgba(16, 34, 40, 0.98), rgba(10, 22, 27, 0.98)),
+        rgba(12, 22, 28, 0.98);
+    --report-pill-success-bg: rgba(16, 108, 70, 0.24);
+    --report-pill-success-text: #baf4d7;
+    --report-pill-info-bg: rgba(33, 80, 179, 0.26);
+    --report-pill-info-text: #b9d1ff;
+    --report-pill-warning-bg: rgba(135, 98, 0, 0.24);
+    --report-pill-warning-text: #ffe39b;
+    --report-pill-danger-bg: rgba(135, 43, 43, 0.24);
+    --report-pill-danger-text: #ffc7c7;
+    --report-pill-neutral-bg: rgba(36, 56, 65, 0.76);
+    --report-pill-neutral-text: #c0d0cc;
+    --report-chart-border: rgba(62, 89, 98, 0.62);
+    --report-chart-bg: linear-gradient(180deg, rgba(15, 29, 35, 0.98), rgba(9, 21, 26, 0.98));
+    --report-chart-track-bg: linear-gradient(180deg, rgba(18, 37, 44, 0.98), rgba(11, 25, 31, 0.98));
+    --report-chart-track-border: rgba(51, 80, 92, 0.82);
+    --report-legend-bg: rgba(138, 160, 155, 0.46);
+    --report-donut-border: rgba(62, 89, 98, 0.62);
+    --report-donut-bg: linear-gradient(180deg, rgba(15, 29, 35, 0.98), rgba(9, 21, 26, 0.98));
+    --report-donut-core-bg: rgba(8, 17, 22, 0.98);
+    --report-donut-core-shadow: inset 0 0 0 1px rgba(51, 80, 92, 0.82);
+    --report-ranking-border: rgba(62, 89, 98, 0.62);
+    --report-ranking-bg: linear-gradient(180deg, rgba(15, 29, 35, 0.98), rgba(9, 21, 26, 0.98));
+    --report-ranking-value: #74ead3;
+}
+
 .report-hero {
     align-items: stretch;
 }
@@ -8,7 +84,7 @@
     font-weight: 800;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--brand-700);
+    color: var(--report-kicker-color);
 }
 
 .report-highlight-strip {
@@ -25,8 +101,8 @@
     min-width: 150px;
     padding: 10px 12px;
     border-radius: 14px;
-    border: 1px solid #d8e7e2;
-    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--report-highlight-border);
+    background: var(--report-highlight-bg);
     backdrop-filter: blur(6px);
 }
 
@@ -44,15 +120,15 @@
 }
 
 .report-highlight.tone-success strong {
-    color: #127247;
+    color: var(--report-highlight-success);
 }
 
 .report-highlight.tone-info strong {
-    color: #2a61b7;
+    color: var(--report-highlight-info);
 }
 
 .report-highlight.tone-warning strong {
-    color: #8a6400;
+    color: var(--report-highlight-warning);
 }
 
 .report-highlight.tone-neutral strong {
@@ -74,9 +150,9 @@
     gap: 6px;
     padding: 16px;
     border-radius: 16px;
-    border: 1px solid #d4e4df;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(236, 247, 244, 0.9));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--report-period-border);
+    background: var(--report-period-bg);
+    box-shadow: var(--report-period-shadow);
 }
 
 .report-period-label {
@@ -112,10 +188,8 @@
     min-height: 164px;
     padding: 16px;
     border-radius: 18px;
-    border: 1px solid #d8e7e2;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 249, 0.96)),
-        var(--bg-surface);
+    border: 1px solid var(--report-kpi-border);
+    background: var(--report-kpi-bg);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
@@ -232,34 +306,34 @@
 .report-kpi-change.tone-success,
 .report-pill.tone-success,
 .finance-saldo.tone-success {
-    background: #def5ea;
-    color: #127247;
+    background: var(--report-pill-success-bg);
+    color: var(--report-pill-success-text);
 }
 
 .report-kpi-change.tone-info,
 .report-pill.tone-info {
-    background: #e2ecff;
-    color: #2454b4;
+    background: var(--report-pill-info-bg);
+    color: var(--report-pill-info-text);
 }
 
 .report-kpi-change.tone-warning,
 .report-pill.tone-warning {
-    background: #fff4d8;
-    color: #8a6400;
+    background: var(--report-pill-warning-bg);
+    color: var(--report-pill-warning-text);
 }
 
 .report-kpi-change.tone-danger,
 .report-pill.tone-danger,
 .finance-saldo.tone-danger {
-    background: #ffe7e7;
-    color: #9a3d3d;
+    background: var(--report-pill-danger-bg);
+    color: var(--report-pill-danger-text);
 }
 
 .report-kpi-change.tone-neutral,
 .report-pill.tone-neutral,
 .finance-saldo.tone-neutral {
-    background: #eef3f2;
-    color: #6f7f88;
+    background: var(--report-pill-neutral-bg);
+    color: var(--report-pill-neutral-text);
 }
 
 .report-analytics-layout {
@@ -275,9 +349,9 @@
 }
 
 .report-chart-block {
-    border: 1px solid #dbe9e5;
+    border: 1px solid var(--report-chart-border);
     border-radius: 16px;
-    background: linear-gradient(180deg, #fbfdfc, #f3f8f6);
+    background: var(--report-chart-bg);
     padding: 16px;
 }
 
@@ -317,8 +391,8 @@
     width: 32px;
     height: 160px;
     border-radius: 14px;
-    background: linear-gradient(180deg, #f0f6f4, #e4efec);
-    border: 1px solid #d5e4df;
+    background: var(--report-chart-track-bg);
+    border: 1px solid var(--report-chart-track-border);
     padding: 6px;
     display: flex;
     flex-direction: column;
@@ -400,7 +474,7 @@
     height: 10px;
     border-radius: 50%;
     display: inline-block;
-    background: #c5d6d2;
+    background: var(--report-legend-bg);
 }
 
 .donut-card {
@@ -409,9 +483,9 @@
     gap: 14px;
     align-items: center;
     padding: 14px;
-    border: 1px solid #dbe9e5;
+    border: 1px solid var(--report-donut-border);
     border-radius: 16px;
-    background: linear-gradient(180deg, #fbfdfc, #f4f8f7);
+    background: var(--report-donut-bg);
 }
 
 .donut-ring {
@@ -428,8 +502,8 @@
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: #ffffff;
-    box-shadow: inset 0 0 0 1px #deebe7;
+    background: var(--report-donut-core-bg);
+    box-shadow: var(--report-donut-core-shadow);
 }
 
 .donut-center {
@@ -495,8 +569,8 @@
     align-items: center;
     padding: 12px 14px;
     border-radius: 14px;
-    border: 1px solid #dbe9e5;
-    background: linear-gradient(180deg, #ffffff, #f5faf8);
+    border: 1px solid var(--report-ranking-border);
+    background: var(--report-ranking-bg);
 }
 
 .ranking-position {
@@ -529,7 +603,7 @@
 .ranking-value {
     font-size: 0.86rem;
     font-weight: 750;
-    color: var(--brand-700);
+    color: var(--report-ranking-value);
 }
 
 .chart-empty {
