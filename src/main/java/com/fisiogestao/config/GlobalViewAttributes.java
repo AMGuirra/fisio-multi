@@ -1,6 +1,7 @@
 package com.fisiogestao.config;
 
 import com.fisiogestao.auth.InMemoryUserCatalog;
+import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UserMenuAccessService;
 import com.fisiogestao.auth.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,6 +63,15 @@ public class GlobalViewAttributes {
     public String loggedUserRoleLabel(Authentication authentication, HttpServletRequest request) {
         UserRole role = resolveRole(authentication, request);
         return role != null ? role.getLabel() : null;
+    }
+
+    @ModelAttribute("loggedUserTheme")
+    public UserThemePreference loggedUserTheme(Authentication authentication) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return UserThemePreference.LIGHT;
+        }
+        return userCatalog.buscarTema(authentication.getName())
+                .orElse(UserThemePreference.LIGHT);
     }
 
     @ModelAttribute("currentPath")

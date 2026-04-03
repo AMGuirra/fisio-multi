@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,4 +39,9 @@ public class UsuarioSistemaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private UserRole role;
+
+    @Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tema_interface", nullable = false, length = 12)
+    private UserThemePreference temaInterface = UserThemePreference.LIGHT;
 }

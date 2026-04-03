@@ -1082,6 +1082,72 @@ body.modal-open {
     margin-top: 10px;
 }
 
+body[data-theme='dark'] .modern-form .form-control,
+body[data-theme='dark'] .modern-form .form-select,
+body[data-theme='dark'] .modern-form textarea,
+body[data-theme='dark'] .modern-form input,
+body[data-theme='dark'] .modern-form select,
+body[data-theme='dark'] .modern-form .form-control:focus,
+body[data-theme='dark'] .modern-form .form-select:focus,
+body[data-theme='dark'] .modern-form textarea:focus,
+body[data-theme='dark'] .modern-form input:focus,
+body[data-theme='dark'] .modern-form select:focus {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .modern-form .form-control:focus,
+body[data-theme='dark'] .modern-form .form-select:focus,
+body[data-theme='dark'] .modern-form textarea:focus,
+body[data-theme='dark'] .modern-form input:focus,
+body[data-theme='dark'] .modern-form select:focus {
+    box-shadow: 0 0 0 3px rgba(24, 176, 149, 0.16);
+}
+
+body[data-theme='dark'] .modern-form input::placeholder,
+body[data-theme='dark'] .modern-form textarea::placeholder {
+    color: var(--text-soft);
+}
+
+body[data-theme='dark'] .helper-card,
+body[data-theme='dark'] .date-control,
+body[data-theme='dark'] .session-card,
+body[data-theme='dark'] .request-card,
+body[data-theme='dark'] .timeline-item,
+body[data-theme='dark'] .empty-box,
+body[data-theme='dark'] .app-modal-dialog,
+body[data-theme='dark'] .field-hint {
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .app-modal-backdrop {
+    background: rgba(3, 8, 11, 0.72);
+}
+
+body[data-theme='dark'] .app-modal-dialog {
+    background: rgba(11, 20, 26, 0.98);
+    box-shadow: 0 24px 52px rgba(2, 7, 10, 0.46);
+}
+
+body[data-theme='dark'] .app-modal-header {
+    border-bottom-color: rgba(36, 56, 65, 0.72);
+}
+
+body[data-theme='dark'] .calendar-grid-head .day-head,
+body[data-theme='dark'] .calendar-cell,
+body[data-theme='dark'] .permission-card,
+body[data-theme='dark'] .permission-card-readonly,
+body[data-theme='dark'] .field-hint,
+body[data-theme='dark'] .helper-card {
+    background: rgba(12, 22, 28, 0.92);
+}
+
+body[data-theme='dark'] .calendar-grid-head .day-head,
+body[data-theme='dark'] .calendar-cell {
+    border-color: rgba(36, 56, 65, 0.72);
+}
+
 @media (max-width: 1160px) {
     .crud-layout.two-column,
     .crud-layout.form-table {

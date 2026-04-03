@@ -97,61 +97,75 @@
             </div>
 
             <section class="metrics-grid" aria-label="Resumo de métricas">
-                <article class="metric-card metric-pacientes">
+                <a href="/pacientes"
+                   class="metric-card metric-card-link metric-pacientes"
+                   aria-label="Abrir a página de pacientes ativos">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="users" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${summary.pacientesAtivos()}">0</p>
                     <p class="metric-label">Pacientes Ativos</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-sessoes">
+                <a th:href="@{/agenda(data=${dashboardToday})}"
+                   class="metric-card metric-card-link metric-sessoes"
+                   aria-label="Abrir a agenda do dia">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${summary.sessoesHoje()}">0</p>
                     <p class="metric-label">Sessões Hoje</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-pendencias">
+                <a href="/solicitacoes"
+                   class="metric-card metric-card-link metric-pendencias"
+                   aria-label="Abrir solicitações pendentes">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${summary.solicitacoesPendentes()}">0</p>
                     <p class="metric-label">Solicitações Pendentes</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-mensagens">
+                <a th:href="@{/whatsapp(status='PENDENTE')}"
+                   class="metric-card metric-card-link metric-mensagens"
+                   aria-label="Abrir mensagens pendentes do WhatsApp">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${summary.mensagensPendentes()}">0</p>
                     <p class="metric-label">Mensagens Pendentes</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-receita">
+                <a href="/financeiro#financeiroReceitasPendentes"
+                   class="metric-card metric-card-link metric-receita"
+                   aria-label="Abrir resumo de receitas pendentes">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="arrow-up-circle" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.receitasPendentes(), 1, 2)}">R$ 0,00</p>
                     <p class="metric-label">Receitas Pendentes</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-despesa">
+                <a href="/financeiro#financeiroDespesasPendentes"
+                   class="metric-card metric-card-link metric-despesa"
+                   aria-label="Abrir resumo de despesas pendentes">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="arrow-down-circle" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.despesasPendentes(), 1, 2)}">R$ 0,00</p>
                     <p class="metric-label">Despesas Pendentes</p>
-                </article>
+                </a>
 
-                <article class="metric-card metric-saldo">
+                <a href="/financeiro#financeiroSaldoProjetado"
+                   class="metric-card metric-card-link metric-saldo"
+                   aria-label="Abrir resumo de saldo projetado">
                     <div class="metric-top">
                         <span class="metric-icon"><i data-lucide="piggy-bank" aria-hidden="true"></i></span>
                     </div>
                     <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.saldoProjetado(), 1, 2)}">R$ 0,00</p>
                     <p class="metric-label">Saldo Projetado</p>
-                </article>
+                </a>
             </section>
 
             <section class="panels-grid panels-grid-single">

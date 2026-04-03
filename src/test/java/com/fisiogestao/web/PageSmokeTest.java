@@ -10,6 +10,7 @@ import com.fisiogestao.auditoria.AuditEventEntity;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
+import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
@@ -222,7 +223,41 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Status do sistema")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Data atual")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Hora atual")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/pacientes\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/agenda?data=")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/solicitacoes\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/whatsapp?status=PENDENTE\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroReceitasPendentes\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroDespesasPendentes\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroSaldoProjetado\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("info-list"))));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void dashboardExibeSeletorDeTemaNaSidebar() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Tema da interface")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("value=\"LIGHT\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("value=\"DARK\"")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void usuarioPodeAtualizarTemaEscuro() throws Exception {
+        mockMvc.perform(post("/preferencias/tema")
+                        .with(csrf())
+                        .header("Referer", "http://localhost/dashboard")
+                        .param("tema", "DARK"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
+
+        UserThemePreference tema = usuarioSistemaRepository.findByUsername("admin")
+                .orElseThrow(() -> new IllegalStateException("Usuário admin não encontrado para validar o tema."))
+                .getTemaInterface();
+
+        org.junit.jupiter.api.Assertions.assertEquals(UserThemePreference.DARK, tema);
     }
 
     private void prepararCenarioAgenda() {

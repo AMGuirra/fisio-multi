@@ -57,17 +57,17 @@
             </div>
 
             <section class="summary-grid">
-                <article class="summary-card receita">
+                <article class="summary-card receita" id="financeiroReceitasPendentes">
                     <span class="summary-icon"><i data-lucide="arrow-up-circle"></i></span>
                     <p class="summary-label">Receitas Pendentes</p>
                     <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(totalReceitasPendentes, 1, 2)}">R$ 0,00</p>
                 </article>
-                <article class="summary-card despesa">
+                <article class="summary-card despesa" id="financeiroDespesasPendentes">
                     <span class="summary-icon"><i data-lucide="arrow-down-circle"></i></span>
                     <p class="summary-label">Despesas Pendentes</p>
                     <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasPendentes, 1, 2)}">R$ 0,00</p>
                 </article>
-                <article class="summary-card saldo">
+                <article class="summary-card saldo" id="financeiroSaldoProjetado">
                     <span class="summary-icon"><i data-lucide="piggy-bank"></i></span>
                     <p class="summary-label">Saldo Projetado</p>
                     <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(saldoProjetado, 1, 2)}">R$ 0,00</p>

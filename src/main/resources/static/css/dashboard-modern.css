@@ -49,6 +49,31 @@ body {
         radial-gradient(900px 480px at 100% 0%, rgba(47, 111, 236, 0.08), transparent 70%),
         var(--bg-canvas);
     color: var(--text-strong);
+    color-scheme: light;
+}
+
+body[data-theme='dark'] {
+    --bg-canvas: #081116;
+    --bg-surface: #0f1b21;
+    --bg-soft: #13242c;
+    --bg-soft-strong: #18313a;
+    --text-strong: #edf5f2;
+    --text-body: #bac9c5;
+    --text-soft: #8aa09b;
+    --stroke-soft: #243841;
+    --stroke-strong: #33505c;
+    --green-100: rgba(15, 143, 122, 0.2);
+    --blue-100: rgba(47, 111, 236, 0.18);
+    --yellow-100: rgba(209, 154, 16, 0.18);
+    --purple-100: rgba(123, 77, 217, 0.18);
+    --red-100: rgba(213, 83, 83, 0.19);
+    --shadow-sm: 0 10px 24px rgba(2, 7, 10, 0.3);
+    --shadow-md: 0 18px 38px rgba(2, 7, 10, 0.4);
+    background:
+        radial-gradient(1000px 460px at 12% -15%, rgba(15, 143, 122, 0.22), transparent 65%),
+        radial-gradient(900px 480px at 100% 0%, rgba(47, 111, 236, 0.12), transparent 70%),
+        var(--bg-canvas);
+    color-scheme: dark;
 }
 
 a {
@@ -221,6 +246,64 @@ a {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.sidebar-preferences {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(220, 245, 239, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-preferences-label {
+    margin: 0;
+    padding-inline: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(223, 243, 238, 0.72);
+}
+
+.theme-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.theme-option {
+    border: 1px solid rgba(190, 238, 227, 0.14);
+    border-radius: 12px;
+    background: rgba(8, 18, 21, 0.24);
+    color: rgba(223, 243, 238, 0.82);
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--ease-standard), background var(--ease-standard), border-color var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard);
+}
+
+.theme-option:hover,
+.theme-option:focus-visible {
+    outline: none;
+    transform: translateY(-1px);
+    color: #f7fffe;
+    background: rgba(15, 143, 122, 0.18);
+    border-color: rgba(141, 233, 212, 0.22);
+}
+
+.theme-option.active {
+    color: #effffb;
+    background: linear-gradient(132deg, rgba(15, 143, 122, 0.35), rgba(40, 119, 231, 0.28));
+    border-color: rgba(160, 238, 220, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(227, 255, 248, 0.06), 0 10px 18px rgba(4, 12, 15, 0.2);
 }
 
 .sidebar-logout {
@@ -631,6 +714,19 @@ body.sidebar-open .sidebar-toggle-btn svg {
     border-color: #bfd9d2;
 }
 
+.metric-card-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.metric-card-link:focus-visible {
+    outline: none;
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: #bfd9d2;
+}
+
 .metric-top {
     display: flex;
     align-items: center;
@@ -986,6 +1082,178 @@ body.sidebar-collapsed .sidebar-link {
 
 body.sidebar-collapsed .sidebar-link::before {
     left: 4px;
+}
+
+body.sidebar-collapsed .sidebar-preferences {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+body[data-theme='dark'] .app-header {
+    background: rgba(8, 17, 22, 0.9);
+    border-bottom-color: rgba(51, 80, 92, 0.72);
+}
+
+body[data-theme='dark'] .header-toggle:hover,
+body[data-theme='dark'] .header-toggle:focus-visible {
+    background: rgba(15, 143, 122, 0.16);
+    color: #dbfff6;
+}
+
+body[data-theme='dark'] .header-info-chip,
+body[data-theme='dark'] .user-menu-button,
+body[data-theme='dark'] .user-menu-panel,
+body[data-theme='dark'] .header-clock,
+body[data-theme='dark'] .hero-pill,
+body[data-theme='dark'] .metric-card,
+body[data-theme='dark'] .panel,
+body[data-theme='dark'] .hero-card,
+body[data-theme='dark'] .quick-action,
+body[data-theme='dark'] .section-card,
+body[data-theme='dark'] .summary-card,
+body[data-theme='dark'] .data-table thead th,
+body[data-theme='dark'] .data-table tbody tr:hover,
+body[data-theme='dark'] .helper-card,
+body[data-theme='dark'] .timeline-item,
+body[data-theme='dark'] .session-card,
+body[data-theme='dark'] .request-card,
+body[data-theme='dark'] .date-control,
+body[data-theme='dark'] .date-control-nav,
+body[data-theme='dark'] .empty-box,
+body[data-theme='dark'] .empty-box i {
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .header-info-chip,
+body[data-theme='dark'] .user-menu-button,
+body[data-theme='dark'] .user-menu-panel,
+body[data-theme='dark'] .header-clock,
+body[data-theme='dark'] .hero-pill,
+body[data-theme='dark'] .metric-card,
+body[data-theme='dark'] .panel,
+body[data-theme='dark'] .quick-action,
+body[data-theme='dark'] .section-card,
+body[data-theme='dark'] .summary-card,
+body[data-theme='dark'] .helper-card,
+body[data-theme='dark'] .timeline-item,
+body[data-theme='dark'] .session-card,
+body[data-theme='dark'] .request-card,
+body[data-theme='dark'] .date-control,
+body[data-theme='dark'] .date-control-nav,
+body[data-theme='dark'] .empty-box {
+    background: rgba(12, 22, 28, 0.92);
+}
+
+body[data-theme='dark'] .hero-card {
+    background:
+        linear-gradient(112deg, rgba(15, 143, 122, 0.16), rgba(47, 111, 236, 0.12)),
+        rgba(12, 22, 28, 0.96);
+}
+
+body[data-theme='dark'] .hero-pill {
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .metric-card:hover,
+body[data-theme='dark'] .metric-card-link:focus-visible,
+body[data-theme='dark'] .quick-action:hover,
+body[data-theme='dark'] .quick-action:focus-visible,
+body[data-theme='dark'] .session-card:hover,
+body[data-theme='dark'] .request-card:hover {
+    border-color: var(--stroke-strong);
+}
+
+body[data-theme='dark'] .metric-card.metric-receita .metric-icon {
+    background: rgba(20, 125, 63, 0.22);
+}
+
+body[data-theme='dark'] .metric-card.metric-saldo .metric-icon {
+    background: rgba(15, 143, 122, 0.22);
+}
+
+body[data-theme='dark'] .user-menu-item:hover,
+body[data-theme='dark'] .user-menu-item:focus-visible {
+    background: var(--bg-soft);
+}
+
+body[data-theme='dark'] .data-table thead th {
+    background: rgba(16, 31, 38, 0.96);
+    border-bottom-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .data-table tbody td {
+    border-bottom-color: rgba(36, 56, 65, 0.72);
+}
+
+body[data-theme='dark'] .data-table tbody tr:hover {
+    background: rgba(15, 143, 122, 0.08);
+}
+
+body[data-theme='dark'] .action-button.ghost {
+    color: #9fe8d7;
+    border-color: rgba(107, 194, 175, 0.35);
+    background: rgba(15, 143, 122, 0.12);
+}
+
+body[data-theme='dark'] .action-button.ghost:hover,
+body[data-theme='dark'] .action-button.ghost:focus-visible {
+    background: rgba(15, 143, 122, 0.2);
+}
+
+body[data-theme='dark'] .action-button.success {
+    color: #baf4d7;
+    border-color: rgba(80, 182, 133, 0.38);
+    background: rgba(16, 108, 70, 0.22);
+}
+
+body[data-theme='dark'] .action-button.success:hover,
+body[data-theme='dark'] .action-button.success:focus-visible {
+    background: rgba(16, 108, 70, 0.3);
+}
+
+body[data-theme='dark'] .action-button.danger {
+    color: #ffc3c3;
+    border-color: rgba(213, 83, 83, 0.4);
+    background: rgba(135, 43, 43, 0.22);
+}
+
+body[data-theme='dark'] .action-button.danger:hover,
+body[data-theme='dark'] .action-button.danger:focus-visible {
+    background: rgba(135, 43, 43, 0.3);
+}
+
+body[data-theme='dark'] .session-time {
+    background: rgba(15, 143, 122, 0.18);
+    color: #9fe8d7;
+}
+
+body[data-theme='dark'] .date-control-nav:hover,
+body[data-theme='dark'] .date-control-nav:focus-visible {
+    background: rgba(15, 143, 122, 0.18);
+    border-color: rgba(107, 194, 175, 0.35);
+}
+
+body[data-theme='dark'] .flash-message.success {
+    background: rgba(16, 108, 70, 0.22);
+    color: #baf4d7;
+    border-color: rgba(80, 182, 133, 0.34);
+}
+
+body[data-theme='dark'] .flash-message.error {
+    background: rgba(135, 43, 43, 0.22);
+    color: #ffc7c7;
+    border-color: rgba(213, 83, 83, 0.32);
+}
+
+body[data-theme='dark'] .flash-message.warning {
+    background: rgba(135, 98, 0, 0.22);
+    color: #ffe39b;
+    border-color: rgba(209, 154, 16, 0.32);
 }
 
 @media (max-width: 1280px) {

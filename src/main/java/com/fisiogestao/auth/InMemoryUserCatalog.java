@@ -236,6 +236,35 @@ public class InMemoryUserCatalog {
                 .map(UsuarioSistemaEntity::getRole);
     }
 
+    public Optional<UserThemePreference> buscarTema(String username) {
+        String normalized = normalizeUsernameForLookup(username);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        return repository.findByUsername(normalized)
+                .map(UsuarioSistemaEntity::getTemaInterface)
+                .map(UserThemePreference::fallback);
+    }
+
+    @Transactional
+    public void atualizarTema(String username, UserThemePreference tema) {
+        String normalized = normalizeUsernameForLookup(username);
+        if (normalized == null) {
+            throw new BusinessException("Usuário não encontrado.");
+        }
+
+        UsuarioSistemaEntity existing = repository.findByUsername(normalized)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+        UserThemePreference resolvedTheme = UserThemePreference.fallback(tema);
+
+        if (resolvedTheme == existing.getTemaInterface()) {
+            return;
+        }
+
+        existing.setTemaInterface(resolvedTheme);
+        repository.save(existing);
+    }
+
     private String normalizeNome(String nome) {
         if (nome == null) {
             throw new BusinessException("Informe o nome.");
