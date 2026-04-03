@@ -34,8 +34,29 @@ public class ClienteEntity extends BaseEntity {
     @Column(length = 120)
     private String email;
 
+    @Column(length = 11)
+    private String cpf;
+
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
+
+    @Column(length = 8)
+    private String cep;
+
+    @Column(length = 160)
+    private String rua;
+
+    @Column(length = 20)
+    private String numero;
+
+    @Column(length = 120)
+    private String bairro;
+
+    @Column(length = 120)
+    private String cidade;
+
+    @Column(length = 2)
+    private String estado;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;
@@ -43,4 +64,42 @@ public class ClienteEntity extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;
+
+    public String getEnderecoCompleto() {
+        StringBuilder builder = new StringBuilder();
+        appendEndereco(builder, rua);
+        appendEndereco(builder, numero);
+        appendEndereco(builder, bairro);
+
+        String cidadeEstado = juntarCidadeEstado();
+        appendEndereco(builder, cidadeEstado);
+
+        if (cep != null && !cep.isBlank()) {
+            appendEndereco(builder, "CEP " + cep);
+        }
+        return builder.toString();
+    }
+
+    private void appendEndereco(StringBuilder builder, String valor) {
+        if (valor == null || valor.isBlank()) {
+            return;
+        }
+        if (!builder.isEmpty()) {
+            builder.append(", ");
+        }
+        builder.append(valor.trim());
+    }
+
+    private String juntarCidadeEstado() {
+        if ((cidade == null || cidade.isBlank()) && (estado == null || estado.isBlank())) {
+            return null;
+        }
+        if (cidade == null || cidade.isBlank()) {
+            return estado.trim();
+        }
+        if (estado == null || estado.isBlank()) {
+            return cidade.trim();
+        }
+        return cidade.trim() + "/" + estado.trim();
+    }
 }

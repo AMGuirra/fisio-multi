@@ -82,19 +82,47 @@
                                         <p class="request-text">
                                             <span th:text="${sol.telefone}">Telefone</span>
                                             <span> • </span>
-                                            <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Fisioterapia'}">Observações</span>
+                                            <span th:text="${sol.cpf != null and !#strings.isEmpty(sol.cpf) ? sol.cpf : 'CPF não informado'}">CPF</span>
                                         </p>
                                         <p class="request-text">
                                             <i data-lucide="calendar"></i>
                                             <span th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</span>
                                         </p>
+                                        <p class="request-text">
+                                            <i data-lucide="map-pinned"></i>
+                                            <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                            <span th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}"> • </span>
+                                            <span th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}" th:text="${sol.enderecoResumo}">Endereço</span>
+                                        </p>
+                                        <p class="request-text">
+                                            <span class="chip"
+                                                  th:classappend="${sol.cliente != null ? 'status-approved' : 'status-warning'}"
+                                                  th:text="${sol.cliente != null ? 'Paciente cadastrado' : 'Pré-cadastro pendente'}">Paciente cadastrado</span>
+                                        </p>
                                     </div>
 
                                     <div class="request-actions">
-                                        <form th:action="@{/solicitacoes/{id}/aprovar(id=${sol.id})}" method="post" class="inline-form">
-                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <button type="submit" class="action-button success"><i data-lucide="check"></i>Aprovar</button>
-                                        </form>
+                                        <button type="button"
+                                                class="action-button success open-approve-modal"
+                                                th:attr="data-action=@{/solicitacoes/{id}/aprovar(id=${sol.id})},
+                                                         data-existing-client=${sol.cliente != null},
+                                                         data-nome=${sol.nomePaciente},
+                                                         data-telefone=${sol.telefone},
+                                                         data-email=${sol.email},
+                                                         data-cpf=${sol.cpf},
+                                                         data-local=${sol.localAtendimento},
+                                                         data-datahora=${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
+                                                         data-observacoes=${sol.observacoes},
+                                                         data-cep=${sol.cep},
+                                                         data-rua=${sol.rua},
+                                                         data-numero=${sol.numero},
+                                                         data-bairro=${sol.bairro},
+                                                         data-cidade=${sol.cidade},
+                                                         data-estado=${sol.estado},
+                                                         data-endereco=${sol.enderecoResumo}">
+                                            <i data-lucide="check"></i>
+                                            <span th:text="${sol.cliente != null ? 'Confirmar' : 'Aprovar e cadastrar'}">Aprovar</span>
+                                        </button>
                                         <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
@@ -118,7 +146,13 @@
                                     <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
                                     <div class="request-detail">
                                         <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
-                                        <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Fisioterapia'}">Observações</p>
+                                        <p class="request-text">
+                                            <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                            <span th:if="${sol.cpf != null and !#strings.isEmpty(sol.cpf)}"> • </span>
+                                            <span th:if="${sol.cpf != null and !#strings.isEmpty(sol.cpf)}" th:text="${sol.cpf}">CPF</span>
+                                        </p>
+                                        <p class="request-text" th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}" th:text="${sol.enderecoResumo}">Endereço</p>
+                                        <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Observações</p>
                                         <p class="request-text" th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</p>
                                     </div>
                                     <div class="request-actions">
@@ -134,11 +168,233 @@
             </section>
         </main>
 
+        <div id="aprovarSolicitacaoModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" data-modal-close></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="aprovarSolicitacaoModalTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <div class="app-modal-title-block">
+                            <h3 id="aprovarSolicitacaoModalTitle">Aprovar solicitação</h3>
+                            <p id="aprovarSolicitacaoModalSubtitle">Revise os dados do paciente antes de confirmar.</p>
+                        </div>
+                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </header>
+
+                    <div class="app-modal-body">
+                        <div class="helper-card modal-helper-card">
+                            <strong id="modalPatientStatus">Paciente cadastrado</strong>
+                            <p id="modalAppointmentSummary">03/04/2026 12:00</p>
+                            <p id="modalAddressSummary">Clínica</p>
+                            <p>Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.</p>
+                        </div>
+
+                        <form id="aprovarSolicitacaoForm" method="post" class="modern-form">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+                            <div id="cadastroNecessarioBloco">
+                                <div class="form-field">
+                                    <label for="modalNomeCompleto">Nome completo</label>
+                                    <input id="modalNomeCompleto" type="text" class="form-control" name="nomeCompleto" maxlength="160">
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="modalTelefone">Telefone</label>
+                                    <input id="modalTelefone" type="text" class="form-control" name="telefone" maxlength="20">
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="modalEmail">E-mail</label>
+                                    <input id="modalEmail" type="email" class="form-control" name="email" maxlength="120">
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="modalCpf">CPF</label>
+                                    <input id="modalCpf" type="text" class="form-control" name="cpf" maxlength="14">
+                                </div>
+
+                                <div id="modalEnderecoBloco">
+                                    <div class="form-field">
+                                        <label for="modalCep">CEP</label>
+                                        <input id="modalCep" type="text" class="form-control" name="cep" maxlength="9" placeholder="00000-000">
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="modalRua">Rua</label>
+                                        <input id="modalRua" type="text" class="form-control" name="rua" maxlength="160">
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="modalNumero">Número</label>
+                                        <input id="modalNumero" type="text" class="form-control" name="numero" maxlength="20">
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="modalBairro">Bairro</label>
+                                        <input id="modalBairro" type="text" class="form-control" name="bairro" maxlength="120">
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="modalCidade">Cidade</label>
+                                        <input id="modalCidade" type="text" class="form-control" name="cidade" maxlength="120">
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="modalEstado">Estado</label>
+                                        <input id="modalEstado" type="text" class="form-control" name="estado" maxlength="2" placeholder="UF">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
+                                <button type="submit" class="action-button success">
+                                    <i data-lucide="check-check"></i>
+                                    Confirmar aprovação
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+        (() => {
+            const body = document.body;
+            const modal = document.getElementById('aprovarSolicitacaoModal');
+            const form = document.getElementById('aprovarSolicitacaoForm');
+            const cadastroNecessarioBloco = document.getElementById('cadastroNecessarioBloco');
+            const modalEnderecoBloco = document.getElementById('modalEnderecoBloco');
+            const modalPatientStatus = document.getElementById('modalPatientStatus');
+            const modalAppointmentSummary = document.getElementById('modalAppointmentSummary');
+            const modalAddressSummary = document.getElementById('modalAddressSummary');
+            const openButtons = document.querySelectorAll('.open-approve-modal');
+
+            if (!modal || !form || openButtons.length === 0) {
+                return;
+            }
+
+            const fields = {
+                nomeCompleto: document.getElementById('modalNomeCompleto'),
+                telefone: document.getElementById('modalTelefone'),
+                email: document.getElementById('modalEmail'),
+                cpf: document.getElementById('modalCpf'),
+                cep: document.getElementById('modalCep'),
+                rua: document.getElementById('modalRua'),
+                numero: document.getElementById('modalNumero'),
+                bairro: document.getElementById('modalBairro'),
+                cidade: document.getElementById('modalCidade'),
+                estado: document.getElementById('modalEstado')
+            };
+
+            const maskCpf = (value) => {
+                const digits = (value || '').replace(/\D/g, '').slice(0, 11);
+                return digits
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
+            };
+
+            const maskPhone = (value) => {
+                const digits = (value || '').replace(/\D/g, '').slice(0, 11);
+                if (digits.length <= 10) {
+                    return digits
+                        .replace(/^(\d{2})(\d)/, '($1) $2')
+                        .replace(/(\d{4})(\d)/, '$1-$2');
+                }
+                return digits
+                    .replace(/^(\d{2})(\d)/, '($1) $2')
+                    .replace(/(\d{5})(\d)/, '$1-$2');
+            };
+
+            const maskCep = (value) => {
+                const digits = (value || '').replace(/\D/g, '').slice(0, 8);
+                return digits.replace(/^(\d{5})(\d)/, '$1-$2');
+            };
+
+            const setModalOpen = (open) => {
+                modal.classList.toggle('is-open', open);
+                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                body.classList.toggle('modal-open', open);
+            };
+
+            const syncAddressVisibility = (isDomicilio) => {
+                if (!modalEnderecoBloco) {
+                    return;
+                }
+                modalEnderecoBloco.style.display = isDomicilio ? '' : 'none';
+                ['rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((key) => {
+                    if (fields[key]) {
+                        fields[key].required = isDomicilio;
+                    }
+                });
+            };
+
+            openButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const existingClient = button.dataset.existingClient === 'true';
+                    const isDomicilio = button.dataset.local === 'DOMICILIO';
+
+                    form.action = button.dataset.action;
+                    modalPatientStatus.textContent = existingClient
+                        ? 'Paciente já cadastrado'
+                        : 'Paciente sem cadastro. Confirme os dados para criar o pré-cadastro.';
+                    modalAppointmentSummary.textContent = button.dataset.datahora || '';
+                    modalAddressSummary.textContent = isDomicilio
+                        ? `Em domicílio${button.dataset.endereco ? ' - ' + button.dataset.endereco : ''}`
+                        : 'Atendimento na clínica';
+
+                    cadastroNecessarioBloco.style.display = existingClient ? 'none' : '';
+                    syncAddressVisibility(isDomicilio);
+
+                    fields.nomeCompleto.value = button.dataset.nome || '';
+                    fields.telefone.value = maskPhone(button.dataset.telefone || '');
+                    fields.email.value = button.dataset.email || '';
+                    fields.cpf.value = maskCpf(button.dataset.cpf || '');
+                    fields.cep.value = maskCep(button.dataset.cep || '');
+                    fields.rua.value = button.dataset.rua || '';
+                    fields.numero.value = button.dataset.numero || '';
+                    fields.bairro.value = button.dataset.bairro || '';
+                    fields.cidade.value = button.dataset.cidade || '';
+                    fields.estado.value = button.dataset.estado || '';
+
+                    setModalOpen(true);
+                });
+            });
+
+            [fields.cpf, fields.telefone, fields.cep].forEach((field) => {
+                if (!field) {
+                    return;
+                }
+                field.addEventListener('input', () => {
+                    if (field === fields.cpf) {
+                        field.value = maskCpf(field.value);
+                    } else if (field === fields.telefone) {
+                        field.value = maskPhone(field.value);
+                    } else {
+                        field.value = maskCep(field.value);
+                    }
+                });
+            });
+
+            modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                element.addEventListener('click', () => setModalOpen(false));
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    setModalOpen(false);
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
 

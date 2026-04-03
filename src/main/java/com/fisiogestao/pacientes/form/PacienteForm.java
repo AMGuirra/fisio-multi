@@ -24,8 +24,29 @@ public class PacienteForm {
     @Size(max = 120)
     private String email;
 
+    @Size(min = 11, max = 14, message = "Informe um CPF válido.")
+    private String cpf;
+
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataNascimento;
+
+    @Size(max = 9, message = "Informe um CEP válido.")
+    private String cep;
+
+    @Size(max = 160)
+    private String rua;
+
+    @Size(max = 20)
+    private String numero;
+
+    @Size(max = 120)
+    private String bairro;
+
+    @Size(max = 120)
+    private String cidade;
+
+    @Size(max = 2)
+    private String estado;
 
     @Size(max = 2000)
     private String observacoes;

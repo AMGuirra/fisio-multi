@@ -123,6 +123,33 @@ public class FinanceiroService {
         );
     }
 
+    @Transactional
+    public void cancelarBaixa(UUID lancamentoId) {
+        LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
+                .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
+        var snapshotAnterior = auditService.snapshotOf(lancamento);
+
+        if (lancamento.getStatus() != StatusLancamentoFinanceiro.PAGO) {
+            throw new BusinessException("Somente lançamentos pagos podem ter a baixa cancelada.");
+        }
+
+        lancamento.setStatus(StatusLancamentoFinanceiro.PENDENTE);
+        lancamento.setDataPagamento(null);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordManual(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo.getId().toString(),
+                salvo.getDescricao(),
+                AuditActionType.UNDO_PAYMENT,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Baixa financeira cancelada manualmente para permitir refazer o lançamento.",
+                AuditEventOrigin.MANUAL
+        );
+    }
+
     private BigDecimal somarPorFiltro(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status) {
         return listarTodos().stream()
                 .filter(lancamento -> lancamento.getTipo() == tipo && lancamento.getStatus() == status)

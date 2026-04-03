@@ -33,6 +33,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/agendamento-online",
                                 "/agendamento-online/sucesso",
+                                "/api/pacientes/por-cpf",
                                 "/api/slots",
                                 "/actuator/health",
                                 "/actuator/health/**",

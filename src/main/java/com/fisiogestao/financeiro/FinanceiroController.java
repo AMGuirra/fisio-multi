@@ -68,6 +68,20 @@ public class FinanceiroController {
         return "redirect:/financeiro";
     }
 
+    @PostMapping("/lancamentos/{id}/cancelar-baixa")
+    public String cancelarBaixa(
+            @PathVariable("id") UUID id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.cancelarBaixa(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Baixa cancelada. O lançamento voltou para pendente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/financeiro";
+    }
+
     private void prepararPagina(Model model, LancamentoFinanceiroForm form) {
         model.addAttribute("lancamentoForm", form);
         model.addAttribute("tiposLancamento", TipoLancamentoFinanceiro.values());

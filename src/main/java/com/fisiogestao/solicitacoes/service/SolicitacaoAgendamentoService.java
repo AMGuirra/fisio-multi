@@ -17,6 +17,7 @@ import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PacoteSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -87,18 +88,39 @@ public class SolicitacaoAgendamentoService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public SolicitacaoAgendamentoEntity criarSolicitacaoPublica(AgendamentoOnlineForm form) {
+        validarFormularioPublico(form);
+
         LocalTime horario = parseHorario(form.getHorario());
         AgendaService.IntervaloAgenda intervalo = agendaService.montarIntervalo(form.getData(), horario);
         agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
+        ClienteEntity clienteExistente = pacienteService.buscarPorCpfTelefoneOuEmail(
+                        form.getCpf(),
+                        form.getTelefone(),
+                        form.getEmail()
+                )
+                .orElse(null);
+
+        DadosEndereco endereco = resolverEnderecoSolicitacao(form, clienteExistente);
+        String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
+
         SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
-                .nomePaciente(form.getNomePaciente().trim())
+                .nomePaciente(resolverTexto(form.getNomePaciente(), clienteExistente != null ? clienteExistente.getNomeCompleto() : null))
                 .telefone(form.getTelefone().replaceAll("\\D", ""))
                 .email(texto(form.getEmail()))
+                .cpf(normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos."))
                 .dataHoraInicio(intervalo.inicio())
                 .dataHoraFim(intervalo.fim())
                 .observacoes(texto(form.getObservacoes()))
+                .localAtendimento(localAtendimento)
+                .cep(endereco.cep())
+                .rua(endereco.rua())
+                .numero(endereco.numero())
+                .bairro(endereco.bairro())
+                .cidade(endereco.cidade())
+                .estado(endereco.estado())
                 .status(SolicitacaoStatus.PENDENTE)
+                .cliente(clienteExistente)
                 .build();
         SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
         auditService.recordCreate(
@@ -122,7 +144,9 @@ public class SolicitacaoAgendamentoService {
 
         whatsAppService.enfileirar(
                 agendaService.obterConfiguracaoAtiva().getTelefoneWhatsapp(),
-                "Nova solicitação de agendamento para " + salva.getNomePaciente() + " às " + form.getHorario() + ".",
+                "Nova solicitação de agendamento para " + salva.getNomePaciente()
+                        + " às " + form.getHorario()
+                        + " (" + salva.getLocalAtendimentoDescricao() + ").",
                 "SOLICITACAO:" + salva.getId()
         );
         agendamentoEmailNotificationService.notificarAguardandoConfirmacao(salva);
@@ -151,10 +175,12 @@ public class SolicitacaoAgendamentoService {
                 null
         );
 
+        PacienteForm pacienteForm = montarFormularioPaciente(solicitacao, form);
         ClienteEntity cliente = pacienteService.localizarOuCriar(
-                solicitacao.getNomePaciente(),
-                solicitacao.getTelefone(),
-                solicitacao.getEmail()
+                pacienteForm,
+                AuditEventOrigin.MANUAL,
+                "Cadastro atualizado durante aprovação da solicitação online.",
+                "Paciente criado durante aprovação da solicitação online."
         );
 
         PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(
@@ -170,8 +196,8 @@ public class SolicitacaoAgendamentoService {
                 .dataHoraInicio(solicitacao.getDataHoraInicio())
                 .dataHoraFim(solicitacao.getDataHoraFim())
                 .status(SessaoStatus.AGENDADA)
-                .tipoAtendimento("Fisioterapia")
-                .observacoes(solicitacao.getObservacoes())
+                .tipoAtendimento(solicitacao.getLocalAtendimentoDescricao())
+                .observacoes(montarObservacoesSessao(solicitacao))
                 .pacoteConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
@@ -206,7 +232,8 @@ public class SolicitacaoAgendamentoService {
         whatsAppService.enfileirar(
                 solicitacao.getTelefone(),
                 "Seu agendamento foi aprovado para " + solicitacao.getDataHoraInicio().toLocalDate() + " às "
-                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0) + ".",
+                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0)
+                        + " (" + solicitacao.getLocalAtendimentoDescricao() + ").",
                 "APROVACAO:" + solicitacao.getId()
         );
         agendamentoEmailNotificationService.notificarConfirmadoPorSolicitacao(solicitacao);
@@ -365,5 +392,150 @@ public class SolicitacaoAgendamentoService {
         return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
+    private void validarFormularioPublico(AgendamentoOnlineForm form) {
+        String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
+        normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos.");
+        if ("DOMICILIO".equals(localAtendimento)) {
+            String rua = resolverTexto(form.getRua(), null);
+            String numero = resolverTexto(form.getNumero(), null);
+            String bairro = resolverTexto(form.getBairro(), null);
+            String cidade = resolverTexto(form.getCidade(), null);
+            String estado = normalizarEstado(form.getEstado());
+
+            if (rua == null || numero == null || bairro == null || cidade == null || estado == null) {
+                throw new BusinessException("Informe o endereço completo para atendimento em domicílio.");
+            }
+        }
+    }
+
+    private PacienteForm montarFormularioPaciente(SolicitacaoAgendamentoEntity solicitacao, AprovacaoSolicitacaoForm form) {
+        PacienteForm pacienteForm = new PacienteForm();
+        pacienteForm.setNomeCompleto(resolverTexto(form != null ? form.getNomeCompleto() : null, solicitacao.getNomePaciente()));
+        pacienteForm.setTelefone(resolverTexto(form != null ? form.getTelefone() : null, solicitacao.getTelefone()));
+        pacienteForm.setEmail(resolverTexto(form != null ? form.getEmail() : null, solicitacao.getEmail()));
+        pacienteForm.setCpf(resolverTexto(form != null ? form.getCpf() : null, solicitacao.getCpf()));
+        pacienteForm.setCep(resolverTexto(form != null ? form.getCep() : null, solicitacao.getCep()));
+        pacienteForm.setRua(resolverTexto(form != null ? form.getRua() : null, solicitacao.getRua()));
+        pacienteForm.setNumero(resolverTexto(form != null ? form.getNumero() : null, solicitacao.getNumero()));
+        pacienteForm.setBairro(resolverTexto(form != null ? form.getBairro() : null, solicitacao.getBairro()));
+        pacienteForm.setCidade(resolverTexto(form != null ? form.getCidade() : null, solicitacao.getCidade()));
+        pacienteForm.setEstado(resolverTexto(form != null ? form.getEstado() : null, solicitacao.getEstado()));
+        pacienteForm.setObservacoes(solicitacao.getObservacoes());
+        return pacienteForm;
+    }
+
+    private DadosEndereco resolverEnderecoSolicitacao(AgendamentoOnlineForm form, ClienteEntity clienteExistente) {
+        String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
+        if (!"DOMICILIO".equals(localAtendimento)) {
+            return new DadosEndereco(null, null, null, null, null, null);
+        }
+
+        String cep = resolverDocumento(form.getCep(), clienteExistente != null ? clienteExistente.getCep() : null, 8);
+        String rua = resolverTexto(form.getRua(), clienteExistente != null ? clienteExistente.getRua() : null);
+        String numero = resolverTexto(form.getNumero(), clienteExistente != null ? clienteExistente.getNumero() : null);
+        String bairro = resolverTexto(form.getBairro(), clienteExistente != null ? clienteExistente.getBairro() : null);
+        String cidade = resolverTexto(form.getCidade(), clienteExistente != null ? clienteExistente.getCidade() : null);
+        String estado = resolverTexto(
+                normalizarEstado(form.getEstado()),
+                clienteExistente != null ? clienteExistente.getEstado() : null
+        );
+
+        if (rua == null || numero == null || bairro == null || cidade == null || estado == null) {
+            throw new BusinessException("Informe o endereço completo para atendimento em domicílio.");
+        }
+
+        return new DadosEndereco(cep, rua, numero, bairro, cidade, estado);
+    }
+
+    private String resolverTexto(String valorPrincipal, String fallback) {
+        String principal = texto(valorPrincipal);
+        if (principal != null) {
+            return principal;
+        }
+        return texto(fallback);
+    }
+
+    private String resolverDocumento(String valorPrincipal, String fallback, int tamanho) {
+        String principal = normalizarDocumentoOpcional(valorPrincipal, tamanho);
+        if (principal != null) {
+            return principal;
+        }
+        return normalizarDocumentoOpcional(fallback, tamanho);
+    }
+
+    private String normalizarDocumento(String valor, int tamanho, String mensagemErro) {
+        String digits = normalizarDocumentoOpcional(valor, tamanho);
+        if (digits == null) {
+            return null;
+        }
+        if (digits.length() != tamanho) {
+            throw new BusinessException(mensagemErro);
+        }
+        return digits;
+    }
+
+    private String normalizarDocumentoOpcional(String valor, int tamanho) {
+        if (valor == null) {
+            return null;
+        }
+        String digits = valor.replaceAll("\\D", "");
+        if (digits.isBlank()) {
+            return null;
+        }
+        if (digits.length() != tamanho) {
+            return null;
+        }
+        return digits;
+    }
+
+    private String normalizarEstado(String estado) {
+        if (estado == null || estado.isBlank()) {
+            return null;
+        }
+        String valor = estado.trim().toUpperCase();
+        if (valor.length() != 2) {
+            throw new BusinessException("Selecione um estado válido.");
+        }
+        return valor;
+    }
+
+    private String normalizarLocalAtendimento(String valor) {
+        String local = texto(valor);
+        if (local == null) {
+            throw new BusinessException("Selecione onde deseja o atendimento.");
+        }
+
+        String normalizado = local.trim().toUpperCase()
+                .replace("Í", "I")
+                .replace("Ç", "C")
+                .replace("Ã", "A");
+
+        if ("CLINICA".equals(normalizado)) {
+            return "CLINICA";
+        }
+        if ("DOMICILIO".equals(normalizado)) {
+            return "DOMICILIO";
+        }
+        throw new BusinessException("Selecione um local de atendimento válido.");
+    }
+
+    private String montarObservacoesSessao(SolicitacaoAgendamentoEntity solicitacao) {
+        String observacoes = texto(solicitacao.getObservacoes());
+        if (!solicitacao.isAtendimentoDomiciliar()) {
+            return observacoes;
+        }
+
+        String endereco = texto(solicitacao.getEnderecoResumo());
+        if (endereco == null) {
+            return observacoes;
+        }
+        if (observacoes == null) {
+            return "Endereço do atendimento: " + endereco;
+        }
+        return observacoes + "\nEndereço do atendimento: " + endereco;
+    }
+
     private record IntervaloPeriodo(OffsetDateTime inicio, OffsetDateTime fim) {}
+
+    private record DadosEndereco(String cep, String rua, String numero, String bairro, String cidade, String estado) {}
 }

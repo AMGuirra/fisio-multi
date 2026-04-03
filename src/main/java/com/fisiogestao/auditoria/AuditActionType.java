@@ -20,7 +20,8 @@ public enum AuditActionType {
     LOGIN("Login", "status-info", false),
     LOGOUT("Logout", "status-info", false),
     RESET_PASSWORD("Reset de senha", "status-warning", true),
-    MARK_AS_PAID("Baixa financeira", "status-success", true);
+    MARK_AS_PAID("Baixa financeira", "status-success", true),
+    UNDO_PAYMENT("Estorno de baixa", "status-warning", true);
 
     private final String label;
     private final String badgeClass;

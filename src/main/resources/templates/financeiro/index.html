@@ -167,6 +167,12 @@
                                                 Marcar Pago
                                             </button>
                                         </form>
+                                        <form th:if="${lancamento.status.name() == 'PAGO'}" th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}" method="post" class="inline-form">
+                                            <button type="submit" class="action-button ghost">
+                                                <i data-lucide="rotate-ccw"></i>
+                                                Cancelar baixa
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             </tbody>
