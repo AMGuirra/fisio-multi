@@ -11,6 +11,10 @@ import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
+import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
+import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
+import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
 import com.fisiogestao.pacientes.PacoteSessaoStatus;
@@ -35,7 +39,10 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -64,10 +71,14 @@ class PageSmokeTest {
     @Autowired
     private SessaoRepository sessaoRepository;
 
+    @Autowired
+    private LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+
     private UUID auditEventId;
     private UUID adminUserId;
     private LocalDate agendaDate;
     private UUID sessaoAgendaId;
+    private ClienteEntity clienteAgenda;
 
     @BeforeEach
     void setUp() {
@@ -162,8 +173,61 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar sessão")));
     }
 
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void relatoriosRenderizamMesmoComReceitaVinculadaAoPaciente() throws Exception {
+        lancamentoFinanceiroRepository.save(LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PENDENTE)
+                .descricao("Receita vinculada ao paciente")
+                .categoria("Planos de tratamento")
+                .valor(new BigDecimal("350.00"))
+                .dataCompetencia(OffsetDateTime.now(ZoneId.of("America/Campo_Grande")).withHour(10).withMinute(0).withSecond(0).withNano(0))
+                .cliente(clienteAgenda)
+                .build());
+
+        mockMvc.perform(get("/relatorios"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Receita vinculada ao paciente")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente Teste Agenda")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void salvarPermissoesDaFuncaoRedirecionaSemErro() throws Exception {
+        mockMvc.perform(get("/funcoes-usuarios"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/funcoes-usuarios/FISIOTERAPEUTA")
+                        .with(csrf())
+                        .param("menus", "DASHBOARD", "AGENDA", "PACIENTES", "RELATORIOS"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/funcoes-usuarios"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void acessarRotaGetDaFuncaoEspecificaNaoPodeExplodir() throws Exception {
+        mockMvc.perform(get("/funcoes-usuarios/FISIOTERAPEUTA"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Fisioterapeuta")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void dashboardMostraInformacoesNaNavbarSemCardDuplicado() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("header-insights")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Status do sistema")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Data atual")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Hora atual")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("info-list"))));
+    }
+
     private void prepararCenarioAgenda() {
         sessaoRepository.deleteAll();
+        lancamentoFinanceiroRepository.deleteAll();
         pacoteSessaoRepository.deleteAll();
         clienteRepository.deleteAll();
         configuracaoClinicaRepository.deleteAll();
@@ -181,7 +245,7 @@ class PageSmokeTest {
                 .ativo(true)
                 .build());
 
-        ClienteEntity cliente = clienteRepository.save(ClienteEntity.builder()
+        clienteAgenda = clienteRepository.save(ClienteEntity.builder()
                 .nomeCompleto("Paciente Teste Agenda")
                 .telefone("65999990000")
                 .email("paciente.agenda@example.com")
@@ -189,7 +253,7 @@ class PageSmokeTest {
                 .build());
 
         PacoteSessaoEntity pacote = pacoteSessaoRepository.save(PacoteSessaoEntity.builder()
-                .cliente(cliente)
+                .cliente(clienteAgenda)
                 .nomePacote("Plano Teste Agenda")
                 .sessoesContratadas(10)
                 .sessoesConsumidas(1)
@@ -200,7 +264,7 @@ class PageSmokeTest {
                 .build());
 
         SessaoEntity sessao = sessaoRepository.save(SessaoEntity.builder()
-                .cliente(cliente)
+                .cliente(clienteAgenda)
                 .pacoteSessao(pacote)
                 .dataHoraInicio(agendaDate.atTime(9, 0).atZone(zoneId).toOffsetDateTime())
                 .dataHoraFim(agendaDate.atTime(9, 50).atZone(zoneId).toOffsetDateTime())

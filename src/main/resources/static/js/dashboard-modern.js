@@ -176,9 +176,9 @@
                 return;
             }
 
-            const sidebarNav = appSidebar.querySelector('.sidebar-nav');
-            if (sidebarNav && (sidebarToggle.parentNode !== appSidebar || sidebarToggle.nextElementSibling !== sidebarNav)) {
-                appSidebar.insertBefore(sidebarToggle, sidebarNav);
+            const sidebarHeader = appSidebar.querySelector('.sidebar-header');
+            if (sidebarHeader && sidebarToggle.parentNode !== sidebarHeader) {
+                sidebarHeader.appendChild(sidebarToggle);
             }
         };
 

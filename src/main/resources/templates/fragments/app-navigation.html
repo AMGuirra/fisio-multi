@@ -3,13 +3,15 @@
 <body>
     <th:block th:fragment="sidebar">
         <aside class="app-sidebar" id="appSidebar" role="navigation" aria-label="Menu lateral principal" aria-hidden="false">
-            <a href="/dashboard" class="sidebar-brand">
-                <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
-                <span class="sidebar-brand-copy">
-                    <span class="sidebar-brand-title">FisioGestao</span>
-                    <span class="sidebar-brand-subtitle">Painel Clínico</span>
-                </span>
-            </a>
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+                    <span class="sidebar-brand-copy">
+                        <span class="sidebar-brand-title">FisioGestao</span>
+                        <span class="sidebar-brand-subtitle">Painel Clínico</span>
+                    </span>
+                </a>
+            </div>
 
             <ul class="sidebar-nav">
                 <li th:each="item : ${sidebarMainMenus}">

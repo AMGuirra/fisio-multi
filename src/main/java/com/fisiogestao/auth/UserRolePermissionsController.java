@@ -26,6 +26,16 @@ public class UserRolePermissionsController {
         return "usuarios/funcoes";
     }
 
+    @GetMapping("/{role}")
+    public String detalharFuncao(
+            @PathVariable UserRole role,
+            Model model
+    ) {
+        model.addAttribute("editingRole", role.name());
+        prepararPagina(model);
+        return "usuarios/funcoes";
+    }
+
     @PostMapping("/{role}")
     public String salvar(
             @PathVariable UserRole role,

@@ -63,6 +63,7 @@ public class UserMenuAccessService {
         }
 
         permissionRepository.deleteByRole(role);
+        permissionRepository.flush();
         permissionRepository.saveAll(
                 menusNormalizados.stream()
                         .map(menu -> UserRoleMenuPermissionEntity.builder()
