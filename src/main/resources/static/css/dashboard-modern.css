@@ -1156,8 +1156,6 @@ body[data-theme='dark'] .hero-card,
 body[data-theme='dark'] .quick-action,
 body[data-theme='dark'] .section-card,
 body[data-theme='dark'] .summary-card,
-body[data-theme='dark'] .data-table thead th,
-body[data-theme='dark'] .data-table tbody tr:hover,
 body[data-theme='dark'] .helper-card,
 body[data-theme='dark'] .timeline-item,
 body[data-theme='dark'] .session-card,
@@ -1187,6 +1185,36 @@ body[data-theme='dark'] .date-control,
 body[data-theme='dark'] .date-control-nav,
 body[data-theme='dark'] .empty-box {
     background: rgba(12, 22, 28, 0.92);
+}
+
+body[data-theme='dark'] .panel-head,
+body[data-theme='dark'] .info-item,
+body[data-theme='dark'] .app-footer {
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .header-info-value,
+body[data-theme='dark'] .info-value,
+body[data-theme='dark'] .hero-subtitle,
+body[data-theme='dark'] .quick-action-hint {
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .quick-action {
+    background: linear-gradient(168deg, rgba(12, 22, 28, 0.98) 0%, rgba(16, 31, 38, 0.95) 100%);
+}
+
+body[data-theme='dark'] .quick-action:hover,
+body[data-theme='dark'] .quick-action:focus-visible {
+    background: linear-gradient(168deg, rgba(14, 26, 33, 0.99) 0%, rgba(20, 39, 47, 0.96) 100%);
+}
+
+body[data-theme='dark'] .hero-pill,
+body[data-theme='dark'] .header-clock,
+body[data-theme='dark'] .header-info-chip,
+body[data-theme='dark'] .user-menu-button,
+body[data-theme='dark'] .user-menu-panel {
+    background: rgba(12, 22, 28, 0.94);
 }
 
 body[data-theme='dark'] .hero-card {

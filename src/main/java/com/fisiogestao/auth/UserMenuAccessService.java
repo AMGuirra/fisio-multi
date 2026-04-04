@@ -85,7 +85,7 @@ public class UserMenuAccessService {
                         menu.getHref(),
                         menu.getIcon(),
                         menu.matchesPath(currentPath),
-                        false
+                        menu.isExternal()
                 ))
                 .toList();
     }
@@ -101,7 +101,7 @@ public class UserMenuAccessService {
                         menu.getHref(),
                         menu.getIcon(),
                         menu.matchesPath(currentPath),
-                        true
+                        menu.isExternal()
                 ))
                 .toList();
     }

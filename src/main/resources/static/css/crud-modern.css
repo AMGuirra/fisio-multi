@@ -23,7 +23,7 @@
 
 .section-card {
     background: var(--bg-surface);
-    border: 1px solid #d9e7e3;
+    border: 1px solid var(--stroke-soft);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
@@ -31,7 +31,7 @@
 
 .section-head {
     padding: 14px 16px;
-    border-bottom: 1px solid #e7efec;
+    border-bottom: 1px solid var(--stroke-soft);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -61,7 +61,7 @@
 .section-block + .section-block {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #e7efec;
+    border-top: 1px solid var(--stroke-soft);
 }
 
 .flash-stack {
@@ -108,7 +108,7 @@
 .summary-card {
     position: relative;
     background: var(--bg-surface);
-    border: 1px solid #d9e8e3;
+    border: 1px solid var(--stroke-soft);
     border-radius: 14px;
     box-shadow: var(--shadow-sm);
     padding: 14px;
@@ -366,21 +366,21 @@
     text-transform: uppercase;
     font-weight: 700;
     color: var(--text-soft);
-    background: #f0f5f4;
+    background: var(--bg-soft);
     padding: 12px 14px;
-    border-bottom: 1px solid #e4ece9;
+    border-bottom: 1px solid var(--stroke-soft);
 }
 
 .data-table tbody td {
     font-size: 0.9rem;
     color: var(--text-body);
     padding: 12px 14px;
-    border-bottom: 1px solid #edf3f1;
+    border-bottom: 1px solid var(--stroke-soft);
     vertical-align: middle;
 }
 
 .data-table tbody tr:hover {
-    background: #f7fbfa;
+    background: rgba(15, 143, 122, 0.05);
 }
 
 .data-table .text-right {
@@ -484,7 +484,7 @@
 }
 
 .empty-box {
-    border: 1px dashed #c9d9d5;
+    border: 1px dashed var(--stroke-soft);
     border-radius: 13px;
     padding: 28px 16px;
     text-align: center;
@@ -507,7 +507,7 @@
 }
 
 .helper-card {
-    border: 1px solid #d8e7e2;
+    border: 1px solid var(--stroke-soft);
     border-radius: 14px;
     background: linear-gradient(135deg, #f7fcfa, #eef7f4);
     padding: 16px;
@@ -540,7 +540,7 @@
 }
 
 .timeline-item {
-    border: 1px solid #dde9e5;
+    border: 1px solid var(--stroke-soft);
     border-radius: 12px;
     padding: 12px;
     display: flex;
@@ -557,7 +557,7 @@
     gap: 12px;
     padding: 10px 12px;
     border-radius: 12px;
-    border: 1px solid #d3e1dd;
+    border: 1px solid var(--stroke-soft);
     background: #f7fbfa;
 }
 
@@ -565,7 +565,7 @@
     width: 36px;
     height: 36px;
     border-radius: 999px;
-    border: 1px solid #cee0db;
+    border: 1px solid var(--stroke-soft);
     background: #fff;
     color: var(--text-body);
     display: grid;
@@ -599,7 +599,7 @@
 
 .session-card,
 .request-card {
-    border: 1px solid #dde9e5;
+    border: 1px solid var(--stroke-soft);
     border-radius: 13px;
     padding: 12px;
     background: #fbfefd;
@@ -676,7 +676,7 @@
 }
 
 .tab-modern {
-    border-bottom: 1px solid #dbe9e4;
+    border-bottom: 1px solid var(--stroke-soft);
     margin-bottom: 14px;
     display: flex;
     align-items: center;
@@ -722,7 +722,7 @@
 }
 
 .calendar-grid-head span {
-    border: 1px solid #dbe8e3;
+    border: 1px solid var(--stroke-soft);
     background: #f2f8f6;
     border-radius: 10px;
     padding: 8px 10px;
@@ -741,7 +741,7 @@
 }
 
 .calendar-day {
-    border: 1px solid #d9e8e3;
+    border: 1px solid var(--stroke-soft);
     border-radius: 11px;
     background: #fbfefd;
     min-height: 108px;
@@ -754,7 +754,7 @@
 .calendar-day.day-empty {
     background: #f7fbfa;
     border-style: dashed;
-    border-color: #deebe7;
+    border-color: var(--stroke-soft);
 }
 
 .calendar-day.day-today {
@@ -1116,7 +1116,8 @@ body[data-theme='dark'] .session-card,
 body[data-theme='dark'] .request-card,
 body[data-theme='dark'] .timeline-item,
 body[data-theme='dark'] .empty-box,
-body[data-theme='dark'] .app-modal-dialog,
+body[data-theme='dark'] .app-modal-card,
+body[data-theme='dark'] .app-modal-close,
 body[data-theme='dark'] .field-hint {
     border-color: var(--stroke-soft);
 }
@@ -1125,13 +1126,32 @@ body[data-theme='dark'] .app-modal-backdrop {
     background: rgba(3, 8, 11, 0.72);
 }
 
-body[data-theme='dark'] .app-modal-dialog {
-    background: rgba(11, 20, 26, 0.98);
+body[data-theme='dark'] .app-modal-card {
+    background: linear-gradient(180deg, rgba(13, 23, 29, 0.98), rgba(9, 18, 24, 0.98));
     box-shadow: 0 24px 52px rgba(2, 7, 10, 0.46);
 }
 
 body[data-theme='dark'] .app-modal-header {
     border-bottom-color: rgba(36, 56, 65, 0.72);
+}
+
+body[data-theme='dark'] .app-modal-title-block h3,
+body[data-theme='dark'] .app-modal-title-block p {
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .app-modal-title-block p {
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .app-modal-close {
+    background: rgba(15, 29, 36, 0.94);
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .app-modal-close:hover,
+body[data-theme='dark'] .app-modal-close:focus-visible {
+    background: rgba(21, 39, 47, 0.98);
 }
 
 body[data-theme='dark'] .calendar-grid-head .day-head,
@@ -1141,6 +1161,132 @@ body[data-theme='dark'] .permission-card-readonly,
 body[data-theme='dark'] .field-hint,
 body[data-theme='dark'] .helper-card {
     background: rgba(12, 22, 28, 0.92);
+}
+
+body[data-theme='dark'] .section-head,
+body[data-theme='dark'] .section-block + .section-block,
+body[data-theme='dark'] .tab-modern,
+body[data-theme='dark'] .panel-head {
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .helper-card,
+body[data-theme='dark'] .timeline-item,
+body[data-theme='dark'] .session-card,
+body[data-theme='dark'] .request-card,
+body[data-theme='dark'] .date-control,
+body[data-theme='dark'] .calendar-day,
+body[data-theme='dark'] .calendar-day.day-empty,
+body[data-theme='dark'] .calendar-grid-head span,
+body[data-theme='dark'] .permission-option,
+body[data-theme='dark'] .permission-option.is-selected,
+body[data-theme='dark'] .read-only-field {
+    background: rgba(12, 22, 28, 0.92);
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .permission-option:hover,
+body[data-theme='dark'] .permission-option.is-selected {
+    border-color: var(--stroke-strong);
+    box-shadow: var(--shadow-sm);
+}
+
+body[data-theme='dark'] .permission-option.is-selected {
+    background: rgba(15, 143, 122, 0.12);
+}
+
+body[data-theme='dark'] .permission-option-icon,
+body[data-theme='dark'] .empty-box i {
+    background: rgba(15, 143, 122, 0.16);
+    color: #9fe8d7;
+}
+
+body[data-theme='dark'] .tab-modern .nav-link.active {
+    color: #9fe8d7;
+    border-bottom-color: #25c0a3;
+    background: rgba(15, 143, 122, 0.12);
+}
+
+body[data-theme='dark'] .calendar-day.day-today {
+    border-color: rgba(87, 223, 192, 0.58);
+    box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.2);
+}
+
+body[data-theme='dark'] .calendar-tag {
+    background: rgba(209, 154, 16, 0.18);
+    border-color: rgba(209, 154, 16, 0.28);
+    color: #f7d98b;
+}
+
+body[data-theme='dark'] .calendar-link {
+    color: #8fe0d1;
+}
+
+body[data-theme='dark'] .read-only-field {
+    border-color: var(--stroke-soft);
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .checkbox-inline,
+body[data-theme='dark'] .helper-text,
+body[data-theme='dark'] .form-field label,
+body[data-theme='dark'] .form-label-modern {
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .form-error {
+    color: #ff9d9d;
+}
+
+body[data-theme='dark'] .chip.role-admin,
+body[data-theme='dark'] .chip.status-approved,
+body[data-theme='dark'] .chip.status-pago,
+body[data-theme='dark'] .chip.tipo-receita {
+    background: rgba(47, 111, 236, 0.22);
+    color: #b9d3ff;
+}
+
+body[data-theme='dark'] .chip.role-administrativo,
+body[data-theme='dark'] .chip.role-user,
+body[data-theme='dark'] .chip.status-completed,
+body[data-theme='dark'] .chip.status-success {
+    background: rgba(15, 143, 122, 0.2);
+    color: #baf4d7;
+}
+
+body[data-theme='dark'] .chip.role-fisioterapeuta {
+    background: rgba(70, 100, 220, 0.2);
+    color: #c7d5ff;
+}
+
+body[data-theme='dark'] .chip.role-recepcao {
+    background: rgba(186, 104, 52, 0.2);
+    color: #ffd0b2;
+}
+
+body[data-theme='dark'] .chip.role-assessoria {
+    background: rgba(123, 77, 217, 0.2);
+    color: #d9c3ff;
+}
+
+body[data-theme='dark'] .chip.role-financeiro {
+    background: rgba(97, 153, 38, 0.2);
+    color: #d2f0aa;
+}
+
+body[data-theme='dark'] .chip.status-pendente,
+body[data-theme='dark'] .chip.tipo-pendente,
+body[data-theme='dark'] .chip.status-warning {
+    background: rgba(209, 154, 16, 0.18);
+    color: #ffe39b;
+}
+
+body[data-theme='dark'] .chip.status-cancelado,
+body[data-theme='dark'] .chip.status-rejected,
+body[data-theme='dark'] .chip.tipo-despesa,
+body[data-theme='dark'] .chip.status-danger {
+    background: rgba(213, 83, 83, 0.2);
+    color: #ffc7c7;
 }
 
 body[data-theme='dark'] .calendar-grid-head .day-head,

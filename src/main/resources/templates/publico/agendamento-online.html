@@ -8,13 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4ee7c2;
-            --primary-dark: #28c49f;
-            --primary-light: #7df4d8;
-            --text-main: #ecf5ff;
-            --text-soft: #a6bfd7;
-            --danger: #ff8f8f;
-            --shadow-lg: 0 20px 44px rgba(3, 8, 20, 0.55);
+            --primary: #31c9a9;
+            --primary-dark: #1ea387;
+            --primary-light: #7af0d7;
+            --text-main: #15303c;
+            --text-soft: #607988;
+            --text-label: #27414d;
+            --border-soft: rgba(49, 95, 111, 0.18);
+            --surface-soft: #f7fbfc;
+            --surface-strong: #ffffff;
+            --danger: #d26060;
+            --shadow-lg: 0 24px 50px rgba(34, 77, 93, 0.14);
             --radius: 0.65rem;
             --radius-lg: 0.9rem;
             --radius-xl: 1.2rem;
@@ -29,9 +33,9 @@
         body {
             font-family: 'Inter', sans-serif;
             background:
-                radial-gradient(900px 450px at 14% -12%, rgba(78, 231, 194, 0.18), transparent 65%),
-                radial-gradient(850px 420px at 100% 0%, rgba(87, 116, 255, 0.28), transparent 70%),
-                linear-gradient(145deg, #040913 0%, #0b1a2c 42%, #132744 100%);
+                radial-gradient(900px 450px at 14% -12%, rgba(49, 201, 169, 0.16), transparent 65%),
+                radial-gradient(850px 420px at 100% 0%, rgba(86, 149, 255, 0.14), transparent 70%),
+                linear-gradient(145deg, #eef7fb 0%, #e8f5f3 42%, #f7fbfd 100%);
             min-height: 100vh;
             padding: 2rem 1rem;
             color: var(--text-main);
@@ -43,12 +47,12 @@
         }
 
         .public-card {
-            background: rgba(9, 20, 36, 0.78);
+            background: rgba(255, 255, 255, 0.94);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-lg);
             padding: 2.25rem;
-            border: 1px solid rgba(125, 244, 216, 0.22);
-            backdrop-filter: blur(14px);
+            border: 1px solid rgba(102, 183, 164, 0.22);
+            backdrop-filter: blur(10px);
         }
 
         .public-header {
@@ -86,7 +90,7 @@
 
         .form-label {
             font-weight: 630;
-            color: #d8e8ff;
+            color: var(--text-label);
             margin-bottom: 0.45rem;
             display: block;
             font-size: 0.93rem;
@@ -94,25 +98,25 @@
 
         .form-control,
         .form-select {
-            border: 1px solid rgba(132, 178, 223, 0.35);
+            border: 1px solid var(--border-soft);
             border-radius: var(--radius);
             padding: 0.78rem 0.95rem;
             font-size: 0.95rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             width: 100%;
             color: var(--text-main);
-            background: rgba(8, 18, 33, 0.68);
+            background: var(--surface-strong);
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: rgba(125, 244, 216, 0.75);
-            box-shadow: 0 0 0 3px rgba(78, 231, 194, 0.22);
+            border-color: rgba(49, 201, 169, 0.52);
+            box-shadow: 0 0 0 3px rgba(49, 201, 169, 0.16);
             outline: none;
         }
 
         .form-control::placeholder {
-            color: rgba(189, 211, 232, 0.68);
+            color: rgba(96, 121, 136, 0.72);
         }
 
         .form-error {
@@ -136,9 +140,9 @@
         }
 
         .secondary-button {
-            border: 1px solid rgba(125, 244, 216, 0.35);
-            background: rgba(10, 24, 42, 0.9);
-            color: var(--text-main);
+            border: 1px solid rgba(49, 201, 169, 0.24);
+            background: #f2fbf8;
+            color: #1b5148;
             border-radius: var(--radius);
             padding: 0.78rem 1rem;
             font-weight: 650;
@@ -147,7 +151,8 @@
         }
 
         .secondary-button:hover {
-            border-color: rgba(125, 244, 216, 0.7);
+            border-color: rgba(49, 201, 169, 0.5);
+            background: #e6f8f2;
         }
 
         .lookup-feedback {
@@ -161,15 +166,15 @@
         }
 
         .lookup-feedback.is-warning {
-            color: #ffd37b;
+            color: #b98324;
         }
 
         .address-card {
             margin-bottom: 1rem;
             padding: 1rem;
             border-radius: var(--radius-lg);
-            border: 1px solid rgba(125, 244, 216, 0.18);
-            background: rgba(7, 17, 30, 0.52);
+            border: 1px solid rgba(49, 201, 169, 0.18);
+            background: var(--surface-soft);
         }
 
         .address-grid {
@@ -201,7 +206,7 @@
 
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 12px 24px rgba(78, 231, 194, 0.33);
+            box-shadow: 0 14px 24px rgba(49, 201, 169, 0.24);
         }
 
         .alert {
@@ -213,15 +218,15 @@
         }
 
         .alert-danger {
-            background: rgba(120, 14, 24, 0.38);
-            color: #ffd8d8;
-            border-color: rgba(255, 143, 143, 0.55);
+            background: #fff0f0;
+            color: #a94545;
+            border-color: #f2cccc;
         }
 
         .alert-info {
-            background: rgba(16, 52, 102, 0.4);
-            color: #d7e9ff;
-            border-color: rgba(131, 182, 255, 0.48);
+            background: #eef7ff;
+            color: #375c7f;
+            border-color: #cfe1f5;
         }
 
         .alert i {
