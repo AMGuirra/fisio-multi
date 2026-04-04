@@ -10,7 +10,7 @@ public enum AppMenuItem {
     CALENDARIO("Calendário", "/calendario", "calendar-range", false, false, true, false, List.of("/calendario")),
     BLOQUEIOS("Bloqueios", "/bloqueios", "calendar-x-2", false, false, true, false, List.of("/bloqueios")),
     SOLICITACOES("Solicitações", "/solicitacoes", "calendar-plus", false, false, true, false, List.of("/solicitacoes", "/api/solicitacoes")),
-    WHATSAPP("Fila WhatsApp", "/whatsapp", "messages-square", true, false, true, false, List.of("/whatsapp")),
+    WHATSAPP("Fila WhatsApp", "/whatsapp", "messages-square", false, false, true, false, List.of("/whatsapp")),
     PACIENTES("Pacientes", "/pacientes", "stethoscope", false, false, true, false, List.of("/pacientes")),
     PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open", false, false, true, false, List.of("/pacotes-consumo")),
     PRONTUARIO("Prontuário", "/prontuario", "clipboard-pen-line", false, false, true, false, List.of("/prontuario")),
@@ -19,8 +19,8 @@ public enum AppMenuItem {
     CONFIG_CLINICA("Config. Clínica", "/configuracoes/clinica", "building-2", false, false, false, true, List.of("/configuracoes/clinica", "/configuracao/clinica")),
     USUARIOS("Usuários", "/usuarios", "users", false, false, false, true, List.of("/usuarios")),
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, List.of("/funcoes-usuarios")),
-    CONFIG_EMAIL("Config. E-mail", "/configuracoes/email", "mail-check", true, false, true, false, List.of("/configuracoes/email", "/configuracao/email")),
-    AUDITORIA("Auditoria", "/auditoria", "shield-check", true, false, true, false, List.of("/auditoria")),
+    CONFIG_EMAIL("Config. E-mail", "/configuracoes/email", "mail-check", false, false, true, false, List.of("/configuracoes/email", "/configuracao/email")),
+    AUDITORIA("Auditoria", "/auditoria", "shield-check", false, false, true, false, List.of("/auditoria")),
     AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true, false, List.of("/agendamento-online"));
 
     private final String label;
@@ -114,15 +114,15 @@ public enum AppMenuItem {
                 RELATORIOS,
                 CONFIG_CLINICA,
                 USUARIOS,
-                FUNCOES_USUARIOS
+                FUNCOES_USUARIOS,
+                CONFIG_EMAIL,
+                WHATSAPP,
+                AUDITORIA
         );
     }
 
     public static List<AppMenuItem> sidebarRodape() {
         return List.of(
-                CONFIG_EMAIL,
-                WHATSAPP,
-                AUDITORIA,
                 AGENDAMENTO_ONLINE
         );
     }
