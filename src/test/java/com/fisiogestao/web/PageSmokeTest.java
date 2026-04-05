@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -117,6 +118,13 @@ class PageSmokeTest {
     void publicPagesRender(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void patientLookupApiRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/pacientes/por-cpf").param("cpf", "12345678901"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
     }
 
     @ParameterizedTest

@@ -1,5 +1,6 @@
 package com.fisiogestao.auth.form;
 
+import com.fisiogestao.auth.PasswordPolicy;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -12,7 +13,7 @@ public class ResetPasswordForm {
     private String token;
 
     @NotBlank(message = "Informe a nova senha.")
-    @Size(min = 4, max = 120, message = "A senha deve ter entre 4 e 120 caracteres.")
+    @Size(min = PasswordPolicy.MIN_LENGTH, max = PasswordPolicy.MAX_LENGTH, message = PasswordPolicy.RANGE_MESSAGE)
     private String password;
 
     @NotBlank(message = "Confirme a nova senha.")

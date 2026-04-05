@@ -7,6 +7,8 @@ import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,25 +23,40 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class InMemoryUserCatalog {
 
-    private static final int MIN_PASSWORD_LENGTH = 4;
+    private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryUserCatalog.class);
 
     private final PasswordEncoder passwordEncoder;
     private final UsuarioSistemaRepository repository;
     private final AuditService auditService;
+    private final BootstrapAdminProperties bootstrapAdminProperties;
 
     @PostConstruct
     void seedDefaults() {
         if (repository.count() > 0) {
             return;
         }
-        UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
-                .nome("Administrador")
-                .username("admin")
-                .email("admin@fisiogestao.local")
-                .passwordHash(passwordEncoder.encode("admin"))
-                .role(UserRole.ADMIN)
-                .build();
-        repository.save(admin);
+        if (!bootstrapAdminProperties.isEnabled()) {
+            LOGGER.warn("""
+                    Nenhum usuário foi encontrado e o bootstrap do administrador inicial está desabilitado.
+                    Configure APP_BOOTSTRAP_ADMIN_ENABLED=true com APP_BOOTSTRAP_ADMIN_USERNAME,
+                    APP_BOOTSTRAP_ADMIN_EMAIL e APP_BOOTSTRAP_ADMIN_PASSWORD para criar o primeiro acesso.
+                    """.trim());
+            return;
+        }
+
+        try {
+            UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
+                    .nome(normalizeNome(bootstrapAdminProperties.getNome()))
+                    .username(normalizeUsername(bootstrapAdminProperties.getUsername()))
+                    .email(normalizeEmail(bootstrapAdminProperties.getEmail()))
+                    .passwordHash(passwordEncoder.encode(PasswordPolicy.normalize(bootstrapAdminProperties.getPassword(), true)))
+                    .role(UserRole.ADMIN)
+                    .build();
+            repository.save(admin);
+            LOGGER.info("Administrador inicial criado via bootstrap seguro.");
+        } catch (BusinessException ex) {
+            throw new IllegalStateException("Não foi possível criar o administrador inicial: " + ex.getMessage(), ex);
+        }
     }
 
     public List<SystemUserView> listar() {
@@ -307,24 +324,7 @@ public class InMemoryUserCatalog {
     }
 
     private String normalizePassword(String password, boolean required) {
-        if (password == null) {
-            if (required) {
-                throw new BusinessException("Informe a senha.");
-            }
-            return null;
-        }
-
-        String normalized = password.trim();
-        if (normalized.isBlank()) {
-            if (required) {
-                throw new BusinessException("Informe a senha.");
-            }
-            return null;
-        }
-        if (normalized.length() < MIN_PASSWORD_LENGTH) {
-            throw new BusinessException("A senha deve ter pelo menos 4 caracteres.");
-        }
-        return normalized;
+        return PasswordPolicy.normalize(password, required);
     }
 
     private SystemUserView toView(UsuarioSistemaEntity user) {

@@ -295,11 +295,8 @@
 
                 <div class="form-group">
                     <label class="form-label" for="cpf">CPF</label>
-                    <div class="input-with-button">
-                        <input type="text" id="cpf" class="form-control" th:field="*{cpf}" placeholder="000.000.000-00" maxlength="14" required>
-                        <button type="button" class="secondary-button" id="buscarCpf">Buscar CPF</button>
-                    </div>
-                    <p class="lookup-feedback" id="cpfFeedback">Se você já é paciente, informe o CPF para confirmar seus dados.</p>
+                    <input type="text" id="cpf" class="form-control" th:field="*{cpf}" placeholder="000.000.000-00" maxlength="14" required>
+                    <p class="lookup-feedback">Se você já é paciente, informe o mesmo CPF usado no cadastro. A equipe confirmará seus dados antes da aprovação.</p>
                     <p class="form-error" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
                 </div>
 
@@ -434,8 +431,6 @@
             const horarioSelect = document.getElementById('horario');
             const noSlotsAlert = document.getElementById('noSlotsAlert');
             const cpfInput = document.getElementById('cpf');
-            const cpfButton = document.getElementById('buscarCpf');
-            const cpfFeedback = document.getElementById('cpfFeedback');
             const telefoneInput = document.getElementById('telefone');
             const emailInput = document.getElementById('email');
             const localAtendimentoSelect = document.getElementById('localAtendimento');
@@ -542,17 +537,6 @@
                 }
             };
 
-            const atualizarFeedbackCpf = (message, type) => {
-                if (!cpfFeedback) {
-                    return;
-                }
-                cpfFeedback.textContent = message;
-                cpfFeedback.classList.remove('is-success', 'is-warning');
-                if (type) {
-                    cpfFeedback.classList.add(type);
-                }
-            };
-
             const preencherCampo = (input, value) => {
                 if (!input || !value) {
                     return;
@@ -612,51 +596,6 @@
                 });
             };
 
-            const buscarPacientePorCpf = async () => {
-                const cpf = somenteDigitos(cpfInput ? cpfInput.value : '');
-                if (cpf.length !== 11) {
-                    atualizarFeedbackCpf('Informe um CPF válido com 11 dígitos para buscar.', 'is-warning');
-                    return;
-                }
-
-                atualizarFeedbackCpf('Buscando cadastro...', null);
-
-                try {
-                    const response = await fetch(`/api/pacientes/por-cpf?cpf=${encodeURIComponent(cpf)}`, {
-                        headers: { Accept: 'application/json' }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Falha ao buscar paciente');
-                    }
-
-                    const payload = await response.json();
-                    if (!payload.encontrado) {
-                        atualizarFeedbackCpf('CPF não localizado. Você pode seguir com o pré-cadastro abaixo.', 'is-warning');
-                        return;
-                    }
-
-                    preencherCampo(document.getElementById('nomePaciente'), payload.nomeCompleto);
-                    preencherCampo(telefoneInput, aplicarMascaraTelefone(payload.telefone || ''));
-                    preencherCampo(emailInput, payload.email);
-                    preencherCampo(cepInput, aplicarMascaraCep(payload.cep || ''));
-                    preencherCampo(ruaInput, payload.rua);
-                    preencherCampo(numeroInput, payload.numero);
-                    preencherCampo(bairroInput, payload.bairro);
-
-                    if (estadoSelect && payload.estado) {
-                        estadoSelect.value = payload.estado;
-                        await carregarCidades(payload.estado, payload.cidade);
-                    } else if (payload.cidade) {
-                        preencherCampo(cidadeSelect, payload.cidade);
-                    }
-
-                    atualizarFeedbackCpf('Paciente localizado. Confira os dados e prossiga com a solicitação.', 'is-success');
-                } catch (error) {
-                    atualizarFeedbackCpf('Não foi possível consultar o CPF agora. Tente novamente em instantes.', 'is-warning');
-                }
-            };
-
             const buscarCep = async () => {
                 const cep = somenteDigitos(cepInput ? cepInput.value : '');
                 if (cep.length !== 8) {
@@ -693,11 +632,6 @@
                 cpfInput.addEventListener('input', () => {
                     cpfInput.value = aplicarMascaraCpf(cpfInput.value);
                 });
-                cpfInput.addEventListener('blur', () => {
-                    if (somenteDigitos(cpfInput.value).length === 11) {
-                        buscarPacientePorCpf();
-                    }
-                });
             }
 
             if (telefoneInput) {
@@ -715,10 +649,6 @@
                         buscarCep();
                     }
                 });
-            }
-
-            if (cpfButton) {
-                cpfButton.addEventListener('click', buscarPacientePorCpf);
             }
 
             if (cepButton) {

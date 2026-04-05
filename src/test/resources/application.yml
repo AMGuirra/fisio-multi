@@ -16,3 +16,10 @@ spring:
     enabled: false
   thymeleaf:
     cache: false
+app:
+  bootstrap-admin:
+    enabled: true
+    nome: Administrador Teste
+    username: admin
+    email: admin@teste.local
+    password: AdminTeste123

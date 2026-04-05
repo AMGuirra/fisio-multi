@@ -41,3 +41,9 @@ app:
   base-url: ${APP_BASE_URL:http://localhost:8083}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY:}
+  bootstrap-admin:
+    enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
+    nome: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}
+    username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
+    email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}

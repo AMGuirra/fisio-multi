@@ -4,8 +4,8 @@ Sistema monolítico em Spring Boot para gestão de clínica de fisioterapia com 
 
 ## Stack
 
-- Java 17
-- Spring Boot 3.4
+- Java 25
+- Spring Boot 3.5.12
 - Spring MVC + Spring Security + Spring Data JPA
 - Thymeleaf + Bootstrap 5
 - PostgreSQL (produção)
@@ -38,7 +38,22 @@ $env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
 .\mvnw.cmd spring-boot:run
 ```
 
-Aplicação padrão: [http://localhost:8080](http://localhost:8080)
+Aplicação padrão: [http://localhost:8083](http://localhost:8083)
+
+## Primeiro acesso
+
+O sistema não cria mais o usuário inseguro `admin/admin` automaticamente.
+
+Para inicializar o primeiro administrador em um ambiente vazio, configure as variáveis abaixo antes de subir a aplicação:
+
+```powershell
+$env:APP_BOOTSTRAP_ADMIN_ENABLED='true'
+$env:APP_BOOTSTRAP_ADMIN_USERNAME='admin'
+$env:APP_BOOTSTRAP_ADMIN_EMAIL='admin@sua-clinica.com'
+$env:APP_BOOTSTRAP_ADMIN_PASSWORD='TroquePorUmaSenhaForte123'
+```
+
+O bootstrap é executado apenas quando não existe nenhum usuário cadastrado.
 
 ## Testes e validação
 

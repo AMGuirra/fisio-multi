@@ -2,6 +2,7 @@ package com.fisiogestao.auth.service;
 
 import com.fisiogestao.auth.PasswordResetTokenEntity;
 import com.fisiogestao.auth.PasswordResetTokenRepository;
+import com.fisiogestao.auth.PasswordPolicy;
 import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
 import com.fisiogestao.auditoria.AuditActionType;
@@ -81,17 +82,17 @@ public class PasswordResetService {
 
     @Transactional
     public void redefinirSenha(String rawToken, String novaSenha, String confirmacaoSenha) {
-        if (novaSenha == null || novaSenha.isBlank()) {
-            throw new BusinessException("Informe a nova senha.");
-        }
-        if (!novaSenha.equals(confirmacaoSenha)) {
+        String senhaNormalizada = PasswordPolicy.normalize(novaSenha, true);
+        String confirmacaoNormalizada = confirmacaoSenha == null ? null : confirmacaoSenha.trim();
+
+        if (!senhaNormalizada.equals(confirmacaoNormalizada)) {
             throw new BusinessException("A confirmação da senha não confere.");
         }
 
         PasswordResetTokenEntity token = validarToken(rawToken);
         UsuarioSistemaEntity usuario = token.getUsuario();
         Map<String, Object> snapshotAnterior = snapshotResetUsuario(usuario, null);
-        usuario.setPasswordHash(passwordEncoder.encode(novaSenha.trim()));
+        usuario.setPasswordHash(passwordEncoder.encode(senhaNormalizada));
         OffsetDateTime redefinicao = OffsetDateTime.now(APP_ZONE_ID);
         token.setUsedAt(redefinicao);
         usuarioSistemaRepository.save(usuario);

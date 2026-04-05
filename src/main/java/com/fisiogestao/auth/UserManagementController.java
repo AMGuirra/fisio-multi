@@ -182,8 +182,8 @@ public class UserManagementController {
         if (form.getPassword() == null || form.getPassword().isBlank()) {
             return;
         }
-        if (form.getPassword().trim().length() < 4) {
-            bindingResult.rejectValue("password", "password.tooShort", "A senha deve ter pelo menos 4 caracteres.");
+        if (form.getPassword().trim().length() < PasswordPolicy.MIN_LENGTH) {
+            bindingResult.rejectValue("password", "password.tooShort", PasswordPolicy.MIN_LENGTH_MESSAGE);
         }
     }
 }
