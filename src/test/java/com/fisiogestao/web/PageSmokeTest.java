@@ -194,6 +194,20 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void financeiroExibeEditarCancelarEMarcarPagoParaLancamentoPendente() throws Exception {
+        UUID lancamentoId = criarLancamentoFinanceiroPendente().getId();
+
+        mockMvc.perform(get("/financeiro")
+                        .param("editar", lancamentoId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar Lançamento")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar alterações")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Marcar pago")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void relatoriosRenderizamMesmoComReceitaVinculadaAoPaciente() throws Exception {
         lancamentoFinanceiroRepository.save(LancamentoFinanceiroEntity.builder()
                 .tipo(TipoLancamentoFinanceiro.RECEITA)
@@ -328,5 +342,22 @@ class PageSmokeTest {
                 .build());
 
         sessaoAgendaId = sessao.getId();
+    }
+
+    private LancamentoFinanceiroEntity criarLancamentoFinanceiroPendente() {
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para o financeiro."));
+
+        return lancamentoFinanceiroRepository.save(LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PENDENTE)
+                .descricao("Pacote de sessões: Acompanhamento domiciliar")
+                .categoria("Pacotes")
+                .valor(new BigDecimal("1.00"))
+                .dataCompetencia(agendaDate.atStartOfDay(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
+                .cliente(clienteAgenda)
+                .pacoteSessao(pacote)
+                .build());
     }
 }

@@ -40,6 +40,37 @@ public class FinanceiroService {
     }
 
     @Transactional
+    public LancamentoFinanceiroEntity atualizarManual(UUID lancamentoId, LancamentoFinanceiroForm form) {
+        LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
+        var snapshotAnterior = auditService.snapshotOf(lancamento);
+
+        if (lancamento.getStatus() == StatusLancamentoFinanceiro.CANCELADO) {
+            throw new BusinessException("Lançamentos cancelados não podem ser editados.");
+        }
+
+        lancamento.setTipo(form.getTipo());
+        lancamento.setDescricao(form.getDescricao().trim());
+        lancamento.setCategoria(form.getCategoria().trim());
+        lancamento.setValor(form.getValor());
+        lancamento.setDataCompetencia(paraInicioDoDia(form.getDataCompetencia()));
+
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordManual(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo.getId().toString(),
+                salvo.getDescricao(),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Edição manual de lançamento financeiro.",
+                AuditEventOrigin.MANUAL
+        );
+        return salvo;
+    }
+
+    @Transactional
     public LancamentoFinanceiroEntity criarManual(LancamentoFinanceiroForm form) {
         LancamentoFinanceiroEntity lancamento = LancamentoFinanceiroEntity.builder()
                 .tipo(form.getTipo())
@@ -94,6 +125,35 @@ public class FinanceiroService {
 
     public BigDecimal saldoProjetado() {
         return totalReceitasPendentes().subtract(totalDespesasPendentes());
+    }
+
+    @Transactional
+    public void cancelar(UUID lancamentoId) {
+        LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
+        var snapshotAnterior = auditService.snapshotOf(lancamento);
+
+        if (lancamento.getStatus() == StatusLancamentoFinanceiro.CANCELADO) {
+            return;
+        }
+        if (lancamento.getStatus() != StatusLancamentoFinanceiro.PENDENTE) {
+            throw new BusinessException("Somente lançamentos pendentes podem ser cancelados.");
+        }
+
+        lancamento.setStatus(StatusLancamentoFinanceiro.CANCELADO);
+        lancamento.setDataPagamento(null);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordManual(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo.getId().toString(),
+                salvo.getDescricao(),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Cancelamento manual de lançamento financeiro.",
+                AuditEventOrigin.MANUAL
+        );
     }
 
     @Transactional

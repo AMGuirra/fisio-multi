@@ -77,10 +77,25 @@
             <section class="crud-layout form-table">
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="plus-circle"></i> Novo Lançamento</h3>
+                        <div>
+                            <h3 class="section-title">
+                                <i th:attr="data-lucide=${editMode and lancamentoEmEdicao != null ? 'square-pen' : 'plus-circle'}" data-lucide="plus-circle"></i>
+                                <span th:text="${editMode and lancamentoEmEdicao != null ? 'Editar Lançamento' : 'Novo Lançamento'}">Novo Lançamento</span>
+                            </h3>
+                            <p class="section-subtitle"
+                               th:if="${editMode and lancamentoEmEdicao != null}"
+                               th:text="${lancamentoEmEdicao.descricao + ' • ' + lancamentoEmEdicao.status}">Lançamento em edição</p>
+                        </div>
+                        <a th:if="${editMode and lancamentoEmEdicao != null}" href="/financeiro" class="action-button ghost">
+                            <i data-lucide="x"></i>
+                            Cancelar edição
+                        </a>
                     </header>
                     <div class="section-body">
-                        <form th:action="@{/financeiro/lancamentos}" th:object="${lancamentoForm}" method="post" class="modern-form">
+                        <form th:object="${lancamentoForm}"
+                              method="post"
+                              class="modern-form"
+                              th:attr="action=${editMode and lancamentoEmEdicao != null ? '/financeiro/lancamentos/' + lancamentoEmEdicao.id : '/financeiro/lancamentos'}">
                             <div class="form-field">
                                 <label for="tipo">Tipo</label>
                                 <select id="tipo" class="form-select" th:field="*{tipo}" required>
@@ -114,8 +129,8 @@
                             </div>
 
                             <button type="submit" class="action-button primary">
-                                <i data-lucide="check"></i>
-                                Salvar Lançamento
+                                <i th:attr="data-lucide=${editMode and lancamentoEmEdicao != null ? 'save' : 'check'}" data-lucide="check"></i>
+                                <span th:text="${editMode and lancamentoEmEdicao != null ? 'Salvar alterações' : 'Salvar Lançamento'}">Salvar Lançamento</span>
                             </button>
                         </form>
                     </div>
@@ -161,18 +176,59 @@
                                     </td>
                                     <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 2)}">R$ 0,00</strong></td>
                                     <td class="text-right">
-                                        <form th:if="${lancamento.status.name() == 'PENDENTE'}" th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}" method="post" class="inline-form">
-                                            <button type="submit" class="action-button success">
-                                                <i data-lucide="check-check"></i>
-                                                Marcar Pago
-                                            </button>
-                                        </form>
-                                        <form th:if="${lancamento.status.name() == 'PAGO'}" th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}" method="post" class="inline-form">
-                                            <button type="submit" class="action-button ghost">
-                                                <i data-lucide="rotate-ccw"></i>
-                                                Cancelar baixa
-                                            </button>
-                                        </form>
+                                        <div class="table-actions">
+                                            <a th:if="${lancamento.status.name() != 'CANCELADO'}"
+                                               th:href="@{/financeiro(editar=${lancamento.id})}"
+                                               class="action-button ghost">
+                                                <i data-lucide="square-pen"></i>
+                                                Editar
+                                            </a>
+                                            <form th:if="${lancamento.status.name() == 'PENDENTE'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/cancelar(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Cancelar lançamento?"
+                                                  data-confirm-message="Deseja cancelar este lançamento financeiro?"
+                                                  data-confirm-helper-title="O lançamento será cancelado agora"
+                                                  data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
+                                                  data-confirm-action-label="Cancelar lançamento">
+                                                <button type="submit" class="action-button danger">
+                                                    <i data-lucide="x-circle"></i>
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                            <form th:if="${lancamento.status.name() == 'PENDENTE'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Marcar como pago?"
+                                                  data-confirm-message="Deseja marcar este lançamento como pago?"
+                                                  data-confirm-helper-title="A baixa será registrada agora"
+                                                  data-confirm-helper-message="O lançamento sairá dos pendentes e ficará registrado como pago."
+                                                  data-confirm-action-label="Marcar pago">
+                                                <button type="submit" class="action-button success">
+                                                    <i data-lucide="check-check"></i>
+                                                    Marcar pago
+                                                </button>
+                                            </form>
+                                            <form th:if="${lancamento.status.name() == 'PAGO'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Cancelar baixa?"
+                                                  data-confirm-message="Deseja desfazer a baixa deste lançamento?"
+                                                  data-confirm-helper-title="O lançamento voltará para pendente"
+                                                  data-confirm-helper-message="Use esta ação quando precisar revisar ou refazer o pagamento."
+                                                  data-confirm-action-label="Cancelar baixa">
+                                                <button type="submit" class="action-button ghost">
+                                                    <i data-lucide="rotate-ccw"></i>
+                                                    Cancelar baixa
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -185,8 +241,11 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
 
