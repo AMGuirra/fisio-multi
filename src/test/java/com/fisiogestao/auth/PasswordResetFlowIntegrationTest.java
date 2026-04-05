@@ -117,6 +117,23 @@ class PasswordResetFlowIntegrationTest {
         assertFalse(passwordResetService.tokenValido(link.token()));
     }
 
+    @Test
+    void forgotPasswordUsaBaseUrlEncaminhadaQuandoDisponivel() throws Exception {
+        UsuarioSistemaEntity usuario = criarUsuarioTeste();
+        when(systemEmailService.send(any())).thenReturn(EmailDispatchResult.failure("SMTP indisponível para o teste."));
+
+        mockMvc.perform(post("/esqueci-minha-senha")
+                        .with(csrf())
+                        .header("X-Forwarded-Proto", "https")
+                        .header("X-Forwarded-Host", "fisiogestao.exemplo.com")
+                        .header("X-Forwarded-Port", "443")
+                        .param("email", usuario.getEmail()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/esqueci-minha-senha"));
+
+        verify(systemEmailService).send(argThat(emailRequestComLinkDeResetPara(usuario, "https://fisiogestao.exemplo.com/resetar-senha?token=")));
+    }
+
     private UsuarioSistemaEntity criarUsuarioTeste() {
         String username = "rfu" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         return usuarioSistemaRepository.save(UsuarioSistemaEntity.builder()
@@ -129,11 +146,15 @@ class PasswordResetFlowIntegrationTest {
     }
 
     private ArgumentMatcher<EmailRequest> emailRequestComLinkDeResetPara(UsuarioSistemaEntity usuario) {
+        return emailRequestComLinkDeResetPara(usuario, "http://localhost:8083/resetar-senha?token=");
+    }
+
+    private ArgumentMatcher<EmailRequest> emailRequestComLinkDeResetPara(UsuarioSistemaEntity usuario, String prefixoEsperado) {
         return request -> request != null
                 && request.type() == EmailLogType.RESET_SENHA
                 && request.to() != null
                 && request.to().contains(usuario.getEmail())
                 && request.templateVariables().get("linkRedefinicao") instanceof String link
-                && link.startsWith("http://localhost:8083/resetar-senha?token=");
+                && link.startsWith(prefixoEsperado);
     }
 }

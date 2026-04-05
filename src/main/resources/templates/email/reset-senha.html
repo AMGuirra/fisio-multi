@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body th:replace="~{email/base :: layout('Recuperação de senha', ~{::section})}">
-<section>
-    <p>Olá, <strong th:text="${nomeUsuario}">usuario</strong>.</p>
-    <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
-    <p><a th:href="${linkRedefinicao}" style="display:inline-block;padding:14px 20px;border-radius:12px;background:#0f8f7a;color:#ffffff;text-decoration:none;font-weight:700;">Redefinir senha</a></p>
-    <p>Se preferir, copie este link no navegador:</p>
-    <p><a th:href="${linkRedefinicao}" th:text="${linkRedefinicao}">link</a></p>
-    <p>Se você não solicitou essa ação, ignore esta mensagem.</p>
+<section style="margin:0;padding:0;">
+    <p style="margin:0 0 18px;">Olá, <strong th:text="${nomeUsuario}">usuario</strong>.</p>
+    <p style="margin:0 0 22px;">Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
+        <tr>
+            <td>
+                <a th:href="${linkRedefinicao}" style="display:inline-block;padding:14px 20px;border-radius:12px;background:#0f8f7a;color:#ffffff;text-decoration:none;font-weight:700;">Redefinir senha</a>
+            </td>
+        </tr>
+    </table>
+    <p style="margin:0 0 12px;">Se preferir, copie este link no navegador:</p>
+    <p style="margin:0 0 22px;word-break:break-word;overflow-wrap:anywhere;">
+        <a th:href="${linkRedefinicao}" th:text="${linkRedefinicao}" style="color:#2563eb;text-decoration:underline;word-break:break-word;overflow-wrap:anywhere;">link</a>
+    </p>
+    <p style="margin:0;">Se você não solicitou essa ação, ignore esta mensagem.</p>
 </section>
 </body>
 </html>

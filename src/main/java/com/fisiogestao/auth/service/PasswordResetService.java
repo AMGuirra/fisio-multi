@@ -52,34 +52,31 @@ public class PasswordResetService {
 
     @Transactional
     public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent) {
+        return solicitarReset(email, requestIp, userAgent, null);
+    }
+
+    @Transactional
+    public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent, String requestBaseUrl) {
         if (email == null || email.isBlank()) {
             return EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
         }
 
         return usuarioSistemaRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
-                .map(usuario -> enviarEmailReset(usuario, requestIp, userAgent, EmailLogType.RESET_SENHA, "email/reset-senha", "reset-senha"))
+                .map(usuario -> enviarEmailReset(
+                        usuario,
+                        requestIp,
+                        userAgent,
+                        requestBaseUrl,
+                        EmailLogType.RESET_SENHA,
+                        "email/reset-senha",
+                        "reset-senha"
+                ))
                 .orElseGet(() -> EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação."));
     }
 
     @Transactional
     public PasswordResetLink gerarLinkDefinicaoSenha(UsuarioSistemaEntity usuario, String requestIp, String userAgent) {
-        String token = gerarTokenSeguro();
-        String tokenHash = hashToken(token);
-        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
-
-        passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId())
-                .forEach(item -> item.setUsedAt(agora));
-
-        PasswordResetTokenEntity entity = PasswordResetTokenEntity.builder()
-                .usuario(usuario)
-                .tokenHash(tokenHash)
-                .expiresAt(agora.plusMinutes(TOKEN_TTL_MINUTES))
-                .requestedIp(requestIp)
-                .requestedUserAgent(userAgent != null && userAgent.length() > 255 ? userAgent.substring(0, 255) : userAgent)
-                .build();
-        passwordResetTokenRepository.save(entity);
-
-        return new PasswordResetLink(token, montarLink(token), entity.getExpiresAt());
+        return gerarLinkDefinicaoSenha(usuario, requestIp, userAgent, null);
     }
 
     @Transactional
@@ -124,7 +121,7 @@ public class PasswordResetService {
     }
 
     public EmailDispatchResult enviarEmailBoasVindas(UsuarioSistemaEntity usuario, String requestIp, String userAgent) {
-        return enviarEmailReset(usuario, requestIp, userAgent, EmailLogType.BOAS_VINDAS_USUARIO, "email/novo-usuario", "novo-usuario");
+        return enviarEmailReset(usuario, requestIp, userAgent, null, EmailLogType.BOAS_VINDAS_USUARIO, "email/novo-usuario", "novo-usuario");
     }
 
     public EmailDispatchResult enviarEmailBoasVindasParaUsuarioId(java.util.UUID usuarioId, String requestIp, String userAgent) {
@@ -137,11 +134,12 @@ public class PasswordResetService {
             UsuarioSistemaEntity usuario,
             String requestIp,
             String userAgent,
+            String requestBaseUrl,
             EmailLogType tipo,
             String template,
             String templateId
     ) {
-        PasswordResetLink link = gerarLinkDefinicaoSenha(usuario, requestIp, userAgent);
+        PasswordResetLink link = gerarLinkDefinicaoSenha(usuario, requestIp, userAgent, requestBaseUrl);
         EmailDispatchResult result = systemEmailService.send(
                 EmailRequest.builder()
                         .type(tipo)
@@ -197,7 +195,54 @@ public class PasswordResetService {
     }
 
     private String montarLink(String token) {
-        return baseUrl + "/resetar-senha?token=" + token;
+        return montarLink(token, null);
+    }
+
+    private PasswordResetLink gerarLinkDefinicaoSenha(
+            UsuarioSistemaEntity usuario,
+            String requestIp,
+            String userAgent,
+            String requestBaseUrl
+    ) {
+        String token = gerarTokenSeguro();
+        String tokenHash = hashToken(token);
+        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
+
+        passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId())
+                .forEach(item -> item.setUsedAt(agora));
+
+        PasswordResetTokenEntity entity = PasswordResetTokenEntity.builder()
+                .usuario(usuario)
+                .tokenHash(tokenHash)
+                .expiresAt(agora.plusMinutes(TOKEN_TTL_MINUTES))
+                .requestedIp(requestIp)
+                .requestedUserAgent(userAgent != null && userAgent.length() > 255 ? userAgent.substring(0, 255) : userAgent)
+                .build();
+        passwordResetTokenRepository.save(entity);
+
+        return new PasswordResetLink(token, montarLink(token, requestBaseUrl), entity.getExpiresAt());
+    }
+
+    private String montarLink(String token, String requestBaseUrl) {
+        String effectiveBaseUrl = sanitizeBaseUrl(requestBaseUrl);
+        if (effectiveBaseUrl == null) {
+            effectiveBaseUrl = sanitizeBaseUrl(baseUrl);
+        }
+        if (effectiveBaseUrl == null) {
+            effectiveBaseUrl = "http://localhost:8083";
+        }
+        return effectiveBaseUrl + "/resetar-senha?token=" + token;
+    }
+
+    private String sanitizeBaseUrl(String candidate) {
+        if (candidate == null || candidate.isBlank()) {
+            return null;
+        }
+        String normalized = candidate.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized.isBlank() ? null : normalized;
     }
 
     private void logFallbackLinkIfNeeded(
@@ -206,7 +251,7 @@ public class PasswordResetService {
             PasswordResetLink link,
             EmailDispatchResult result
     ) {
-        if (result.sent() || !isLocalDevelopmentBaseUrl()) {
+        if (result.sent() || !isLocalDevelopmentLink(link.link())) {
             return;
         }
         LOGGER.warn(
@@ -217,8 +262,8 @@ public class PasswordResetService {
         );
     }
 
-    private boolean isLocalDevelopmentBaseUrl() {
-        String normalized = baseUrl == null ? "" : baseUrl.trim().toLowerCase(Locale.ROOT);
+    private boolean isLocalDevelopmentLink(String link) {
+        String normalized = link == null ? "" : link.trim().toLowerCase(Locale.ROOT);
         return normalized.contains("localhost") || normalized.contains("127.0.0.1");
     }
 
