@@ -14,6 +14,8 @@ import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PacienteService {
 
@@ -145,34 +148,24 @@ public class PacienteService {
             var snapshotAnterior = auditService.snapshotOf(cliente);
             aplicarDados(cliente, form, false);
             cliente.setAtivo(true);
-            ClienteEntity salvo = clienteRepository.save(cliente);
-            auditService.recordManual(
-                    AuditModule.PACIENTES,
-                    "cliente",
-                    salvo.getId().toString(),
-                    salvo.getNomeCompleto(),
-                    AuditActionType.UPDATE,
-                    snapshotAnterior,
-                    auditService.snapshotOf(salvo),
-                    null,
-                    mensagemAtualizacao,
-                    origin
-            );
-            return salvo;
+            try {
+                ClienteEntity salvo = clienteRepository.save(cliente);
+                registrarAuditoriaAtualizacaoSemFalhar(salvo, snapshotAnterior, mensagemAtualizacao, origin);
+                return salvo;
+            } catch (DataIntegrityViolationException ex) {
+                return reconciliarClienteAposConflito(form, snapshotAnterior, mensagemAtualizacao, mensagemCriacao, origin, ex);
+            }
         }
 
         ClienteEntity novo = ClienteEntity.builder().ativo(true).build();
         aplicarDados(novo, form, true);
-        ClienteEntity salvo = clienteRepository.save(novo);
-        auditService.recordCreate(
-                AuditModule.PACIENTES,
-                "cliente",
-                salvo,
-                null,
-                mensagemCriacao,
-                origin
-        );
-        return salvo;
+        try {
+            ClienteEntity salvo = clienteRepository.save(novo);
+            registrarAuditoriaCriacaoSemFalhar(salvo, mensagemCriacao, origin);
+            return salvo;
+        } catch (DataIntegrityViolationException ex) {
+            return reconciliarClienteAposConflito(form, null, mensagemAtualizacao, mensagemCriacao, origin, ex);
+        }
     }
 
     @Transactional
@@ -363,5 +356,77 @@ public class PacienteService {
         }
 
         esquemaClienteValidado = true;
+    }
+
+    private ClienteEntity reconciliarClienteAposConflito(
+            PacienteForm form,
+            java.util.Map<String, Object> snapshotAnterior,
+            String mensagemAtualizacao,
+            String mensagemCriacao,
+            AuditEventOrigin origin,
+            DataIntegrityViolationException exception
+    ) {
+        Optional<ClienteEntity> conciliado = buscarPorCpfTelefoneOuEmail(form.getCpf(), form.getTelefone(), form.getEmail());
+        if (conciliado.isEmpty()) {
+            throw new BusinessException("Ja existe um paciente cadastrado com os dados informados. Revise CPF, telefone e e-mail.");
+        }
+
+        ClienteEntity cliente = conciliado.get();
+        var snapshotBase = snapshotAnterior != null ? snapshotAnterior : auditService.snapshotOf(cliente);
+        aplicarDados(cliente, form, false);
+        cliente.setAtivo(true);
+
+        try {
+            ClienteEntity salvo = clienteRepository.save(cliente);
+            String observacao = snapshotAnterior != null ? mensagemAtualizacao : mensagemCriacao;
+            registrarAuditoriaAtualizacaoSemFalhar(salvo, snapshotBase, observacao, origin);
+            log.warn("Conflito de integridade conciliado automaticamente no cadastro de paciente. clienteId={}", salvo.getId(), exception);
+            return salvo;
+        } catch (DataIntegrityViolationException ex) {
+            throw new BusinessException("Ja existe um paciente cadastrado com os dados informados. Revise CPF, telefone e e-mail.");
+        }
+    }
+
+    private void registrarAuditoriaAtualizacaoSemFalhar(
+            ClienteEntity cliente,
+            java.util.Map<String, Object> snapshotAnterior,
+            String mensagemAtualizacao,
+            AuditEventOrigin origin
+    ) {
+        try {
+            auditService.recordManual(
+                    AuditModule.PACIENTES,
+                    "cliente",
+                    cliente.getId().toString(),
+                    cliente.getNomeCompleto(),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(cliente),
+                    null,
+                    mensagemAtualizacao,
+                    origin
+            );
+        } catch (Exception ex) {
+            log.warn("Falha ao registrar auditoria de atualizacao do paciente {}.", cliente.getId(), ex);
+        }
+    }
+
+    private void registrarAuditoriaCriacaoSemFalhar(
+            ClienteEntity cliente,
+            String mensagemCriacao,
+            AuditEventOrigin origin
+    ) {
+        try {
+            auditService.recordCreate(
+                    AuditModule.PACIENTES,
+                    "cliente",
+                    cliente,
+                    null,
+                    mensagemCriacao,
+                    origin
+            );
+        } catch (Exception ex) {
+            log.warn("Falha ao registrar auditoria de criacao do paciente {}.", cliente.getId(), ex);
+        }
     }
 }

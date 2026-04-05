@@ -4,6 +4,7 @@ import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/solicitacoes")
+@Slf4j
 @RequiredArgsConstructor
 public class SolicitacoesController {
 
@@ -42,6 +44,7 @@ public class SolicitacoesController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         } catch (Exception ex) {
+            log.error("Erro inesperado ao aprovar solicitacao {}.", id, ex);
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível aprovar a solicitação. Verifique a configuração do banco de dados.");
         }
         return "redirect:/solicitacoes";
@@ -59,6 +62,7 @@ public class SolicitacoesController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         } catch (Exception ex) {
+            log.error("Erro inesperado ao cadastrar paciente da solicitacao {}.", id, ex);
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível cadastrar o paciente da solicitação. Verifique a configuração do banco de dados.");
         }
         return "redirect:/solicitacoes";
@@ -72,6 +76,7 @@ public class SolicitacoesController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         } catch (Exception ex) {
+            log.error("Erro inesperado ao rejeitar solicitacao {}.", id, ex);
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível rejeitar a solicitação. Verifique a configuração do banco de dados.");
         }
         return "redirect:/solicitacoes";

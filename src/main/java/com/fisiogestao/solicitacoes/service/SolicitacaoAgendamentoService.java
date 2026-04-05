@@ -29,6 +29,7 @@ import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.whatsapp.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SolicitacaoAgendamentoService {
 
@@ -175,18 +177,22 @@ public class SolicitacaoAgendamentoService {
 
         solicitacao.setCliente(cliente);
         SolicitacaoAgendamentoEntity solicitacaoSalva = solicitacaoAgendamentoRepository.save(solicitacao);
-        auditService.recordManual(
-                AuditModule.SOLICITACOES,
-                "solicitacao_agendamento",
-                solicitacaoSalva.getId().toString(),
-                auditService.describeOf(solicitacaoSalva),
-                AuditActionType.UPDATE,
-                snapshotSolicitacaoAnterior,
-                auditService.snapshotOf(solicitacaoSalva),
-                null,
-                "Paciente cadastrado e vinculado à solicitação online.",
-                AuditEventOrigin.MANUAL
-        );
+        try {
+            auditService.recordManual(
+                    AuditModule.SOLICITACOES,
+                    "solicitacao_agendamento",
+                    solicitacaoSalva.getId().toString(),
+                    auditService.describeOf(solicitacaoSalva),
+                    AuditActionType.UPDATE,
+                    snapshotSolicitacaoAnterior,
+                    auditService.snapshotOf(solicitacaoSalva),
+                    null,
+                    "Paciente cadastrado e vinculado à solicitação online.",
+                    AuditEventOrigin.MANUAL
+            );
+        } catch (Exception ex) {
+            log.warn("Falha ao registrar auditoria de cadastro para a solicitacao {}.", solicitacaoSalva.getId(), ex);
+        }
         return cliente;
     }
 
