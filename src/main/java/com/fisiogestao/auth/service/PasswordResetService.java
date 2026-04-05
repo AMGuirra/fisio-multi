@@ -15,6 +15,8 @@ import com.fisiogestao.email.service.EmailRequest;
 import com.fisiogestao.email.service.SystemEmailService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,15 +27,17 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.LinkedHashMap;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class PasswordResetService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PasswordResetService.class);
     private static final int TOKEN_TTL_MINUTES = 60;
     private static final ZoneId APP_ZONE_ID = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
 
@@ -138,7 +142,7 @@ public class PasswordResetService {
             String templateId
     ) {
         PasswordResetLink link = gerarLinkDefinicaoSenha(usuario, requestIp, userAgent);
-        return systemEmailService.send(
+        EmailDispatchResult result = systemEmailService.send(
                 EmailRequest.builder()
                         .type(tipo)
                         .subject(tipo == EmailLogType.RESET_SENHA ? "Recuperação de senha - FisioGestao" : "Seu acesso ao FisioGestao")
@@ -157,6 +161,8 @@ public class PasswordResetService {
                         ))
                         .build()
         );
+        logFallbackLinkIfNeeded(usuario, tipo, link, result);
+        return result;
     }
 
     private PasswordResetTokenEntity validarToken(String rawToken) {
@@ -192,6 +198,28 @@ public class PasswordResetService {
 
     private String montarLink(String token) {
         return baseUrl + "/resetar-senha?token=" + token;
+    }
+
+    private void logFallbackLinkIfNeeded(
+            UsuarioSistemaEntity usuario,
+            EmailLogType tipo,
+            PasswordResetLink link,
+            EmailDispatchResult result
+    ) {
+        if (result.sent() || !isLocalDevelopmentBaseUrl()) {
+            return;
+        }
+        LOGGER.warn(
+                "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local: {}",
+                tipo,
+                usuario.getEmail(),
+                link.link()
+        );
+    }
+
+    private boolean isLocalDevelopmentBaseUrl() {
+        String normalized = baseUrl == null ? "" : baseUrl.trim().toLowerCase(Locale.ROOT);
+        return normalized.contains("localhost") || normalized.contains("127.0.0.1");
     }
 
     private Map<String, Object> snapshotResetUsuario(UsuarioSistemaEntity usuario, OffsetDateTime redefinicao) {

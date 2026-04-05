@@ -84,6 +84,47 @@ public enum AppMenuItem {
         return !external;
     }
 
+    public String getDescription() {
+        switch (this) {
+            case DASHBOARD:
+                return "Mostra o painel geral com os principais indicadores e atalhos do sistema.";
+            case AGENDA:
+                return "Permite visualizar e organizar os agendamentos do dia a dia.";
+            case CALENDARIO:
+                return "Exibe a agenda em formato de calendario para planejar os horarios.";
+            case BLOQUEIOS:
+                return "Controla bloqueios de horarios e indisponibilidades da agenda.";
+            case SOLICITACOES:
+                return "Centraliza pedidos de agendamento e outras solicitacoes recebidas.";
+            case WHATSAPP:
+                return "Mostra a fila de mensagens e atendimentos vinculados ao WhatsApp.";
+            case PACIENTES:
+                return "Permite cadastrar, localizar e acompanhar os pacientes da clinica.";
+            case PACOTES_SESSOES:
+                return "Gerencia planos de tratamento, pacotes contratados e consumos de sessoes.";
+            case PRONTUARIO:
+                return "Da acesso ao registro clinico e evolucao dos atendimentos.";
+            case FINANCEIRO:
+                return "Controla lancamentos, recebimentos, despesas e fluxo financeiro.";
+            case RELATORIOS:
+                return "Reune relatorios e consultas gerenciais do sistema.";
+            case CONFIG_CLINICA:
+                return "Permite ajustar dados e configuracoes gerais da clinica.";
+            case USUARIOS:
+                return "Gerencia o cadastro de usuarios que acessam o sistema.";
+            case FUNCOES_USUARIOS:
+                return "Define quais modulos cada funcao de usuario pode acessar.";
+            case CONFIG_EMAIL:
+                return "Configura envio de e-mails e parametros de comunicacao.";
+            case AUDITORIA:
+                return "Permite consultar o historico de acoes realizadas no sistema.";
+            case AGENDAMENTO_ONLINE:
+                return "Disponibiliza o link e o acesso ao agendamento online da clinica.";
+            default:
+                return label;
+        }
+    }
+
     public boolean matchesPath(String currentPath) {
         if (currentPath == null || currentPath.isBlank()) {
             return false;

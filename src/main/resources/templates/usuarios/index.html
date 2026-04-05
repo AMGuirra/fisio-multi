@@ -144,9 +144,10 @@
 
                                 <div class="form-field">
                                     <label for="role">Tipo</label>
-                                    <select id="role" class="form-select" th:field="*{role}" required>
+                                    <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
                                         <option th:each="tipo : ${tiposUsuario}"
                                                 th:value="${tipo}"
+                                                th:title="${tipo.description}"
                                                 th:text="${tipo.label}">
                                             Administrador
                                         </option>
@@ -223,6 +224,7 @@
                                 <td>
                                     <span class="chip"
                                           th:classappend="${' role-' + #strings.toLowerCase(user.role.name())}"
+                                          th:title="${user.role.description}"
                                           th:text="${user.label}">
                                         Administrador
                                     </span>

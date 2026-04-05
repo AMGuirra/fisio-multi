@@ -165,7 +165,8 @@
                             <div class="permission-head-copy">
                                 <h3 class="section-title">
                                     <i data-lucide="shield"></i>
-                                    <span th:text="${funcao.label}">Função</span>
+                                    <span th:text="${funcao.label}"
+                                          th:title="${funcao.role.description}">Função</span>
                                 </h3>
                                 <p class="section-subtitle" th:text="${funcao.readOnly ? 'Acesso total fixo do sistema.' : 'Selecione os menus liberados para essa função.'}">Descrição</p>
                                 <p class="permission-head-summary"
@@ -175,7 +176,10 @@
                             </div>
                         </div>
                         <div class="permission-head-actions">
-                            <span class="chip" th:classappend="${' role-' + #strings.toLowerCase(funcao.role.name())}" th:text="${funcao.label}">Perfil</span>
+                            <span class="chip"
+                                  th:classappend="${' role-' + #strings.toLowerCase(funcao.role.name())}"
+                                  th:title="${funcao.role.description}"
+                                  th:text="${funcao.label}">Perfil</span>
                             <button type="button"
                                     class="permission-toggle"
                                     th:attr="aria-expanded=${expanded ? 'true' : 'false'}"
@@ -187,7 +191,9 @@
                     </header>
                     <div class="section-body permission-collapsible">
                         <div th:if="${funcao.readOnly}" class="permission-grid permission-grid-readonly">
-                            <div class="permission-option permission-option-static" th:each="menu : ${funcao.grantedMenus}">
+                            <div class="permission-option permission-option-static"
+                                 th:each="menu : ${funcao.grantedMenus}"
+                                 th:title="${menu.description}">
                                 <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
                                 <div>
                                     <strong th:text="${menu.label}">Menu</strong>
@@ -198,7 +204,10 @@
 
                         <form th:unless="${funcao.readOnly}" th:action="@{/funcoes-usuarios/{role}(role=${funcao.role})}" method="post" class="modern-form">
                             <div class="permission-grid">
-                                <label class="permission-option" th:each="menu : ${menusConfiguraveis}" th:classappend="${funcao.grantedMenus.contains(menu) ? ' is-selected' : ''}">
+                                <label class="permission-option"
+                                       th:each="menu : ${menusConfiguraveis}"
+                                       th:classappend="${funcao.grantedMenus.contains(menu) ? ' is-selected' : ''}"
+                                       th:title="${menu.description}">
                                     <input type="checkbox" name="menus" th:value="${menu}" th:checked="${funcao.grantedMenus.contains(menu)}">
                                     <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
                                     <span class="permission-option-copy">
