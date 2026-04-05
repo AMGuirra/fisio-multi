@@ -22,6 +22,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,5 +94,30 @@ class PacienteServiceTest {
 
         assertEquals("Exclua primeiro os planos de tratamento vinculados a este paciente.", ex.getMessage());
         verify(clienteRepository, never()).delete(cliente);
+    }
+
+    @Test
+    void deveValidarRelacionamentoSolicitacaoClienteQuandoSchemaEstiverCorreto() {
+        when(jdbcTemplate.queryForObject(anyString(), org.mockito.ArgumentMatchers.eq(String.class), anyString(), anyString()))
+                .thenReturn("uuid", "uuid");
+
+        assertDoesNotThrow(() -> pacienteService.validarRelacionamentoSolicitacaoClienteUuid());
+    }
+
+    @Test
+    void deveFalharQuandoRelacionamentoSolicitacaoClienteNaoForUuid() {
+        when(jdbcTemplate.queryForObject(anyString(), org.mockito.ArgumentMatchers.eq(String.class), anyString(), anyString()))
+                .thenReturn("uuid", "bigint");
+
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> pacienteService.validarRelacionamentoSolicitacaoClienteUuid()
+        );
+
+        assertEquals(
+                "Banco incompatível: a coluna solicitacao_agendamento.cliente_id está como bigint. "
+                        + "Ajuste o schema para UUID (script sugerido em docs/sql/correcao_cliente_id_uuid.sql).",
+                ex.getMessage()
+        );
     }
 }

@@ -38,6 +38,7 @@ public class PacienteService {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
     private volatile boolean esquemaClienteValidado = false;
+    private volatile boolean relacionamentoSolicitacaoClienteValidado = false;
 
     public List<ClienteEntity> listarAtivos() {
         return clienteRepository.findByAtivoTrueOrderByNomeCompletoAsc();
@@ -117,6 +118,20 @@ public class PacienteService {
         }
 
         return Optional.empty();
+    }
+
+    public void validarRelacionamentoSolicitacaoClienteUuid() {
+        validarSchemaClienteId();
+        if (relacionamentoSolicitacaoClienteValidado) {
+            return;
+        }
+        validarColunaUuid(
+                "solicitacao_agendamento",
+                "cliente_id",
+                "Banco incompatível: a coluna solicitacao_agendamento.cliente_id está como %s. "
+                        + "Ajuste o schema para UUID (script sugerido em docs/sql/correcao_cliente_id_uuid.sql)."
+        );
+        relacionamentoSolicitacaoClienteValidado = true;
     }
 
     @Transactional
@@ -328,22 +343,7 @@ public class PacienteService {
             return;
         }
 
-        String tipo;
-        try {
-            tipo = jdbcTemplate.queryForObject(
-                    """
-                    SELECT data_type
-                    FROM information_schema.columns
-                    WHERE table_schema = 'public'
-                      AND table_name = 'cliente'
-                      AND column_name = 'id'
-                    """,
-                    String.class
-            );
-        } catch (Exception ex) {
-            throw new BusinessException("Não foi possível validar o schema da tabela cliente. Verifique a conexão e a estrutura do banco.");
-        }
-
+        String tipo = obterTipoColuna("cliente", "id");
         if (tipo == null || tipo.isBlank()) {
             throw new BusinessException("Tabela cliente não encontrada no schema public. Verifique a base configurada para a aplicação.");
         }
@@ -356,6 +356,40 @@ public class PacienteService {
         }
 
         esquemaClienteValidado = true;
+    }
+
+    private void validarColunaUuid(String tabela, String coluna, String mensagemIncompatibilidade) {
+        String tipo = obterTipoColuna(tabela, coluna);
+        if (tipo == null || tipo.isBlank()) {
+            throw new BusinessException(
+                    "Estrutura incompatível: a coluna " + tabela + "." + coluna
+                            + " não foi encontrada no schema public. Verifique as migrations aplicadas no banco."
+            );
+        }
+        if (!"uuid".equalsIgnoreCase(tipo)) {
+            throw new BusinessException(mensagemIncompatibilidade.formatted(tipo));
+        }
+    }
+
+    private String obterTipoColuna(String tabela, String coluna) {
+        try {
+            return jdbcTemplate.queryForObject(
+                    """
+                    SELECT data_type
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = ?
+                      AND column_name = ?
+                    """,
+                    String.class,
+                    tabela,
+                    coluna
+            );
+        } catch (Exception ex) {
+            throw new BusinessException(
+                    "Não foi possível validar o schema da tabela " + tabela + ". Verifique a conexão e a estrutura do banco."
+            );
+        }
     }
 
     private ClienteEntity reconciliarClienteAposConflito(

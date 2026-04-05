@@ -165,6 +165,7 @@ public class SolicitacaoAgendamentoService {
         if (solicitacao.getCliente() != null) {
             throw new BusinessException("O paciente desta solicitação já está cadastrado. Agora basta aprovar.");
         }
+        pacienteService.validarRelacionamentoSolicitacaoClienteUuid();
 
         var snapshotSolicitacaoAnterior = auditService.snapshotOf(solicitacao);
         PacienteForm pacienteForm = montarFormularioPaciente(solicitacao, form);

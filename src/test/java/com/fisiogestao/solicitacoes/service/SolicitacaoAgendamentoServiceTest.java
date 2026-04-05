@@ -94,6 +94,7 @@ class SolicitacaoAgendamentoServiceTest {
         ClienteEntity resultado = solicitacaoAgendamentoService.cadastrarPaciente(solicitacaoId, new AprovacaoSolicitacaoForm());
 
         assertSame(cliente, resultado);
+        verify(pacienteService).validarRelacionamentoSolicitacaoClienteUuid();
         verify(solicitacaoAgendamentoRepository).save(argThat(saved -> saved.getCliente() == cliente
                 && saved.getStatus() == SolicitacaoStatus.PENDENTE));
         verify(pacoteSessaoService, never()).resolverPacoteParaSessao(any(), any(), any());
