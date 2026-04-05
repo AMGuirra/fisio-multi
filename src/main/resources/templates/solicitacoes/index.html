@@ -104,8 +104,8 @@
                                     <div class="request-actions">
                                         <button type="button"
                                                 class="action-button success open-approve-modal"
-                                                th:attr="data-approve-action=@{/solicitacoes/{id}/aprovar(id=${sol.id})},
-                                                         data-register-action=@{/solicitacoes/{id}/cadastrar(id=${sol.id})},
+                                                th:attr="data-approve-form-id=${'approveForm-' + sol.id},
+                                                         data-register-form-id=${'registerForm-' + sol.id},
                                                          data-existing-client=${sol.cliente != null},
                                                          data-nome=${sol.nomePaciente},
                                                          data-telefone=${sol.telefone},
@@ -127,6 +127,29 @@
                                         <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
+                                        </form>
+                                        <form th:id="${'registerForm-' + sol.id}"
+                                              th:action="@{/solicitacoes/{id}/cadastrar(id=${sol.id})}"
+                                              method="post"
+                                              hidden>
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="nomeCompleto">
+                                            <input type="hidden" name="telefone">
+                                            <input type="hidden" name="email">
+                                            <input type="hidden" name="cpf">
+                                            <input type="hidden" name="cep">
+                                            <input type="hidden" name="rua">
+                                            <input type="hidden" name="numero">
+                                            <input type="hidden" name="bairro">
+                                            <input type="hidden" name="cidade">
+                                            <input type="hidden" name="estado">
+                                        </form>
+                                        <form th:id="${'approveForm-' + sol.id}"
+                                              th:action="@{/solicitacoes/{id}/aprovar(id=${sol.id})}"
+                                              method="post"
+                                              hidden>
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="pacoteSessaoId">
                                         </form>
                                     </div>
                                 </div>
@@ -191,9 +214,7 @@
                             <p id="modalActionHint">Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.</p>
                         </div>
 
-                        <form id="aprovarSolicitacaoForm" method="post" class="modern-form">
-                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-
+                        <form id="aprovarSolicitacaoForm" class="modern-form">
                             <div id="cadastroNecessarioBloco">
                                 <div class="form-field">
                                     <label for="modalNomeCompleto">Nome completo</label>
@@ -348,7 +369,7 @@
                     const isDomicilio = button.dataset.local === 'DOMICILIO';
                     const needsRegister = !existingClient;
 
-                    form.action = existingClient ? button.dataset.approveAction : button.dataset.registerAction;
+                    form.dataset.targetFormId = existingClient ? button.dataset.approveFormId : button.dataset.registerFormId;
                     modalTitle.textContent = existingClient ? 'Aprovar solicitação' : 'Cadastrar paciente';
                     modalSubtitle.textContent = existingClient
                         ? 'Revise os dados da solicitação antes de aprovar.'
@@ -381,6 +402,25 @@
 
                     setModalOpen(true);
                 });
+            });
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const targetFormId = form.dataset.targetFormId;
+                const targetForm = targetFormId ? document.getElementById(targetFormId) : null;
+                if (!targetForm) {
+                    return;
+                }
+
+                ['nomeCompleto', 'telefone', 'email', 'cpf', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((key) => {
+                    const targetField = targetForm.querySelector(`[name="${key}"]`);
+                    if (targetField && fields[key]) {
+                        targetField.value = fields[key].value || '';
+                    }
+                });
+
+                targetForm.requestSubmit();
             });
 
             [fields.cpf, fields.telefone, fields.cep].forEach((field) => {
