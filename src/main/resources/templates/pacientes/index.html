@@ -158,8 +158,15 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="table-actions" style="justify-content:flex-end;">
-                                        <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}" method="post" class="inline-form"
-                                              onsubmit="return confirm('Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações.');">
+                                        <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Excluir paciente?"
+                                              data-confirm-message="Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações."
+                                              data-confirm-helper-title="Essa exclusão é definitiva"
+                                              data-confirm-helper-message="Se houver vínculos ativos no histórico clínico ou financeiro, o sistema irá bloquear a operação."
+                                              data-confirm-action-label="Excluir paciente">
                                             <button type="submit" class="action-button danger">
                                                 <i data-lucide="trash-2"></i>
                                                 Excluir
@@ -178,8 +185,11 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
 

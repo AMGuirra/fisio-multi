@@ -104,7 +104,8 @@
                                     <div class="request-actions">
                                         <button type="button"
                                                 class="action-button success open-approve-modal"
-                                                th:attr="data-action=@{/solicitacoes/{id}/aprovar(id=${sol.id})},
+                                                th:attr="data-approve-action=@{/solicitacoes/{id}/aprovar(id=${sol.id})},
+                                                         data-register-action=@{/solicitacoes/{id}/cadastrar(id=${sol.id})},
                                                          data-existing-client=${sol.cliente != null},
                                                          data-nome=${sol.nomePaciente},
                                                          data-telefone=${sol.telefone},
@@ -121,7 +122,7 @@
                                                          data-estado=${sol.estado},
                                                          data-endereco=${sol.enderecoResumo}">
                                             <i data-lucide="check"></i>
-                                            <span th:text="${sol.cliente != null ? 'Confirmar' : 'Aprovar e cadastrar'}">Aprovar</span>
+                                            <span th:text="${sol.cliente != null ? 'Aprovar' : 'Cadastrar'}">Aprovar</span>
                                         </button>
                                         <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
@@ -187,7 +188,7 @@
                             <strong id="modalPatientStatus">Paciente cadastrado</strong>
                             <p id="modalAppointmentSummary">03/04/2026 12:00</p>
                             <p id="modalAddressSummary">Clínica</p>
-                            <p>Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.</p>
+                            <p id="modalActionHint">Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.</p>
                         </div>
 
                         <form id="aprovarSolicitacaoForm" method="post" class="modern-form">
@@ -249,9 +250,9 @@
 
                             <div class="modal-actions">
                                 <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
-                                <button type="submit" class="action-button success">
+                                <button type="submit" class="action-button success" id="modalSubmitButton">
                                     <i data-lucide="check-check"></i>
-                                    Confirmar aprovação
+                                    <span id="modalSubmitLabel">Aprovar</span>
                                 </button>
                             </div>
                         </form>
@@ -272,9 +273,13 @@
             const form = document.getElementById('aprovarSolicitacaoForm');
             const cadastroNecessarioBloco = document.getElementById('cadastroNecessarioBloco');
             const modalEnderecoBloco = document.getElementById('modalEnderecoBloco');
+            const modalTitle = document.getElementById('aprovarSolicitacaoModalTitle');
+            const modalSubtitle = document.getElementById('aprovarSolicitacaoModalSubtitle');
             const modalPatientStatus = document.getElementById('modalPatientStatus');
             const modalAppointmentSummary = document.getElementById('modalAppointmentSummary');
             const modalAddressSummary = document.getElementById('modalAddressSummary');
+            const modalActionHint = document.getElementById('modalActionHint');
+            const modalSubmitLabel = document.getElementById('modalSubmitLabel');
             const openButtons = document.querySelectorAll('.open-approve-modal');
 
             if (!modal || !form || openButtons.length === 0) {
@@ -325,14 +330,14 @@
                 body.classList.toggle('modal-open', open);
             };
 
-            const syncAddressVisibility = (isDomicilio) => {
+            const syncAddressVisibility = (showAddressFields) => {
                 if (!modalEnderecoBloco) {
                     return;
                 }
-                modalEnderecoBloco.style.display = isDomicilio ? '' : 'none';
+                modalEnderecoBloco.style.display = showAddressFields ? '' : 'none';
                 ['rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((key) => {
                     if (fields[key]) {
-                        fields[key].required = isDomicilio;
+                        fields[key].required = showAddressFields;
                     }
                 });
             };
@@ -341,18 +346,27 @@
                 button.addEventListener('click', () => {
                     const existingClient = button.dataset.existingClient === 'true';
                     const isDomicilio = button.dataset.local === 'DOMICILIO';
+                    const needsRegister = !existingClient;
 
-                    form.action = button.dataset.action;
+                    form.action = existingClient ? button.dataset.approveAction : button.dataset.registerAction;
+                    modalTitle.textContent = existingClient ? 'Aprovar solicitação' : 'Cadastrar paciente';
+                    modalSubtitle.textContent = existingClient
+                        ? 'Revise os dados da solicitação antes de aprovar.'
+                        : 'Confirme os dados do paciente para concluir o cadastro antes da aprovação.';
                     modalPatientStatus.textContent = existingClient
                         ? 'Paciente já cadastrado'
-                        : 'Paciente sem cadastro. Confirme os dados para criar o pré-cadastro.';
+                        : 'Paciente sem cadastro. Confirme os dados para criar o cadastro.';
                     modalAppointmentSummary.textContent = button.dataset.datahora || '';
                     modalAddressSummary.textContent = isDomicilio
                         ? `Em domicílio${button.dataset.endereco ? ' - ' + button.dataset.endereco : ''}`
                         : 'Atendimento na clínica';
+                    modalActionHint.textContent = existingClient
+                        ? 'Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.'
+                        : 'Depois do cadastro, a solicitação continuará pendente para você aprovar no próximo passo.';
+                    modalSubmitLabel.textContent = existingClient ? 'Aprovar' : 'Cadastrar';
 
-                    cadastroNecessarioBloco.style.display = existingClient ? 'none' : '';
-                    syncAddressVisibility(isDomicilio);
+                    cadastroNecessarioBloco.style.display = needsRegister ? '' : 'none';
+                    syncAddressVisibility(needsRegister && isDomicilio);
 
                     fields.nomeCompleto.value = button.dataset.nome || '';
                     fields.telefone.value = maskPhone(button.dataset.telefone || '');

@@ -262,7 +262,16 @@
                                     <td class="text-right">
                                         <div class="table-actions">
                                             <a th:if="${!bloqueio.cancelado}" th:href="@{/bloqueios(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
-                                            <form th:if="${!bloqueio.cancelado}" th:action="@{/bloqueios/{id}/cancelar(id=${bloqueio.id})}" method="post" class="inline-form" onsubmit="return confirm('Deseja realmente cancelar este bloqueio?');">
+                                            <form th:if="${!bloqueio.cancelado}"
+                                                  th:action="@{/bloqueios/{id}/cancelar(id=${bloqueio.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Cancelar bloqueio?"
+                                                  data-confirm-message="Deseja realmente cancelar este bloqueio?"
+                                                  data-confirm-helper-title="O bloqueio deixará de valer"
+                                                  data-confirm-helper-message="A agenda poderá voltar a considerar esse período como disponível."
+                                                  data-confirm-action-label="Cancelar bloqueio">
                                                 <button type="submit" class="action-button danger"><i data-lucide="trash-2"></i>Cancelar</button>
                                             </form>
                                             <span th:if="${bloqueio.cancelado}" class="entity-meta">Histórico</span>
@@ -280,8 +289,11 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script>
         (() => {
             const checkbox = document.getElementById('bloqueioDiaInteiro');

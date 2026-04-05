@@ -112,7 +112,16 @@
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button success"><i data-lucide="check"></i>Concluir</button>
                                         </form>
-                                        <form th:if="${sessao.status.name() == 'AGENDADA'}" th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}" method="post" class="inline-form" onsubmit="return confirm('Deseja cancelar esta sessão?');">
+                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Cancelar sessão?"
+                                              data-confirm-message="Deseja cancelar esta sessão?"
+                                              data-confirm-helper-title="A sessão será cancelada agora"
+                                              data-confirm-helper-message="O horário volta a ficar disponível para novos agendamentos."
+                                              data-confirm-action-label="Cancelar sessão">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button danger"><i data-lucide="x-circle"></i>Cancelar</button>
                                         </form>
@@ -259,7 +268,16 @@
                                     <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar sessão</button>
                                 </div>
                             </form>
-                            <form th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessaoEmEdicao.id})}" method="post" class="inline-form" onsubmit="return confirm('Deseja cancelar esta sessão?');" style="margin-top:10px;">
+                            <form th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessaoEmEdicao.id})}"
+                                  method="post"
+                                  class="inline-form"
+                                  data-confirm-modal
+                                  data-confirm-title="Cancelar sessão?"
+                                  data-confirm-message="Deseja cancelar esta sessão?"
+                                  data-confirm-helper-title="A sessão será cancelada agora"
+                                  data-confirm-helper-message="O horário volta a ficar disponível para novos agendamentos."
+                                  data-confirm-action-label="Cancelar sessão"
+                                  style="margin-top:10px;">
                                 <input type="hidden" name="data" th:value="${dataSelecionada}">
                                 <button type="submit" class="action-button danger"><i data-lucide="x-circle"></i>Cancelar sessão</button>
                             </form>
@@ -408,8 +426,11 @@
         </div>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script>
         (() => {
             const syncPacotes = (pacienteSelect) => {

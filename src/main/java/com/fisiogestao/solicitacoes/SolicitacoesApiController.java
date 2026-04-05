@@ -69,6 +69,28 @@ public class SolicitacoesApiController {
         return toDto(solicitacaoAgendamentoService.buscarPorId(id));
     }
 
+    @PostMapping("/{id}/cadastrar")
+    public SolicitacaoDto cadastrar(
+            @PathVariable UUID id,
+            @RequestBody(required = false) CadastrarPacienteRequest body
+    ) {
+        AprovacaoSolicitacaoForm form = new AprovacaoSolicitacaoForm();
+        if (body != null) {
+            form.setNomeCompleto(body.nomeCompleto());
+            form.setTelefone(body.telefone());
+            form.setEmail(body.email());
+            form.setCpf(body.cpf());
+            form.setCep(body.cep());
+            form.setRua(body.rua());
+            form.setNumero(body.numero());
+            form.setBairro(body.bairro());
+            form.setCidade(body.cidade());
+            form.setEstado(body.estado());
+        }
+        solicitacaoAgendamentoService.cadastrarPaciente(id, form);
+        return toDto(solicitacaoAgendamentoService.buscarPorId(id));
+    }
+
     @PostMapping("/{id}/rejeitar")
     public SolicitacaoDto rejeitar(@PathVariable UUID id) {
         solicitacaoAgendamentoService.rejeitarSolicitacao(id);
@@ -138,6 +160,19 @@ public class SolicitacoesApiController {
     ) {}
 
     public record AprovarRequest(UUID pacoteSessaoId) {}
+
+    public record CadastrarPacienteRequest(
+            String nomeCompleto,
+            String telefone,
+            String email,
+            String cpf,
+            String cep,
+            String rua,
+            String numero,
+            String bairro,
+            String cidade,
+            String estado
+    ) {}
 
     public record ReagendarRequest(LocalDate data, String horario, String motivo) {}
 

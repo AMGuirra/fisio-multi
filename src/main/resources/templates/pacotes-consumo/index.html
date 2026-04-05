@@ -292,8 +292,15 @@
                                                     Cancelar
                                                 </button>
                                             </form>
-                                            <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}" method="post" class="inline-form"
-                                                  onsubmit="return confirm('Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele.');">
+                                            <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Excluir plano de tratamento?"
+                                                  data-confirm-message="Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele."
+                                                  data-confirm-helper-title="Os dados pendentes serão removidos"
+                                                  data-confirm-helper-message="Use essa opção apenas quando o plano não precisar mais existir no cadastro."
+                                                  data-confirm-action-label="Excluir plano">
                                                 <input type="hidden" name="busca" th:value="${buscaPaciente}">
                                                 <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
                                                 <button type="submit" class="action-button danger">
@@ -387,8 +394,11 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
 

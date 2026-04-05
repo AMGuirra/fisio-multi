@@ -154,12 +154,52 @@ public class SolicitacaoAgendamentoService {
     }
 
     @Transactional
+    public ClienteEntity cadastrarPaciente(UUID solicitacaoId, AprovacaoSolicitacaoForm form) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (solicitacao.getStatus() != SolicitacaoStatus.PENDENTE) {
+            throw new BusinessException("A solicitação não está pendente.");
+        }
+        if (solicitacao.getCliente() != null) {
+            throw new BusinessException("O paciente desta solicitação já está cadastrado. Agora basta aprovar.");
+        }
+
+        var snapshotSolicitacaoAnterior = auditService.snapshotOf(solicitacao);
+        PacienteForm pacienteForm = montarFormularioPaciente(solicitacao, form);
+        ClienteEntity cliente = pacienteService.localizarOuCriar(
+                pacienteForm,
+                AuditEventOrigin.MANUAL,
+                "Cadastro atualizado a partir da solicitação online.",
+                "Paciente criado a partir da solicitação online."
+        );
+
+        solicitacao.setCliente(cliente);
+        SolicitacaoAgendamentoEntity solicitacaoSalva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                solicitacaoSalva.getId().toString(),
+                auditService.describeOf(solicitacaoSalva),
+                AuditActionType.UPDATE,
+                snapshotSolicitacaoAnterior,
+                auditService.snapshotOf(solicitacaoSalva),
+                null,
+                "Paciente cadastrado e vinculado à solicitação online.",
+                AuditEventOrigin.MANUAL
+        );
+        return cliente;
+    }
+
+    @Transactional
     public SessaoEntity aprovarSolicitacao(UUID solicitacaoId, AprovacaoSolicitacaoForm form) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
         var snapshotSolicitacaoAnterior = auditService.snapshotOf(solicitacao);
         if (solicitacao.getStatus() != SolicitacaoStatus.PENDENTE) {
             throw new BusinessException("A solicitação não está pendente.");
+        }
+        if (solicitacao.getCliente() == null) {
+            throw new BusinessException("Cadastre o paciente antes de aprovar a solicitação.");
         }
 
         HorarioBloqueadoEntity bloqueio = horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)
@@ -175,13 +215,7 @@ public class SolicitacaoAgendamentoService {
                 null
         );
 
-        PacienteForm pacienteForm = montarFormularioPaciente(solicitacao, form);
-        ClienteEntity cliente = pacienteService.localizarOuCriar(
-                pacienteForm,
-                AuditEventOrigin.MANUAL,
-                "Cadastro atualizado durante aprovação da solicitação online.",
-                "Paciente criado durante aprovação da solicitação online."
-        );
+        ClienteEntity cliente = solicitacao.getCliente();
 
         PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(
                 cliente.getId(),
