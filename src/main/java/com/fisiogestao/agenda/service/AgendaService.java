@@ -137,6 +137,16 @@ public class AgendaService {
             UUID horarioBloqueadoIgnoradoId,
             UUID sessaoIgnoradaId
     ) {
+        validarHorarioDisponivel(inicio, fim, horarioBloqueadoIgnoradoId, sessaoIgnoradaId, false);
+    }
+
+    public void validarHorarioDisponivel(
+            OffsetDateTime inicio,
+            OffsetDateTime fim,
+            UUID horarioBloqueadoIgnoradoId,
+            UUID sessaoIgnoradaId,
+            boolean permitirHorarioPassado
+    ) {
         ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
         if (!inicio.isBefore(fim)) {
             throw new BusinessException("O intervalo da agenda é inválido.");
@@ -147,7 +157,7 @@ public class AgendaService {
             throw new BusinessException("A clínica não funciona nesse dia.");
         }
 
-        if (inicio.isBefore(OffsetDateTime.now(zoneId))) {
+        if (!permitirHorarioPassado && inicio.isBefore(OffsetDateTime.now(zoneId))) {
             throw new BusinessException("Não é permitido agendar horários no passado.");
         }
 
@@ -264,8 +274,8 @@ public class AgendaService {
         SessaoEntity sessao = buscarSessao(sessaoId);
         var snapshotAnterior = auditService.snapshotOf(sessao);
 
-        if (sessao.getStatus() != SessaoStatus.AGENDADA) {
-            throw new BusinessException("Somente sessões agendadas podem ser alteradas.");
+        if (sessao.getStatus() == SessaoStatus.CANCELADA) {
+            throw new BusinessException("Sessões canceladas não podem ser editadas. Marque como realizada se quiser reativar o atendimento.");
         }
 
         OffsetDateTime inicioAnterior = sessao.getDataHoraInicio();
@@ -273,7 +283,13 @@ public class AgendaService {
         UUID pacoteAnteriorId = sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null;
         boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado());
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
-        validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, sessaoId);
+        validarHorarioDisponivel(
+                intervalo.inicio(),
+                intervalo.fim(),
+                null,
+                sessaoId,
+                sessao.getStatus() == SessaoStatus.REALIZADA
+        );
 
         PacoteSessaoEntity novoPacote = pacoteSessaoService.resolverPacoteParaSessao(
                 form.getClienteId(),
@@ -317,9 +333,6 @@ public class AgendaService {
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
         var snapshotAnterior = auditService.snapshotOf(sessao);
 
-        if (sessao.getStatus() == SessaoStatus.CANCELADA) {
-            throw new BusinessException("Não é possível concluir uma sessão cancelada.");
-        }
         if (sessao.getStatus() == SessaoStatus.REALIZADA) {
             return sessao;
         }
@@ -387,9 +400,6 @@ public class AgendaService {
     public SessaoEntity cancelarSessao(UUID sessaoId, String observacoes) {
         SessaoEntity sessao = buscarSessao(sessaoId);
         var snapshotAnterior = auditService.snapshotOf(sessao);
-        if (sessao.getStatus() == SessaoStatus.REALIZADA) {
-            throw new BusinessException("Sessões realizadas permanecem no histórico e não podem ser canceladas.");
-        }
         if (sessao.getStatus() == SessaoStatus.CANCELADA) {
             return sessao;
         }

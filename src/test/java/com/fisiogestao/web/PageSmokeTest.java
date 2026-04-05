@@ -171,7 +171,25 @@ class PageSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente Teste Agenda")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar sessão")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar sessão")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Confirmar realização")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaExibeEditarECancelarParaSessaoRealizada() throws Exception {
+        SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
+                .orElseThrow(() -> new IllegalStateException("Sessão da agenda não encontrada."));
+        sessao.setStatus(SessaoStatus.REALIZADA);
+        sessaoRepository.save(sessao);
+
+        mockMvc.perform(get("/agenda")
+                        .param("data", agendaDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("REALIZADA")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Concluir"))));
     }
 
     @Test

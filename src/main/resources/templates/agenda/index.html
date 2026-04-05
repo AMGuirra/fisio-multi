@@ -46,7 +46,7 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Agenda do Dia</h1>
-                    <p class="hero-subtitle">Agende pacientes manualmente pela equipe, edite sessões futuras e acompanhe indisponibilidades oficiais em um fluxo único.</p>
+                    <p class="hero-subtitle">Agende pacientes manualmente pela equipe, edite sessões da agenda e acompanhe indisponibilidades oficiais em um fluxo único.</p>
                 </div>
                 <span class="hero-pill">Agenda</span>
             </section>
@@ -107,12 +107,21 @@
                                         <span class="chip"
                                               th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
                                               th:text="${sessao.status.name() == 'AGENDADA' ? 'CONFIRMADA' : sessao.status.name()}">STATUS</span>
-                                        <a th:if="${sessao.status.name() == 'AGENDADA'}" th:href="@{/agenda(data=${dataSelecionada},editar=${sessao.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
-                                        <form th:if="${sessao.status.name() == 'AGENDADA'}" th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}" method="post" class="inline-form">
+                                        <a th:if="${sessao.status.name() != 'CANCELADA'}" th:href="@{/agenda(data=${dataSelecionada},editar=${sessao.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
+                                        <form th:if="${sessao.status.name() != 'REALIZADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Confirmar realização?"
+                                              data-confirm-message="Deseja confirmar a realização desta sessão?"
+                                              data-confirm-helper-title="A sessão será marcada como realizada"
+                                              data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
+                                              data-confirm-action-label="Confirmar realização">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button success"><i data-lucide="check"></i>Concluir</button>
+                                            <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
                                         </form>
-                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                        <form th:if="${sessao.status.name() != 'CANCELADA'}"
                                               th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
                                               method="post"
                                               class="inline-form"
