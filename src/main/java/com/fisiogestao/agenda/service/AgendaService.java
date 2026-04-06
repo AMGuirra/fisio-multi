@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +127,8 @@ public class AgendaService {
     public IntervaloAgenda montarIntervalo(LocalDate data, LocalTime horarioInicio) {
         ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
         ZoneId zoneId = zoneId(configuracao);
-        OffsetDateTime inicio = data.atTime(horarioInicio).atZone(zoneId).toOffsetDateTime();
+        ZonedDateTime inicioZoned = data.atTime(horarioInicio).atZone(zoneId);
+        OffsetDateTime inicio = inicioZoned.toOffsetDateTime();
         OffsetDateTime fim = inicio.plusMinutes(configuracao.getDuracaoSessaoMinutos());
         return new IntervaloAgenda(inicio, fim);
     }
@@ -241,7 +243,8 @@ public class AgendaService {
     @Transactional
     public SessaoEntity agendarSessaoManual(AgendaManualForm form, String profissionalResponsavel) {
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
-        validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
+        boolean permitirRetroativo = true;
+        validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null, permitirRetroativo);
 
         PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(form.getClienteId(), form.getPacoteSessaoId(), null);
         pacoteSessaoService.reservarSessao(pacote.getId());
@@ -283,6 +286,7 @@ public class AgendaService {
         UUID pacoteAnteriorId = sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null;
         boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado());
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
+        boolean permitirRetroativo = sessao.getStatus() == SessaoStatus.REALIZADA || form.getData().isBefore(LocalDate.now());
         validarHorarioDisponivel(
                 intervalo.inicio(),
                 intervalo.fim(),
