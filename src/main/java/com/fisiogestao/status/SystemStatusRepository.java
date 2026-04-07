@@ -9,14 +9,4 @@ public interface SystemStatusRepository extends JpaRepository<SystemStatusEntity
 
     @Query("SELECT s FROM SystemStatusEntity s ORDER BY s.atualizadoEm DESC LIMIT 1")
     Optional<SystemStatusEntity> findUltimoRegistro();
-
-    default SystemStatusEntity getStatusAtual() {
-        return findUltimoRegistro().orElseGet(() -> {
-            SystemStatusEntity padrao = new SystemStatusEntity(
-                SystemStatusType.ONLINE,
-                "Sistema operando normalmente"
-            );
-            return save(padrao);
-        });
-    }
 }
