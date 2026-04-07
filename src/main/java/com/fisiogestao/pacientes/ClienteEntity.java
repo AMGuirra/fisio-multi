@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -24,7 +23,6 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 public class ClienteEntity extends BaseEntity {
 
-    @NonNull
     @Column(name = "nome_completo", nullable = false, length = 160)
     private String nomeCompleto;
 

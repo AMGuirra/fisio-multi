@@ -62,8 +62,8 @@ public class SolicitacoesController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         } catch (Exception ex) {
-            log.error("Erro inesperado ao cadastrar paciente da solicitacao {}.", id, ex);
-            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível cadastrar o paciente da solicitação. Verifique a configuração do banco de dados.");
+            log.error("Erro inesperado ao cadastrar paciente da solicitacao {}. Tipo: {}. Mensagem: {}", id, ex.getClass().getSimpleName(), ex.getMessage(), ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível cadastrar o paciente da solicitação: " + ex.getClass().getSimpleName() + " — " + ex.getMessage());
         }
         return "redirect:/solicitacoes";
     }
