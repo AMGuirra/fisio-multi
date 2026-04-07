@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Agenda - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,7 +80,7 @@
                 <a th:href="@{/agenda(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
             </section>
 
-            <section class="crud-layout two-column">
+            <section class="crud-layout">
                 <article class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="clock-3"></i> Sessões do Dia</h3>
@@ -146,7 +148,7 @@
                     </div>
                 </article>
 
-                <div class="crud-layout">
+                <div class="crud-layout" th:if="${false}">
                     <article class="section-card">
                         <header class="section-head">
                             <h3 class="section-title"><i data-lucide="calendar-plus"></i> Agendamento Manual</h3>
@@ -786,9 +788,15 @@
                         if (window.lucide) lucide.createIcons();
 
                         try {
+                            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                            if (csrfToken && csrfHeader) {
+                                headers[csrfHeader] = csrfToken;
+                            }
                             const response = await fetch('/agenda/sessoes/' + editarSessaoIdInput.value + '/json', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                headers,
                                 body: formData
                             });
                             const result = await response.json();

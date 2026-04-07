@@ -4,6 +4,8 @@ import com.fisiogestao.auth.InMemoryUserCatalog;
 import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UserMenuAccessService;
 import com.fisiogestao.auth.UserRole;
+import com.fisiogestao.status.SystemStatusEntity;
+import com.fisiogestao.status.SystemStatusService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,10 +21,16 @@ public class GlobalViewAttributes {
 
     private final InMemoryUserCatalog userCatalog;
     private final UserMenuAccessService userMenuAccessService;
+    private final SystemStatusService systemStatusService;
 
-    public GlobalViewAttributes(InMemoryUserCatalog userCatalog, UserMenuAccessService userMenuAccessService) {
+    public GlobalViewAttributes(
+            InMemoryUserCatalog userCatalog,
+            UserMenuAccessService userMenuAccessService,
+            SystemStatusService systemStatusService
+    ) {
         this.userCatalog = userCatalog;
         this.userMenuAccessService = userMenuAccessService;
+        this.systemStatusService = systemStatusService;
     }
 
     @ModelAttribute("loggedUsername")
@@ -127,5 +135,10 @@ public class GlobalViewAttributes {
             request.setAttribute("loggedUserRoleResolved", role);
         }
         return role;
+    }
+
+    @ModelAttribute("systemStatusAtual")
+    public SystemStatusEntity systemStatusAtual() {
+        return systemStatusService.getStatusAtual();
     }
 }

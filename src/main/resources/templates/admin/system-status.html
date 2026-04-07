@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status do Sistema - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/system-status.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar">
+                    <i data-lucide="panel-left" aria-hidden="true"></i>
+                </button>
+                <div class="header-copy">
+                    <h2 class="header-title">Status do Sistema</h2>
+                    <p class="header-date">Gerencie o status operacional do FisioGestao</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Configuração de Status</h1>
+                    <p class="hero-subtitle">Altere o status exibido no topo do sistema para informar usuários sobre a situação operacional.</p>
+                </div>
+                <span class="hero-pill">Administração</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success">
+                    <i data-lucide="circle-check"></i>
+                    <span th:text="${successMessage}">Sucesso</span>
+                </div>
+            </div>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="monitor-check"></i> Status Atual</h3>
+                </header>
+                <div class="section-body">
+                    <div class="current-status-card">
+                        <div class="status-indicator" 
+                             th:classappend="${statusAtual.status.name() == 'ONLINE' ? 'status-online' : (statusAtual.status.name() == 'MANUTENCAO' ? 'status-manutencao' : 'status-instabilidade')}">
+                            <span class="status-dot"></span>
+                            <span class="status-label" th:text="${statusAtual.status.label}">Online</span>
+                        </div>
+                        <p class="current-message" th:text="${statusAtual.mensagem}">Sistema operando normalmente</p>
+                        <p class="current-timestamp">
+                            <i data-lucide="clock"></i>
+                            Última atualização: 
+                            <span th:text="${#temporals.format(statusAtual.atualizadoEm, 'dd/MM/yyyy HH:mm')}">--</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="settings"></i> Alterar Status</h3>
+                </header>
+                <div class="section-body">
+                    <form th:action="@{/admin/system-status}" method="post" class="modern-form">
+                        <div class="form-field">
+                            <label for="status">Status do Sistema</label>
+                            <select id="status" name="status" class="form-select" required>
+                                <option th:each="type : ${statusTypes}" 
+                                        th:value="${type}" 
+                                        th:text="${type.label}"
+                                        th:selected="${type == statusAtual.status}">
+                                    Status
+                                </option>
+                            </select>
+                            <p class="helper-text">Selecione o status que será exibido no topo do sistema para todos os usuários.</p>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="mensagem">Mensagem Personalizada</label>
+                            <textarea id="mensagem" name="mensagem" class="form-control" rows="3" 
+                                      th:text="${statusAtual.mensagem}"
+                                      placeholder="Ex: Sistema em manutenção programada até 22:00"></textarea>
+                            <p class="helper-text">Mensagem opcional que será exibida junto com o status. Seja claro e objetivo.</p>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Salvar Alterações
+                            </button>
+                            <a th:href="@{/dashboard}" class="action-button ghost">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar ao Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="info"></i> Informações</h3>
+                </header>
+                <div class="section-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-icon status-online"><i data-lucide="check-circle"></i></span>
+                            <div class="info-content">
+                                <strong>Online</strong>
+                                <p>Sistema operando normalmente. Verde indica que tudo está funcionando.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon status-manutencao"><i data-lucide="wrench"></i></span>
+                            <div class="info-content">
+                                <strong>Manutenção</strong>
+                                <p>Sistema em manutenção. Amarelo indica que existem intervenções planejadas.</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon status-instabilidade"><i data-lucide="alert-triangle"></i></span>
+                            <div class="info-content">
+                                <strong>Instabilidade</strong>
+                                <p>Sistema com problemas. Vermelho indica falhas ou indisponibilidade parcial.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

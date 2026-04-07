@@ -1009,6 +1009,24 @@ body.sidebar-open .sidebar-toggle-btn svg {
     box-shadow: 0 0 0 5px rgba(32, 178, 109, 0.16);
 }
 
+.system-status.status-manutencao {
+    color: #936a16;
+}
+
+.system-status.status-manutencao::before {
+    background: #d4a628;
+    box-shadow: 0 0 0 5px rgba(212, 166, 40, 0.16);
+}
+
+.system-status.status-instabilidade {
+    color: #8e4a4a;
+}
+
+.system-status.status-instabilidade::before {
+    background: #ca5a5a;
+    box-shadow: 0 0 0 5px rgba(202, 90, 90, 0.15);
+}
+
 .system-status.offline {
     color: #8e4a4a;
 }

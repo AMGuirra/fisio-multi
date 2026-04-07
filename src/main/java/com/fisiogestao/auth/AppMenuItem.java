@@ -17,6 +17,7 @@ public enum AppMenuItem {
     FINANCEIRO("Financeiro", "/financeiro", "wallet", false, false, true, false, List.of("/financeiro")),
     RELATORIOS("Relatórios", "/relatorios", "file-text", false, false, true, false, List.of("/relatorios")),
     CONFIG_CLINICA("Config. Clínica", "/configuracoes/clinica", "building-2", false, false, false, true, List.of("/configuracoes/clinica", "/configuracao/clinica")),
+    SYSTEM_STATUS("Status do Sistema", "/admin/system-status", "monitor-check", false, false, false, true, List.of("/admin/system-status")),
     USUARIOS("Usuários", "/usuarios", "users", false, false, false, true, List.of("/usuarios")),
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, List.of("/funcoes-usuarios")),
     CONFIG_EMAIL("Config. E-mail", "/configuracoes/email", "mail-check", false, false, true, false, List.of("/configuracoes/email", "/configuracao/email")),
@@ -110,6 +111,8 @@ public enum AppMenuItem {
                 return "Reune relatorios e consultas gerenciais do sistema.";
             case CONFIG_CLINICA:
                 return "Permite ajustar dados e configuracoes gerais da clinica.";
+            case SYSTEM_STATUS:
+                return "Gerencia o status operacional exibido no topo do sistema.";
             case USUARIOS:
                 return "Gerencia o cadastro de usuarios que acessam o sistema.";
             case FUNCOES_USUARIOS:
@@ -154,6 +157,7 @@ public enum AppMenuItem {
                 FINANCEIRO,
                 RELATORIOS,
                 CONFIG_CLINICA,
+                SYSTEM_STATUS,
                 USUARIOS,
                 FUNCOES_USUARIOS,
                 CONFIG_EMAIL,
