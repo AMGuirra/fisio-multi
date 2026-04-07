@@ -204,8 +204,9 @@ public class AgendaController {
             );
             return ResponseEntity.ok(dto);
         } catch (BusinessException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new java.util.Map.of("error", ex.getMessage()));
+            Map<String, String> error = new java.util.HashMap<>();
+            error.put("error", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 
@@ -230,9 +231,15 @@ public class AgendaController {
             form.setTipoAtendimento(tipoAtendimento);
             form.setObservacoes(observacoes);
             agendaService.atualizarSessaoManual(id, form, authentication != null ? authentication.getName() : "Equipe da clínica");
-            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "Sessão atualizada com sucesso."));
+            Map<String, Object> success = new java.util.HashMap<>();
+            success.put("success", true);
+            success.put("message", "Sessão atualizada com sucesso.");
+            return ResponseEntity.ok(success);
         } catch (BusinessException ex) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("success", false, "error", ex.getMessage()));
+            Map<String, Object> error = new java.util.HashMap<>();
+            error.put("success", false);
+            error.put("error", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
