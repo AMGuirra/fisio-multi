@@ -30,7 +30,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -204,7 +206,7 @@ public class AgendaController {
             );
             return ResponseEntity.ok(dto);
         } catch (BusinessException ex) {
-            Map<String, String> error = new java.util.HashMap<>();
+            Map<String, String> error = new HashMap<>();
             error.put("error", ex.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
@@ -231,12 +233,12 @@ public class AgendaController {
             form.setTipoAtendimento(tipoAtendimento);
             form.setObservacoes(observacoes);
             agendaService.atualizarSessaoManual(id, form, authentication != null ? authentication.getName() : "Equipe da clínica");
-            Map<String, Object> success = new java.util.HashMap<>();
+            Map<String, Object> success = new HashMap<>();
             success.put("success", true);
             success.put("message", "Sessão atualizada com sucesso.");
             return ResponseEntity.ok(success);
         } catch (BusinessException ex) {
-            Map<String, Object> error = new java.util.HashMap<>();
+            Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("error", ex.getMessage());
             return ResponseEntity.badRequest().body(error);
