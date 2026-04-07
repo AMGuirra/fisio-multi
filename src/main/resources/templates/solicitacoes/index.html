@@ -4,12 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitações - FisioGestao</title>
+    <meta name="csrf-token"  th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        /* ── Wizard step indicator ─────────────────────────────── */
+        .wizard-progress {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 1.25rem;
+        }
+        .wizard-step-item {
+            display: flex;
+            align-items: center;
+            gap: .375rem;
+            font-size: .78rem;
+            font-weight: 500;
+            color: var(--text-muted, #8a99b3);
+            padding: .25rem .5rem;
+            border-radius: 6px;
+            transition: color .2s, background .2s;
+        }
+        .wizard-step-item.active {
+            color: var(--accent, #00bfa5);
+            background: rgba(0,191,165,.1);
+        }
+        .wizard-step-item.done {
+            color: var(--success, #22c55e);
+        }
+        .wizard-step-item .step-num {
+            width: 1.35rem;
+            height: 1.35rem;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .wizard-step-item.done .step-num {
+            background: var(--success, #22c55e);
+            border-color: var(--success, #22c55e);
+            color: #fff;
+        }
+        .wizard-step-divider {
+            flex: 1;
+            height: 1px;
+            background: var(--border, #2a3547);
+            margin: 0 .25rem;
+            min-width: 16px;
+        }
+
+        /* ── Wizard loading spinner ────────────────────────────── */
+        .wizard-loading-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .75rem;
+            padding: 2.5rem 1rem;
+            color: var(--text-muted, #8a99b3);
+            font-size: .9rem;
+        }
+        .wizard-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid rgba(0,191,165,.15);
+            border-top-color: var(--accent, #00bfa5);
+            border-radius: 50%;
+            animation: spin .75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Wizard inline status cards ────────────────────────── */
+        .wizard-status-card {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: .875rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: .875rem;
+            border: 1px solid transparent;
+        }
+        .wizard-status-card.success {
+            background: rgba(34,197,94,.08);
+            border-color: rgba(34,197,94,.25);
+            color: #4ade80;
+        }
+        .wizard-status-card.warning {
+            background: rgba(251,191,36,.07);
+            border-color: rgba(251,191,36,.25);
+            color: #fbbf24;
+        }
+        .wizard-status-card.danger {
+            background: rgba(239,68,68,.07);
+            border-color: rgba(239,68,68,.25);
+            color: #f87171;
+        }
+        .wizard-status-card .status-icon { flex-shrink: 0; margin-top: .1rem; }
+        .wizard-status-card .status-text { line-height: 1.5; }
+        .wizard-status-card .status-text strong { display: block; margin-bottom: .1rem; }
+
+        /* ── Confirmação summary table ──────────────────────────── */
+        .confirm-summary {
+            background: var(--card-bg, #1a2233);
+            border: 1px solid var(--border, #2a3547);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .confirm-summary-row {
+            display: flex;
+            align-items: baseline;
+            gap: .5rem;
+            padding: .6rem 1rem;
+            font-size: .875rem;
+            border-bottom: 1px solid var(--border, #2a3547);
+        }
+        .confirm-summary-row:last-child { border-bottom: none; }
+        .confirm-summary-label {
+            color: var(--text-muted, #8a99b3);
+            min-width: 5.5rem;
+            flex-shrink: 0;
+            font-size: .8rem;
+        }
+        .confirm-summary-value { color: var(--text-primary, #e2e8f0); font-weight: 500; }
+
+        /* ── Botão de loading ───────────────────────────────────── */
+        .action-button[data-loading] {
+            opacity: .65;
+            pointer-events: none;
+        }
+        .action-button[data-loading] .btn-spinner {
+            display: inline-block;
+            width: .85rem;
+            height: .85rem;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .65s linear infinite;
+            vertical-align: middle;
+            margin-right: .3rem;
+        }
+    </style>
 </head>
 <body class="dashboard-app dashboard-loading">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -48,12 +194,12 @@
                     <h1 class="hero-title">Solicitações de Agendamento</h1>
                     <p class="hero-subtitle">Aprove ou rejeite pedidos do agendamento online com fluxo rápido.</p>
                 </div>
-                <span class="hero-pill">Solicitações</span>
+                <span class="hero-pill">SOLICITAÇÕES</span>
             </section>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
-                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+                <div th:if="${errorMessage}"   class="flash-message error">  <i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
             <section class="section-card">
@@ -62,6 +208,7 @@
                 </header>
 
                 <div class="section-body">
+                    <!-- ── PENDENTES ─────────────────────────────────────────── -->
                     <div class="section-block">
                         <h4 class="section-subtitle">
                             Pendentes
@@ -75,7 +222,8 @@
                         <div th:unless="${pendentes == null or pendentes.empty}" class="request-list">
                             <article th:each="sol : ${pendentes}" class="request-card">
                                 <div class="request-row">
-                                    <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
+                                    <span class="entity-avatar"
+                                          th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente,0,1) : 'P'}">P</span>
 
                                     <div class="request-detail">
                                         <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
@@ -102,54 +250,23 @@
                                     </div>
 
                                     <div class="request-actions">
+                                        <!-- Botão principal: abre o wizard ──────────────── -->
                                         <button type="button"
-                                                class="action-button success open-approve-modal"
-                                                th:attr="data-approve-form-id=${'approveForm-' + sol.id},
-                                                         data-register-form-id=${'registerForm-' + sol.id},
-                                                         data-existing-client=${sol.cliente != null},
+                                                class="action-button success open-wizard"
+                                                th:attr="data-sol-id=${sol.id},
                                                          data-nome=${sol.nomePaciente},
                                                          data-telefone=${sol.telefone},
                                                          data-email=${sol.email},
                                                          data-cpf=${sol.cpf},
-                                                         data-local=${sol.localAtendimento},
-                                                         data-datahora=${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
-                                                         data-observacoes=${sol.observacoes},
-                                                         data-cep=${sol.cep},
-                                                         data-rua=${sol.rua},
-                                                         data-numero=${sol.numero},
-                                                         data-bairro=${sol.bairro},
-                                                         data-cidade=${sol.cidade},
-                                                         data-estado=${sol.estado},
-                                                         data-endereco=${sol.enderecoResumo}">
+                                                         data-local=${sol.localAtendimento}">
                                             <i data-lucide="check"></i>
-                                            <span th:text="${sol.cliente != null ? 'Aprovar' : 'Cadastrar'}">Aprovar</span>
+                                            <span>Aprovar</span>
                                         </button>
+
+                                        <!-- Rejeitar: form POST tradicional ────────────── -->
                                         <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
-                                        </form>
-                                        <form th:id="${'registerForm-' + sol.id}"
-                                              th:action="@{/solicitacoes/{id}/cadastrar(id=${sol.id})}"
-                                              method="post"
-                                              hidden>
-                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                            <input type="hidden" name="nomeCompleto">
-                                            <input type="hidden" name="telefone">
-                                            <input type="hidden" name="email">
-                                            <input type="hidden" name="cpf">
-                                            <input type="hidden" name="cep">
-                                            <input type="hidden" name="rua">
-                                            <input type="hidden" name="numero">
-                                            <input type="hidden" name="bairro">
-                                            <input type="hidden" name="cidade">
-                                            <input type="hidden" name="estado">
-                                        </form>
-                                        <form th:id="${'approveForm-' + sol.id}"
-                                              th:action="@{/solicitacoes/{id}/aprovar(id=${sol.id})}"
-                                              method="post"
-                                              hidden>
-                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                            <input type="hidden" name="pacoteSessaoId">
                                         </form>
                                     </div>
                                 </div>
@@ -157,6 +274,7 @@
                         </div>
                     </div>
 
+                    <!-- ── HISTÓRICO ─────────────────────────────────────────── -->
                     <div class="section-block">
                         <h4 class="section-subtitle">Histórico</h4>
                         <div th:if="${historico == null or historico.empty}" class="empty-box">
@@ -167,7 +285,8 @@
                         <div th:unless="${historico == null or historico.empty}" class="request-list">
                             <article th:each="sol : ${historico}" class="request-card">
                                 <div class="request-row">
-                                    <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
+                                    <span class="entity-avatar"
+                                          th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente,0,1) : 'P'}">P</span>
                                     <div class="request-detail">
                                         <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
                                         <p class="request-text">
@@ -176,7 +295,7 @@
                                             <span th:if="${sol.cpf != null and !#strings.isEmpty(sol.cpf)}" th:text="${sol.cpf}">CPF</span>
                                         </p>
                                         <p class="request-text" th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}" th:text="${sol.enderecoResumo}">Endereço</p>
-                                        <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Observações</p>
+                                        <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Obs</p>
                                         <p class="request-text" th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</p>
                                     </div>
                                     <div class="request-actions">
@@ -192,267 +311,718 @@
             </section>
         </main>
 
-        <div id="aprovarSolicitacaoModal" class="app-modal" aria-hidden="true">
-            <div class="app-modal-backdrop" data-modal-close></div>
-            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="aprovarSolicitacaoModalTitle">
+        <!-- ════════════════════════════════════════════════════════════
+             WIZARD MODAL — 3 etapas
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="wizardModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="wizardBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
                 <div class="app-modal-card">
+
+                    <!-- ── Cabeçalho fixo ──────────────────────────── -->
                     <header class="app-modal-header">
-                        <div class="app-modal-title-block">
-                            <h3 id="aprovarSolicitacaoModalTitle">Aprovar solicitação</h3>
-                            <p id="aprovarSolicitacaoModalSubtitle">Revise os dados do paciente antes de confirmar.</p>
+                        <div class="app-modal-title-block" style="flex:1;min-width:0;">
+                            <h3 id="wizardTitle">Aprovar Solicitação</h3>
+                            <div class="wizard-progress" id="wizardProgress" style="margin-top:.5rem;">
+                                <div class="wizard-step-item" id="ws1"><span class="step-num">1</span><span>Paciente</span></div>
+                                <div class="wizard-step-divider"></div>
+                                <div class="wizard-step-item" id="ws2"><span class="step-num">2</span><span>Plano</span></div>
+                                <div class="wizard-step-divider"></div>
+                                <div class="wizard-step-item" id="ws3"><span class="step-num">3</span><span>Confirmar</span></div>
+                            </div>
                         </div>
-                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <button type="button" class="app-modal-close" id="wizardClose" aria-label="Fechar modal">
                             <i data-lucide="x"></i>
                         </button>
                     </header>
 
+                    <!-- ── Corpo dinâmico ──────────────────────────── -->
                     <div class="app-modal-body">
-                        <div class="helper-card modal-helper-card">
-                            <strong id="modalPatientStatus">Paciente cadastrado</strong>
-                            <p id="modalAppointmentSummary">03/04/2026 12:00</p>
-                            <p id="modalAddressSummary">Clínica</p>
-                            <p id="modalActionHint">Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.</p>
+
+                        <!-- LOADING ──────────────────────────────────── -->
+                        <div id="wizardLoading" class="wizard-loading-box">
+                            <div class="wizard-spinner"></div>
+                            <span id="wizardLoadingMsg">Verificando dados da solicitação…</span>
                         </div>
 
-                        <form id="aprovarSolicitacaoForm" class="modern-form">
-                            <div id="cadastroNecessarioBloco">
+                        <!-- ERRO GERAL ───────────────────────────────── -->
+                        <div id="wizardErrorPanel" hidden>
+                            <div class="wizard-status-card danger">
+                                <span class="status-icon"><i data-lucide="circle-x"></i></span>
+                                <div class="status-text">
+                                    <strong>Não foi possível continuar</strong>
+                                    <span id="wizardErrorMsg">Erro inesperado.</span>
+                                </div>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="wizardErrorClose">Fechar</button>
+                            </div>
+                        </div>
+
+                        <!-- ═══════════ ETAPA 1 — PACIENTE ════════════ -->
+                        <div id="wizardStep1" hidden>
+                            <!-- Caso A: paciente encontrado -->
+                            <div id="s1Found" hidden>
+                                <div class="wizard-status-card success">
+                                    <span class="status-icon"><i data-lucide="user-check"></i></span>
+                                    <div class="status-text">
+                                        <strong>Paciente encontrado</strong>
+                                        <span id="s1FoundName">—</span>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="action-button ghost" id="wizardCloseBtn1a">Cancelar</button>
+                                    <button type="button" class="action-button success" id="s1NextBtn">
+                                        <i data-lucide="arrow-right"></i> Próximo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Caso B: paciente não cadastrado -->
+                            <div id="s1Form" hidden>
+                                <div class="wizard-status-card warning">
+                                    <span class="status-icon"><i data-lucide="user-plus"></i></span>
+                                    <div class="status-text">
+                                        <strong>Paciente não cadastrado</strong>
+                                        Confirme os dados abaixo para criar o cadastro e continuar.
+                                    </div>
+                                </div>
+
+                                <form id="formStep1" class="modern-form" novalidate>
+                                    <div class="form-field">
+                                        <label for="s1Nome">Nome completo <span style="color:#f87171">*</span></label>
+                                        <input id="s1Nome" name="nomeCompleto" type="text" class="form-control" maxlength="160" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Telefone">Telefone <span style="color:#f87171">*</span></label>
+                                        <input id="s1Telefone" name="telefone" type="text" class="form-control" maxlength="20" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Email">E-mail</label>
+                                        <input id="s1Email" name="email" type="email" class="form-control" maxlength="120">
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Cpf">CPF</label>
+                                        <input id="s1Cpf" name="cpf" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00">
+                                    </div>
+
+                                    <div id="s1EnderecoBloco" hidden>
+                                        <p style="color:var(--text-muted,#8a99b3);font-size:.8rem;margin:.5rem 0 .75rem">
+                                            <i data-lucide="home" style="width:13px;height:13px;vertical-align:middle"></i>
+                                            Endereço para atendimento em domicílio
+                                        </p>
+                                        <div class="form-field">
+                                            <label for="s1Cep">CEP</label>
+                                            <input id="s1Cep" name="cep" type="text" class="form-control" maxlength="9" placeholder="00000-000">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Rua">Rua <span style="color:#f87171">*</span></label>
+                                            <input id="s1Rua" name="rua" type="text" class="form-control" maxlength="160">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Numero">Número <span style="color:#f87171">*</span></label>
+                                            <input id="s1Numero" name="numero" type="text" class="form-control" maxlength="20">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Bairro">Bairro <span style="color:#f87171">*</span></label>
+                                            <input id="s1Bairro" name="bairro" type="text" class="form-control" maxlength="120">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Cidade">Cidade <span style="color:#f87171">*</span></label>
+                                            <input id="s1Cidade" name="cidade" type="text" class="form-control" maxlength="120">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Estado">Estado (UF) <span style="color:#f87171">*</span></label>
+                                            <input id="s1Estado" name="estado" type="text" class="form-control" maxlength="2" placeholder="UF">
+                                        </div>
+                                    </div>
+
+                                    <div id="s1FormError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                                        <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                        <div class="status-text"><span id="s1ErrorMsg"></span></div>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" class="action-button ghost" id="wizardCloseBtn1b">Cancelar</button>
+                                        <button type="submit" class="action-button success" id="s1SubmitBtn">
+                                            <i data-lucide="user-plus"></i>
+                                            <span>Cadastrar e continuar</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- ═══════════ ETAPA 2 — PLANO ══════════════ -->
+                        <div id="wizardStep2" hidden>
+                            <div class="wizard-status-card warning">
+                                <span class="status-icon"><i data-lucide="package-open"></i></span>
+                                <div class="status-text">
+                                    <strong>Sem plano de tratamento disponível</strong>
+                                    <span id="s2PacienteNome">Paciente</span> não possui plano ativo.
+                                    Preencha os dados abaixo para criar um plano e continuar.
+                                </div>
+                            </div>
+
+                            <form id="formStep2" class="modern-form" novalidate>
                                 <div class="form-field">
-                                    <label for="modalNomeCompleto">Nome completo</label>
-                                    <input id="modalNomeCompleto" type="text" class="form-control" name="nomeCompleto" maxlength="160">
+                                    <label for="s2NomePlano">Nome do plano <span style="color:#f87171">*</span></label>
+                                    <input id="s2NomePlano" name="nomePacote" type="text" class="form-control" maxlength="120"
+                                           placeholder="Ex: Plano Mensal, Pacote 10 sessões…">
                                 </div>
-
                                 <div class="form-field">
-                                    <label for="modalTelefone">Telefone</label>
-                                    <input id="modalTelefone" type="text" class="form-control" name="telefone" maxlength="20">
+                                    <label for="s2Sessoes">Sessões contratadas <span style="color:#f87171">*</span></label>
+                                    <input id="s2Sessoes" name="sessoesContratadas" type="number" class="form-control"
+                                           min="1" max="999" placeholder="Ex: 10">
                                 </div>
-
                                 <div class="form-field">
-                                    <label for="modalEmail">E-mail</label>
-                                    <input id="modalEmail" type="email" class="form-control" name="email" maxlength="120">
+                                    <label for="s2Valor">Valor total (R$)</label>
+                                    <input id="s2Valor" name="valorTotal" type="text" class="form-control"
+                                           placeholder="0,00 (opcional)">
                                 </div>
-
                                 <div class="form-field">
-                                    <label for="modalCpf">CPF</label>
-                                    <input id="modalCpf" type="text" class="form-control" name="cpf" maxlength="14">
+                                    <label for="s2DataInicio">Data de início <span style="color:#f87171">*</span></label>
+                                    <input id="s2DataInicio" name="dataInicio" type="date" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <label for="s2DataValidade">Validade (opcional)</label>
+                                    <input id="s2DataValidade" name="dataValidade" type="date" class="form-control">
                                 </div>
 
-                                <div id="modalEnderecoBloco">
-                                    <div class="form-field">
-                                        <label for="modalCep">CEP</label>
-                                        <input id="modalCep" type="text" class="form-control" name="cep" maxlength="9" placeholder="00000-000">
-                                    </div>
+                                <div id="s2FormError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                                    <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                    <div class="status-text"><span id="s2ErrorMsg"></span></div>
+                                </div>
 
-                                    <div class="form-field">
-                                        <label for="modalRua">Rua</label>
-                                        <input id="modalRua" type="text" class="form-control" name="rua" maxlength="160">
-                                    </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="action-button ghost" id="s2BackBtn">
+                                        <i data-lucide="arrow-left"></i> Voltar
+                                    </button>
+                                    <button type="submit" class="action-button success" id="s2SubmitBtn">
+                                        <i data-lucide="plus-circle"></i>
+                                        <span>Criar plano e continuar</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
-                                    <div class="form-field">
-                                        <label for="modalNumero">Número</label>
-                                        <input id="modalNumero" type="text" class="form-control" name="numero" maxlength="20">
-                                    </div>
+                        <!-- ═══════════ ETAPA 3 — CONFIRMAÇÃO ════════ -->
+                        <div id="wizardStep3" hidden>
 
-                                    <div class="form-field">
-                                        <label for="modalBairro">Bairro</label>
-                                        <input id="modalBairro" type="text" class="form-control" name="bairro" maxlength="120">
-                                    </div>
+                            <!-- Resumo do agendamento -->
+                            <div class="confirm-summary" id="confirmSummary">
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="user" style="width:13px;height:13px"></i> Paciente</span>
+                                    <span class="confirm-summary-value" id="cs_paciente">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="calendar" style="width:13px;height:13px"></i> Data/Hora</span>
+                                    <span class="confirm-summary-value" id="cs_datahora">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="map-pin" style="width:13px;height:13px"></i> Local</span>
+                                    <span class="confirm-summary-value" id="cs_local">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="package" style="width:13px;height:13px"></i> Plano</span>
+                                    <span class="confirm-summary-value" id="cs_plano">—</span>
+                                </div>
+                                <div class="confirm-summary-row" id="cs_obsRow">
+                                    <span class="confirm-summary-label"><i data-lucide="message-square" style="width:13px;height:13px"></i> Observações</span>
+                                    <span class="confirm-summary-value" id="cs_obs">—</span>
+                                </div>
+                            </div>
 
-                                    <div class="form-field">
-                                        <label for="modalCidade">Cidade</label>
-                                        <input id="modalCidade" type="text" class="form-control" name="cidade" maxlength="120">
-                                    </div>
-
-                                    <div class="form-field">
-                                        <label for="modalEstado">Estado</label>
-                                        <input id="modalEstado" type="text" class="form-control" name="estado" maxlength="2" placeholder="UF">
+                            <!-- Status da disponibilidade -->
+                            <div id="s3Disponivel" hidden>
+                                <div class="wizard-status-card success">
+                                    <span class="status-icon"><i data-lucide="calendar-check"></i></span>
+                                    <div class="status-text">
+                                        <strong>Horário disponível</strong>
+                                        Tudo certo! Confirme para criar o agendamento oficial.
                                     </div>
                                 </div>
+                            </div>
+
+                            <div id="s3Indisponivel" hidden>
+                                <div class="wizard-status-card danger">
+                                    <span class="status-icon"><i data-lucide="calendar-x"></i></span>
+                                    <div class="status-text">
+                                        <strong>Horário indisponível</strong>
+                                        <span id="s3MensagemIndisponivel">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="s3ConfirmError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                                <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                <div class="status-text"><span id="s3ErrorMsg"></span></div>
                             </div>
 
                             <div class="modal-actions">
-                                <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
-                                <button type="submit" class="action-button success" id="modalSubmitButton">
+                                <button type="button" class="action-button ghost" id="wizardCloseBtn3">Cancelar</button>
+                                <button type="button" class="action-button success" id="s3ConfirmBtn" hidden>
                                     <i data-lucide="check-check"></i>
-                                    <span id="modalSubmitLabel">Aprovar</span>
+                                    <span>Confirmar agendamento</span>
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </div>
+
+                    </div><!-- /app-modal-body -->
+                </div><!-- /app-modal-card -->
+            </div><!-- /app-modal-dialog -->
+        </div><!-- /wizardModal -->
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
-    </div>
+    </div><!-- /app-shell -->
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script>
-        (() => {
-            const body = document.body;
-            const modal = document.getElementById('aprovarSolicitacaoModal');
-            const form = document.getElementById('aprovarSolicitacaoForm');
-            const cadastroNecessarioBloco = document.getElementById('cadastroNecessarioBloco');
-            const modalEnderecoBloco = document.getElementById('modalEnderecoBloco');
-            const modalTitle = document.getElementById('aprovarSolicitacaoModalTitle');
-            const modalSubtitle = document.getElementById('aprovarSolicitacaoModalSubtitle');
-            const modalPatientStatus = document.getElementById('modalPatientStatus');
-            const modalAppointmentSummary = document.getElementById('modalAppointmentSummary');
-            const modalAddressSummary = document.getElementById('modalAddressSummary');
-            const modalActionHint = document.getElementById('modalActionHint');
-            const modalSubmitLabel = document.getElementById('modalSubmitLabel');
-            const openButtons = document.querySelectorAll('.open-approve-modal');
+    (() => {
+        'use strict';
 
-            if (!modal || !form || openButtons.length === 0) {
-                return;
+        // ── helpers CSRF ──────────────────────────────────────────────────────
+        const csrfToken  = () => document.querySelector('meta[name="csrf-token"]')?.content  ?? '';
+        const csrfHeader = () => document.querySelector('meta[name="csrf-header"]')?.content ?? 'X-CSRF-TOKEN';
+
+        const postJson = async (url, body) => {
+            const r = await fetch(url, {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader()]: csrfToken()
+                },
+                body: JSON.stringify(body)
+            });
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(json.message || `Erro ${r.status}`);
+            return json;
+        };
+
+        const getJson = async (url) => {
+            const r = await fetch(url);
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(json.message || `Erro ${r.status}`);
+            return json;
+        };
+
+        // ── máscaras ──────────────────────────────────────────────────────────
+        const maskCpf = v => {
+            const d = (v||'').replace(/\D/g,'').slice(0,11);
+            return d.replace(/^(\d{3})(\d)/,'$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/,'.$1-$2');
+        };
+        const maskPhone = v => {
+            const d = (v||'').replace(/\D/g,'').slice(0,11);
+            return d.length<=10
+                ? d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2')
+                : d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+        };
+        const maskCep = v => (v||'').replace(/\D/g,'').slice(0,8).replace(/^(\d{5})(\d)/,'$1-$2');
+
+        // ── state ─────────────────────────────────────────────────────────────
+        const state = {
+            solicitacaoId: null,
+            isDomicilio:   false,
+            fluxo:         null,   // último FluxoStatusResponse
+            planoId:       null,   // UUID do plano selecionado/criado
+        };
+
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const modal          = document.getElementById('wizardModal');
+        const loading        = document.getElementById('wizardLoading');
+        const loadingMsg     = document.getElementById('wizardLoadingMsg');
+        const errorPanel     = document.getElementById('wizardErrorPanel');
+        const errorMsg       = document.getElementById('wizardErrorMsg');
+        const step1El        = document.getElementById('wizardStep1');
+        const step2El        = document.getElementById('wizardStep2');
+        const step3El        = document.getElementById('wizardStep3');
+
+        const ws1 = document.getElementById('ws1');
+        const ws2 = document.getElementById('ws2');
+        const ws3 = document.getElementById('ws3');
+
+        // step 1
+        const s1Found    = document.getElementById('s1Found');
+        const s1FoundName= document.getElementById('s1FoundName');
+        const s1Form     = document.getElementById('s1Form');
+        const formStep1  = document.getElementById('formStep1');
+        const s1Nome     = document.getElementById('s1Nome');
+        const s1Telefone = document.getElementById('s1Telefone');
+        const s1Email    = document.getElementById('s1Email');
+        const s1Cpf      = document.getElementById('s1Cpf');
+        const s1EndBloco = document.getElementById('s1EnderecoBloco');
+        const s1FormErr  = document.getElementById('s1FormError');
+        const s1ErrMsg   = document.getElementById('s1ErrorMsg');
+        const s1SubmitBtn= document.getElementById('s1SubmitBtn');
+
+        // step 2
+        const s2PacNome  = document.getElementById('s2PacienteNome');
+        const formStep2  = document.getElementById('formStep2');
+        const s2NomePlano= document.getElementById('s2NomePlano');
+        const s2Sessoes  = document.getElementById('s2Sessoes');
+        const s2Valor    = document.getElementById('s2Valor');
+        const s2DataIni  = document.getElementById('s2DataInicio');
+        const s2DataVal  = document.getElementById('s2DataValidade');
+        const s2FormErr  = document.getElementById('s2FormError');
+        const s2ErrMsg   = document.getElementById('s2ErrorMsg');
+        const s2SubmitBtn= document.getElementById('s2SubmitBtn');
+
+        // step 3
+        const s3Disp     = document.getElementById('s3Disponivel');
+        const s3Indisp   = document.getElementById('s3Indisponivel');
+        const s3IndMsg   = document.getElementById('s3MensagemIndisponivel');
+        const s3ConfirmBtn= document.getElementById('s3ConfirmBtn');
+        const s3ConfErr  = document.getElementById('s3ConfirmError');
+        const s3ErrMsg   = document.getElementById('s3ErrorMsg');
+        const csP        = document.getElementById('cs_paciente');
+        const csDt       = document.getElementById('cs_datahora');
+        const csL        = document.getElementById('cs_local');
+        const csPl       = document.getElementById('cs_plano');
+        const csObs      = document.getElementById('cs_obs');
+        const csObsRow   = document.getElementById('cs_obsRow');
+
+        // ── modal open/close ──────────────────────────────────────────────────
+        const setModalOpen = open => {
+            modal.classList.toggle('is-open', open);
+            modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+            document.body.classList.toggle('modal-open', open);
+        };
+
+        const closeModal = () => setModalOpen(false);
+
+        document.getElementById('wizardClose').addEventListener('click', closeModal);
+        document.getElementById('wizardBackdrop').addEventListener('click', closeModal);
+        document.getElementById('wizardErrorClose').addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn1a')?.addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn1b')?.addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn3')?.addEventListener('click', closeModal);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+        });
+
+        // ── mostrar/ocultar painéis ───────────────────────────────────────────
+        const showOnly = (...visible) => {
+            [loading, errorPanel, step1El, step2El, step3El].forEach(el => {
+                if (el) el.hidden = !visible.includes(el);
+            });
+        };
+
+        const setStepIndicator = step => {
+            [ws1, ws2, ws3].forEach((el, i) => {
+                el.className = 'wizard-step-item';
+                if (i + 1 < step)  el.classList.add('done');
+                if (i + 1 === step) el.classList.add('active');
+            });
+        };
+
+        const setLoading = (msg = 'Processando…') => {
+            loadingMsg.textContent = msg;
+            showOnly(loading);
+        };
+
+        const showError = msg => {
+            errorMsg.textContent = msg;
+            showOnly(errorPanel);
+            if (window.lucide) lucide.createIcons({ nodes: [errorPanel] });
+        };
+
+        // ── botão com loading inline ──────────────────────────────────────────
+        const btnLoading = (btn, yes) => {
+            if (yes) {
+                btn.setAttribute('data-loading', '');
+                const icon = btn.querySelector('i[data-lucide]');
+                if (icon && !btn.querySelector('.btn-spinner')) {
+                    const sp = document.createElement('span');
+                    sp.className = 'btn-spinner';
+                    btn.insertBefore(sp, btn.firstChild);
+                }
+            } else {
+                btn.removeAttribute('data-loading');
+                btn.querySelector('.btn-spinner')?.remove();
+            }
+        };
+
+        // ── ETAPA 1 ───────────────────────────────────────────────────────────
+        const showStep1 = fluxo => {
+            setStepIndicator(1);
+            showOnly(step1El);
+
+            if (fluxo.paciente.encontrado) {
+                s1Found.hidden = false;
+                s1Form.hidden  = true;
+                s1FoundName.textContent = fluxo.paciente.nome || fluxo.nomePaciente;
+            } else {
+                s1Found.hidden = true;
+                s1Form.hidden  = false;
+                s1FormErr.hidden = true;
+
+                // preencher com dados da solicitação
+                s1Nome.value     = fluxo.nomePaciente || '';
+                s1Telefone.value = maskPhone(fluxo.telefone || '');
+                s1Email.value    = fluxo.email || '';
+                s1Cpf.value      = maskCpf(fluxo.cpf || '');
+
+                // endereço domiciliar
+                s1EndBloco.hidden = !state.isDomicilio;
+                if (state.isDomicilio) {
+                    document.getElementById('s1Cep').value    = maskCep(fluxo.cep || '');
+                    document.getElementById('s1Rua').value    = fluxo.rua || '';
+                    document.getElementById('s1Numero').value = fluxo.numero || '';
+                    document.getElementById('s1Bairro').value = fluxo.bairro || '';
+                    document.getElementById('s1Cidade').value = fluxo.cidade || '';
+                    document.getElementById('s1Estado').value = fluxo.estado || '';
+                }
             }
 
-            const fields = {
-                nomeCompleto: document.getElementById('modalNomeCompleto'),
-                telefone: document.getElementById('modalTelefone'),
-                email: document.getElementById('modalEmail'),
-                cpf: document.getElementById('modalCpf'),
-                cep: document.getElementById('modalCep'),
-                rua: document.getElementById('modalRua'),
-                numero: document.getElementById('modalNumero'),
-                bairro: document.getElementById('modalBairro'),
-                cidade: document.getElementById('modalCidade'),
-                estado: document.getElementById('modalEstado')
+            if (window.lucide) lucide.createIcons({ nodes: [step1El] });
+        };
+
+        // avançar pós-paciente encontrado
+        document.getElementById('s1NextBtn').addEventListener('click', async () => {
+            setLoading('Verificando plano de tratamento…');
+            try {
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                advanceFromPaciente(f);
+            } catch (e) {
+                showError(e.message);
+            }
+        });
+
+        // submeter cadastro de paciente
+        formStep1.addEventListener('submit', async e => {
+            e.preventDefault();
+            s1FormErr.hidden = true;
+
+            const nome     = s1Nome.value.trim();
+            const telefone = s1Telefone.value.trim();
+            if (!nome)     { showS1Err('Informe o nome do paciente.'); return; }
+            if (!telefone) { showS1Err('Informe o telefone do paciente.'); return; }
+
+            const body = {
+                nomeCompleto: nome,
+                telefone,
+                email:  s1Email.value.trim() || null,
+                cpf:    s1Cpf.value.replace(/\D/g,'') || null,
+            };
+            if (state.isDomicilio) {
+                body.cep    = document.getElementById('s1Cep').value.replace(/\D/g,'') || null;
+                body.rua    = document.getElementById('s1Rua').value.trim()    || null;
+                body.numero = document.getElementById('s1Numero').value.trim() || null;
+                body.bairro = document.getElementById('s1Bairro').value.trim() || null;
+                body.cidade = document.getElementById('s1Cidade').value.trim() || null;
+                body.estado = document.getElementById('s1Estado').value.trim().toUpperCase() || null;
+            }
+
+            btnLoading(s1SubmitBtn, true);
+            try {
+                await postJson(`/api/solicitacoes/${state.solicitacaoId}/cadastrar`, body);
+                setLoading('Paciente cadastrado! Verificando plano de tratamento…');
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                advanceFromPaciente(f);
+            } catch (err) {
+                showS1Err(err.message);
+            } finally {
+                btnLoading(s1SubmitBtn, false);
+            }
+        });
+
+        const showS1Err = msg => {
+            s1ErrMsg.textContent = msg;
+            s1FormErr.hidden = false;
+            if (window.lucide) lucide.createIcons({ nodes: [s1FormErr] });
+        };
+
+        const advanceFromPaciente = f => {
+            if (!f.plano.disponivel) {
+                showStep2(f);
+            } else {
+                state.planoId = f.plano.planos[0]?.id ?? null;
+                showStep3(f);
+            }
+        };
+
+        // ── ETAPA 2 ───────────────────────────────────────────────────────────
+        const showStep2 = fluxo => {
+            setStepIndicator(2);
+            showOnly(step2El);
+            s2FormErr.hidden = true;
+            s2PacNome.textContent = fluxo.paciente.nome || fluxo.nomePaciente;
+
+            // defaults inteligentes
+            s2NomePlano.value = 'Plano de Tratamento';
+            s2Sessoes.value   = '10';
+            s2Valor.value     = '';
+            s2DataIni.value   = new Date().toISOString().slice(0,10);
+            s2DataVal.value   = '';
+
+            if (window.lucide) lucide.createIcons({ nodes: [step2El] });
+        };
+
+        document.getElementById('s2BackBtn').addEventListener('click', () => showStep1(state.fluxo));
+
+        formStep2.addEventListener('submit', async e => {
+            e.preventDefault();
+            s2FormErr.hidden = true;
+
+            const nomePlano = s2NomePlano.value.trim();
+            const sessoes   = parseInt(s2Sessoes.value, 10);
+            if (!nomePlano)       { showS2Err('Informe o nome do plano de tratamento.'); return; }
+            if (!sessoes || sessoes < 1) { showS2Err('Informe ao menos 1 sessão.'); return; }
+
+            const valorRaw = s2Valor.value.replace(/[^\d,\.]/g,'').replace(',','.');
+            const valor    = valorRaw ? parseFloat(valorRaw) : 0;
+
+            const body = {
+                nomePacote:          nomePlano,
+                sessoesContratadas:  sessoes,
+                valorTotal:          valor,
+                dataInicio:          s2DataIni.value || null,
+                dataValidade:        s2DataVal.value || null,
             };
 
-            const maskCpf = (value) => {
-                const digits = (value || '').replace(/\D/g, '').slice(0, 11);
-                return digits
-                    .replace(/^(\d{3})(\d)/, '$1.$2')
-                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
-            };
+            btnLoading(s2SubmitBtn, true);
+            try {
+                const plano = await postJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo/criar-plano`, body);
+                state.planoId = plano.id;
+                setLoading('Plano criado! Verificando disponibilidade do horário…');
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                showStep3(f);
+            } catch (err) {
+                showS2Err(err.message);
+            } finally {
+                btnLoading(s2SubmitBtn, false);
+            }
+        });
 
-            const maskPhone = (value) => {
-                const digits = (value || '').replace(/\D/g, '').slice(0, 11);
-                if (digits.length <= 10) {
-                    return digits
-                        .replace(/^(\d{2})(\d)/, '($1) $2')
-                        .replace(/(\d{4})(\d)/, '$1-$2');
-                }
-                return digits
-                    .replace(/^(\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{5})(\d)/, '$1-$2');
-            };
+        const showS2Err = msg => {
+            s2ErrMsg.textContent = msg;
+            s2FormErr.hidden = false;
+            if (window.lucide) lucide.createIcons({ nodes: [s2FormErr] });
+        };
 
-            const maskCep = (value) => {
-                const digits = (value || '').replace(/\D/g, '').slice(0, 8);
-                return digits.replace(/^(\d{5})(\d)/, '$1-$2');
-            };
+        // ── ETAPA 3 ───────────────────────────────────────────────────────────
+        const showStep3 = fluxo => {
+            setStepIndicator(3);
+            showOnly(step3El);
+            s3ConfErr.hidden = true;
 
-            const setModalOpen = (open) => {
-                modal.classList.toggle('is-open', open);
-                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
-                body.classList.toggle('modal-open', open);
-            };
+            // preencher resumo
+            csP.textContent  = fluxo.paciente.nome || fluxo.nomePaciente;
+            csDt.textContent = fluxo.dataHoraFormatada;
+            csL.textContent  = fluxo.tipoAtendimento
+                + (fluxo.enderecoResumo ? ' — ' + fluxo.enderecoResumo : '');
 
-            const syncAddressVisibility = (showAddressFields) => {
-                if (!modalEnderecoBloco) {
-                    return;
-                }
-                modalEnderecoBloco.style.display = showAddressFields ? '' : 'none';
-                ['rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((key) => {
-                    if (fields[key]) {
-                        fields[key].required = showAddressFields;
-                    }
+            // plano
+            if (state.planoId && fluxo.plano.planos.length > 0) {
+                const pl = fluxo.plano.planos.find(p => p.id === state.planoId)
+                        || fluxo.plano.planos[0];
+                if (!state.planoId) state.planoId = pl.id;
+                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+            } else if (fluxo.plano.planos.length > 0) {
+                const pl = fluxo.plano.planos[0];
+                state.planoId = pl.id;
+                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+            } else {
+                csPl.textContent = '—';
+            }
+
+            // observações
+            if (fluxo.observacoes) {
+                csObs.textContent = fluxo.observacoes;
+                csObsRow.hidden   = false;
+            } else {
+                csObsRow.hidden = true;
+            }
+
+            // disponibilidade
+            if (fluxo.disponibilidade.disponivel) {
+                s3Disp.hidden    = false;
+                s3Indisp.hidden  = true;
+                s3ConfirmBtn.hidden = false;
+            } else {
+                s3Disp.hidden    = true;
+                s3Indisp.hidden  = false;
+                s3IndMsg.textContent = fluxo.disponibilidade.mensagem || 'Horário indisponível.';
+                s3ConfirmBtn.hidden = true;
+            }
+
+            if (window.lucide) lucide.createIcons({ nodes: [step3El] });
+        };
+
+        s3ConfirmBtn.addEventListener('click', async () => {
+            s3ConfErr.hidden = true;
+            btnLoading(s3ConfirmBtn, true);
+            try {
+                await postJson(`/api/solicitacoes/${state.solicitacaoId}/aprovar`, {
+                    pacoteSessaoId: state.planoId || null
                 });
-            };
+                closeModal();
+                window.location.href = '/solicitacoes?sucesso=1';
+            } catch (err) {
+                s3ErrMsg.textContent = err.message;
+                s3ConfErr.hidden = false;
+                if (window.lucide) lucide.createIcons({ nodes: [s3ConfErr] });
+            } finally {
+                btnLoading(s3ConfirmBtn, false);
+            }
+        });
 
-            openButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const existingClient = button.dataset.existingClient === 'true';
-                    const isDomicilio = button.dataset.local === 'DOMICILIO';
-                    const needsRegister = !existingClient;
+        // ── entrada do wizard ─────────────────────────────────────────────────
+        document.querySelectorAll('.open-wizard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                state.solicitacaoId = btn.dataset.solId;
+                state.isDomicilio   = btn.dataset.local === 'DOMICILIO';
+                state.fluxo         = null;
+                state.planoId       = null;
 
-                    form.dataset.targetFormId = existingClient ? button.dataset.approveFormId : button.dataset.registerFormId;
-                    modalTitle.textContent = existingClient ? 'Aprovar solicitação' : 'Cadastrar paciente';
-                    modalSubtitle.textContent = existingClient
-                        ? 'Revise os dados da solicitação antes de aprovar.'
-                        : 'Confirme os dados do paciente para concluir o cadastro antes da aprovação.';
-                    modalPatientStatus.textContent = existingClient
-                        ? 'Paciente já cadastrado'
-                        : 'Paciente sem cadastro. Confirme os dados para criar o cadastro.';
-                    modalAppointmentSummary.textContent = button.dataset.datahora || '';
-                    modalAddressSummary.textContent = isDomicilio
-                        ? `Em domicílio${button.dataset.endereco ? ' - ' + button.dataset.endereco : ''}`
-                        : 'Atendimento na clínica';
-                    modalActionHint.textContent = existingClient
-                        ? 'Para concluir a aprovação, o paciente ainda precisa ter um plano de tratamento disponível.'
-                        : 'Depois do cadastro, a solicitação continuará pendente para você aprovar no próximo passo.';
-                    modalSubmitLabel.textContent = existingClient ? 'Aprovar' : 'Cadastrar';
+                setLoading('Verificando dados da solicitação…');
+                setModalOpen(true);
+                setStepIndicator(1);
 
-                    cadastroNecessarioBloco.style.display = needsRegister ? '' : 'none';
-                    syncAddressVisibility(needsRegister && isDomicilio);
+                try {
+                    const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                    state.fluxo = f;
 
-                    fields.nomeCompleto.value = button.dataset.nome || '';
-                    fields.telefone.value = maskPhone(button.dataset.telefone || '');
-                    fields.email.value = button.dataset.email || '';
-                    fields.cpf.value = maskCpf(button.dataset.cpf || '');
-                    fields.cep.value = maskCep(button.dataset.cep || '');
-                    fields.rua.value = button.dataset.rua || '';
-                    fields.numero.value = button.dataset.numero || '';
-                    fields.bairro.value = button.dataset.bairro || '';
-                    fields.cidade.value = button.dataset.cidade || '';
-                    fields.estado.value = button.dataset.estado || '';
-
-                    setModalOpen(true);
-                });
-            });
-
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-
-                const targetFormId = form.dataset.targetFormId;
-                const targetForm = targetFormId ? document.getElementById(targetFormId) : null;
-                if (!targetForm) {
-                    return;
-                }
-
-                ['nomeCompleto', 'telefone', 'email', 'cpf', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((key) => {
-                    const targetField = targetForm.querySelector(`[name="${key}"]`);
-                    if (targetField && fields[key]) {
-                        targetField.value = fields[key].value || '';
-                    }
-                });
-
-                targetForm.requestSubmit();
-            });
-
-            [fields.cpf, fields.telefone, fields.cep].forEach((field) => {
-                if (!field) {
-                    return;
-                }
-                field.addEventListener('input', () => {
-                    if (field === fields.cpf) {
-                        field.value = maskCpf(field.value);
-                    } else if (field === fields.telefone) {
-                        field.value = maskPhone(field.value);
+                    if (!f.paciente.encontrado) {
+                        showStep1(f);
+                    } else if (!f.plano.disponivel) {
+                        state.planoId = null;
+                        showStep1(f);   // mostra "encontrado" e espera clique em Próximo
                     } else {
-                        field.value = maskCep(field.value);
+                        state.planoId = f.plano.planos[0]?.id ?? null;
+                        showStep1(f);   // mostra "encontrado" e espera clique em Próximo
                     }
-                });
-            });
-
-            modal.querySelectorAll('[data-modal-close]').forEach((element) => {
-                element.addEventListener('click', () => setModalOpen(false));
-            });
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
-                    setModalOpen(false);
+                } catch (err) {
+                    showError(err.message);
                 }
             });
-        })();
+        });
+
+        // ── máscara nos campos de etapa 1 ─────────────────────────────────────
+        s1Cpf?.addEventListener('input', () => { s1Cpf.value = maskCpf(s1Cpf.value); });
+        s1Telefone?.addEventListener('input', () => { s1Telefone.value = maskPhone(s1Telefone.value); });
+
+        // ── redirecionar se ?sucesso=1 ────────────────────────────────────────
+        if (new URLSearchParams(location.search).get('sucesso') === '1') {
+            history.replaceState(null, '', '/solicitacoes');
+            // mostrar flash de sucesso dinamicamente
+            const flashStack = document.querySelector('.flash-stack');
+            if (flashStack) {
+                const div = document.createElement('div');
+                div.className = 'flash-message success';
+                div.innerHTML = '<i data-lucide="circle-check"></i><span>Solicitação aprovada com sucesso. Agendamento confirmado na agenda.</span>';
+                flashStack.prepend(div);
+                if (window.lucide) lucide.createIcons({ nodes: [div] });
+                setTimeout(() => div.remove(), 6000);
+            }
+        }
+    })();
     </script>
 </body>
 </html>
-
-
-
-
-
