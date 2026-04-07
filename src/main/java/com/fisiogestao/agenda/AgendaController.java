@@ -1,5 +1,6 @@
 package com.fisiogestao.agenda;
 
+import com.fisiogestao.agenda.dto.SessaoEdicaoDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
@@ -11,6 +12,8 @@ import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -179,6 +183,57 @@ public class AgendaController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/agenda?data=" + retorno;
+    }
+
+    @GetMapping("/sessoes/{id}/json")
+    @ResponseBody
+    public ResponseEntity<?> buscarSessaoJson(@PathVariable UUID id) {
+        try {
+            SessaoEntity sessao = agendaService.buscarSessao(id);
+            SessaoEdicaoDto dto = SessaoEdicaoDto.of(
+                    sessao.getId(),
+                    sessao.getCliente().getId(),
+                    sessao.getCliente().getNomeCompleto(),
+                    sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null,
+                    sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getNomePacote() : null,
+                    sessao.getDataHoraInicio().toLocalDate(),
+                    sessao.getDataHoraInicio().toLocalTime(),
+                    sessao.getTipoAtendimento(),
+                    sessao.getObservacoes(),
+                    sessao.getStatus().name()
+            );
+            return ResponseEntity.ok(dto);
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new java.util.Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/sessoes/{id}/json")
+    @ResponseBody
+    public ResponseEntity<?> atualizarSessaoJson(
+            @PathVariable UUID id,
+            @RequestParam UUID clienteId,
+            @RequestParam(required = false) UUID pacoteSessaoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horario,
+            @RequestParam(required = false) String tipoAtendimento,
+            @RequestParam(required = false) String observacoes,
+            Authentication authentication
+    ) {
+        try {
+            AgendaManualForm form = new AgendaManualForm();
+            form.setClienteId(clienteId);
+            form.setPacoteSessaoId(pacoteSessaoId);
+            form.setData(data);
+            form.setHorario(horario);
+            form.setTipoAtendimento(tipoAtendimento);
+            form.setObservacoes(observacoes);
+            agendaService.atualizarSessaoManual(id, form, authentication != null ? authentication.getName() : "Equipe da clínica");
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "Sessão atualizada com sucesso."));
+        } catch (BusinessException ex) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("success", false, "error", ex.getMessage()));
+        }
     }
 
     private void prepararPaginaComFallback(
