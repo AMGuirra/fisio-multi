@@ -30,6 +30,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -208,14 +210,16 @@ public class AgendaController {
     public ResponseEntity<?> buscarSessaoJson(@PathVariable UUID id) {
         try {
             SessaoEntity sessao = agendaService.buscarSessao(id);
+            ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+            ZonedDateTime inicio = sessao.getDataHoraInicio().atZoneSameInstant(zoneId);
             SessaoEdicaoDto dto = SessaoEdicaoDto.of(
                     sessao.getId(),
                     sessao.getCliente().getId(),
                     sessao.getCliente().getNomeCompleto(),
                     sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null,
                     sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getNomePacote() : null,
-                    sessao.getDataHoraInicio().toLocalDate(),
-                    sessao.getDataHoraInicio().toLocalTime(),
+                    inicio.toLocalDate(),
+                    inicio.toLocalTime(),
                     sessao.getTipoAtendimento(),
                     sessao.getObservacoes(),
                     sessao.getStatus().name()
