@@ -1470,3 +1470,108 @@ body[data-theme='dark'] .flash-message.warning {
         flex-basis: 100%;
     }
 }
+
+/* ===================================================
+   MOBILE PREMIUM — layout, safe areas & touch
+   =================================================== */
+
+/* Safe area padding for iPhone notch / Dynamic Island */
+.app-header {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Sidebar: respect safe area when open as drawer on mobile */
+@media (max-width: 920px) {
+    .app-sidebar {
+        padding-left: max(14px, calc(10px + env(safe-area-inset-left)));
+        padding-bottom: max(16px, calc(12px + env(safe-area-inset-bottom)));
+    }
+}
+
+/* Sidebar links: ensure comfortable touch target */
+.sidebar-link {
+    min-height: 44px;
+}
+
+/* Sidebar link: no hover transform on touch (avoids flicker) */
+@media (hover: none) {
+    .sidebar-link:hover {
+        transform: none;
+    }
+
+    .sidebar-link:active {
+        background: rgba(216, 243, 236, 0.18);
+    }
+
+    .header-toggle:hover,
+    .user-menu-button:hover,
+    .user-menu-item:hover {
+        transform: none;
+    }
+}
+
+/* Modal scroll-lock on desktop already handled via overflow:hidden in crud-modern.css */
+
+/* ===================================================
+   480px — very small phones
+   =================================================== */
+
+@media (max-width: 480px) {
+    /* Header: tighter padding on very small screens */
+    .app-header {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    /* Hide STATUS DO SISTEMA chip on very small screens to free header space */
+    .header-info-chip:first-child {
+        display: none;
+    }
+
+    /* Header title: a bit tighter */
+    .header-copy {
+        max-width: 44vw;
+    }
+
+    /* Dashboard main: minimal padding */
+    .dashboard-main {
+        padding: 10px 12px;
+    }
+
+    /* User menu panel: full width on very small screens */
+    .user-menu-panel {
+        position: fixed;
+        inset: auto 10px 0;
+        min-width: 0;
+        width: auto;
+        border-radius: 16px 16px 0 0;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        z-index: 1300;
+    }
+
+    /* Quick actions grid: already 1-col but make buttons taller */
+    .quick-action {
+        min-height: 64px;
+    }
+
+    /* Metrics grid: already 1-col, just tighten gap */
+    .metrics-grid {
+        gap: 10px;
+    }
+
+    /* Metric card: tighter padding */
+    .metric-card {
+        padding: 14px;
+    }
+
+    /* Hero card on dashboard: minimal padding */
+    .hero-card {
+        padding: 14px 16px;
+    }
+
+    /* Hero kicker / subtitle: hide */
+    .hero-subtitle {
+        display: none;
+    }
+}

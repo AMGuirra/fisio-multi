@@ -345,7 +345,7 @@
             </article>
         </section>
 
-        <section class="crud-layout two-column">
+        <section class="crud-layout">
             <article class="section-card">
                 <header class="section-head"><h3 class="section-title"><i data-lucide="mail"></i> Enviar relatório</h3></header>
                 <div class="section-body">
@@ -366,60 +366,9 @@
                     </form>
                 </div>
             </article>
-
-            <article class="section-card">
-                <header class="section-head"><h3 class="section-title"><i data-lucide="bell-ring"></i> Lembretes</h3></header>
-                <div class="section-body">
-                    <form th:action="@{/relatorios/lembretes}" th:object="${lembreteEmailForm}" method="post" class="modern-form">
-                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
-                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
-                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
-                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
-                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
-                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
-                        <div class="form-field"><label for="emailDestinatario">E-mail</label><input id="emailDestinatario" type="email" class="form-control" th:field="*{emailDestinatario}"></div>
-                        <div class="form-grid form-grid-two">
-                            <div class="form-field"><label for="nomeDestinatario">Nome</label><input id="nomeDestinatario" class="form-control" th:field="*{nomeDestinatario}"></div>
-                            <div class="form-field"><label for="tipo">Tipo</label><select id="tipo" class="form-select" th:field="*{tipo}"><option th:each="tipo : ${tiposLembrete}" th:value="${tipo}" th:text="${tipo}"></option></select></div>
-                        </div>
-                        <div class="form-grid form-grid-two">
-                            <div class="form-field"><label for="dataReferencia">Data</label><input id="dataReferencia" type="date" class="form-control" th:field="*{dataReferencia}"></div>
-                            <div class="form-field"><label for="horaReferencia">Hora</label><input id="horaReferencia" type="time" class="form-control" th:field="*{horaReferencia}"></div>
-                        </div>
-                        <div class="form-field"><label for="assuntoLembrete">Assunto</label><input id="assuntoLembrete" class="form-control" th:field="*{assunto}"></div>
-                        <div class="form-field"><label for="mensagemLembrete">Mensagem</label><textarea id="mensagemLembrete" rows="3" class="form-control" th:field="*{mensagem}"></textarea></div>
-                        <button type="submit" class="action-button success"><i data-lucide="bell-ring"></i>Enviar lembrete</button>
-                    </form>
-                </div>
-            </article>
         </section>
 
-        <section class="crud-layout form-table">
-            <article class="section-card">
-                <header class="section-head"><h3 class="section-title"><i data-lucide="badge-dollar-sign"></i> Cobrança por e-mail</h3></header>
-                <div class="section-body">
-                    <form th:action="@{/relatorios/cobrancas}" th:object="${cobrancaEmailForm}" method="post" class="modern-form">
-                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
-                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
-                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
-                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
-                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
-                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
-                        <div class="form-field">
-                            <label for="lancamentoId">Lançamento</label>
-                            <select id="lancamentoId" class="form-select" th:field="*{lancamentoId}">
-                                <option value="">Selecione...</option>
-                                <option th:each="item : ${lancamentosPendentes}" th:value="${item.id}" th:text="${item.descricao + ' - ' + item.valor}"></option>
-                            </select>
-                        </div>
-                        <div class="form-field"><label for="emailDestinatarioCobranca">E-mail</label><input id="emailDestinatarioCobranca" type="email" class="form-control" th:field="*{emailDestinatario}"></div>
-                        <div class="form-field"><label for="assuntoCobranca">Assunto</label><input id="assuntoCobranca" class="form-control" th:field="*{assunto}"></div>
-                        <div class="form-field"><label for="mensagemCobranca">Mensagem</label><textarea id="mensagemCobranca" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
-                        <button type="submit" class="action-button danger"><i data-lucide="mail-warning"></i>Enviar cobrança</button>
-                    </form>
-                </div>
-            </article>
-
+        <section class="crud-layout">
             <article class="section-card">
                 <header class="section-head">
                     <div>

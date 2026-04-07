@@ -170,6 +170,22 @@ public class AgendaController {
         return "redirect:/agenda?data=" + retorno;
     }
 
+    @PostMapping("/sessoes/{id}/reabrir")
+    public String reverterRealizacao(
+            @PathVariable UUID id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = data != null ? data : LocalDate.now();
+        try {
+            agendaService.reverterRealizacao(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão reaberta como agendada.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/agenda?data=" + retorno;
+    }
+
     @PostMapping("/sessoes/{id}/realizar")
     public String concluirSessao(
             @PathVariable java.util.UUID id,

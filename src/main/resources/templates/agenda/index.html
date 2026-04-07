@@ -128,6 +128,19 @@
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
                                         </form>
+                                        <form th:if="${sessao.status.name() == 'REALIZADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Desfazer realização?"
+                                              data-confirm-message="Deseja reverter esta sessão para agendada?"
+                                              data-confirm-helper-title="A sessão voltará a ficar pendente"
+                                              data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
+                                              data-confirm-action-label="Desfazer realização">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
+                                        </form>
                                         <form th:if="${sessao.status.name() != 'CANCELADA'}"
                                               th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
                                               method="post"

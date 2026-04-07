@@ -38,7 +38,7 @@ server:
 
 app:
   timezone: America/Campo_Grande
-  base-url: ${APP_BASE_URL:http://localhost:8083}
+  base-url: ${APP_BASE_URL:https://fisio-anne.onrender.com}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY:}
   bootstrap-admin:

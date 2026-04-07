@@ -367,6 +367,33 @@ public class AgendaService {
     }
 
     @Transactional
+    public SessaoEntity reverterRealizacao(UUID sessaoId) {
+        SessaoEntity sessao = sessaoRepository.findById(sessaoId)
+                .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
+        var snapshotAnterior = auditService.snapshotOf(sessao);
+
+        if (sessao.getStatus() != SessaoStatus.REALIZADA) {
+            throw new BusinessException("Apenas sessões realizadas podem ser revertidas para agendada.");
+        }
+
+        sessao.setStatus(SessaoStatus.AGENDADA);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.RESTORE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Realização desfeita — sessão reaberta como agendada.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
+    }
+
+    @Transactional
     public SessaoEntity reagendarSessao(UUID sessaoId, LocalDate data, LocalTime horario, String profissionalResponsavel) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
