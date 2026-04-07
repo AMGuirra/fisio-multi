@@ -14,6 +14,8 @@ spring:
       hibernate:
         jdbc:
           time_zone: America/Campo_Grande
+        timezone:
+          default_storage: NORMALIZE
     show-sql: false
   flyway:
     enabled: true
