@@ -286,13 +286,13 @@ public class AgendaService {
         UUID pacoteAnteriorId = sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null;
         boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado());
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
-        boolean permitirRetroativo = sessao.getStatus() == SessaoStatus.REALIZADA || form.getData().isBefore(LocalDate.now());
+        boolean permitirRetroativo = sessao.getStatus() == SessaoStatus.REALIZADA || !form.getData().isAfter(LocalDate.now());
         validarHorarioDisponivel(
                 intervalo.inicio(),
                 intervalo.fim(),
                 null,
                 sessaoId,
-                sessao.getStatus() == SessaoStatus.REALIZADA
+                permitirRetroativo
         );
 
         PacoteSessaoEntity novoPacote = pacoteSessaoService.resolverPacoteParaSessao(
