@@ -219,7 +219,8 @@ public class SolicitacaoAgendamentoService {
                 solicitacao.getDataHoraInicio(),
                 solicitacao.getDataHoraFim(),
                 bloqueio.getId(),
-                null
+                null,
+                true
         );
 
         ClienteEntity cliente = solicitacao.getCliente();
