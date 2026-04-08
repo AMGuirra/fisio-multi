@@ -5,6 +5,7 @@ import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,12 +30,17 @@ public class FinanceiroController {
     @GetMapping
     public String index(
             @RequestParam(required = false) UUID editar,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
             Model model
     ) {
+        LocalDate periodoInicio = inicio != null ? inicio : LocalDate.now().withDayOfMonth(1);
+        LocalDate periodoFim   = fim   != null ? fim   : LocalDate.now();
+
         LancamentoFinanceiroForm form = model.asMap().get("lancamentoForm") instanceof LancamentoFinanceiroForm existente
                 ? existente
                 : null;
-        prepararPagina(model, form, editar);
+        prepararPagina(model, form, editar, periodoInicio, periodoFim);
         return "financeiro/index";
     }
 
@@ -46,7 +52,7 @@ public class FinanceiroController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form, null);
+            prepararPagina(model, form, null, LocalDate.now().withDayOfMonth(1), LocalDate.now());
             return "financeiro/index";
         }
 
@@ -56,7 +62,7 @@ public class FinanceiroController {
             return "redirect:/financeiro";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form, null);
+            prepararPagina(model, form, null, LocalDate.now().withDayOfMonth(1), LocalDate.now());
             return "financeiro/index";
         }
     }
@@ -70,7 +76,7 @@ public class FinanceiroController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form, id);
+            prepararPagina(model, form, id, LocalDate.now().withDayOfMonth(1), LocalDate.now());
             return "financeiro/index";
         }
 
@@ -80,7 +86,7 @@ public class FinanceiroController {
             return "redirect:/financeiro";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form, id);
+            prepararPagina(model, form, id, LocalDate.now().withDayOfMonth(1), LocalDate.now());
             return "financeiro/index";
         }
     }
@@ -127,7 +133,8 @@ public class FinanceiroController {
         return "redirect:/financeiro";
     }
 
-    private void prepararPagina(Model model, LancamentoFinanceiroForm form, UUID lancamentoEdicaoId) {
+    private void prepararPagina(Model model, LancamentoFinanceiroForm form, UUID lancamentoEdicaoId,
+                                LocalDate periodoInicio, LocalDate periodoFim) {
         LancamentoFinanceiroEntity lancamentoEmEdicao = null;
         LancamentoFinanceiroForm formResolvido = form;
         if (lancamentoEdicaoId != null) {
@@ -140,12 +147,14 @@ public class FinanceiroController {
             formResolvido = criarFormPadrao();
         }
 
+        FinanceiroService.ResumoFinanceiro resumo = financeiroService.calcularResumo(periodoInicio, periodoFim);
+
         model.addAttribute("lancamentoForm", formResolvido);
         model.addAttribute("tiposLancamento", TipoLancamentoFinanceiro.values());
-        model.addAttribute("lancamentos", financeiroService.listarTodos());
-        model.addAttribute("totalReceitasPendentes", financeiroService.totalReceitasPendentes());
-        model.addAttribute("totalDespesasPendentes", financeiroService.totalDespesasPendentes());
-        model.addAttribute("saldoProjetado", financeiroService.saldoProjetado());
+        model.addAttribute("lancamentos", financeiroService.listarNoPeriodo(periodoInicio, periodoFim));
+        model.addAttribute("resumo", resumo);
+        model.addAttribute("periodoInicio", periodoInicio);
+        model.addAttribute("periodoFim", periodoFim);
         model.addAttribute("editMode", lancamentoEmEdicao != null);
         model.addAttribute("lancamentoEmEdicao", lancamentoEmEdicao);
     }

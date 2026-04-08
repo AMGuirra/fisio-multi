@@ -9,6 +9,7 @@ import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,7 @@ public class SolicitacaoFluxoApiController {
 
     // ── GET /api/solicitacoes/{id}/fluxo ─────────────────────────────────────
     // Retorna o estado completo do wizard: paciente, plano e disponibilidade
+    @Transactional(readOnly = true)
     @GetMapping("/{id}/fluxo")
     public FluxoStatusResponse verificarFluxo(@PathVariable UUID id) {
         SolicitacaoAgendamentoEntity sol = solicitacaoService.buscarPorId(id);

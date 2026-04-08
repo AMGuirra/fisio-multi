@@ -179,6 +179,134 @@
     background: rgba(40, 86, 179, 0.18);
 }
 
+.summary-card.receita-pendente .summary-icon {
+    background: #edfbf4;
+    color: #1d8a5a;
+}
+.summary-card.receita-pendente::after {
+    background: rgba(19, 121, 75, 0.09);
+}
+
+.summary-card.despesa-pendente .summary-icon {
+    background: #fff5f5;
+    color: #b85454;
+}
+.summary-card.despesa-pendente::after {
+    background: rgba(173, 64, 64, 0.09);
+}
+
+.summary-grid.grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* ── Filtro de período ────────────────────────────────────────── */
+.period-filter-card {
+    padding: 14px 16px;
+}
+
+.period-filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.period-quick-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.period-quick-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--stroke-soft);
+    background: var(--bg-soft);
+    color: var(--text-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+    font-family: inherit;
+}
+
+.period-quick-btn:hover,
+.period-quick-btn.active {
+    background: var(--brand-500);
+    border-color: var(--brand-500);
+    color: #fff;
+}
+
+.period-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.period-input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    font-weight: 600;
+}
+
+.period-input-group .form-control {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    width: auto;
+}
+
+.period-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 4px;
+}
+
+@media (max-width: 1024px) {
+    .summary-grid.grid-5 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .summary-grid.grid-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .period-form {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+body[data-theme='dark'] .period-quick-btn {
+    background: var(--bg-soft);
+    border-color: var(--stroke-soft);
+    color: var(--text-body);
+}
+
+body[data-theme='dark'] .period-quick-btn:hover,
+body[data-theme='dark'] .period-quick-btn.active {
+    background: var(--brand-500);
+    border-color: var(--brand-500);
+    color: #fff;
+}
+
+body[data-theme='dark'] .summary-card.receita-pendente .summary-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+}
+body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+}
+
 .modern-form {
     display: flex;
     flex-direction: column;

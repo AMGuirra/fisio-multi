@@ -30,8 +30,49 @@ public class FinanceiroService {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
 
+    public record ResumoFinanceiro(
+            BigDecimal receitasRecebidas,
+            BigDecimal receitasPendentes,
+            BigDecimal despesasPagas,
+            BigDecimal despesasPendentes
+    ) {
+        public BigDecimal saldoRealizado() {
+            return receitasRecebidas.subtract(despesasPagas);
+        }
+        public BigDecimal saldoProjetado() {
+            return receitasRecebidas.add(receitasPendentes).subtract(despesasPagas).subtract(despesasPendentes);
+        }
+    }
+
     public List<LancamentoFinanceiroEntity> listarTodos() {
         return lancamentoFinanceiroRepository.findAllByOrderByDataCompetenciaDescCreatedAtDesc();
+    }
+
+    public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
+        ZoneId zone = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
+        OffsetDateTime dtInicio = inicio.atStartOfDay(zone).toOffsetDateTime();
+        OffsetDateTime dtFim = fim.plusDays(1).atStartOfDay(zone).toOffsetDateTime().minusNanos(1);
+        return lancamentoFinanceiroRepository
+                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(dtInicio, dtFim);
+    }
+
+    public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
+        List<LancamentoFinanceiroEntity> lista = listarNoPeriodo(inicio, fim);
+        return new ResumoFinanceiro(
+                somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO),
+                somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE),
+                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PAGO),
+                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE)
+        );
+    }
+
+    private BigDecimal somarFiltrado(List<LancamentoFinanceiroEntity> lista,
+                                     TipoLancamentoFinanceiro tipo,
+                                     StatusLancamentoFinanceiro status) {
+        return lista.stream()
+                .filter(l -> l.getTipo() == tipo && l.getStatus() == status)
+                .map(LancamentoFinanceiroEntity::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public LancamentoFinanceiroEntity buscarPorId(UUID id) {
