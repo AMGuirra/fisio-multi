@@ -6,19 +6,19 @@ import java.util.Optional;
 
 public enum AppMenuItem {
     DASHBOARD("Dashboard", "/dashboard", "layout-dashboard", false, false, true, false, List.of("/", "/dashboard")),
-    AGENDA("Agenda", "/agenda", "calendar-days", false, false, true, false, List.of("/agenda")),
+    AGENDA("Agenda", "/agenda", "calendar-days", false, false, true, false, List.of("/agenda", "/calendario", "/bloqueios")),
     CALENDARIO("Calendário", "/calendario", "calendar-range", false, false, true, false, List.of("/calendario")),
     BLOQUEIOS("Bloqueios", "/bloqueios", "calendar-x-2", false, false, true, false, List.of("/bloqueios")),
     SOLICITACOES("Solicitações", "/solicitacoes", "calendar-plus", false, false, true, false, List.of("/solicitacoes", "/api/solicitacoes")),
     WHATSAPP("Fila WhatsApp", "/whatsapp", "messages-square", false, false, true, false, List.of("/whatsapp")),
-    PACIENTES("Pacientes", "/pacientes", "stethoscope", false, false, true, false, List.of("/pacientes")),
+    PACIENTES("Pacientes", "/pacientes", "stethoscope", false, false, true, false, List.of("/pacientes", "/pacotes-consumo", "/prontuario")),
     PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open", false, false, true, false, List.of("/pacotes-consumo")),
     PRONTUARIO("Prontuário", "/prontuario", "clipboard-pen-line", false, false, true, false, List.of("/prontuario")),
     FINANCEIRO("Financeiro", "/financeiro", "wallet", false, false, true, false, List.of("/financeiro")),
     RELATORIOS("Relatórios", "/relatorios", "file-text", false, false, true, false, List.of("/relatorios")),
     CONFIG_CLINICA("Config. Clínica", "/configuracoes/clinica", "building-2", false, false, false, true, List.of("/configuracoes/clinica", "/configuracao/clinica")),
     SYSTEM_STATUS("Status do Sistema", "/admin/system-status", "monitor-check", false, false, false, true, List.of("/admin/system-status")),
-    USUARIOS("Usuários", "/usuarios", "users", false, false, false, true, List.of("/usuarios")),
+    USUARIOS("Usuários", "/usuarios", "users", false, false, false, true, List.of("/usuarios", "/funcoes-usuarios", "/configuracoes/email", "/configuracao/email", "/whatsapp", "/auditoria")),
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, List.of("/funcoes-usuarios")),
     CONFIG_EMAIL("Config. E-mail", "/configuracoes/email", "mail-check", false, false, true, false, List.of("/configuracoes/email", "/configuracao/email")),
     AUDITORIA("Auditoria", "/auditoria", "shield-check", false, false, true, false, List.of("/auditoria")),
@@ -149,20 +149,12 @@ public enum AppMenuItem {
                 DASHBOARD,
                 SOLICITACOES,
                 AGENDA,
-                CALENDARIO,
-                BLOQUEIOS,
                 PACIENTES,
-                PACOTES_SESSOES,
-                PRONTUARIO,
                 FINANCEIRO,
                 RELATORIOS,
                 CONFIG_CLINICA,
                 SYSTEM_STATUS,
-                USUARIOS,
-                FUNCOES_USUARIOS,
-                CONFIG_EMAIL,
-                WHATSAPP,
-                AUDITORIA
+                USUARIOS
         );
     }
 

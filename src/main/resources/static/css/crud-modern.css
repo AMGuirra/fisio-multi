@@ -1547,3 +1547,61 @@ body.modal-open {
 .mt-10 { margin-top: 10px; }
 .mt-14 { margin-top: 14px; }
 .initially-hidden { display: none; }
+
+/* ── Page Tab Navigation ──────────────────────────────────────────── */
+.page-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+}
+
+.page-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: calc(var(--radius-lg) - 4px);
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+}
+
+.page-tab:hover {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+}
+
+.page-tab.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.page-tab svg,
+.page-tab [data-lucide] {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .page-tabs {
+        gap: 2px;
+        padding: 4px;
+    }
+    .page-tab {
+        padding: 7px 11px;
+        font-size: 0.8rem;
+    }
+}

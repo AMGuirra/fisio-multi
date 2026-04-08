@@ -51,6 +51,12 @@
                 <span class="hero-pill">Operação clínica</span>
             </section>
 
+            <nav class="page-tabs" aria-label="Seções da Agenda">
+                <a href="/agenda" class="page-tab"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
+                <a href="/calendario" class="page-tab"><i data-lucide="calendar-range"></i> Calendário</a>
+                <a href="/bloqueios" class="page-tab active"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+            </nav>
+
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>

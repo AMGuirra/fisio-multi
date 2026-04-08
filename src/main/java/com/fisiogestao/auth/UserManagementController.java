@@ -5,6 +5,7 @@ import com.fisiogestao.auth.service.PasswordResetService;
 import com.fisiogestao.email.service.EmailDispatchResult;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -138,6 +139,9 @@ public class UserManagementController {
             redirectAttributes.addFlashAttribute("successMessage", "Usuário excluído com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (DataIntegrityViolationException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                "Não é possível excluir este usuário pois ele possui registros de auditoria ou outros vínculos no sistema.");
         }
         return "redirect:/usuarios";
     }

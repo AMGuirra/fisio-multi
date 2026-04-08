@@ -197,36 +197,27 @@ public class UserMenuAccessService {
             case FISIOTERAPEUTA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
-                    AppMenuItem.CALENDARIO,
                     AppMenuItem.PACIENTES,
-                    AppMenuItem.PRONTUARIO,
                     AppMenuItem.RELATORIOS
             );
             case RECEPCAO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
-                    AppMenuItem.CALENDARIO,
-                    AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.WHATSAPP,
-                    AppMenuItem.PACOTES_SESSOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.AGENDAMENTO_ONLINE
             );
             case ASSESSORIA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.WHATSAPP,
                     AppMenuItem.PACIENTES,
-                    AppMenuItem.RELATORIOS,
-                    AppMenuItem.AUDITORIA
+                    AppMenuItem.RELATORIOS
             );
             case FINANCEIRO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
-                    AppMenuItem.PACOTES_SESSOES,
+                    AppMenuItem.PACIENTES,
                     AppMenuItem.FINANCEIRO,
-                    AppMenuItem.RELATORIOS,
-                    AppMenuItem.CONFIG_EMAIL
+                    AppMenuItem.RELATORIOS
             );
         };
     }
