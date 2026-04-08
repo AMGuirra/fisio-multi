@@ -21,7 +21,7 @@
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -97,7 +97,7 @@
                     <div class="section-body" th:unless="${sessoes.empty}">
                         <div class="session-list">
                             <article class="session-card" th:each="sessao : ${sessoes}">
-                                <div class="session-row" style="align-items:flex-start;">
+                                <div class="session-row align-start">
                                     <span class="session-time" th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">09:00</span>
                                     <div class="session-detail">
                                         <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
@@ -299,14 +299,13 @@
                             </form>
                             <form th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessaoEmEdicao.id})}"
                                   method="post"
-                                  class="inline-form"
+                                  class="inline-form mt-10"
                                   data-confirm-modal
                                   data-confirm-title="Cancelar sessão?"
                                   data-confirm-message="Deseja cancelar esta sessão?"
                                   data-confirm-helper-title="A sessão será cancelada agora"
                                   data-confirm-helper-message="O horário volta a ficar disponível para novos agendamentos."
-                                  data-confirm-action-label="Cancelar sessão"
-                                  style="margin-top:10px;">
+                                  data-confirm-action-label="Cancelar sessão">
                                 <input type="hidden" name="data" th:value="${dataSelecionada}">
                                 <button type="submit" class="action-button danger"><i data-lucide="x-circle"></i>Cancelar sessão</button>
                             </form>
@@ -336,14 +335,14 @@
                                 </div>
                             </div>
 
-                            <div th:if="${bloqueiosAgenda == null or bloqueiosAgenda.empty}" class="empty-box" style="margin-top: 14px;">
+                            <div th:if="${bloqueiosAgenda == null or bloqueiosAgenda.empty}" class="empty-box mt-14">
                                 <i data-lucide="calendar-check-2"></i>
                                 <p>Nenhum bloqueio oficial registrado para esta data.</p>
                             </div>
 
-                            <div th:unless="${bloqueiosAgenda == null or bloqueiosAgenda.empty}" class="request-list" style="margin-top: 14px;">
+                            <div th:unless="${bloqueiosAgenda == null or bloqueiosAgenda.empty}" class="request-list mt-14">
                                 <article class="request-card request-card-block" th:each="bloqueio : ${bloqueiosAgenda}">
-                                    <div class="request-row" style="align-items:flex-start;">
+                                    <div class="request-row align-start">
                                         <span class="session-time"
                                               th:text="${bloqueio.diaInteiro ? 'Dia todo' : (#temporals.format(bloqueio.dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm'))}">Dia todo</span>
                                         <div class="request-detail">
@@ -517,7 +516,7 @@
                             <textarea id="editarSessaoObservacoes" name="observacoes" class="form-control" rows="3"></textarea>
                         </div>
 
-                        <div class="form-error" id="editarSessaoError" style="display: none;"></div>
+                        <div class="form-error initially-hidden" id="editarSessaoError"></div>
 
                         <div class="modal-actions">
                             <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>

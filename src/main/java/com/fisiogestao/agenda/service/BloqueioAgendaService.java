@@ -31,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class BloqueioAgendaService {
 
     private static final List<SessaoStatus> STATUS_OCUPADOS = List.of(SessaoStatus.AGENDADA, SessaoStatus.REALIZADA);

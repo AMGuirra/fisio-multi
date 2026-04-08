@@ -78,7 +78,7 @@ public class AgendamentoEmailNotificationService {
     }
 
     public void notificarConfirmadoPorSessao(SessaoEntity sessao, String profissional) {
-        if (sessao.getCliente() == null || !possuiEmail(sessao.getCliente().getEmail())) {
+        if (!possuiEmail(sessao.getCliente().getEmail())) {
             return;
         }
         enviar(
@@ -97,7 +97,7 @@ public class AgendamentoEmailNotificationService {
     }
 
     public void notificarReagendado(SessaoEntity sessao, OffsetDateTime inicioAnterior, OffsetDateTime fimAnterior, String profissional) {
-        if (sessao.getCliente() == null || !possuiEmail(sessao.getCliente().getEmail())) {
+        if (!possuiEmail(sessao.getCliente().getEmail())) {
             return;
         }
         enviar(

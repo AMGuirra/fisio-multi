@@ -155,6 +155,15 @@
             vertical-align: middle;
             margin-right: .3rem;
         }
+
+        /* ── Utility classes ──────────────────────────────────────── */
+        .flex-fill { flex: 1; min-width: 0; }
+        .mt-half { margin-top: .5rem; }
+        .mt-3q { margin-top: .75rem; }
+        .required-mark { color: #f87171; }
+        .hint-text { color: var(--text-muted, #8a99b3); font-size: .8rem; margin: .5rem 0 .75rem; }
+        .icon-xs { width: 13px; height: 13px; }
+        .icon-xs-mid { width: 13px; height: 13px; vertical-align: middle; }
     </style>
 </head>
 <body class="dashboard-app dashboard-loading">
@@ -165,7 +174,7 @@
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
@@ -321,9 +330,9 @@
 
                     <!-- ── Cabeçalho fixo ──────────────────────────── -->
                     <header class="app-modal-header">
-                        <div class="app-modal-title-block" style="flex:1;min-width:0;">
+                        <div class="app-modal-title-block flex-fill">
                             <h3 id="wizardTitle">Aprovar Solicitação</h3>
-                            <div class="wizard-progress" id="wizardProgress" style="margin-top:.5rem;">
+                            <div class="wizard-progress mt-half" id="wizardProgress">
                                 <div class="wizard-step-item" id="ws1"><span class="step-num">1</span><span>Paciente</span></div>
                                 <div class="wizard-step-divider"></div>
                                 <div class="wizard-step-item" id="ws2"><span class="step-num">2</span><span>Plano</span></div>
@@ -390,11 +399,11 @@
 
                                 <form id="formStep1" class="modern-form" novalidate>
                                     <div class="form-field">
-                                        <label for="s1Nome">Nome completo <span style="color:#f87171">*</span></label>
+                                        <label for="s1Nome">Nome completo <span class="required-mark">*</span></label>
                                         <input id="s1Nome" name="nomeCompleto" type="text" class="form-control" maxlength="160" required>
                                     </div>
                                     <div class="form-field">
-                                        <label for="s1Telefone">Telefone <span style="color:#f87171">*</span></label>
+                                        <label for="s1Telefone">Telefone <span class="required-mark">*</span></label>
                                         <input id="s1Telefone" name="telefone" type="text" class="form-control" maxlength="20" required>
                                     </div>
                                     <div class="form-field">
@@ -407,8 +416,8 @@
                                     </div>
 
                                     <div id="s1EnderecoBloco" hidden>
-                                        <p style="color:var(--text-muted,#8a99b3);font-size:.8rem;margin:.5rem 0 .75rem">
-                                            <i data-lucide="home" style="width:13px;height:13px;vertical-align:middle"></i>
+                                        <p class="hint-text">
+                                            <i data-lucide="home" class="icon-xs-mid"></i>
                                             Endereço para atendimento em domicílio
                                         </p>
                                         <div class="form-field">
@@ -416,28 +425,28 @@
                                             <input id="s1Cep" name="cep" type="text" class="form-control" maxlength="9" placeholder="00000-000">
                                         </div>
                                         <div class="form-field">
-                                            <label for="s1Rua">Rua <span style="color:#f87171">*</span></label>
+                                            <label for="s1Rua">Rua <span class="required-mark">*</span></label>
                                             <input id="s1Rua" name="rua" type="text" class="form-control" maxlength="160">
                                         </div>
                                         <div class="form-field">
-                                            <label for="s1Numero">Número <span style="color:#f87171">*</span></label>
+                                            <label for="s1Numero">Número <span class="required-mark">*</span></label>
                                             <input id="s1Numero" name="numero" type="text" class="form-control" maxlength="20">
                                         </div>
                                         <div class="form-field">
-                                            <label for="s1Bairro">Bairro <span style="color:#f87171">*</span></label>
+                                            <label for="s1Bairro">Bairro <span class="required-mark">*</span></label>
                                             <input id="s1Bairro" name="bairro" type="text" class="form-control" maxlength="120">
                                         </div>
                                         <div class="form-field">
-                                            <label for="s1Cidade">Cidade <span style="color:#f87171">*</span></label>
+                                            <label for="s1Cidade">Cidade <span class="required-mark">*</span></label>
                                             <input id="s1Cidade" name="cidade" type="text" class="form-control" maxlength="120">
                                         </div>
                                         <div class="form-field">
-                                            <label for="s1Estado">Estado (UF) <span style="color:#f87171">*</span></label>
+                                            <label for="s1Estado">Estado (UF) <span class="required-mark">*</span></label>
                                             <input id="s1Estado" name="estado" type="text" class="form-control" maxlength="2" placeholder="UF">
                                         </div>
                                     </div>
 
-                                    <div id="s1FormError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                                    <div id="s1FormError" class="wizard-status-card danger mt-3q" hidden>
                                         <span class="status-icon"><i data-lucide="alert-circle"></i></span>
                                         <div class="status-text"><span id="s1ErrorMsg"></span></div>
                                     </div>
@@ -466,12 +475,12 @@
 
                             <form id="formStep2" class="modern-form" novalidate>
                                 <div class="form-field">
-                                    <label for="s2NomePlano">Nome do plano <span style="color:#f87171">*</span></label>
+                                    <label for="s2NomePlano">Nome do plano <span class="required-mark">*</span></label>
                                     <input id="s2NomePlano" name="nomePacote" type="text" class="form-control" maxlength="120"
                                            placeholder="Ex: Plano Mensal, Pacote 10 sessões…">
                                 </div>
                                 <div class="form-field">
-                                    <label for="s2Sessoes">Sessões contratadas <span style="color:#f87171">*</span></label>
+                                    <label for="s2Sessoes">Sessões contratadas <span class="required-mark">*</span></label>
                                     <input id="s2Sessoes" name="sessoesContratadas" type="number" class="form-control"
                                            min="1" max="999" placeholder="Ex: 10">
                                 </div>
@@ -481,7 +490,7 @@
                                            placeholder="0,00 (opcional)">
                                 </div>
                                 <div class="form-field">
-                                    <label for="s2DataInicio">Data de início <span style="color:#f87171">*</span></label>
+                                    <label for="s2DataInicio">Data de início <span class="required-mark">*</span></label>
                                     <input id="s2DataInicio" name="dataInicio" type="date" class="form-control">
                                 </div>
                                 <div class="form-field">
@@ -489,7 +498,7 @@
                                     <input id="s2DataValidade" name="dataValidade" type="date" class="form-control">
                                 </div>
 
-                                <div id="s2FormError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                                <div id="s2FormError" class="wizard-status-card danger mt-3q" hidden>
                                     <span class="status-icon"><i data-lucide="alert-circle"></i></span>
                                     <div class="status-text"><span id="s2ErrorMsg"></span></div>
                                 </div>
@@ -512,23 +521,23 @@
                             <!-- Resumo do agendamento -->
                             <div class="confirm-summary" id="confirmSummary">
                                 <div class="confirm-summary-row">
-                                    <span class="confirm-summary-label"><i data-lucide="user" style="width:13px;height:13px"></i> Paciente</span>
+                                    <span class="confirm-summary-label"><i data-lucide="user" class="icon-xs"></i> Paciente</span>
                                     <span class="confirm-summary-value" id="cs_paciente">—</span>
                                 </div>
                                 <div class="confirm-summary-row">
-                                    <span class="confirm-summary-label"><i data-lucide="calendar" style="width:13px;height:13px"></i> Data/Hora</span>
+                                    <span class="confirm-summary-label"><i data-lucide="calendar" class="icon-xs"></i> Data/Hora</span>
                                     <span class="confirm-summary-value" id="cs_datahora">—</span>
                                 </div>
                                 <div class="confirm-summary-row">
-                                    <span class="confirm-summary-label"><i data-lucide="map-pin" style="width:13px;height:13px"></i> Local</span>
+                                    <span class="confirm-summary-label"><i data-lucide="map-pin" class="icon-xs"></i> Local</span>
                                     <span class="confirm-summary-value" id="cs_local">—</span>
                                 </div>
                                 <div class="confirm-summary-row">
-                                    <span class="confirm-summary-label"><i data-lucide="package" style="width:13px;height:13px"></i> Plano</span>
+                                    <span class="confirm-summary-label"><i data-lucide="package" class="icon-xs"></i> Plano</span>
                                     <span class="confirm-summary-value" id="cs_plano">—</span>
                                 </div>
                                 <div class="confirm-summary-row" id="cs_obsRow">
-                                    <span class="confirm-summary-label"><i data-lucide="message-square" style="width:13px;height:13px"></i> Observações</span>
+                                    <span class="confirm-summary-label"><i data-lucide="message-square" class="icon-xs"></i> Observações</span>
                                     <span class="confirm-summary-value" id="cs_obs">—</span>
                                 </div>
                             </div>
@@ -554,7 +563,7 @@
                                 </div>
                             </div>
 
-                            <div id="s3ConfirmError" class="wizard-status-card danger" hidden style="margin-top:.75rem">
+                            <div id="s3ConfirmError" class="wizard-status-card danger mt-3q" hidden>
                                 <span class="status-icon"><i data-lucide="alert-circle"></i></span>
                                 <div class="status-text"><span id="s3ErrorMsg"></span></div>
                             </div>

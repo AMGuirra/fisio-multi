@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class EmailConfiguracaoService {
 
     private final EmailConfiguracaoRepository emailConfiguracaoRepository;

@@ -1007,6 +1007,7 @@ body.modal-open {
     position: absolute;
     inset: 0;
     background: rgba(15, 33, 40, 0.56);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -1422,7 +1423,6 @@ label,
 
 /* Smooth horizontal scroll on iOS for tables */
 .data-table-wrap {
-    -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     /* Scroll-shadow hint: subtle gradient indicating more content */
     background:
@@ -1541,3 +1541,9 @@ body.modal-open {
         min-width: 0;
     }
 }
+
+/* ── Utility classes ──────────────────────────────────────────────── */
+.align-start { align-items: flex-start !important; }
+.mt-10 { margin-top: 10px; }
+.mt-14 { margin-top: 14px; }
+.initially-hidden { display: none; }

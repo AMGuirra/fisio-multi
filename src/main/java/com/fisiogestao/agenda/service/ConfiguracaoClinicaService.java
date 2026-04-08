@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ConfiguracaoClinicaService {
 
     private static final List<TimezoneOption> TIMEZONES_SUPORTADOS = List.of(

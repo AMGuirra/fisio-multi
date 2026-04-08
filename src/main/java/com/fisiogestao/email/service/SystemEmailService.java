@@ -117,11 +117,22 @@ public class SystemEmailService {
         sender.setPassword(secretCryptoService.decrypt(configuracao.getSenhaAppCriptografada()));
         sender.setDefaultEncoding(StandardCharsets.UTF_8.name());
 
+        // STARTTLS (porta 587) e SSL direto (porta 465) são mutuamente exclusivos.
+        // Quando TLS (STARTTLS) está habilitado, SSL direto deve ser desabilitado.
+        // Importante: Properties.getProperty() só lê Strings — usar String.valueOf() para garantir.
+        boolean usaTls = Boolean.TRUE.equals(configuracao.getUsaTls());
+        boolean usaSsl = !usaTls && Boolean.TRUE.equals(configuracao.getUsaSsl());
+        boolean usaAuth = Boolean.TRUE.equals(configuracao.getUsaAutenticacao());
+
         Properties properties = sender.getJavaMailProperties();
         properties.put("mail.transport.protocol", "smtp");
-        properties.put("mail.smtp.auth", Boolean.TRUE.equals(configuracao.getUsaAutenticacao()));
-        properties.put("mail.smtp.starttls.enable", Boolean.TRUE.equals(configuracao.getUsaTls()));
-        properties.put("mail.smtp.ssl.enable", Boolean.TRUE.equals(configuracao.getUsaSsl()));
+        properties.put("mail.smtp.auth", String.valueOf(usaAuth));
+        properties.put("mail.smtp.starttls.enable", String.valueOf(usaTls));
+        properties.put("mail.smtp.starttls.required", String.valueOf(usaTls));
+        properties.put("mail.smtp.ssl.enable", String.valueOf(usaSsl));
+        if (usaSsl) {
+            properties.put("mail.smtp.ssl.trust", configuracao.getSmtpHost());
+        }
         properties.put("mail.debug", "false");
         properties.put("mail.smtp.connectiontimeout", "10000");
         properties.put("mail.smtp.timeout", "10000");

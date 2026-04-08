@@ -15,12 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class InMemoryUserCatalog {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryUserCatalog.class);

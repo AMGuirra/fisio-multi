@@ -36,6 +36,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class AgendaService {
 
     private static final List<SessaoStatus> STATUS_SESSAO_OCUPADA = List.of(SessaoStatus.AGENDADA, SessaoStatus.REALIZADA);
@@ -87,7 +88,7 @@ public class AgendaService {
         OffsetDateTime agora = OffsetDateTime.now(zoneId);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        java.util.ArrayList<SlotDisponivelDto> slots = new java.util.ArrayList<>();
+        ArrayList<SlotDisponivelDto> slots = new ArrayList<>();
         LocalTime cursor = configuracao.getHorarioAbertura();
         while (!cursor.plusMinutes(configuracao.getDuracaoSessaoMinutos()).isAfter(configuracao.getHorarioFechamento())) {
             LocalTime fim = cursor.plusMinutes(configuracao.getDuracaoSessaoMinutos());

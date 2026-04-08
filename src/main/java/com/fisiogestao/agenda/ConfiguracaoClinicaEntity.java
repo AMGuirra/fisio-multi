@@ -80,10 +80,10 @@ public class ConfiguracaoClinicaEntity extends BaseEntity {
     private Boolean ativo = true;
 
     public Set<DayOfWeek> diasFuncionamentoSet() {
-        EnumSet<DayOfWeek> dias = EnumSet.noneOf(DayOfWeek.class);
-        if (diasFuncionamento == null || diasFuncionamento.isBlank()) {
+        if (diasFuncionamento.isBlank()) {
             return EnumSet.copyOf(DIAS_FUNCIONAMENTO_PADRAO);
         }
+        EnumSet<DayOfWeek> dias = EnumSet.noneOf(DayOfWeek.class);
         Arrays.stream(diasFuncionamento.split(","))
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
