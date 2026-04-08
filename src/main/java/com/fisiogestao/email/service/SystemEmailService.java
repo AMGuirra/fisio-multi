@@ -105,7 +105,7 @@ public class SystemEmailService {
             String mensagemErro = mensagemLimpa(ex);
             registrarLog(configuracao, request, EmailLogStatus.FALHA, mensagemErro);
             registrarAuditoria(request, EmailLogStatus.FALHA, mensagemErro, false);
-            return EmailDispatchResult.failure("Não foi possível enviar o e-mail. Verifique a configuração SMTP e tente novamente.");
+            return EmailDispatchResult.failure("Falha SMTP: " + mensagemErro);
         }
     }
 
