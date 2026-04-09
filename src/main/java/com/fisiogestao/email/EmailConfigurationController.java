@@ -93,9 +93,8 @@ public class EmailConfigurationController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
-        EmailConfiguracaoForm formConfiguracao = emailConfiguracaoService.buscarPorId(id) != null
-                ? toForm(emailConfiguracaoService.buscarPorId(id))
-                : formPadrao();
+        var configuracao = emailConfiguracaoService.buscarPorId(id);
+        EmailConfiguracaoForm formConfiguracao = toForm(configuracao);
 
         if (bindingResult.hasErrors()) {
             prepararPagina(model, formConfiguracao);
@@ -104,7 +103,7 @@ public class EmailConfigurationController {
 
         try {
             EmailDispatchResult result = emailConfiguracaoService.testarEnvio(
-                    emailConfiguracaoService.buscarPorId(id),
+                    configuracao,
                     form.getDestinatario(),
                     authentication != null ? authentication.getName() : "sistema"
             );

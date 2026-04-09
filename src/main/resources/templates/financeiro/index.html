@@ -242,7 +242,7 @@
                                     <td>
                                         <span class="chip" th:classappend="${lancamento.status.name() == 'PAGO' ? 'status-pago' : (lancamento.status.name() == 'CANCELADO' ? 'status-cancelado' : 'status-pendente')}" th:text="${lancamento.status.name()}">PENDENTE</span>
                                     </td>
-                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 2)}">R$ 0,00</strong></td>
+                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
                                     <td class="text-right">
                                         <div class="table-actions">
                                             <a th:if="${lancamento.status.name() != 'CANCELADO'}"
