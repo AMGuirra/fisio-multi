@@ -1837,7 +1837,7 @@ body.modal-open {
 }
 
 .page-tab.active {
-    background: var(--primary);
+    background: var(--brand-500);
     color: #fff;
 }
 

@@ -24,6 +24,6 @@ public class SlotsApiController {
     public ResponseEntity<List<SlotDisponivelDto>> slots(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data
     ) {
-        return ResponseEntity.ok(agendaService.gerarSlotsDisponiveis(data));
+        return ResponseEntity.ok(agendaService.gerarSlotsDisponiveis(data, true, 10));
     }
 }

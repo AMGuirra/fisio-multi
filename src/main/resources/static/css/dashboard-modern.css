@@ -1462,12 +1462,9 @@ body[data-theme='dark'] .flash-message.warning {
         grid-template-columns: 1fr;
     }
 
+    /* Esconde os chips de data/hora no header em phones — o dashboard já exibe na página */
     .header-insights {
-        gap: 8px;
-    }
-
-    .header-info-chip {
-        flex-basis: 100%;
+        display: none;
     }
 }
 
