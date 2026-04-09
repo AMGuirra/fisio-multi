@@ -75,7 +75,7 @@ public class SolicitacaoAgendamentoService {
         ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
         OffsetDateTime inicio = inicioInclusive != null ? inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime() : null;
         OffsetDateTime fim    = fimInclusive    != null ? fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime() : null;
-        return solicitacaoAgendamentoRepository.filtrarHistorico(status, inicio, fim);
+        return solicitacaoAgendamentoRepository.filtrarHistorico(SolicitacaoStatus.PENDENTE, status, inicio, fim);
     }
 
     public SolicitacaoAgendamentoEntity buscarPorId(UUID id) {
@@ -346,8 +346,13 @@ public class SolicitacaoAgendamentoService {
             agendaService.validarHorarioDisponivel(novoIntervalo.inicio(), novoIntervalo.fim(), bloqueio.getId(), null);
         }
 
-        solicitacao.setNomePaciente(texto(form.getNomePaciente()));
-        solicitacao.setTelefone(form.getTelefone().replaceAll("\\D", ""));
+        String novoNome = texto(form.getNomePaciente());
+        if (novoNome == null) throw new BusinessException("Informe o nome do paciente.");
+        String novoTelefone = form.getTelefone() == null ? null : form.getTelefone().replaceAll("\\D", "");
+        if (novoTelefone == null || novoTelefone.isBlank()) throw new BusinessException("Informe o telefone.");
+
+        solicitacao.setNomePaciente(novoNome);
+        solicitacao.setTelefone(novoTelefone);
         solicitacao.setEmail(texto(form.getEmail()));
         solicitacao.setLocalAtendimento(normalizarLocalAtendimento(form.getLocalAtendimento()));
         solicitacao.setObservacoes(texto(form.getObservacoes()));
@@ -532,6 +537,15 @@ public class SolicitacaoAgendamentoService {
                 null,
                 "Solicitação restaurada para pendente.",
                 AuditEventOrigin.MANUAL
+        );
+
+        whatsAppService.enfileirar(
+                solicitacao.getTelefone(),
+                "Sua solicitação de agendamento para "
+                        + solicitacao.getDataHoraInicio().toLocalDate() + " às "
+                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0)
+                        + " está sendo reavaliada. Em breve retornaremos com a confirmação.",
+                "RESTAURACAO:" + solicitacao.getId()
         );
     }
 

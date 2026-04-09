@@ -36,12 +36,13 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
 
     boolean existsByClienteId(UUID clienteId);
 
-    @Query("SELECT s FROM SolicitacaoAgendamentoEntity s WHERE s.status <> 'PENDENTE'" +
+    @Query("SELECT s FROM SolicitacaoAgendamentoEntity s WHERE s.status <> :excluido" +
            " AND (:status IS NULL OR s.status = :status)" +
            " AND (:inicio IS NULL OR s.dataHoraInicio >= :inicio)" +
            " AND (:fim IS NULL OR s.dataHoraInicio < :fim)" +
            " ORDER BY s.createdAt DESC")
     List<SolicitacaoAgendamentoEntity> filtrarHistorico(
+            @Param("excluido") SolicitacaoStatus excluido,
             @Param("status") SolicitacaoStatus status,
             @Param("inicio") OffsetDateTime inicio,
             @Param("fim") OffsetDateTime fim
