@@ -115,6 +115,33 @@
                 </article>
             </section>
 
+            <!-- Barra de métricas -->
+            <div class="section-card metrics-strip-card">
+                <div class="metrics-strip">
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="receipt"></i> Ticket Médio</span>
+                        <span class="metric-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.ticketMedio(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="percent"></i> Taxa de Recebimento</span>
+                        <span class="metric-value">
+                            <span class="metric-badge" th:classappend="${'tone-' + resumo.taxaTone()}" th:text="${resumo.taxaRecebimento()}">0,0%</span>
+                        </span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="trending-up"></i> Saldo Projetado</span>
+                        <span class="metric-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.saldoProjetado(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="layers"></i> Lançamentos Ativos</span>
+                        <span class="metric-value" th:text="${resumo.lancamentosAtivosCount()}">0</span>
+                    </div>
+                </div>
+            </div>
+
             <section class="crud-layout form-table">
                 <article class="section-card">
                     <header class="section-head">

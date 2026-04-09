@@ -307,6 +307,105 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
     color: #f87171;
 }
 
+/* ── Barra de métricas ─────────────────────────────────────────── */
+.metrics-strip-card {
+    padding: 0;
+}
+
+.metrics-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.metric-item {
+    flex: 1 1 0;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 20px;
+}
+
+.metric-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-soft);
+}
+
+.metric-label svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.metric-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.metric-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--stroke-soft);
+    flex-shrink: 0;
+}
+
+.metric-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.metric-badge.tone-success {
+    background: #ddf7e7;
+    color: #13794b;
+}
+.metric-badge.tone-warning {
+    background: #fff8e1;
+    color: #9a6a00;
+}
+.metric-badge.tone-danger {
+    background: #ffe6e6;
+    color: #ad4040;
+}
+.metric-badge.tone-neutral {
+    background: var(--bg-soft);
+    color: var(--text-soft);
+}
+
+@media (max-width: 640px) {
+    .metrics-strip {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .metric-divider {
+        width: 100%;
+        height: 1px;
+    }
+}
+
+body[data-theme='dark'] .metric-badge.tone-success {
+    background: rgba(19, 121, 75, 0.18);
+    color: #34d399;
+}
+body[data-theme='dark'] .metric-badge.tone-warning {
+    background: rgba(234, 179, 8, 0.15);
+    color: #facc15;
+}
+body[data-theme='dark'] .metric-badge.tone-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
 .modern-form {
     display: flex;
     flex-direction: column;

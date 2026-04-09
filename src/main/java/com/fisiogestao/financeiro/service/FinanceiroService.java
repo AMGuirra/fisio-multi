@@ -34,13 +34,36 @@ public class FinanceiroService {
             BigDecimal receitasRecebidas,
             BigDecimal receitasPendentes,
             BigDecimal despesasPagas,
-            BigDecimal despesasPendentes
+            BigDecimal despesasPendentes,
+            long receitasPagasCount,
+            long lancamentosAtivosCount
     ) {
         public BigDecimal saldoRealizado() {
             return receitasRecebidas.subtract(despesasPagas);
         }
         public BigDecimal saldoProjetado() {
             return receitasRecebidas.add(receitasPendentes).subtract(despesasPagas).subtract(despesasPendentes);
+        }
+        public BigDecimal ticketMedio() {
+            if (receitasPagasCount == 0) return BigDecimal.ZERO;
+            return receitasRecebidas.divide(
+                    BigDecimal.valueOf(receitasPagasCount), 2, java.math.RoundingMode.HALF_UP);
+        }
+        public String taxaRecebimento() {
+            BigDecimal total = receitasRecebidas.add(receitasPendentes);
+            if (total.compareTo(BigDecimal.ZERO) == 0) return "0,0%";
+            return receitasRecebidas.multiply(BigDecimal.valueOf(100))
+                    .divide(total, 1, java.math.RoundingMode.HALF_UP)
+                    .toPlainString().replace('.', ',') + "%";
+        }
+        public String taxaTone() {
+            BigDecimal total = receitasRecebidas.add(receitasPendentes);
+            if (total.compareTo(BigDecimal.ZERO) == 0) return "neutral";
+            BigDecimal taxa = receitasRecebidas.multiply(BigDecimal.valueOf(100))
+                    .divide(total, 1, java.math.RoundingMode.HALF_UP);
+            if (taxa.compareTo(BigDecimal.valueOf(80)) >= 0) return "success";
+            if (taxa.compareTo(BigDecimal.valueOf(50)) >= 0) return "warning";
+            return "danger";
         }
     }
 
@@ -58,11 +81,20 @@ public class FinanceiroService {
 
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
         List<LancamentoFinanceiroEntity> lista = listarNoPeriodo(inicio, fim);
+        long receitasPagasCount = lista.stream()
+                .filter(l -> l.getTipo() == TipoLancamentoFinanceiro.RECEITA
+                        && l.getStatus() == StatusLancamentoFinanceiro.PAGO)
+                .count();
+        long lancamentosAtivosCount = lista.stream()
+                .filter(l -> l.getStatus() != StatusLancamentoFinanceiro.CANCELADO)
+                .count();
         return new ResumoFinanceiro(
                 somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO),
                 somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE),
                 somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PAGO),
-                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE)
+                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE),
+                receitasPagasCount,
+                lancamentosAtivosCount
         );
     }
 
