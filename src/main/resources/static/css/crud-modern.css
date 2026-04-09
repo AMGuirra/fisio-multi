@@ -382,14 +382,27 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
     color: var(--text-soft);
 }
 
-@media (max-width: 640px) {
+/* tablets: 2×2 grid, hide dividers */
+@media (max-width: 768px) {
     .metrics-strip {
-        flex-direction: column;
-        align-items: stretch;
+        flex-wrap: wrap;
+    }
+    .metric-item {
+        flex: 1 1 calc(50% - 1px);
+        min-width: 0;
     }
     .metric-divider {
-        width: 100%;
-        height: 1px;
+        display: none;
+    }
+}
+
+/* phones: single column */
+@media (max-width: 480px) {
+    .metrics-strip {
+        flex-direction: column;
+    }
+    .metric-item {
+        flex: 1 1 auto;
     }
 }
 
@@ -1590,6 +1603,13 @@ body[data-theme='dark'] .calendar-cell {
         padding: 12px;
     }
 
+    /* Section header: wraps title + action button to separate rows on mobile */
+    .section-head {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    /* Standalone action buttons (forms, hero actions) go full-width on mobile */
     .action-button {
         width: 100%;
     }
@@ -1601,6 +1621,12 @@ body[data-theme='dark'] .calendar-cell {
 
     .data-table {
         min-width: 560px;
+    }
+
+    /* Table cell action buttons must stay compact — never full-width */
+    .table-actions .action-button {
+        width: auto;
+        flex-shrink: 0;
     }
 
     .request-actions .action-button,
