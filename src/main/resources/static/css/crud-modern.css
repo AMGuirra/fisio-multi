@@ -396,13 +396,10 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
     }
 }
 
-/* phones: single column */
+/* phones ≤480px: keep 2×2, just reduce padding */
 @media (max-width: 480px) {
-    .metrics-strip {
-        flex-direction: column;
-    }
     .metric-item {
-        flex: 1 1 auto;
+        padding: 0.7rem 0.8rem;
     }
 }
 

@@ -652,3 +652,33 @@ body[data-theme='dark'] {
         margin: 0 auto;
     }
 }
+
+@media (max-width: 640px) {
+    .report-hero-actions {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .report-highlight {
+        min-width: 0;
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    .report-highlight-strip {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .report-highlight {
+        flex: 1 1 100%;
+    }
+
+    .report-period-card {
+        padding: 12px;
+    }
+
+    .report-kpi-grid {
+        gap: 10px;
+    }
+}

@@ -94,6 +94,10 @@ public class AgendaService {
 
         ArrayList<SlotDisponivelDto> slots = new ArrayList<>();
         LocalTime cursor = configuracao.getHorarioAbertura();
+        // When gap is set (public API), snap cursor to next full hour so slots land on 07:00, 08:00, 09:00...
+        if (gapMinutos > 0 && cursor.getMinute() != 0) {
+            cursor = cursor.withMinute(0).withSecond(0).withNano(0).plusHours(1);
+        }
         while (!cursor.plusMinutes(configuracao.getDuracaoSessaoMinutos()).isAfter(configuracao.getHorarioFechamento())) {
             LocalTime fim = cursor.plusMinutes(configuracao.getDuracaoSessaoMinutos());
             OffsetDateTime inicioSlot = data.atTime(cursor).atZone(zoneId).toOffsetDateTime();
@@ -125,6 +129,10 @@ public class AgendaService {
             }
 
             cursor = fim.plusMinutes(gapMinutos);
+            // Keep full-hour alignment on each step
+            if (gapMinutos > 0 && cursor.getMinute() != 0) {
+                cursor = cursor.withMinute(0).withSecond(0).withNano(0).plusHours(1);
+            }
         }
         return slots;
     }
