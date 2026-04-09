@@ -58,6 +58,25 @@ public class AgendamentoEmailNotificationService {
         );
     }
 
+    public void notificarCancelado(SolicitacaoAgendamentoEntity solicitacao) {
+        if (!possuiEmail(solicitacao.getEmail())) {
+            return;
+        }
+        enviar(
+                solicitacao.getEmail(),
+                EmailLogType.AGENDAMENTO_CANCELADO,
+                "Seu agendamento foi cancelado",
+                "email/agendamento-cancelado",
+                solicitacao.getId(),
+                solicitacao.getNomePaciente(),
+                solicitacao.getDataHoraInicio(),
+                solicitacao.getObservacoes(),
+                "Equipe da clínica",
+                null,
+                null
+        );
+    }
+
     public void notificarRecusado(SolicitacaoAgendamentoEntity solicitacao) {
         if (!possuiEmail(solicitacao.getEmail())) {
             return;

@@ -25,6 +25,7 @@ import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
+import com.fisiogestao.solicitacoes.form.EditarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.whatsapp.service.WhatsAppService;
@@ -64,6 +65,17 @@ public class SolicitacaoAgendamentoService {
 
     public List<SolicitacaoAgendamentoEntity> listarTodas() {
         return solicitacaoAgendamentoRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    public List<SolicitacaoAgendamentoEntity> listarHistorico() {
+        return solicitacaoAgendamentoRepository.findByStatusNotOrderByCreatedAtDesc(SolicitacaoStatus.PENDENTE);
+    }
+
+    public List<SolicitacaoAgendamentoEntity> filtrarHistorico(SolicitacaoStatus status, LocalDate inicioInclusive, LocalDate fimInclusive) {
+        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+        OffsetDateTime inicio = inicioInclusive != null ? inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime() : null;
+        OffsetDateTime fim    = fimInclusive    != null ? fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime() : null;
+        return solicitacaoAgendamentoRepository.filtrarHistorico(status, inicio, fim);
     }
 
     public SolicitacaoAgendamentoEntity buscarPorId(UUID id) {
@@ -320,6 +332,66 @@ public class SolicitacaoAgendamentoService {
     }
 
     @Transactional
+    public SolicitacaoAgendamentoEntity editarSolicitacao(UUID solicitacaoId, EditarSolicitacaoForm form) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
+                .orElseThrow(() -> new BusinessException("Apenas solicitações pendentes podem ser editadas."));
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
+
+        HorarioBloqueadoEntity bloqueio = horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Bloqueio temporário da solicitação não encontrado."));
+
+        AgendaService.IntervaloAgenda novoIntervalo = agendaService.montarIntervalo(form.getData(), form.getHorario());
+        boolean horarioAlterado = !novoIntervalo.inicio().equals(solicitacao.getDataHoraInicio());
+        if (horarioAlterado) {
+            agendaService.validarHorarioDisponivel(novoIntervalo.inicio(), novoIntervalo.fim(), bloqueio.getId(), null);
+        }
+
+        solicitacao.setNomePaciente(texto(form.getNomePaciente()));
+        solicitacao.setTelefone(form.getTelefone().replaceAll("\\D", ""));
+        solicitacao.setEmail(texto(form.getEmail()));
+        solicitacao.setLocalAtendimento(normalizarLocalAtendimento(form.getLocalAtendimento()));
+        solicitacao.setObservacoes(texto(form.getObservacoes()));
+        solicitacao.setDataHoraInicio(novoIntervalo.inicio());
+        solicitacao.setDataHoraFim(novoIntervalo.fim());
+
+        if (horarioAlterado && texto(form.getMotivo()) != null) {
+            String historico = solicitacao.getObservacoes() == null ? "" : solicitacao.getObservacoes().trim() + "\n";
+            solicitacao.setObservacoes((historico + "Reagendado: " + form.getMotivo().trim()).trim());
+        }
+
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                texto(form.getMotivo()),
+                "Solicitação editada manualmente.",
+                AuditEventOrigin.MANUAL
+        );
+
+        if (horarioAlterado) {
+            bloqueio.setDataHoraInicio(novoIntervalo.inicio());
+            bloqueio.setDataHoraFim(novoIntervalo.fim());
+            bloqueio.setStatus(HorarioBloqueadoStatus.PENDENTE);
+            bloqueio.setMotivo("Reserva provisória editada");
+            horarioBloqueadoRepository.save(bloqueio);
+
+            whatsAppService.enfileirar(
+                    solicitacao.getTelefone(),
+                    "Seu pedido de agendamento foi reagendado para "
+                            + solicitacao.getDataHoraInicio().toLocalDate() + " às "
+                            + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0) + ".",
+                    "REAGENDAMENTO:" + solicitacao.getId()
+            );
+        }
+        return salva;
+    }
+
+    @Transactional
     public SolicitacaoAgendamentoEntity reagendarSolicitacao(UUID solicitacaoId, ReagendarSolicitacaoForm form) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser reagendadas."));
@@ -415,7 +487,7 @@ public class SolicitacaoAgendamentoService {
                 "Seu agendamento foi cancelado. Entre em contato para reagendar.",
                 "CANCELAMENTO:" + solicitacao.getId()
         );
-        agendamentoEmailNotificationService.notificarRecusado(solicitacao);
+        agendamentoEmailNotificationService.notificarCancelado(solicitacao);
     }
 
     @Transactional

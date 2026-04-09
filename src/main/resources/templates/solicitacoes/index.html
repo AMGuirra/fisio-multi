@@ -164,6 +164,33 @@
         .hint-text { color: var(--text-muted, #8a99b3); font-size: .8rem; margin: .5rem 0 .75rem; }
         .icon-xs { width: 13px; height: 13px; }
         .icon-xs-mid { width: 13px; height: 13px; vertical-align: middle; }
+
+        /* ── Filtro histórico ─────────────────────────────────────────── */
+        .filtro-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+        }
+        .filtro-form .form-field {
+            flex: 1;
+            min-width: 140px;
+            margin-bottom: 0;
+        }
+        .filtro-actions {
+            display: flex;
+            gap: .5rem;
+            padding-bottom: 1px;
+        }
+
+        /* ── Modal de confirmação ──────────────────────────────────────── */
+        .confirmar-msg {
+            color: var(--text-secondary, #c0cde0);
+            font-size: .9rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body class="dashboard-app dashboard-loading">
@@ -272,14 +299,19 @@
                                             <span>Aprovar</span>
                                         </button>
 
-                                        <!-- Reagendar ──────────────────────────────────── -->
+                                        <!-- Editar ─────────────────────────────────────── -->
                                         <button type="button"
-                                                class="action-button secondary open-reagendar"
+                                                class="action-button secondary open-editar"
                                                 th:attr="data-sol-id=${sol.id},
+                                                         data-nome=${sol.nomePaciente},
+                                                         data-telefone=${sol.telefone},
+                                                         data-email=${sol.email != null ? sol.email : ''},
                                                          data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
-                                                         data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')}">
-                                            <i data-lucide="calendar-clock"></i>
-                                            <span>Reagendar</span>
+                                                         data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')},
+                                                         data-local=${sol.localAtendimento},
+                                                         data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">
+                                            <i data-lucide="pencil"></i>
+                                            <span>Editar</span>
                                         </button>
 
                                         <!-- Rejeitar: form POST tradicional ────────────── -->
@@ -296,6 +328,35 @@
                     <!-- ── HISTÓRICO ─────────────────────────────────────────── -->
                     <div class="section-block">
                         <h4 class="section-subtitle">Histórico</h4>
+
+                        <!-- Filtros ────────────────────────────────────────────── -->
+                        <form method="get" action="/solicitacoes" class="modern-form filtro-form" id="filtroHistoricoForm">
+                            <div class="form-field">
+                                <label for="filtroStatus">Status</label>
+                                <select id="filtroStatus" name="filtroStatus" class="form-control">
+                                    <option value="" th:selected="${filtroStatus == null}">Todos</option>
+                                    <option value="APROVADA"  th:selected="${filtroStatus != null and filtroStatus.name() == 'APROVADA'}">Aprovada</option>
+                                    <option value="REJEITADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'REJEITADA'}">Rejeitada</option>
+                                    <option value="CANCELADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'CANCELADA'}">Cancelada</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="filtroInicio">De</label>
+                                <input id="filtroInicio" name="filtroInicio" type="date" class="form-control"
+                                       th:value="${filtroInicio}">
+                            </div>
+                            <div class="form-field">
+                                <label for="filtroFim">Até</label>
+                                <input id="filtroFim" name="filtroFim" type="date" class="form-control"
+                                       th:value="${filtroFim}">
+                            </div>
+                            <div class="filtro-actions">
+                                <button type="submit" class="action-button success">
+                                    <i data-lucide="search"></i> Filtrar
+                                </button>
+                                <a href="/solicitacoes" class="action-button ghost">Limpar</a>
+                            </div>
+                        </form>
                         <div th:if="${historico == null or historico.empty}" class="empty-box">
                             <i data-lucide="history"></i>
                             <p>Nenhuma solicitação no histórico.</p>
@@ -635,38 +696,61 @@
         </div><!-- /wizardModal -->
 
         <!-- ════════════════════════════════════════════════════════════
-             MODAL — REAGENDAR
+             MODAL — EDITAR SOLICITAÇÃO
         ════════════════════════════════════════════════════════════════ -->
-        <div id="reagendarModal" class="app-modal" aria-hidden="true">
-            <div class="app-modal-backdrop" id="reagendarBackdrop"></div>
-            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="reagendarTitle">
+        <div id="editarModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="editarBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editarTitle">
                 <div class="app-modal-card">
                     <header class="app-modal-header">
-                        <h3 id="reagendarTitle"><i data-lucide="calendar-clock"></i> Editar Data / Horário</h3>
-                        <button type="button" class="app-modal-close" id="reagendarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
+                        <h3 id="editarTitle"><i data-lucide="pencil"></i> Editar Solicitação</h3>
+                        <button type="button" class="app-modal-close" id="editarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
                     </header>
                     <div class="app-modal-body">
-                        <form id="formReagendar" class="modern-form" novalidate>
+                        <form id="formEditar" class="modern-form" novalidate>
                             <div class="form-field">
-                                <label for="rgData">Nova data <span class="required-mark">*</span></label>
-                                <input id="rgData" type="date" class="form-control" required>
+                                <label for="edNome">Nome do paciente <span class="required-mark">*</span></label>
+                                <input id="edNome" type="text" class="form-control" maxlength="160" required>
                             </div>
                             <div class="form-field">
-                                <label for="rgHorario">Novo horário <span class="required-mark">*</span></label>
-                                <input id="rgHorario" type="time" class="form-control" required>
+                                <label for="edTelefone">Telefone <span class="required-mark">*</span></label>
+                                <input id="edTelefone" type="text" class="form-control" maxlength="20" required>
                             </div>
                             <div class="form-field">
-                                <label for="rgMotivo">Motivo (opcional)</label>
-                                <input id="rgMotivo" type="text" class="form-control" maxlength="255" placeholder="Ex: Reagendado a pedido do paciente">
+                                <label for="edEmail">E-mail</label>
+                                <input id="edEmail" type="email" class="form-control" maxlength="120">
                             </div>
-                            <div id="rgError" class="wizard-status-card danger mt-3q" hidden>
+                            <div class="form-field">
+                                <label for="edData">Data <span class="required-mark">*</span></label>
+                                <input id="edData" type="date" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edHorario">Horário <span class="required-mark">*</span></label>
+                                <input id="edHorario" type="time" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edLocal">Local de atendimento <span class="required-mark">*</span></label>
+                                <select id="edLocal" class="form-control" required>
+                                    <option value="CLINICA">Clínica</option>
+                                    <option value="DOMICILIO">Em domicílio</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="edObs">Observações</label>
+                                <textarea id="edObs" class="form-control" maxlength="2000" rows="3"></textarea>
+                            </div>
+                            <div class="form-field">
+                                <label for="edMotivo">Motivo da alteração (opcional)</label>
+                                <input id="edMotivo" type="text" class="form-control" maxlength="255" placeholder="Ex: Solicitado pelo paciente">
+                            </div>
+                            <div id="edError" class="wizard-status-card danger mt-3q" hidden>
                                 <span class="status-icon"><i data-lucide="alert-circle"></i></span>
-                                <div class="status-text"><span id="rgErrorMsg"></span></div>
+                                <div class="status-text"><span id="edErrorMsg"></span></div>
                             </div>
                             <div class="modal-actions">
-                                <button type="button" class="action-button ghost" id="reagendarCloseBtn">Cancelar</button>
-                                <button type="submit" class="action-button success" id="rgSubmitBtn">
-                                    <i data-lucide="save"></i> <span>Salvar alteração</span>
+                                <button type="button" class="action-button ghost" id="editarCloseBtn">Cancelar</button>
+                                <button type="submit" class="action-button success" id="edSubmitBtn">
+                                    <i data-lucide="save"></i> <span>Salvar alterações</span>
                                 </button>
                             </div>
                         </form>
@@ -687,7 +771,7 @@
                         <button type="button" class="app-modal-close" id="confirmarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
                     </header>
                     <div class="app-modal-body">
-                        <p id="confirmarMsg" style="color:var(--text-secondary,#c0cde0);font-size:.9rem;margin-bottom:1.25rem;line-height:1.5"></p>
+                        <p id="confirmarMsg" class="confirmar-msg"></p>
                         <form id="formConfirmar" method="post" action="#">
                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                             <div class="modal-actions">
@@ -1136,17 +1220,22 @@
         s1Telefone?.addEventListener('input', () => { s1Telefone.value = maskPhone(s1Telefone.value); });
 
         // ════════════════════════════════════════════════════════════
-        // MODAL — REAGENDAR
+        // MODAL — EDITAR SOLICITAÇÃO
         // ════════════════════════════════════════════════════════════
         (() => {
-            const modal      = document.getElementById('reagendarModal');
-            const form       = document.getElementById('formReagendar');
-            const rgData     = document.getElementById('rgData');
-            const rgHorario  = document.getElementById('rgHorario');
-            const rgMotivo   = document.getElementById('rgMotivo');
-            const rgError    = document.getElementById('rgError');
-            const rgErrorMsg = document.getElementById('rgErrorMsg');
-            const submitBtn  = document.getElementById('rgSubmitBtn');
+            const modal      = document.getElementById('editarModal');
+            const form       = document.getElementById('formEditar');
+            const edNome     = document.getElementById('edNome');
+            const edTelefone = document.getElementById('edTelefone');
+            const edEmail    = document.getElementById('edEmail');
+            const edData     = document.getElementById('edData');
+            const edHorario  = document.getElementById('edHorario');
+            const edLocal    = document.getElementById('edLocal');
+            const edObs      = document.getElementById('edObs');
+            const edMotivo   = document.getElementById('edMotivo');
+            const edError    = document.getElementById('edError');
+            const edErrorMsg = document.getElementById('edErrorMsg');
+            const submitBtn  = document.getElementById('edSubmitBtn');
             let solicitacaoId = null;
 
             const open = () => {
@@ -1160,52 +1249,66 @@
                 document.body.classList.remove('modal-open');
             };
 
-            document.getElementById('reagendarClose').addEventListener('click', close);
-            document.getElementById('reagendarCloseBtn').addEventListener('click', close);
-            document.getElementById('reagendarBackdrop').addEventListener('click', close);
+            document.getElementById('editarClose').addEventListener('click', close);
+            document.getElementById('editarCloseBtn').addEventListener('click', close);
+            document.getElementById('editarBackdrop').addEventListener('click', close);
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
             });
 
-            document.querySelectorAll('.open-reagendar').forEach(btn => {
+            document.querySelectorAll('.open-editar').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    solicitacaoId   = btn.dataset.solId;
-                    rgData.value    = btn.dataset.data    || '';
-                    rgHorario.value = btn.dataset.horario || '';
-                    rgMotivo.value  = '';
-                    rgError.hidden  = true;
+                    solicitacaoId      = btn.dataset.solId;
+                    edNome.value       = btn.dataset.nome       || '';
+                    edTelefone.value   = maskPhone(btn.dataset.telefone || '');
+                    edEmail.value      = btn.dataset.email      || '';
+                    edData.value       = btn.dataset.data       || '';
+                    edHorario.value    = btn.dataset.horario    || '';
+                    edLocal.value      = btn.dataset.local      || 'CLINICA';
+                    edObs.value        = btn.dataset.observacoes|| '';
+                    edMotivo.value     = '';
+                    edError.hidden     = true;
                     open();
                     if (window.lucide) lucide.createIcons({ nodes: [modal] });
                 });
             });
 
+            edTelefone.addEventListener('input', () => { edTelefone.value = maskPhone(edTelefone.value); });
+
             form.addEventListener('submit', async e => {
                 e.preventDefault();
-                rgError.hidden = true;
+                edError.hidden = true;
 
-                if (!rgData.value)    { showRgErr('Informe a nova data.'); return; }
-                if (!rgHorario.value) { showRgErr('Informe o novo horário.'); return; }
+                if (!edNome.value.trim())    { showEdErr('Informe o nome do paciente.'); return; }
+                if (!edTelefone.value.trim()){ showEdErr('Informe o telefone.'); return; }
+                if (!edData.value)           { showEdErr('Informe a data.'); return; }
+                if (!edHorario.value)        { showEdErr('Informe o horário.'); return; }
 
                 btnLoading(submitBtn, true);
                 try {
-                    await postJson(`/api/solicitacoes/${solicitacaoId}/reagendar`, {
-                        data:    rgData.value,
-                        horario: rgHorario.value,
-                        motivo:  rgMotivo.value.trim() || null
+                    await postJson(`/api/solicitacoes/${solicitacaoId}/editar`, {
+                        nomePaciente:    edNome.value.trim(),
+                        telefone:        edTelefone.value.replace(/\D/g, ''),
+                        email:           edEmail.value.trim()  || null,
+                        data:            edData.value,
+                        horario:         edHorario.value,
+                        localAtendimento:edLocal.value,
+                        observacoes:     edObs.value.trim()    || null,
+                        motivo:          edMotivo.value.trim() || null
                     });
                     close();
                     window.location.href = '/solicitacoes?reagendado=1';
                 } catch (err) {
-                    showRgErr(err.message);
+                    showEdErr(err.message);
                 } finally {
                     btnLoading(submitBtn, false);
                 }
             });
 
-            const showRgErr = msg => {
-                rgErrorMsg.textContent = msg;
-                rgError.hidden = false;
-                if (window.lucide) lucide.createIcons({ nodes: [rgError] });
+            const showEdErr = msg => {
+                edErrorMsg.textContent = msg;
+                edError.hidden = false;
+                if (window.lucide) lucide.createIcons({ nodes: [edError] });
             };
         })();
 

@@ -5,6 +5,7 @@ import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Controller
@@ -25,9 +28,24 @@ public class SolicitacoesController {
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
 
     @GetMapping
-    public String listar(Model model) {
+    public String listar(
+            @RequestParam(required = false) SolicitacaoStatus filtroStatus,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate filtroInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate filtroFim,
+            Model model
+    ) {
         model.addAttribute("pendentes", solicitacaoAgendamentoService.listarPendentes());
-        model.addAttribute("historico", solicitacaoAgendamentoService.listarTodas());
+
+        boolean temFiltro = filtroStatus != null || filtroInicio != null || filtroFim != null;
+        if (temFiltro) {
+            model.addAttribute("historico", solicitacaoAgendamentoService.filtrarHistorico(filtroStatus, filtroInicio, filtroFim));
+        } else {
+            model.addAttribute("historico", solicitacaoAgendamentoService.listarHistorico());
+        }
+
+        model.addAttribute("filtroStatus", filtroStatus);
+        model.addAttribute("filtroInicio", filtroInicio);
+        model.addAttribute("filtroFim", filtroFim);
         model.addAttribute("aprovacaoForm", new AprovacaoSolicitacaoForm());
         return "solicitacoes/index";
     }

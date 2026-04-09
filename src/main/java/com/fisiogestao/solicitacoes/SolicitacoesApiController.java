@@ -1,6 +1,7 @@
 package com.fisiogestao.solicitacoes;
 
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
+import com.fisiogestao.solicitacoes.form.EditarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +95,33 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/rejeitar")
     public SolicitacaoDto rejeitar(@PathVariable UUID id) {
         solicitacaoAgendamentoService.rejeitarSolicitacao(id);
+        return toDto(solicitacaoAgendamentoService.buscarPorId(id));
+    }
+
+    @PostMapping("/{id}/editar")
+    public SolicitacaoDto editar(
+            @PathVariable UUID id,
+            @RequestBody EditarRequest body
+    ) {
+        if (body == null || body.nomePaciente() == null || body.telefone() == null
+                || body.data() == null || body.horario() == null || body.horario().isBlank()
+                || body.localAtendimento() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "Informe nome, telefone, data, horario e localAtendimento.");
+        }
+        EditarSolicitacaoForm form = new EditarSolicitacaoForm();
+        form.setNomePaciente(body.nomePaciente());
+        form.setTelefone(body.telefone());
+        form.setEmail(body.email());
+        form.setData(body.data());
+        form.setLocalAtendimento(body.localAtendimento());
+        form.setObservacoes(body.observacoes());
+        form.setMotivo(body.motivo());
+        try {
+            form.setHorario(java.time.LocalTime.parse(body.horario()));
+        } catch (DateTimeParseException ex) {
+            throw new ResponseStatusException(BAD_REQUEST, "horario inválido. Use o formato HH:mm.");
+        }
+        solicitacaoAgendamentoService.editarSolicitacao(id, form);
         return toDto(solicitacaoAgendamentoService.buscarPorId(id));
     }
 
@@ -195,4 +223,15 @@ public class SolicitacoesApiController {
     public record ReagendarRequest(LocalDate data, String horario, String motivo) {}
 
     public record BloquearRequest(String motivo) {}
+
+    public record EditarRequest(
+            String nomePaciente,
+            String telefone,
+            String email,
+            LocalDate data,
+            String horario,
+            String localAtendimento,
+            String observacoes,
+            String motivo
+    ) {}
 }
