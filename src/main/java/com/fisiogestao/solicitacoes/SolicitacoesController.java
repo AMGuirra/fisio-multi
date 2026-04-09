@@ -77,7 +77,49 @@ public class SolicitacoesController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         } catch (Exception ex) {
             log.error("Erro inesperado ao rejeitar solicitacao {}.", id, ex);
-            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível rejeitar a solicitação. Verifique a configuração do banco de dados.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível rejeitar a solicitação.");
+        }
+        return "redirect:/solicitacoes";
+    }
+
+    @PostMapping("/{id}/cancelar")
+    public String cancelar(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            solicitacaoAgendamentoService.cancelarSolicitacaoAprovada(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Agendamento cancelado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Erro inesperado ao cancelar solicitacao {}.", id, ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível cancelar a solicitação.");
+        }
+        return "redirect:/solicitacoes";
+    }
+
+    @PostMapping("/{id}/restaurar")
+    public String restaurar(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            solicitacaoAgendamentoService.restaurarSolicitacao(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Solicitação restaurada para pendente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Erro inesperado ao restaurar solicitacao {}.", id, ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível restaurar a solicitação.");
+        }
+        return "redirect:/solicitacoes";
+    }
+
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            solicitacaoAgendamentoService.excluirSolicitacao(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Solicitação excluída permanentemente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Erro inesperado ao excluir solicitacao {}.", id, ex);
+            redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível excluir a solicitação.");
         }
         return "redirect:/solicitacoes";
     }

@@ -272,6 +272,16 @@
                                             <span>Aprovar</span>
                                         </button>
 
+                                        <!-- Reagendar ──────────────────────────────────── -->
+                                        <button type="button"
+                                                class="action-button secondary open-reagendar"
+                                                th:attr="data-sol-id=${sol.id},
+                                                         data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
+                                                         data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')}">
+                                            <i data-lucide="calendar-clock"></i>
+                                            <span>Reagendar</span>
+                                        </button>
+
                                         <!-- Rejeitar: form POST tradicional ────────────── -->
                                         <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
@@ -309,8 +319,50 @@
                                     </div>
                                     <div class="request-actions">
                                         <span class="chip"
-                                              th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? 'status-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? 'status-rejected' : 'status-pendente')"
+                                              th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? 'status-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? 'status-rejected' : (${sol.status != null and sol.status.name() == 'CANCELADA'} ? 'status-rejected' : 'status-pendente'))"
                                               th:text="${sol.status != null ? sol.status.name() : 'PENDENTE'}">PENDENTE</span>
+
+                                        <!-- Ações para APROVADA ───────────────────────── -->
+                                        <th:block th:if="${sol.status != null and sol.status.name() == 'APROVADA'}">
+                                            <button type="button" class="action-button danger open-confirmar"
+                                                    th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},
+                                                             data-title='Cancelar agendamento',
+                                                             data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">
+                                                <i data-lucide="ban"></i> Cancelar
+                                            </button>
+                                        </th:block>
+
+                                        <!-- Ações para REJEITADA ──────────────────────── -->
+                                        <th:block th:if="${sol.status != null and sol.status.name() == 'REJEITADA'}">
+                                            <button type="button" class="action-button success open-confirmar"
+                                                    th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},
+                                                             data-title='Aceitar novamente',
+                                                             data-msg='Deseja restaurar esta solicitação como pendente para aprovar novamente?'">
+                                                <i data-lucide="rotate-ccw"></i> Aceitar novamente
+                                            </button>
+                                            <button type="button" class="action-button danger open-confirmar"
+                                                    th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},
+                                                             data-title='Excluir solicitação',
+                                                             data-msg='Esta ação é permanente e não pode ser desfeita. Confirma a exclusão?'">
+                                                <i data-lucide="trash-2"></i> Excluir
+                                            </button>
+                                        </th:block>
+
+                                        <!-- Ações para CANCELADA ──────────────────────── -->
+                                        <th:block th:if="${sol.status != null and sol.status.name() == 'CANCELADA'}">
+                                            <button type="button" class="action-button success open-confirmar"
+                                                    th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},
+                                                             data-title='Reaver solicitação',
+                                                             data-msg='Deseja reativar esta solicitação como pendente? O horário será reservado novamente.'">
+                                                <i data-lucide="refresh-cw"></i> Reaver
+                                            </button>
+                                            <button type="button" class="action-button danger open-confirmar"
+                                                    th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},
+                                                             data-title='Excluir solicitação',
+                                                             data-msg='Esta ação é permanente e não pode ser desfeita. Confirma a exclusão?'">
+                                                <i data-lucide="trash-2"></i> Excluir
+                                            </button>
+                                        </th:block>
                                     </div>
                                 </div>
                             </article>
@@ -581,6 +633,72 @@
                 </div><!-- /app-modal-card -->
             </div><!-- /app-modal-dialog -->
         </div><!-- /wizardModal -->
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODAL — REAGENDAR
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="reagendarModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="reagendarBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="reagendarTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <h3 id="reagendarTitle"><i data-lucide="calendar-clock"></i> Editar Data / Horário</h3>
+                        <button type="button" class="app-modal-close" id="reagendarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
+                    </header>
+                    <div class="app-modal-body">
+                        <form id="formReagendar" class="modern-form" novalidate>
+                            <div class="form-field">
+                                <label for="rgData">Nova data <span class="required-mark">*</span></label>
+                                <input id="rgData" type="date" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="rgHorario">Novo horário <span class="required-mark">*</span></label>
+                                <input id="rgHorario" type="time" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="rgMotivo">Motivo (opcional)</label>
+                                <input id="rgMotivo" type="text" class="form-control" maxlength="255" placeholder="Ex: Reagendado a pedido do paciente">
+                            </div>
+                            <div id="rgError" class="wizard-status-card danger mt-3q" hidden>
+                                <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                <div class="status-text"><span id="rgErrorMsg"></span></div>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="reagendarCloseBtn">Cancelar</button>
+                                <button type="submit" class="action-button success" id="rgSubmitBtn">
+                                    <i data-lucide="save"></i> <span>Salvar alteração</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODAL — CONFIRMAÇÃO GENÉRICA
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="confirmarModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="confirmarBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmarTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <h3 id="confirmarTitle">Confirmar ação</h3>
+                        <button type="button" class="app-modal-close" id="confirmarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
+                    </header>
+                    <div class="app-modal-body">
+                        <p id="confirmarMsg" style="color:var(--text-secondary,#c0cde0);font-size:.9rem;margin-bottom:1.25rem;line-height:1.5"></p>
+                        <form id="formConfirmar" method="post" action="#">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="confirmarCloseBtn">Cancelar</button>
+                                <button type="submit" id="confirmarSubmitBtn" class="action-button danger">Confirmar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div><!-- /app-shell -->
@@ -1017,15 +1135,137 @@
         s1Cpf?.addEventListener('input', () => { s1Cpf.value = maskCpf(s1Cpf.value); });
         s1Telefone?.addEventListener('input', () => { s1Telefone.value = maskPhone(s1Telefone.value); });
 
-        // ── redirecionar se ?sucesso=1 ────────────────────────────────────────
-        if (new URLSearchParams(location.search).get('sucesso') === '1') {
+        // ════════════════════════════════════════════════════════════
+        // MODAL — REAGENDAR
+        // ════════════════════════════════════════════════════════════
+        (() => {
+            const modal      = document.getElementById('reagendarModal');
+            const form       = document.getElementById('formReagendar');
+            const rgData     = document.getElementById('rgData');
+            const rgHorario  = document.getElementById('rgHorario');
+            const rgMotivo   = document.getElementById('rgMotivo');
+            const rgError    = document.getElementById('rgError');
+            const rgErrorMsg = document.getElementById('rgErrorMsg');
+            const submitBtn  = document.getElementById('rgSubmitBtn');
+            let solicitacaoId = null;
+
+            const open = () => {
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+            };
+
+            document.getElementById('reagendarClose').addEventListener('click', close);
+            document.getElementById('reagendarCloseBtn').addEventListener('click', close);
+            document.getElementById('reagendarBackdrop').addEventListener('click', close);
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+            });
+
+            document.querySelectorAll('.open-reagendar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    solicitacaoId   = btn.dataset.solId;
+                    rgData.value    = btn.dataset.data    || '';
+                    rgHorario.value = btn.dataset.horario || '';
+                    rgMotivo.value  = '';
+                    rgError.hidden  = true;
+                    open();
+                    if (window.lucide) lucide.createIcons({ nodes: [modal] });
+                });
+            });
+
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                rgError.hidden = true;
+
+                if (!rgData.value)    { showRgErr('Informe a nova data.'); return; }
+                if (!rgHorario.value) { showRgErr('Informe o novo horário.'); return; }
+
+                btnLoading(submitBtn, true);
+                try {
+                    await postJson(`/api/solicitacoes/${solicitacaoId}/reagendar`, {
+                        data:    rgData.value,
+                        horario: rgHorario.value,
+                        motivo:  rgMotivo.value.trim() || null
+                    });
+                    close();
+                    window.location.href = '/solicitacoes?reagendado=1';
+                } catch (err) {
+                    showRgErr(err.message);
+                } finally {
+                    btnLoading(submitBtn, false);
+                }
+            });
+
+            const showRgErr = msg => {
+                rgErrorMsg.textContent = msg;
+                rgError.hidden = false;
+                if (window.lucide) lucide.createIcons({ nodes: [rgError] });
+            };
+        })();
+
+        // ════════════════════════════════════════════════════════════
+        // MODAL — CONFIRMAÇÃO GENÉRICA (cancelar / restaurar / excluir)
+        // ════════════════════════════════════════════════════════════
+        (() => {
+            const modal      = document.getElementById('confirmarModal');
+            const title      = document.getElementById('confirmarTitle');
+            const msg        = document.getElementById('confirmarMsg');
+            const form       = document.getElementById('formConfirmar');
+            const submitBtn  = document.getElementById('confirmarSubmitBtn');
+
+            const open = () => {
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+            };
+
+            document.getElementById('confirmarClose').addEventListener('click', close);
+            document.getElementById('confirmarCloseBtn').addEventListener('click', close);
+            document.getElementById('confirmarBackdrop').addEventListener('click', close);
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+            });
+
+            document.querySelectorAll('.open-confirmar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    title.textContent     = btn.dataset.title || 'Confirmar ação';
+                    msg.textContent       = btn.dataset.msg   || 'Deseja confirmar esta ação?';
+                    form.action           = btn.dataset.url   || '#';
+
+                    // estilo do botão de confirmação
+                    const isDanger = btn.classList.contains('danger');
+                    submitBtn.className = isDanger ? 'action-button danger' : 'action-button success';
+                    submitBtn.textContent = 'Confirmar';
+
+                    open();
+                    if (window.lucide) lucide.createIcons({ nodes: [modal] });
+                });
+            });
+        })();
+
+        // ── redirecionar se ?sucesso=1 ou ?reagendado=1 ──────────────────────────
+        const flashParam = new URLSearchParams(location.search);
+        if (flashParam.get('sucesso') === '1' || flashParam.get('reagendado') === '1') {
             history.replaceState(null, '', '/solicitacoes');
-            // mostrar flash de sucesso dinamicamente
             const flashStack = document.querySelector('.flash-stack');
             if (flashStack) {
                 const div = document.createElement('div');
                 div.className = 'flash-message success';
-                div.innerHTML = '<i data-lucide="circle-check"></i><span>Solicitação aprovada com sucesso. Agendamento confirmado na agenda.</span>';
+                const texto = flashParam.get('reagendado') === '1'
+                    ? 'Solicitação reagendada com sucesso.'
+                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.';
+                div.innerHTML = `<i data-lucide="circle-check"></i><span>${texto}</span>`;
                 flashStack.prepend(div);
                 if (window.lucide) lucide.createIcons({ nodes: [div] });
                 setTimeout(() => div.remove(), 6000);

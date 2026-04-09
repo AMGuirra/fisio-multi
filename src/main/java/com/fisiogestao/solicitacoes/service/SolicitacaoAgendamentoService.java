@@ -368,6 +368,132 @@ public class SolicitacaoAgendamentoService {
     }
 
     @Transactional
+    public void cancelarSolicitacaoAprovada(UUID solicitacaoId) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (solicitacao.getStatus() != SolicitacaoStatus.APROVADA) {
+            throw new BusinessException("Apenas solicitações aprovadas podem ser canceladas por esta ação.");
+        }
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
+
+        if (solicitacao.getCliente() != null) {
+            sessaoRepository.findFirstByClienteIdAndDataHoraInicioAndStatus(
+                    solicitacao.getCliente().getId(),
+                    solicitacao.getDataHoraInicio(),
+                    com.fisiogestao.agenda.SessaoStatus.AGENDADA
+            ).ifPresent(sessao -> {
+                if (Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado()) && sessao.getPacoteSessao() != null) {
+                    pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
+                }
+                sessao.setStatus(com.fisiogestao.agenda.SessaoStatus.CANCELADA);
+                sessaoRepository.save(sessao);
+            });
+        }
+
+        horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId).ifPresent(bloqueio -> {
+            bloqueio.setStatus(HorarioBloqueadoStatus.CANCELADO);
+            horarioBloqueadoRepository.save(bloqueio);
+        });
+
+        solicitacao.setStatus(SolicitacaoStatus.CANCELADA);
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.CANCEL,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Solicitação aprovada cancelada manualmente.",
+                AuditEventOrigin.MANUAL
+        );
+
+        whatsAppService.enfileirar(
+                solicitacao.getTelefone(),
+                "Seu agendamento foi cancelado. Entre em contato para reagendar.",
+                "CANCELAMENTO:" + solicitacao.getId()
+        );
+        agendamentoEmailNotificationService.notificarRecusado(solicitacao);
+    }
+
+    @Transactional
+    public void restaurarSolicitacao(UUID solicitacaoId) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (solicitacao.getStatus() != SolicitacaoStatus.REJEITADA && solicitacao.getStatus() != SolicitacaoStatus.CANCELADA) {
+            throw new BusinessException("Apenas solicitações rejeitadas ou canceladas podem ser restauradas.");
+        }
+        var snapshotAnterior = auditService.snapshotOf(solicitacao);
+
+        agendaService.validarHorarioDisponivel(solicitacao.getDataHoraInicio(), solicitacao.getDataHoraFim(), null, null);
+
+        horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId).ifPresentOrElse(bloqueio -> {
+            bloqueio.setDataHoraInicio(solicitacao.getDataHoraInicio());
+            bloqueio.setDataHoraFim(solicitacao.getDataHoraFim());
+            bloqueio.setStatus(HorarioBloqueadoStatus.PENDENTE);
+            bloqueio.setMotivo("Reserva reativada pelo administrador");
+            horarioBloqueadoRepository.save(bloqueio);
+        }, () -> {
+            HorarioBloqueadoEntity novo = HorarioBloqueadoEntity.builder()
+                    .dataHoraInicio(solicitacao.getDataHoraInicio())
+                    .dataHoraFim(solicitacao.getDataHoraFim())
+                    .status(HorarioBloqueadoStatus.PENDENTE)
+                    .origem("AGENDAMENTO_ONLINE")
+                    .motivo("Reserva provisória reativada pelo administrador")
+                    .solicitacao(solicitacao)
+                    .build();
+            horarioBloqueadoRepository.save(novo);
+        });
+
+        solicitacao.setStatus(SolicitacaoStatus.PENDENTE);
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.RESTORE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Solicitação restaurada para pendente.",
+                AuditEventOrigin.MANUAL
+        );
+    }
+
+    @Transactional
+    public void excluirSolicitacao(UUID solicitacaoId) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (solicitacao.getStatus() == SolicitacaoStatus.APROVADA) {
+            throw new BusinessException("Não é possível excluir uma solicitação aprovada. Cancele-a primeiro.");
+        }
+        if (solicitacao.getStatus() == SolicitacaoStatus.PENDENTE) {
+            throw new BusinessException("Não é possível excluir uma solicitação pendente. Rejeite-a primeiro.");
+        }
+
+        horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)
+                .ifPresent(horarioBloqueadoRepository::delete);
+
+        auditService.recordManual(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                solicitacao.getId().toString(),
+                auditService.describeOf(solicitacao),
+                AuditActionType.DELETE_PHYSICAL,
+                auditService.snapshotOf(solicitacao),
+                null,
+                null,
+                "Solicitação excluída permanentemente.",
+                AuditEventOrigin.MANUAL
+        );
+
+        solicitacaoAgendamentoRepository.delete(solicitacao);
+    }
+
+    @Transactional
     public void bloquearPeriodoDaSolicitacao(UUID solicitacaoId, String motivo, String usuario) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser bloqueadas."));

@@ -131,6 +131,24 @@ public class SolicitacoesApiController {
         return toDto(solicitacaoAgendamentoService.buscarPorId(id));
     }
 
+    @PostMapping("/{id}/cancelar")
+    public SolicitacaoDto cancelar(@PathVariable UUID id) {
+        solicitacaoAgendamentoService.cancelarSolicitacaoAprovada(id);
+        return toDto(solicitacaoAgendamentoService.buscarPorId(id));
+    }
+
+    @PostMapping("/{id}/restaurar")
+    public SolicitacaoDto restaurar(@PathVariable UUID id) {
+        solicitacaoAgendamentoService.restaurarSolicitacao(id);
+        return toDto(solicitacaoAgendamentoService.buscarPorId(id));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    public org.springframework.http.ResponseEntity<Void> excluir(@PathVariable UUID id) {
+        solicitacaoAgendamentoService.excluirSolicitacao(id);
+        return org.springframework.http.ResponseEntity.noContent().build();
+    }
+
     private SolicitacaoDto toDto(SolicitacaoAgendamentoEntity entity) {
         return new SolicitacaoDto(
                 entity.getId(),

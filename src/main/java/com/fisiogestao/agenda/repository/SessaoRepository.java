@@ -46,4 +46,6 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
     boolean existsByPacoteSessaoIdAndStatusIn(UUID pacoteSessaoId, Collection<SessaoStatus> statuses);
 
     long countByStatus(SessaoStatus status);
+
+    Optional<SessaoEntity> findFirstByClienteIdAndDataHoraInicioAndStatus(UUID clienteId, OffsetDateTime dataHoraInicio, SessaoStatus status);
 }
