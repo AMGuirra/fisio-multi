@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Planos de Tratamentos - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,12 +182,18 @@
                             <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
                             <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
                             <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
+                            <p class="helper-text" th:if="${!agendaConfigurada}">Configure a clínica para liberar novos agendamentos.</p>
+                            <p class="helper-text" th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">Este paciente precisa de um plano ativo com sessões disponíveis para agendar.</p>
                         </div>
                         <div class="table-actions">
-                            <a th:href="@{/agenda(paciente=${pacienteSelecionado.id})}" class="action-button ghost">
+                            <button type="button"
+                                    id="openAgendamentoSessaoModal"
+                                    class="action-button ghost"
+                                    th:disabled="${!agendaConfigurada}"
+                                    th:attr="data-locked=${!agendaConfigurada}">
                                 <i data-lucide="calendar-plus"></i>
                                 Agendar Sessão
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -400,14 +408,150 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <div id="agendamentoSessaoModal"
+         class="app-modal"
+         th:classappend="${agendamentoSessaoModalOpen ? ' is-open' : ''}"
+         th:attr="aria-hidden=${agendamentoSessaoModalOpen ? 'false' : 'true'}">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="agendamentoSessaoModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="agendamentoSessaoModalTitle">Agendar sessão</h3>
+                        <p>Agende a sessão sem sair da gestão dos planos de tratamento.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form th:action="@{/pacotes-consumo/agendar-sessao}"
+                          th:object="${agendamentoSessaoForm}"
+                          method="post"
+                          class="modern-form"
+                          id="agendamentoSessaoForm">
+                        <input type="hidden" th:field="*{clienteId}">
+                        <input type="hidden" name="busca" th:value="${buscaPaciente}">
+
+                        <div class="helper-card modal-helper-card">
+                            <div class="helper-copy">
+                                <h4 th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</h4>
+                                <p th:if="${agendaConfigurada and pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
+                                    O consumo do plano será reservado automaticamente quando a sessão for criada.
+                                </p>
+                                <p th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">
+                                    Cadastre ou reative um plano com sessões disponíveis antes de confirmar o agendamento.
+                                </p>
+                                <p th:if="${!agendaConfigurada}">
+                                    Finalize a configuração da clínica para habilitar a agenda.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label>Paciente</label>
+                            <div class="form-control read-only-field" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</div>
+                            <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="agendamento-pacote">Plano de tratamento</label>
+                            <select id="agendamento-pacote" class="form-select" th:field="*{pacoteSessaoId}">
+                                <option value="">Selecionar automaticamente o plano ativo</option>
+                                <option th:each="pacote : ${pacotesDisponiveisAgenda}"
+                                        th:value="${pacote.id}"
+                                        th:text="${pacote.nomePacote + ' • ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponíveis'}">
+                                    Pacote
+                                </option>
+                            </select>
+                            <p class="helper-text">Se você não escolher um plano, o sistema usa automaticamente o primeiro plano ativo disponível desse paciente.</p>
+                        </div>
+
+                        <div class="calendar-inline-grid">
+                            <div class="form-field">
+                                <label for="agendamento-data">Data</label>
+                                <input id="agendamento-data" type="date" class="form-control" th:field="*{data}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="agendamento-horario">Horário</label>
+                                <input id="agendamento-horario" type="time" class="form-control" th:field="*{horario}" step="60" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="agendamento-tipo">Tipo de atendimento</label>
+                            <input id="agendamento-tipo" type="text" class="form-control" th:field="*{tipoAtendimento}" maxlength="80" placeholder="Ex: Pilates, RPG, avaliação">
+                            <p class="form-error" th:if="${#fields.hasErrors('tipoAtendimento')}" th:errors="*{tipoAtendimento}"></p>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="agendamento-observacoes">Observações</label>
+                            <textarea id="agendamento-observacoes" class="form-control" th:field="*{observacoes}" rows="3" maxlength="2000" placeholder="Informações úteis para a sessão"></textarea>
+                            <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
+                            <button type="submit"
+                                    class="action-button primary"
+                                    th:disabled="${!agendaConfigurada or (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">
+                                <i data-lucide="calendar-plus"></i>
+                                Confirmar agendamento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script th:inline="javascript">
+        (() => {
+            const body = document.body;
+            const modal = document.getElementById('agendamentoSessaoModal');
+            const openButton = document.getElementById('openAgendamentoSessaoModal');
+
+            if (!modal) {
+                return;
+            }
+
+            const setModalOpen = (open) => {
+                modal.classList.toggle('is-open', open);
+                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                body.classList.toggle('modal-open', open);
+            };
+
+            setModalOpen(modal.classList.contains('is-open'));
+
+            if (openButton) {
+                openButton.addEventListener('click', () => {
+                    if (openButton.dataset.locked === 'true' || openButton.disabled) {
+                        return;
+                    }
+                    setModalOpen(true);
+                });
+            }
+
+            modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                element.addEventListener('click', () => setModalOpen(false));
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    setModalOpen(false);
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
-
 
 
 

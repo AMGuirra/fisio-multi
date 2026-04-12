@@ -51,6 +51,13 @@ public class PacoteSessaoService {
                 .toList();
     }
 
+    public List<PacoteSessaoEntity> listarDisponiveisParaAgenda(UUID clienteId) {
+        return listarPorCliente(clienteId).stream()
+                .filter(this::isDisponivel)
+                .sorted(comparadorDisponibilidade())
+                .toList();
+    }
+
     public Optional<PacoteSessaoEntity> buscarPorId(UUID id) {
         return pacoteSessaoRepository.findById(id);
     }

@@ -179,7 +179,8 @@ class PageSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente Teste Agenda")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar sessão")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"editarSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar alterações")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Confirmar realização")));
     }
 
@@ -202,10 +203,59 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void pacotesConsumoRenderizaModalDeAgendamentoParaPacienteSelecionado() throws Exception {
+        mockMvc.perform(get("/pacotes-consumo")
+                        .param("paciente", clienteAgenda.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"openAgendamentoSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"agendamentoSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void pacotesConsumoAgendaSessaoEPermaneceNaMesmaTela() throws Exception {
+        PacoteSessaoEntity pacoteAntes = pacoteSessaoRepository.findAll().stream()
+                .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para o agendamento via planos."));
+
+        mockMvc.perform(post("/pacotes-consumo/agendar-sessao")
+                        .with(csrf())
+                        .param("clienteId", clienteAgenda.getId().toString())
+                        .param("pacoteSessaoId", pacoteAntes.getId().toString())
+                        .param("data", agendaDate.toString())
+                        .param("horario", "10:00")
+                        .param("tipoAtendimento", "RPG")
+                        .param("observacoes", "Agendamento criado pela tela de planos"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pacotes-consumo?paciente=" + clienteAgenda.getId()));
+
+        PacoteSessaoEntity pacoteDepois = pacoteSessaoRepository.findById(pacoteAntes.getId())
+                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado após o agendamento."));
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                pacoteAntes.getSessoesConsumidas() + 1,
+                pacoteDepois.getSessoesConsumidas()
+        );
+
+        long sessoesAgendadas = sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
+                .filter(sessao -> sessao.getDataHoraInicio().toLocalDate().equals(agendaDate))
+                .filter(sessao -> sessao.getDataHoraInicio().toLocalTime().equals(LocalTime.of(10, 0)))
+                .filter(sessao -> sessao.getStatus() == SessaoStatus.AGENDADA)
+                .count();
+
+        org.junit.jupiter.api.Assertions.assertEquals(1L, sessoesAgendadas);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void financeiroExibeEditarCancelarEMarcarPagoParaLancamentoPendente() throws Exception {
         UUID lancamentoId = criarLancamentoFinanceiroPendente().getId();
 
         mockMvc.perform(get("/financeiro")
+                        .param("inicio", agendaDate.withDayOfMonth(1).toString())
+                        .param("fim", agendaDate.toString())
                         .param("editar", lancamentoId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar Lançamento")))
