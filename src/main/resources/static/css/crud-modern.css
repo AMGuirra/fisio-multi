@@ -566,6 +566,42 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     outline: none;
 }
 
+.action-button.session-action-edit {
+    color: #185bb8;
+    border: 1px solid #9ac2ff;
+    background: #eaf3ff;
+}
+
+.action-button.session-action-edit:hover,
+.action-button.session-action-edit:focus-visible {
+    background: #dbeaff;
+    outline: none;
+}
+
+.action-button.session-action-cancel {
+    color: #8b5b00;
+    border: 1px solid #f0cd72;
+    background: #fff1c9;
+}
+
+.action-button.session-action-cancel:hover,
+.action-button.session-action-cancel:focus-visible {
+    background: #ffe7a8;
+    outline: none;
+}
+
+.action-button.session-action-delete {
+    color: #b33a3a;
+    border: 1px solid #efaaaa;
+    background: #ffe2e2;
+}
+
+.action-button.session-action-delete:hover,
+.action-button.session-action-delete:focus-visible {
+    background: #ffd2d2;
+    outline: none;
+}
+
 .action-button.inline-icon {
     width: 44px;
     height: 44px;

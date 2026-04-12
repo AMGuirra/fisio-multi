@@ -119,7 +119,7 @@
                                                       th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : sessao.status.name()}">STATUS</span>
                                                 <a th:if="${sessao.status.name() != 'CANCELADA'}"
                                                    href="javascript:void(0)"
-                                                   class="action-button ghost js-btn-editar-sessao session-action-edit"
+                                                   class="action-button session-action-edit js-btn-editar-sessao"
                                                    th:data-sessao-id="${sessao.id}">
                                                     <i data-lucide="square-pen"></i>Editar
                                                 </a>
@@ -168,7 +168,7 @@
                                             <div class="session-actions-bottom">
                                                 <button th:if="${sessao.status.name() != 'CANCELADA'}"
                                                         type="button"
-                                                        class="action-button danger js-btn-status-sessao"
+                                                        class="action-button session-action-cancel js-btn-status-sessao"
                                                         th:attr="data-session-status=${sessao.status.name()},
                                                                  data-session-patient=${sessao.cliente.nomeCompleto},
                                                                  data-session-datetime=${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
@@ -186,7 +186,7 @@
                                                       data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
                                                       data-confirm-action-label="Excluir sessão">
                                                     <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                                    <button type="submit" class="action-button ghost"><i data-lucide="trash-2"></i>Excluir</button>
+                                                    <button type="submit" class="action-button session-action-delete"><i data-lucide="trash-2"></i>Excluir</button>
                                                 </form>
                                             </div>
 
@@ -1032,6 +1032,5 @@
     </script>
 </body>
 </html>
-
 
 
