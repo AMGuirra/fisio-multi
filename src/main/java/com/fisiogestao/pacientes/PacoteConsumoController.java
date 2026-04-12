@@ -39,9 +39,10 @@ public class PacoteConsumoController {
             @RequestParam(name = "busca", required = false) String buscaPaciente,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             @RequestParam(name = "editar", required = false) UUID pacoteEdicaoId,
+            @RequestParam(name = "agendar", defaultValue = "false") boolean abrirAgendamento,
             Model model
     ) {
-        prepararPagina(model, pacienteId, pacoteEdicaoId, buscaPaciente, null, null, null, false);
+        prepararPagina(model, pacienteId, pacoteEdicaoId, buscaPaciente, null, null, null, abrirAgendamento && pacienteId != null);
         return "pacotes-consumo/index";
     }
 

@@ -230,12 +230,14 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void pacotesConsumoRenderizaModalDeAgendamentoParaPacienteSelecionado() throws Exception {
+    void pacotesConsumoAbreModalDeAgendamentoAoSelecionarPaciente() throws Exception {
         mockMvc.perform(get("/pacotes-consumo")
-                        .param("paciente", clienteAgenda.getId().toString()))
+                        .param("paciente", clienteAgenda.getId().toString())
+                        .param("agendar", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"openAgendamentoSessaoModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"agendamentoSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("aria-hidden=\"false\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")));
     }
 

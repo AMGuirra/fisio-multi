@@ -137,7 +137,7 @@
                                 </td>
                                 <td class="text-right">
                                     <div class="table-actions" style="justify-content:flex-end;">
-                                        <a th:href="@{/pacotes-consumo(paciente=${paciente.id},busca=${buscaPaciente})}" class="action-button ghost">
+                                        <a th:href="@{/pacotes-consumo(paciente=${paciente.id},busca=${buscaPaciente},agendar=true)}" class="action-button ghost">
                                             <i data-lucide="check"></i>
                                             <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Selecionar'}">Selecionar</span>
                                         </a>
@@ -169,12 +169,22 @@
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
-                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                        <p class="section-subtitle">Ao selecionar um paciente, a agenda abre direto em modal para agilizar o agendamento.</p>
                     </div>
-                    <a th:href="@{/pacotes-consumo(busca=${buscaPaciente})}" class="action-button ghost">
-                        <i data-lucide="refresh-ccw"></i>
-                        Trocar Paciente
-                    </a>
+                    <div class="table-actions">
+                        <button type="button"
+                                id="openAgendamentoSessaoModal"
+                                class="action-button ghost"
+                                th:disabled="${!agendaConfigurada}"
+                                th:attr="data-locked=${!agendaConfigurada}">
+                            <i data-lucide="calendar-plus"></i>
+                            Abrir Agenda
+                        </button>
+                        <a th:href="@{/pacotes-consumo(busca=${buscaPaciente})}" class="action-button ghost">
+                            <i data-lucide="refresh-ccw"></i>
+                            Trocar Paciente
+                        </a>
+                    </div>
                 </header>
                 <div class="section-body">
                     <div class="helper-card">
@@ -184,16 +194,9 @@
                             <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
                             <p class="helper-text" th:if="${!agendaConfigurada}">Configure a clínica para liberar novos agendamentos.</p>
                             <p class="helper-text" th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">Este paciente precisa de um plano ativo com sessões disponíveis para agendar.</p>
-                        </div>
-                        <div class="table-actions">
-                            <button type="button"
-                                    id="openAgendamentoSessaoModal"
-                                    class="action-button ghost"
-                                    th:disabled="${!agendaConfigurada}"
-                                    th:attr="data-locked=${!agendaConfigurada}">
-                                <i data-lucide="calendar-plus"></i>
-                                Agendar Sessão
-                            </button>
+                            <p class="helper-text" th:if="${agendaConfigurada and pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
+                                O atalho de agenda fica no topo desta seção e a seleção do paciente já pode abrir o modal automaticamente.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -552,7 +555,6 @@
     </script>
 </body>
 </html>
-
 
 
 
