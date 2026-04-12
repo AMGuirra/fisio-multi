@@ -188,6 +188,22 @@ public class AgendaController {
         return "redirect:/agenda?data=" + retorno;
     }
 
+    @PostMapping("/sessoes/{id}/restaurar")
+    public String restaurarSessaoCancelada(
+            @PathVariable UUID id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = data != null ? data : LocalDate.now();
+        try {
+            agendaService.reabrirSessaoCancelada(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão voltou para pendente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/agenda?data=" + retorno;
+    }
+
     @PostMapping("/sessoes/{id}/realizar")
     public String concluirSessao(
             @PathVariable java.util.UUID id,
@@ -199,6 +215,22 @@ public class AgendaController {
         try {
             agendaService.marcarComoRealizada(id, observacoes);
             redirectAttributes.addFlashAttribute("successMessage", "Sessão marcada como realizada.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/agenda?data=" + retorno;
+    }
+
+    @PostMapping("/sessoes/{id}/excluir")
+    public String excluirSessao(
+            @PathVariable UUID id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = data != null ? data : LocalDate.now();
+        try {
+            agendaService.excluirSessao(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão excluída com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

@@ -23,6 +23,7 @@ import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -407,6 +408,37 @@ public class AgendaService {
     }
 
     @Transactional
+    public SessaoEntity reabrirSessaoCancelada(UUID sessaoId) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
+
+        if (sessao.getStatus() != SessaoStatus.CANCELADA) {
+            throw new BusinessException("Apenas sessões canceladas podem voltar para pendente.");
+        }
+
+        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
+            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
+            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        }
+
+        sessao.setStatus(SessaoStatus.AGENDADA);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.RESTORE,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Sessão reaberta como pendente.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
+    }
+
+    @Transactional
     public SessaoEntity reagendarSessao(UUID sessaoId, LocalDate data, LocalTime horario, String profissionalResponsavel) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
@@ -472,6 +504,37 @@ public class AgendaService {
                 AuditEventOrigin.MANUAL
         );
         return salva;
+    }
+
+    @Transactional
+    public void excluirSessao(UUID sessaoId) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
+
+        if (sessao.getPacoteSessao() != null && Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
+            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
+            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+        }
+
+        try {
+            sessaoRepository.delete(sessao);
+            sessaoRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new BusinessException("Esta sessão possui registros vinculados e não pode ser excluída.");
+        }
+
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                sessao.getId().toString(),
+                auditService.describeOf(sessao),
+                AuditActionType.DELETE_PHYSICAL,
+                snapshotAnterior,
+                null,
+                null,
+                "Exclusão física de sessão.",
+                AuditEventOrigin.MANUAL
+        );
     }
 
     private IntervaloAgenda janelaDoDia(LocalDate data, ConfiguracaoClinicaEntity configuracao) {

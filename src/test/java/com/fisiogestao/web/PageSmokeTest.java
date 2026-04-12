@@ -198,7 +198,34 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("REALIZADA")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Excluir")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Concluir"))));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaExibeVoltarParaPendenteEExcluirParaSessaoCancelada() throws Exception {
+        SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
+                .orElseThrow(() -> new IllegalStateException("Sessão da agenda não encontrada."));
+        sessao.setStatus(SessaoStatus.CANCELADA);
+        sessaoRepository.save(sessao);
+
+        mockMvc.perform(get("/agenda")
+                        .param("data", agendaDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("CANCELADA")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Voltar para pendente")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Excluir")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void calendarioRenderizaComDomingoPrimeiroEModaisDeAcao() throws Exception {
+        mockMvc.perform(get("/calendario"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<span>Dom</span><span>Seg</span>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirAgendaDiaModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirBloqueioDiaModal\"")));
     }
 
     @Test

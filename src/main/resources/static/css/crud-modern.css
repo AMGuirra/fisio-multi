@@ -64,6 +64,16 @@
     border-top: 1px solid var(--stroke-soft);
 }
 
+.section-body > .modern-form + .section-block {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--stroke-soft);
+}
+
+.section-block > .section-subtitle + .modern-form {
+    margin-top: 12px;
+}
+
 .flash-stack {
     display: flex;
     flex-direction: column;
@@ -1043,10 +1053,15 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 }
 
 .calendar-link {
+    border: none;
+    background: transparent;
+    padding: 0;
     font-size: 0.76rem;
     color: #0f7f6c;
     text-decoration: none;
     font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
 }
 
 .calendar-link:hover,

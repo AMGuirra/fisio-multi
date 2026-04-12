@@ -73,7 +73,7 @@
                 </header>
                 <div class="section-body">
                     <div class="calendar-grid-head">
-                        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
                     </div>
                     <div class="calendar-grid-body">
                         <th:block th:each="semana : ${calendarioSemanas}">
@@ -88,8 +88,16 @@
                                             <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
                                         </div>
                                         <div class="calendar-day-links">
-                                            <a class="calendar-link" th:href="@{/agenda(data=${dia.data})}">Abrir agenda</a>
-                                            <a class="calendar-link" th:href="@{/bloqueios(data=${dia.data})}">Bloquear</a>
+                                            <button type="button"
+                                                    class="calendar-link js-open-agenda-modal"
+                                                    th:attr="data-target-url=@{/agenda(data=${dia.data})},data-date-label=${#temporals.format(dia.data, 'EEEE, dd/MM/yyyy')}">
+                                                Abrir agenda
+                                            </button>
+                                            <button type="button"
+                                                    class="calendar-link js-open-bloqueio-modal"
+                                                    th:attr="data-target-url=@{/bloqueios(data=${dia.data})},data-date-label=${#temporals.format(dia.data, 'EEEE, dd/MM/yyyy')}">
+                                                Bloquear
+                                            </button>
                                         </div>
                                     </th:block>
                                 </article>
@@ -231,14 +239,135 @@
             </section>
         </main>
 
+        <div id="abrirAgendaDiaModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" data-modal-close></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="abrirAgendaDiaModalTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <div class="app-modal-title-block">
+                            <h3 id="abrirAgendaDiaModalTitle">Abrir agenda do dia</h3>
+                            <p id="abrirAgendaDiaModalMessage">Escolha a data que você quer abrir na agenda diária.</p>
+                        </div>
+                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </header>
+                    <div class="app-modal-body">
+                        <div class="helper-card modal-helper-card">
+                            <div class="helper-copy">
+                                <h4 id="abrirAgendaDiaModalHelperTitle">Navegação rápida da agenda</h4>
+                                <p id="abrirAgendaDiaModalHelperMessage">A data selecionada será aberta diretamente na visão diária da agenda.</p>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
+                            <a id="abrirAgendaDiaModalAction" href="/agenda" class="action-button primary">
+                                <i data-lucide="calendar-days"></i>
+                                Abrir agenda
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="abrirBloqueioDiaModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" data-modal-close></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="abrirBloqueioDiaModalTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <div class="app-modal-title-block">
+                            <h3 id="abrirBloqueioDiaModalTitle">Bloquear período do dia</h3>
+                            <p id="abrirBloqueioDiaModalMessage">Você vai abrir o módulo oficial de bloqueios já apontando para a data selecionada.</p>
+                        </div>
+                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </header>
+                    <div class="app-modal-body">
+                        <div class="helper-card modal-helper-card">
+                            <div class="helper-copy">
+                                <h4 id="abrirBloqueioDiaModalHelperTitle">Bloqueio com governança</h4>
+                                <p id="abrirBloqueioDiaModalHelperMessage">O cadastro será aberto com a data já sugerida para você registrar o bloqueio com segurança.</p>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
+                            <a id="abrirBloqueioDiaModalAction" href="/bloqueios" class="action-button danger">
+                                <i data-lucide="calendar-x-2"></i>
+                                Abrir bloqueios
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+        (() => {
+            const body = document.body;
+
+            const bindDayModal = ({ modalId, triggerSelector, messageId, actionId, prefix }) => {
+                const modal = document.getElementById(modalId);
+                const message = document.getElementById(messageId);
+                const action = document.getElementById(actionId);
+                if (!modal || !message || !action) {
+                    return;
+                }
+
+                const setOpen = (open) => {
+                    modal.classList.toggle('is-open', open);
+                    modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    body.classList.toggle('modal-open', open);
+                };
+
+                document.querySelectorAll(triggerSelector).forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const dateLabel = button.dataset.dateLabel || 'dia selecionado';
+                        const targetUrl = button.dataset.targetUrl || '#';
+                        message.textContent = `${prefix} ${dateLabel}.`;
+                        action.setAttribute('href', targetUrl);
+                        setOpen(true);
+                    });
+                });
+
+                modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                    element.addEventListener('click', () => setOpen(false));
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                        setOpen(false);
+                    }
+                });
+            };
+
+            bindDayModal({
+                modalId: 'abrirAgendaDiaModal',
+                triggerSelector: '.js-open-agenda-modal',
+                messageId: 'abrirAgendaDiaModalMessage',
+                actionId: 'abrirAgendaDiaModalAction',
+                prefix: 'A agenda diária será aberta para'
+            });
+
+            bindDayModal({
+                modalId: 'abrirBloqueioDiaModal',
+                triggerSelector: '.js-open-bloqueio-modal',
+                messageId: 'abrirBloqueioDiaModalMessage',
+                actionId: 'abrirBloqueioDiaModalAction',
+                prefix: 'O módulo de bloqueios será aberto para'
+            });
+        })();
+    </script>
 </body>
 </html>
-
 
 
 

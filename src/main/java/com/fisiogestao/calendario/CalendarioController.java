@@ -176,7 +176,7 @@ public class CalendarioController {
 
         ArrayList<CalendarioDiaView> dias = new ArrayList<>();
         LocalDate primeiroDia = mesSelecionado.atDay(1);
-        int offset = primeiroDia.getDayOfWeek().getValue() - 1;
+        int offset = primeiroDia.getDayOfWeek().getValue() % 7;
         for (int i = 0; i < offset; i++) {
             dias.add(CalendarioDiaView.vazio());
         }

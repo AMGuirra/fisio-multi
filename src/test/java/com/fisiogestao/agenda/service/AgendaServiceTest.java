@@ -34,6 +34,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,6 +98,41 @@ class AgendaServiceTest {
         assertEquals(SessaoStatus.REALIZADA, sessao.getStatus());
         assertEquals(Boolean.TRUE, sessao.getPacoteConsumoRegistrado());
         verify(pacoteSessaoService).reservarSessao(pacote.getId());
+    }
+
+    @Test
+    void devePermitirReabrirSessaoCanceladaComoPendenteReservandoPacote() {
+        PacoteSessaoEntity pacote = criarPacote();
+        SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, pacote, false, OffsetDateTime.now().minusDays(1));
+
+        when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
+        when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+        when(auditService.describeOf(any())).thenReturn("Sessão Teste");
+
+        agendaService.reabrirSessaoCancelada(sessao.getId());
+
+        assertEquals(SessaoStatus.AGENDADA, sessao.getStatus());
+        assertEquals(Boolean.TRUE, sessao.getPacoteConsumoRegistrado());
+        verify(pacoteSessaoService).reservarSessao(pacote.getId());
+    }
+
+    @Test
+    void deveExcluirSessaoEstornandoPacoteQuandoNecessario() {
+        PacoteSessaoEntity pacote = criarPacote();
+        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, pacote, true, OffsetDateTime.now().minusDays(1));
+
+        when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+        when(auditService.describeOf(any())).thenReturn("Sessão Teste");
+        doNothing().when(sessaoRepository).delete(sessao);
+        doNothing().when(sessaoRepository).flush();
+
+        agendaService.excluirSessao(sessao.getId());
+
+        verify(pacoteSessaoService).estornarSessao(pacote.getId());
+        verify(sessaoRepository).delete(sessao);
+        verify(sessaoRepository).flush();
     }
 
     @Test
