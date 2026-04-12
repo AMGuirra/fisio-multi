@@ -4,6 +4,10 @@ import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.EditarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +64,7 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/aprovar")
     public SolicitacaoDto aprovar(
             @PathVariable UUID id,
-            @RequestBody(required = false) AprovarRequest body
+            @Valid @RequestBody(required = false) AprovarRequest body
     ) {
         AprovacaoSolicitacaoForm form = new AprovacaoSolicitacaoForm();
         if (body != null) {
@@ -73,7 +77,7 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/cadastrar")
     public SolicitacaoDto cadastrar(
             @PathVariable UUID id,
-            @RequestBody(required = false) CadastrarPacienteRequest body
+            @Valid @RequestBody(required = false) CadastrarPacienteRequest body
     ) {
         AprovacaoSolicitacaoForm form = new AprovacaoSolicitacaoForm();
         if (body != null) {
@@ -101,13 +105,8 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/editar")
     public SolicitacaoDto editar(
             @PathVariable UUID id,
-            @RequestBody EditarRequest body
+            @Valid @RequestBody EditarRequest body
     ) {
-        if (body == null || body.nomePaciente() == null || body.telefone() == null
-                || body.data() == null || body.horario() == null || body.horario().isBlank()
-                || body.localAtendimento() == null) {
-            throw new ResponseStatusException(BAD_REQUEST, "Informe nome, telefone, data, horario e localAtendimento.");
-        }
         EditarSolicitacaoForm form = new EditarSolicitacaoForm();
         form.setNomePaciente(body.nomePaciente());
         form.setTelefone(body.telefone());
@@ -128,12 +127,8 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/reagendar")
     public SolicitacaoDto reagendar(
             @PathVariable UUID id,
-            @RequestBody ReagendarRequest body
+            @Valid @RequestBody ReagendarRequest body
     ) {
-        if (body == null || body.data() == null || body.horario() == null || body.horario().isBlank()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Informe data e horario para reagendar.");
-        }
-
         ReagendarSolicitacaoForm form = new ReagendarSolicitacaoForm();
         form.setData(body.data());
         form.setMotivo(body.motivo());
@@ -150,7 +145,7 @@ public class SolicitacoesApiController {
     @PostMapping("/{id}/bloquear")
     public SolicitacaoDto bloquear(
             @PathVariable UUID id,
-            @RequestBody(required = false) BloquearRequest body,
+            @Valid @RequestBody(required = false) BloquearRequest body,
             Authentication authentication
     ) {
         String usuario = authentication != null ? authentication.getName() : "sistema";
@@ -210,6 +205,7 @@ public class SolicitacoesApiController {
     public record CadastrarPacienteRequest(
             String nomeCompleto,
             String telefone,
+            @Email(message = "Informe um e-mail válido.")
             String email,
             String cpf,
             String cep,
@@ -220,16 +216,28 @@ public class SolicitacoesApiController {
             String estado
     ) {}
 
-    public record ReagendarRequest(LocalDate data, String horario, String motivo) {}
+    public record ReagendarRequest(
+            @NotNull(message = "Informe a data para reagendar.")
+            LocalDate data,
+            @NotBlank(message = "Informe o horário no formato HH:mm.")
+            String horario,
+            String motivo
+    ) {}
 
     public record BloquearRequest(String motivo) {}
 
     public record EditarRequest(
+            @NotBlank(message = "Informe o nome do paciente.")
             String nomePaciente,
+            @NotBlank(message = "Informe o telefone do paciente.")
             String telefone,
+            @Email(message = "Informe um e-mail válido.")
             String email,
+            @NotNull(message = "Informe a data do atendimento.")
             LocalDate data,
+            @NotBlank(message = "Informe o horário no formato HH:mm.")
             String horario,
+            @NotBlank(message = "Informe o local de atendimento.")
             String localAtendimento,
             String observacoes,
             String motivo

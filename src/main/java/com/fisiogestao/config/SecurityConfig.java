@@ -23,8 +23,6 @@ public class SecurityConfig {
             AuditLogoutHandler auditLogoutHandler
     ) throws Exception {
         http
-                // Avoid sporadic 403 on custom form login when CSRF/session token is lost between requests.
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/login"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/login",

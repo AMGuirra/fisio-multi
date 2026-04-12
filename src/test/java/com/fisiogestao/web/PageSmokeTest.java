@@ -9,6 +9,8 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventEntity;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auth.UserRole;
+import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
@@ -81,6 +83,7 @@ class PageSmokeTest {
     private LocalDate agendaDate;
     private UUID sessaoAgendaId;
     private ClienteEntity clienteAgenda;
+    private static final String RECEPCAO_USERNAME = "recepcao-smoke";
 
     @BeforeEach
     void setUp() {
@@ -104,6 +107,15 @@ class PageSmokeTest {
                         .alteracaoCritica(false)
                         .build()).getId());
 
+        usuarioSistemaRepository.findByUsername(RECEPCAO_USERNAME)
+                .orElseGet(() -> usuarioSistemaRepository.save(UsuarioSistemaEntity.builder()
+                        .nome("Recepção Smoke")
+                        .username(RECEPCAO_USERNAME)
+                        .email("recepcao.smoke@teste.local")
+                        .passwordHash("mock-password-hash")
+                        .role(UserRole.RECEPCAO)
+                        .build()));
+
         prepararCenarioAgenda();
     }
 
@@ -118,6 +130,13 @@ class PageSmokeTest {
     void publicPagesRender(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void loginRenderizaComTokenCsrf() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"_csrf\"")));
     }
 
     @Test
@@ -153,6 +172,30 @@ class PageSmokeTest {
     void securedPagesRenderForAdmin(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @ValueSource(strings = {
+            "/agenda",
+            "/calendario",
+            "/bloqueios",
+            "/solicitacoes",
+            "/whatsapp",
+            "/pacientes",
+            "/pacotes-consumo"
+    })
+    void recepcaoPodeAcessarMenusPadraoEsperados(String path) throws Exception {
+        mockMvc.perform(get(path))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    void recepcaoNaoPodeAcessarRelatorios() throws Exception {
+        mockMvc.perform(get("/relatorios"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
     }
 
     @ParameterizedTest

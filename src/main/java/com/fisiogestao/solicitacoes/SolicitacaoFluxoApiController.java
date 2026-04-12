@@ -7,23 +7,23 @@ import com.fisiogestao.pacientes.form.PacoteSessaoForm;
 import com.fisiogestao.pacientes.service.PacoteSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -37,13 +37,6 @@ public class SolicitacaoFluxoApiController {
     private final PacoteSessaoService pacoteSessaoService;
     private final AgendaService agendaService;
     private final HorarioBloqueadoRepository horarioBloqueadoRepository;
-
-    // ── Erro de negócio → 422 com JSON { "message": "..." } ──────────────────
-    @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public Map<String, String> handleBusinessException(BusinessException ex) {
-        return Map.of("message", ex.getMessage());
-    }
 
     // ── GET /api/solicitacoes/{id}/fluxo ─────────────────────────────────────
     // Retorna o estado completo do wizard: paciente, plano e disponibilidade
@@ -128,7 +121,7 @@ public class SolicitacaoFluxoApiController {
     @PostMapping("/{id}/fluxo/criar-plano")
     public PlanoCriadoResponse criarPlano(
             @PathVariable UUID id,
-            @RequestBody CriarPlanoRequest body
+            @Valid @RequestBody CriarPlanoRequest body
     ) {
         SolicitacaoAgendamentoEntity sol = solicitacaoService.buscarPorId(id);
 
@@ -138,13 +131,6 @@ public class SolicitacaoFluxoApiController {
         if (sol.getCliente() == null) {
             throw new BusinessException("Cadastre o paciente antes de criar o plano de tratamento.");
         }
-        if (body.nomePacote() == null || body.nomePacote().isBlank()) {
-            throw new BusinessException("Informe o nome do plano de tratamento.");
-        }
-        if (body.sessoesContratadas() == null || body.sessoesContratadas() < 1) {
-            throw new BusinessException("O plano de tratamento precisa ter ao menos uma sessão.");
-        }
-
         PacoteSessaoForm form = new PacoteSessaoForm();
         form.setNomePacote(body.nomePacote().trim());
         form.setSessoesContratadas(body.sessoesContratadas());
@@ -208,11 +194,14 @@ public class SolicitacaoFluxoApiController {
     ) {}
 
     public record CriarPlanoRequest(
-            String     nomePacote,
-            Integer    sessoesContratadas,
+            @NotBlank(message = "Informe o nome do plano de tratamento.")
+            String nomePacote,
+            @NotNull(message = "Informe a quantidade de sessões contratadas.")
+            @Min(value = 1, message = "O plano de tratamento precisa ter ao menos uma sessão.")
+            Integer sessoesContratadas,
             BigDecimal valorTotal,
-            LocalDate  dataInicio,
-            LocalDate  dataValidade
+            LocalDate dataInicio,
+            LocalDate dataValidade
     ) {}
 
     public record PlanoCriadoResponse(

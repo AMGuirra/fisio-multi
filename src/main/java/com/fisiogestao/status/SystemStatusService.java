@@ -1,26 +1,35 @@
 package com.fisiogestao.status;
 
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class SystemStatusService {
 
     private final SystemStatusRepository repository;
+    private volatile SystemStatusEntity cachedStatus;
 
     public SystemStatusEntity getStatusAtual() {
-        return repository.findUltimoRegistro()
-                .orElseGet(() -> {
-                    SystemStatusEntity padrao = new SystemStatusEntity(
+        SystemStatusEntity localCache = cachedStatus;
+        if (localCache != null) {
+            return localCache;
+        }
+
+        synchronized (this) {
+            if (cachedStatus != null) {
+                return cachedStatus;
+            }
+
+            cachedStatus = repository.findFirstByOrderByAtualizadoEmDesc()
+                    .orElseGet(() -> repository.save(new SystemStatusEntity(
                             SystemStatusType.ONLINE,
                             "Sistema operando normalmente"
-                    );
-                    return repository.save(padrao);
-                });
+                    )));
+            return cachedStatus;
+        }
     }
 
     @Transactional
@@ -28,7 +37,9 @@ public class SystemStatusService {
         SystemStatusEntity status = new SystemStatusEntity();
         status.setStatus(novoStatus);
         status.setMensagem(mensagem);
-        status.setAtualizadoEm(LocalDateTime.now());
-        return repository.save(status);
+        status.setAtualizadoEm(ClinicTimezoneHolder.now().toLocalDateTime());
+        SystemStatusEntity salvo = repository.save(status);
+        cachedStatus = salvo;
+        return salvo;
     }
 }

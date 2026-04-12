@@ -1,6 +1,6 @@
 package com.fisiogestao.shared.persistence;
 
-import com.fisiogestao.config.TimezoneConfig;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.UUID;
 
 @Getter
@@ -33,7 +32,7 @@ public abstract class BaseEntity {
 
     @PrePersist
     void onCreate() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE));
+        OffsetDateTime now = ClinicTimezoneHolder.now();
         if (createdAt == null) {
             createdAt = now;
         }
@@ -42,6 +41,6 @@ public abstract class BaseEntity {
 
     @PreUpdate
     void onUpdate() {
-        updatedAt = OffsetDateTime.now(ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE));
+        updatedAt = ClinicTimezoneHolder.now();
     }
 }

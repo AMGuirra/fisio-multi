@@ -9,7 +9,7 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
-import com.fisiogestao.config.TimezoneConfig;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailDispatchResult;
 import com.fisiogestao.email.service.EmailRequest;
@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -41,7 +40,6 @@ public class PasswordResetService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordResetService.class);
     private static final int TOKEN_TTL_MINUTES = 60;
-    private static final ZoneId APP_ZONE_ID = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UsuarioSistemaRepository usuarioSistemaRepository;
@@ -94,7 +92,7 @@ public class PasswordResetService {
         UsuarioSistemaEntity usuario = token.getUsuario();
         Map<String, Object> snapshotAnterior = snapshotResetUsuario(usuario, null);
         usuario.setPasswordHash(passwordEncoder.encode(senhaNormalizada));
-        OffsetDateTime redefinicao = OffsetDateTime.now(APP_ZONE_ID);
+        OffsetDateTime redefinicao = ClinicTimezoneHolder.now();
         token.setUsedAt(redefinicao);
         usuarioSistemaRepository.save(usuario);
         passwordResetTokenRepository.save(token);
@@ -173,7 +171,7 @@ public class PasswordResetService {
         PasswordResetTokenEntity token = passwordResetTokenRepository.findByTokenHash(hash)
                 .orElseThrow(() -> new BusinessException("O link de redefinição é inválido ou já expirou."));
 
-        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
+        OffsetDateTime agora = ClinicTimezoneHolder.now();
         if (!token.ativoEm(agora)) {
             throw new BusinessException("O link de redefinição é inválido ou já expirou.");
         }
@@ -208,7 +206,7 @@ public class PasswordResetService {
     ) {
         String token = gerarTokenSeguro();
         String tokenHash = hashToken(token);
-        OffsetDateTime agora = OffsetDateTime.now(APP_ZONE_ID);
+        OffsetDateTime agora = ClinicTimezoneHolder.now();
 
         passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId())
                 .forEach(item -> item.setUsedAt(agora));

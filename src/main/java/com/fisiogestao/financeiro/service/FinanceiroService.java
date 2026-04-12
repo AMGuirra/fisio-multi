@@ -1,6 +1,6 @@
 package com.fisiogestao.financeiro.service;
 
-import com.fisiogestao.config.TimezoneConfig;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
@@ -72,7 +72,7 @@ public class FinanceiroService {
     }
 
     public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
-        ZoneId zone = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
+        ZoneId zone = ClinicTimezoneHolder.zoneId();
         OffsetDateTime dtInicio = inicio.atStartOfDay(zone).toOffsetDateTime();
         OffsetDateTime dtFim = fim.plusDays(1).atStartOfDay(zone).toOffsetDateTime().minusNanos(1);
         return lancamentoFinanceiroRepository
@@ -240,7 +240,7 @@ public class FinanceiroService {
         }
 
         lancamento.setStatus(StatusLancamentoFinanceiro.PAGO);
-        lancamento.setDataPagamento(OffsetDateTime.now(ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE)));
+        lancamento.setDataPagamento(ClinicTimezoneHolder.now());
         LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
         auditService.recordManual(
                 AuditModule.FINANCEIRO,
@@ -291,6 +291,6 @@ public class FinanceiroService {
     }
 
     private OffsetDateTime paraInicioDoDia(LocalDate data) {
-        return data.atStartOfDay(ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE)).toOffsetDateTime();
+        return data.atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
     }
 }

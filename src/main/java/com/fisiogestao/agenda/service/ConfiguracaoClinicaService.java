@@ -7,6 +7,7 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.config.TimezoneConfig;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,7 @@ public class ConfiguracaoClinicaService {
         entity.setAtivo(true);
 
         ConfiguracaoClinicaEntity salva = configuracaoClinicaRepository.save(entity);
+        ClinicTimezoneHolder.update(salva.getTimezoneId());
         if (novoCadastro) {
             auditService.recordCreate(
                     AuditModule.CONFIGURACOES,
@@ -188,7 +190,7 @@ public class ConfiguracaoClinicaService {
                 .horarioInicioAlmoco(LocalTime.of(12, 0))
                 .horarioFimAlmoco(LocalTime.of(13, 0))
                 .duracaoSessaoMinutos(60)
-                .timezoneId(TimezoneConfig.CLINIC_TIMEZONE)
+                .timezoneId(TimezoneConfig.DEFAULT_TIMEZONE_ID)
                 .ativo(true)
                 .build();
     }

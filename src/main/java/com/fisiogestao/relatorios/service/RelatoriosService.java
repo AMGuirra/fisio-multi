@@ -3,7 +3,7 @@ package com.fisiogestao.relatorios.service;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.service.AgendaService;
-import com.fisiogestao.config.TimezoneConfig;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailAttachment;
 import com.fisiogestao.email.service.EmailDispatchResult;
@@ -57,7 +57,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RelatoriosService {
 
-    private static final ZoneId CLINIC_ZONE = ZoneId.of(TimezoneConfig.CLINIC_TIMEZONE);
     private static final Locale LOCALE_PT_BR = Locale.forLanguageTag("pt-BR");
 
     private static final String TONE_SUCCESS = "success";
@@ -902,12 +901,16 @@ public class RelatoriosService {
     }
 
     private LocalDate paraLocalDate(OffsetDateTime valor) {
-        return valor.atZoneSameInstant(CLINIC_ZONE).toLocalDate();
+        return valor.atZoneSameInstant(clinicZone()).toLocalDate();
     }
 
     private String formatDateTime(OffsetDateTime dataHora) {
-        return dataHora.atZoneSameInstant(CLINIC_ZONE)
+        return dataHora.atZoneSameInstant(clinicZone())
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    private ZoneId clinicZone() {
+        return ClinicTimezoneHolder.zoneId();
     }
 
     private String formatDateShort(LocalDate data) {

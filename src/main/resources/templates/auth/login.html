@@ -239,7 +239,8 @@
         </div>
 
         <form th:action="@{/login}" method="post">
-            
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
             <div class="form-group">
                 <label class="form-label" for="username">
                     <i data-lucide="user-round"></i>

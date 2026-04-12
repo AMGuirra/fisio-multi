@@ -13,6 +13,7 @@ import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.form.AuditFilterForm;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -625,7 +626,7 @@ public class AuditService {
     private ZoneId resolveAppZone() {
         return configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()
                 .map(config -> ZoneId.of(config.getTimezoneId()))
-                .orElse(ZoneId.of("America/Campo_Grande"));
+                .orElse(ClinicTimezoneHolder.zoneId());
     }
 
     private boolean hasText(String value) {

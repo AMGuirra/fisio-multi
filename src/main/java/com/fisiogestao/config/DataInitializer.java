@@ -24,7 +24,7 @@ public class DataInitializer implements CommandLineRunner {
         if (configuracaoClinicaRepository.count() == 0) {
             ConfiguracaoClinicaEntity config = ConfiguracaoClinicaEntity.builder()
                     .nomeClinica("Clínica FisioGestao")
-                    .timezoneId(TimezoneConfig.CLINIC_TIMEZONE)
+                    .timezoneId(TimezoneConfig.DEFAULT_TIMEZONE_ID)
                     .horarioAbertura(LocalTime.of(7, 0))
                     .horarioFechamento(LocalTime.of(19, 0))
                     .duracaoSessaoMinutos(60)
@@ -34,6 +34,7 @@ public class DataInitializer implements CommandLineRunner {
                     .ativo(true)
                     .build();
             configuracaoClinicaRepository.save(config);
+            ClinicTimezoneHolder.update(config.getTimezoneId());
             LOGGER.info("Configuracao padrao da clinica criada com sucesso.");
         }
     }
