@@ -105,100 +105,108 @@
                             <article class="session-card" th:each="sessao : ${sessoes}">
                                 <div class="session-row align-start">
                                     <span class="session-time" th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">09:00</span>
-                                    <div class="session-detail">
-                                        <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
-                                        <p class="session-text" th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</p>
-                                        <p class="session-text" th:text="${sessao.pacoteSessao != null ? 'Plano: ' + sessao.pacoteSessao.nomePacote : 'Sem plano vinculado'}">Plano</p>
-                                        <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
-                                    </div>
-                                    <div class="session-actions">
-                                        <span class="chip"
-                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
-                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : sessao.status.name()}">STATUS</span>
-                                        <a th:if="${sessao.status.name() != 'CANCELADA'}" 
-                                           href="javascript:void(0)" 
-                                           class="action-button ghost js-btn-editar-sessao"
-                                           th:data-sessao-id="${sessao.id}">
-                                            <i data-lucide="square-pen"></i>Editar
-                                        </a>
-                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
-                                              th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Confirmar realização?"
-                                              data-confirm-message="Deseja confirmar a realização desta sessão?"
-                                              data-confirm-helper-title="A sessão será marcada como realizada"
-                                              data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
-                                              data-confirm-action-label="Confirmar realização">
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
-                                        </form>
-                                        <form th:if="${sessao.status.name() == 'REALIZADA'}"
-                                              th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Desfazer realização?"
-                                              data-confirm-message="Deseja reverter esta sessão para agendada?"
-                                              data-confirm-helper-title="A sessão voltará a ficar pendente"
-                                              data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
-                                              data-confirm-action-label="Desfazer realização">
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
-                                        </form>
-                                        <button th:if="${sessao.status.name() != 'CANCELADA'}"
-                                                type="button"
-                                                class="action-button danger js-btn-status-sessao"
-                                                th:attr="data-session-status=${sessao.status.name()},
-                                                         data-session-patient=${sessao.cliente.nomeCompleto},
-                                                         data-session-datetime=${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
-                                                         data-cancel-form-id=${'sessao-cancelar-' + sessao.id},
-                                                         data-pending-form-id=${sessao.status.name() == 'REALIZADA' ? 'sessao-reabrir-' + sessao.id : ''}">
-                                            <i data-lucide="x-circle"></i>Cancelar
-                                        </button>
-                                        <form th:if="${sessao.status.name() == 'CANCELADA'}"
-                                              th:action="@{/agenda/sessoes/{id}/restaurar(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Voltar sessão para pendente?"
-                                              data-confirm-message="Deseja tirar esta sessão do cancelado?"
-                                              data-confirm-helper-title="A sessão voltará a ficar pendente"
-                                              data-confirm-helper-message="O horário volta a ficar reservado e a sessão poderá ser realizada ou editada novamente."
-                                              data-confirm-action-label="Voltar para pendente">
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Voltar para pendente</button>
-                                        </form>
-                                        <form th:action="@{/agenda/sessoes/{id}/excluir(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Excluir sessão?"
-                                              data-confirm-message="Deseja excluir esta sessão de forma permanente?"
-                                              data-confirm-helper-title="A exclusão remove a sessão do histórico"
-                                              data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
-                                              data-confirm-action-label="Excluir sessão">
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button ghost"><i data-lucide="trash-2"></i>Excluir</button>
-                                        </form>
+                                    <div class="session-content">
+                                        <div class="session-detail">
+                                            <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
+                                            <p class="session-text" th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</p>
+                                            <p class="session-text" th:text="${sessao.pacoteSessao != null ? 'Plano: ' + sessao.pacoteSessao.nomePacote : 'Sem plano vinculado'}">Plano</p>
+                                            <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
+                                        </div>
+                                        <div class="session-actions">
+                                            <div class="session-actions-top">
+                                                <span class="chip"
+                                                      th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
+                                                      th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : sessao.status.name()}">STATUS</span>
+                                                <a th:if="${sessao.status.name() != 'CANCELADA'}"
+                                                   href="javascript:void(0)"
+                                                   class="action-button ghost js-btn-editar-sessao session-action-edit"
+                                                   th:data-sessao-id="${sessao.id}">
+                                                    <i data-lucide="square-pen"></i>Editar
+                                                </a>
+                                            </div>
+                                            <div class="session-actions-main">
+                                                <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                                      th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}"
+                                                      method="post"
+                                                      class="inline-form"
+                                                      data-confirm-modal
+                                                      data-confirm-title="Confirmar realização?"
+                                                      data-confirm-message="Deseja confirmar a realização desta sessão?"
+                                                      data-confirm-helper-title="A sessão será marcada como realizada"
+                                                      data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
+                                                      data-confirm-action-label="Confirmar realização">
+                                                    <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
+                                                </form>
+                                                <form th:if="${sessao.status.name() == 'REALIZADA'}"
+                                                      th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
+                                                      method="post"
+                                                      class="inline-form"
+                                                      data-confirm-modal
+                                                      data-confirm-title="Desfazer realização?"
+                                                      data-confirm-message="Deseja reverter esta sessão para agendada?"
+                                                      data-confirm-helper-title="A sessão voltará a ficar pendente"
+                                                      data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
+                                                      data-confirm-action-label="Desfazer realização">
+                                                    <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
+                                                </form>
+                                                <form th:if="${sessao.status.name() == 'CANCELADA'}"
+                                                      th:action="@{/agenda/sessoes/{id}/restaurar(id=${sessao.id})}"
+                                                      method="post"
+                                                      class="inline-form"
+                                                      data-confirm-modal
+                                                      data-confirm-title="Voltar sessão para pendente?"
+                                                      data-confirm-message="Deseja tirar esta sessão do cancelado?"
+                                                      data-confirm-helper-title="A sessão voltará a ficar pendente"
+                                                      data-confirm-helper-message="O horário volta a ficar reservado e a sessão poderá ser realizada ou editada novamente."
+                                                      data-confirm-action-label="Voltar para pendente">
+                                                    <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Voltar para pendente</button>
+                                                </form>
+                                            </div>
+                                            <div class="session-actions-bottom">
+                                                <button th:if="${sessao.status.name() != 'CANCELADA'}"
+                                                        type="button"
+                                                        class="action-button danger js-btn-status-sessao"
+                                                        th:attr="data-session-status=${sessao.status.name()},
+                                                                 data-session-patient=${sessao.cliente.nomeCompleto},
+                                                                 data-session-datetime=${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
+                                                                 data-cancel-form-id=${'sessao-cancelar-' + sessao.id},
+                                                                 data-pending-form-id=${sessao.status.name() == 'REALIZADA' ? 'sessao-reabrir-' + sessao.id : ''}">
+                                                    <i data-lucide="x-circle"></i>Cancelar
+                                                </button>
+                                                <form th:action="@{/agenda/sessoes/{id}/excluir(id=${sessao.id})}"
+                                                      method="post"
+                                                      class="inline-form"
+                                                      data-confirm-modal
+                                                      data-confirm-title="Excluir sessão?"
+                                                      data-confirm-message="Deseja excluir esta sessão de forma permanente?"
+                                                      data-confirm-helper-title="A exclusão remove a sessão do histórico"
+                                                      data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
+                                                      data-confirm-action-label="Excluir sessão">
+                                                    <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <button type="submit" class="action-button ghost"><i data-lucide="trash-2"></i>Excluir</button>
+                                                </form>
+                                            </div>
 
-                                        <form th:if="${sessao.status.name() == 'REALIZADA'}"
-                                              th:id="${'sessao-reabrir-' + sessao.id}"
-                                              th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              hidden>
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                        </form>
-                                        <form th:if="${sessao.status.name() != 'CANCELADA'}"
-                                              th:id="${'sessao-cancelar-' + sessao.id}"
-                                              th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              hidden>
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                        </form>
+                                            <form th:if="${sessao.status.name() == 'REALIZADA'}"
+                                                  th:id="${'sessao-reabrir-' + sessao.id}"
+                                                  th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  hidden>
+                                                <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            </form>
+                                            <form th:if="${sessao.status.name() != 'CANCELADA'}"
+                                                  th:id="${'sessao-cancelar-' + sessao.id}"
+                                                  th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  hidden>
+                                                <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </article>
@@ -1024,7 +1032,6 @@
     </script>
 </body>
 </html>
-
 
 
 
