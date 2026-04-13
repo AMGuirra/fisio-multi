@@ -240,33 +240,19 @@
         </main>
 
         <div id="abrirAgendaDiaModal" class="app-modal" aria-hidden="true">
-            <div class="app-modal-backdrop" data-modal-close></div>
             <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="abrirAgendaDiaModalTitle">
                 <div class="app-modal-card">
                     <header class="app-modal-header">
                         <div class="app-modal-title-block">
-                            <h3 id="abrirAgendaDiaModalTitle">Abrir agenda do dia</h3>
-                            <p id="abrirAgendaDiaModalMessage">Escolha a data que você quer abrir na agenda diária.</p>
+                            <h3 id="abrirAgendaDiaModalTitle"><i data-lucide="calendar-days"></i> Agenda do Dia</h3>
+                            <p id="abrirAgendaDiaModalMessage">Carregando agenda...</p>
                         </div>
-                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <button type="button" class="app-modal-close" data-modal-close aria-label="Voltar ao calendário">
                             <i data-lucide="x"></i>
                         </button>
                     </header>
                     <div class="app-modal-body">
-                        <div class="helper-card modal-helper-card">
-                            <div class="helper-copy">
-                                <h4 id="abrirAgendaDiaModalHelperTitle">Navegação rápida da agenda</h4>
-                                <p id="abrirAgendaDiaModalHelperMessage">A data selecionada será aberta diretamente na visão diária da agenda.</p>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
-                            <a id="abrirAgendaDiaModalAction" th:href="@{/agenda}" href="/agenda" class="action-button primary">
-                                <i data-lucide="calendar-days"></i>
-                                Abrir agenda
-                            </a>
-                        </div>
+                        <iframe id="agendaDiaIframe" src="" title="Agenda do Dia"></iframe>
                     </div>
                 </div>
             </div>
@@ -308,17 +294,49 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <style>
+        #abrirAgendaDiaModal.is-open {
+            padding: 0;
+        }
+        #abrirAgendaDiaModal .app-modal-dialog {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            max-height: 100vh;
+        }
+        #abrirAgendaDiaModal .app-modal-card {
+            height: 100%;
+            max-height: 100vh;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+        }
+        #abrirAgendaDiaModal .app-modal-body {
+            flex: 1;
+            padding: 0;
+            overflow: hidden;
+            min-height: 0;
+        }
+        #agendaDiaIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script>
         (() => {
             const body = document.body;
 
-            const bindDayModal = ({ modalId, triggerSelector, messageId, actionId, prefix }) => {
+            const bindDayModal = ({ modalId, triggerSelector, messageId, actionId, iframeId, prefix }) => {
                 const modal = document.getElementById(modalId);
                 const message = document.getElementById(messageId);
-                const action = document.getElementById(actionId);
-                if (!modal || !message || !action) {
+                const action = actionId ? document.getElementById(actionId) : null;
+                const iframe = iframeId ? document.getElementById(iframeId) : null;
+                if (!modal || !message || (!action && !iframe)) {
                     return;
                 }
 
@@ -326,6 +344,9 @@
                     modal.classList.toggle('is-open', open);
                     modal.setAttribute('aria-hidden', open ? 'false' : 'true');
                     body.classList.toggle('modal-open', open);
+                    if (!open && iframe) {
+                        iframe.src = '';
+                    }
                 };
 
                 document.querySelectorAll(triggerSelector).forEach((button) => {
@@ -333,7 +354,8 @@
                         const dateLabel = button.dataset.dateLabel || 'dia selecionado';
                         const targetUrl = button.dataset.targetUrl || '#';
                         message.textContent = `${prefix} ${dateLabel}.`;
-                        action.setAttribute('href', targetUrl);
+                        if (action) action.setAttribute('href', targetUrl);
+                        if (iframe) iframe.src = targetUrl;
                         setOpen(true);
                     });
                 });
@@ -353,8 +375,8 @@
                 modalId: 'abrirAgendaDiaModal',
                 triggerSelector: '.js-open-agenda-modal',
                 messageId: 'abrirAgendaDiaModalMessage',
-                actionId: 'abrirAgendaDiaModalAction',
-                prefix: 'A agenda diária será aberta para'
+                iframeId: 'agendaDiaIframe',
+                prefix: 'Agenda de'
             });
 
             bindDayModal({

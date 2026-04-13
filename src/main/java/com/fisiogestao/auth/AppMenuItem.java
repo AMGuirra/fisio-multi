@@ -176,7 +176,6 @@ public enum AppMenuItem {
     public static List<AppMenuItem> sidebarPrincipais() {
         return List.of(
                 DASHBOARD,
-                AGENDA,
                 CALENDARIO,
                 BLOQUEIOS,
                 SOLICITACOES,
