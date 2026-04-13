@@ -95,6 +95,14 @@ public class GlobalViewAttributes {
         return userMenuAccessService.montarSidebarPrincipal(resolveRole(authentication, request), currentPath(request));
     }
 
+    @ModelAttribute("sidebarNavItems")
+    public List<UserMenuAccessService.SidebarNavItem> sidebarNavItems(
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
+        return userMenuAccessService.montarSidebarNavItems(resolveRole(authentication, request), currentPath(request));
+    }
+
     @ModelAttribute("sidebarFooterMenus")
     public List<UserMenuAccessService.SidebarMenuView> sidebarFooterMenus(
             Authentication authentication,

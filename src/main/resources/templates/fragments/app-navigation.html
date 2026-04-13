@@ -24,8 +24,13 @@
             </div>
 
             <ul class="sidebar-nav">
-                <li th:each="item : ${sidebarMainMenus}">
-                    <a th:href="${item.href}"
+                <li th:each="item : ${sidebarNavItems}"
+                    th:class="${item.section ? 'sidebar-section' : ''}">
+                    <span th:if="${item.section}"
+                          class="sidebar-section-label"
+                          th:text="${item.label}">Seção</span>
+                    <a th:unless="${item.section}"
+                       th:href="${item.href}"
                        class="sidebar-link"
                        th:classappend="${item.active ? ' active' : ''}"
                        th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">

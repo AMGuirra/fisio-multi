@@ -176,6 +176,40 @@ a {
     gap: 4px;
 }
 
+.sidebar-section {
+    margin-top: 14px;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.sidebar-section:first-child {
+    margin-top: 0;
+}
+
+.sidebar-section-label {
+    display: block;
+    padding: 2px 12px 4px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: rgba(223, 243, 238, 0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity var(--ease-standard), max-height var(--ease-standard);
+}
+
+body.sidebar-collapsed .sidebar-section {
+    margin-top: 8px;
+}
+
+body.sidebar-collapsed .sidebar-section-label {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
 .sidebar-link {
     position: relative;
     display: grid;

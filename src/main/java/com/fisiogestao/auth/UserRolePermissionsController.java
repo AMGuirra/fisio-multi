@@ -1,5 +1,6 @@
 package com.fisiogestao.auth;
 
+import com.fisiogestao.auth.form.UsuarioForm;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -19,11 +20,12 @@ import java.util.Set;
 public class UserRolePermissionsController {
 
     private final UserMenuAccessService userMenuAccessService;
+    private final UserManagementController userManagementController;
 
     @GetMapping
     public String index(Model model) {
-        prepararPagina(model);
-        return "usuarios/funcoes";
+        userManagementController.prepararPagina(model, new UsuarioForm(), "funcoes");
+        return "usuarios/index";
     }
 
     @GetMapping("/{role}")
@@ -32,8 +34,8 @@ public class UserRolePermissionsController {
             Model model
     ) {
         model.addAttribute("editingRole", role.name());
-        prepararPagina(model);
-        return "usuarios/funcoes";
+        userManagementController.prepararPagina(model, new UsuarioForm(), "funcoes");
+        return "usuarios/index";
     }
 
     @PostMapping("/{role}")
@@ -50,13 +52,8 @@ public class UserRolePermissionsController {
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("editingRole", role.name());
-            prepararPagina(model);
-            return "usuarios/funcoes";
+            userManagementController.prepararPagina(model, new UsuarioForm(), "funcoes");
+            return "usuarios/index";
         }
-    }
-
-    private void prepararPagina(Model model) {
-        model.addAttribute("menusConfiguraveis", userMenuAccessService.listarMenusConfiguraveis());
-        model.addAttribute("funcoesUsuario", userMenuAccessService.listarPermissoesPorFuncao());
     }
 }

@@ -5,24 +5,46 @@ import java.util.List;
 import java.util.Optional;
 
 public enum AppMenuItem {
-    DASHBOARD("Dashboard", "/dashboard", "layout-dashboard", false, false, true, false, List.of("/", "/dashboard")),
-    AGENDA("Agenda", "/agenda", "calendar-days", false, false, true, false, List.of("/agenda")),
-    CALENDARIO("Calendário", "/calendario", "calendar-range", false, false, true, false, List.of("/calendario")),
-    BLOQUEIOS("Bloqueios", "/bloqueios", "calendar-x-2", false, false, true, false, List.of("/bloqueios")),
-    SOLICITACOES("Solicitações", "/solicitacoes", "calendar-plus", false, false, true, false, List.of("/solicitacoes", "/api/solicitacoes")),
-    WHATSAPP("Fila WhatsApp", "/whatsapp", "messages-square", false, false, true, false, List.of("/whatsapp")),
-    PACIENTES("Pacientes", "/pacientes", "stethoscope", false, false, true, false, List.of("/pacientes")),
-    PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open", false, false, true, false, List.of("/pacotes-consumo")),
-    PRONTUARIO("Prontuário", "/prontuario", "clipboard-pen-line", false, false, true, false, List.of("/prontuario")),
-    FINANCEIRO("Financeiro", "/financeiro", "wallet", false, false, true, false, List.of("/financeiro")),
-    RELATORIOS("Relatórios", "/relatorios", "file-text", false, false, true, false, List.of("/relatorios")),
-    CONFIG_CLINICA("Config. Clínica", "/configuracoes/clinica", "building-2", false, false, false, true, List.of("/configuracoes/clinica", "/configuracao/clinica")),
-    SYSTEM_STATUS("Status do Sistema", "/admin/system-status", "monitor-check", false, false, false, true, List.of("/admin/system-status")),
-    USUARIOS("Usuários", "/usuarios", "users", false, false, false, true, List.of("/usuarios")),
-    FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, List.of("/funcoes-usuarios")),
-    CONFIG_EMAIL("Config. E-mail", "/configuracoes/email", "mail-check", false, false, false, true, List.of("/configuracoes/email", "/configuracao/email")),
-    AUDITORIA("Auditoria", "/auditoria", "shield-check", false, false, false, true, List.of("/auditoria")),
-    AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true, false, List.of("/agendamento-online"));
+    DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard")),
+    AGENDA("Agenda",                 "/agenda",              "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda")),
+    CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, true,  false, MenuSection.AGENDA, List.of("/calendario")),
+    BLOQUEIOS("Bloqueios",           "/bloqueios",           "calendar-x-2",        false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
+    SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
+    WHATSAPP("Fila WhatsApp",        "/whatsapp",            "messages-square",     false, false, true,  false, MenuSection.AGENDA, List.of("/whatsapp")),
+    PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
+    PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/pacotes-consumo")),
+    PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
+    FINANCEIRO("Financeiro",         "/financeiro",          "wallet",              false, false, true,  false, MenuSection.GESTAO,  List.of("/financeiro")),
+    RELATORIOS("Relatórios",         "/relatorios",          "file-text",           false, false, true,  false, MenuSection.GESTAO,  List.of("/relatorios")),
+    CONFIG_CLINICA("Config. Clínica",  "/configuracoes/clinica", "building-2",      false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/clinica", "/configuracao/clinica")),
+    SYSTEM_STATUS("Status do Sistema", "/admin/system-status",   "monitor-check",   false, false, false, true,  MenuSection.ADMIN,   List.of("/admin/system-status")),
+    USUARIOS("Usuários",             "/usuarios",            "users",               false, false, false, true,  MenuSection.ADMIN,   List.of("/usuarios")),
+    FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
+    CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
+    AUDITORIA("Auditoria",           "/auditoria",           "shield-check",        false, false, false, true,  MenuSection.ADMIN,   List.of("/auditoria")),
+    AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true,  false, MenuSection.NONE,   List.of("/agendamento-online"));
+
+    public enum MenuSection {
+        NONE(null),
+        AGENDA("Agenda"),
+        CLINICO("Clínico"),
+        GESTAO("Gestão"),
+        ADMIN("Administração");
+
+        private final String label;
+
+        MenuSection(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public boolean hasLabel() {
+            return label != null;
+        }
+    }
 
     private final String label;
     private final String href;
@@ -31,6 +53,7 @@ public enum AppMenuItem {
     private final boolean external;
     private final boolean configuravelParaNaoAdmin;
     private final boolean adminOnly;
+    private final MenuSection section;
     private final List<String> pathPrefixes;
 
     AppMenuItem(
@@ -41,6 +64,7 @@ public enum AppMenuItem {
             boolean external,
             boolean configuravelParaNaoAdmin,
             boolean adminOnly,
+            MenuSection section,
             List<String> pathPrefixes
     ) {
         this.label = label;
@@ -50,6 +74,7 @@ public enum AppMenuItem {
         this.external = external;
         this.configuravelParaNaoAdmin = configuravelParaNaoAdmin;
         this.adminOnly = adminOnly;
+        this.section = section;
         this.pathPrefixes = pathPrefixes;
     }
 
@@ -79,6 +104,10 @@ public enum AppMenuItem {
 
     public boolean isAdminOnly() {
         return adminOnly;
+    }
+
+    public MenuSection getSection() {
+        return section;
     }
 
     public boolean isRotaInterna() {
@@ -160,7 +189,6 @@ public enum AppMenuItem {
                 CONFIG_CLINICA,
                 SYSTEM_STATUS,
                 USUARIOS,
-                FUNCOES_USUARIOS,
                 CONFIG_EMAIL,
                 AUDITORIA
         );

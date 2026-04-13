@@ -10,6 +10,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        .tab-panel-hidden { display: none !important; }
+
+        .permissions-card .section-head { gap: 1rem; align-items: center; }
+        .permission-head-main { display: flex; align-items: flex-start; gap: 1rem; flex: 1; min-width: 0; }
+        .permission-head-copy { min-width: 0; }
+        .permission-head-summary { margin-top: 0.35rem; color: var(--text-muted); font-size: 0.88rem; }
+        .permission-head-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+
+        .permission-toggle {
+            width: 2.6rem; height: 2.6rem; border-radius: 999px;
+            border: 1px solid rgba(27, 138, 126, 0.18);
+            background: rgba(255, 255, 255, 0.82); color: #0f766e;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+        .permission-toggle:hover { border-color: rgba(15, 118, 110, 0.35); background: rgba(232, 248, 245, 0.96); }
+        .permission-toggle i { transition: transform 0.2s ease; }
+        .permissions-card.is-collapsed .permission-toggle i { transform: rotate(-90deg); }
+        .permission-collapsible { overflow: hidden; }
+        .permissions-card.is-collapsed .permission-collapsible { display: none; }
+
+        @media (max-width: 860px) {
+            .permission-head-main { align-items: center; }
+            .permission-head-actions { width: 100%; justify-content: space-between; margin-left: 0; }
+            .permissions-card .section-head { flex-direction: column; align-items: stretch; }
+        }
+    </style>
 </head>
 <body class="dashboard-app dashboard-loading">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -21,10 +49,7 @@
             <div class="header-left">
                 <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting"
-                        th:attr="data-username=${loggedUserDisplayName}">
-                        Bom dia, Usuário
-                    </h2>
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
                 </div>
             </div>
@@ -32,10 +57,8 @@
                 <div class="header-clock skeletonable" id="liveClock">00:00</div>
                 <div class="user-menu" id="userMenu">
                     <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
-                        <span class="user-avatar"
-                              th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name"
-                              th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
@@ -49,27 +72,28 @@
             </div>
         </header>
 
-        <main class="dashboard-main crud-main">
+        <main class="dashboard-main crud-main" th:attr="data-active-tab=${activeTab}">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Gerenciamento de Usuários</h1>
-                    <p class="hero-subtitle">Cadastre e gerencie os usuários do sistema com visual moderno e objetivo.</p>
+                    <p class="hero-subtitle">Cadastre usuários e configure permissões de acesso por função.</p>
                 </div>
-                <div class="hero-actions">
-                    <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="action-button ghost">
-                        <i data-lucide="sliders-horizontal"></i>
-                        Funções de usuários
-                    </a>
-                    <span class="hero-pill">Usuários</span>
-                </div>
+                <span class="hero-pill">Administração</span>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções Administrativas">
-                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab active"><i data-lucide="users"></i> Usuários</a>
-                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
-                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
-                <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab"><i data-lucide="messages-square"></i> WhatsApp</a>
-                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+            <nav class="page-tabs" aria-label="Seções de usuários">
+                <button type="button" class="page-tab" data-tab-btn="usuarios">
+                    <i data-lucide="users"></i> Usuários
+                </button>
+                <button type="button" class="page-tab" data-tab-btn="funcoes">
+                    <i data-lucide="sliders-horizontal"></i> Funções
+                </button>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab">
+                    <i data-lucide="mail-check"></i> Config. E-mail
+                </a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab">
+                    <i data-lucide="shield-check"></i> Auditoria
+                </a>
             </nav>
 
             <div class="flash-stack">
@@ -87,198 +111,232 @@
                 </div>
             </div>
 
-            <section class="crud-layout form-table">
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title">
-                            <i data-lucide="user-round-plus"></i>
-                            <span th:text="${editMode} ? 'Editar Usuário' : 'Novo Usuário'">Novo Usuário</span>
-                        </h3>
-                    </header>
+            <!-- ═══ ABA: USUÁRIOS ═══ -->
+            <div data-tab-panel="usuarios">
+                <section class="crud-layout form-table">
+                    <article class="section-card">
+                        <header class="section-head">
+                            <h3 class="section-title">
+                                <i data-lucide="user-round-plus"></i>
+                                <span th:text="${editMode} ? 'Editar Usuário' : 'Novo Usuário'">Novo Usuário</span>
+                            </h3>
+                        </header>
+                        <div class="section-body">
+                            <form th:action="${editMode} ? @{/usuarios/{id}/editar(id=${editingUserId})} : @{/usuarios/novo}"
+                                  th:object="${usuarioForm}"
+                                  method="post"
+                                  class="modern-form">
+                                <div class="form-grid form-grid-two">
+                                    <div class="form-field">
+                                        <label for="nome">Nome</label>
+                                        <input id="nome" type="text" class="form-control" th:field="*{nome}" maxlength="160" placeholder="Nome completo" required>
+                                        <p class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="username">Usuário</label>
+                                        <input id="username" type="text" class="form-control" th:field="*{username}" maxlength="40" required>
+                                        <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="email">E-mail</label>
+                                        <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="160" placeholder="usuario@clinica.com" required>
+                                        <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                                    </div>
+                                </div>
+                                <div class="form-grid form-grid-two">
+                                    <div class="form-field">
+                                        <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
+                                        <input id="password" type="password" class="form-control" th:field="*{password}" maxlength="120" th:attr="required=${!editMode}">
+                                        <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                                        <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="role">Tipo</label>
+                                        <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
+                                            <option th:each="tipo : ${tiposUsuario}" th:value="${tipo}" th:title="${tipo.description}" th:text="${tipo.label}">Administrador</option>
+                                        </select>
+                                        <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="action-button primary">
+                                        <i data-lucide="save"></i>
+                                        <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
+                                    </button>
+                                    <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
+                                        <i data-lucide="x"></i>
+                                        Cancelar edição
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </article>
+
+                    <article class="section-card">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="users"></i> Usuários Cadastrados</h3>
+                            <p class="section-subtitle" th:text="${usuarios != null ? usuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                        </header>
+                        <div class="section-body" th:if="${usuarios.empty}">
+                            <div class="empty-box">
+                                <i data-lucide="user-x"></i>
+                                <p>Nenhum usuário cadastrado.</p>
+                            </div>
+                        </div>
+                        <div class="data-table-wrap" th:unless="${usuarios.empty}">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Usuário</th>
+                                    <th>E-mail</th>
+                                    <th>Tipo</th>
+                                    <th class="text-right">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="user : ${usuarios}">
+                                    <td><p class="entity-name" th:text="${user.nome}">Nome</p></td>
+                                    <td>
+                                        <div class="entity-inline">
+                                            <span class="entity-avatar" th:text="${user.nome != null and !#strings.isEmpty(user.nome) ? #strings.substring(user.nome, 0, 1) : 'U'}">U</span>
+                                            <div>
+                                                <p class="entity-name" th:text="${user.username}">usuario</p>
+                                                <p class="entity-meta">Login do sistema</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <p class="entity-name" th:text="${user.email}">email@exemplo.com</p>
+                                            <p class="entity-meta">Canal principal de acesso</p>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${' role-' + #strings.toLowerCase(user.role.name())}"
+                                              th:title="${user.role.description}"
+                                              th:text="${user.label}">Administrador</span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="table-actions">
+                                            <a th:href="@{/usuarios(editar=${user.id})}" class="action-button ghost inline-icon" aria-label="Editar usuário">
+                                                <i data-lucide="pencil"></i>
+                                            </a>
+                                            <form th:action="@{/usuarios/{id}/reenviar-acesso(id=${user.id})}" method="post" class="inline-form">
+                                                <button type="submit" class="action-button success inline-icon" aria-label="Reenviar acesso por e-mail">
+                                                    <i data-lucide="send"></i>
+                                                </button>
+                                            </form>
+                                            <form th:if="${loggedUsername != user.username}"
+                                                  th:action="@{/usuarios/{id}/excluir(id=${user.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Excluir usuário?"
+                                                  data-confirm-message="Deseja excluir este usuário?"
+                                                  data-confirm-helper-title="O acesso será removido"
+                                                  data-confirm-helper-message="Depois da confirmação, esse usuário não poderá mais entrar no sistema."
+                                                  data-confirm-action-label="Excluir usuário">
+                                                <button type="submit" class="action-button danger inline-icon" aria-label="Excluir usuário">
+                                                    <i data-lucide="trash-2"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+            </div>
+
+            <!-- ═══ ABA: FUNÇÕES ═══ -->
+            <div data-tab-panel="funcoes">
+                <section class="section-card">
                     <div class="section-body">
-                        <form th:action="${editMode} ? @{/usuarios/{id}/editar(id=${editingUserId})} : @{/usuarios/novo}"
-                              th:object="${usuarioForm}"
-                              method="post"
-                              class="modern-form">
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="nome">Nome</label>
-                                    <input id="nome"
-                                           type="text"
-                                           class="form-control"
-                                           th:field="*{nome}"
-                                           maxlength="160"
-                                           placeholder="Nome completo"
-                                           required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
-                                </div>
-
-                                <div class="form-field">
-                                    <label for="username">Usuário</label>
-                                    <input id="username"
-                                           type="text"
-                                           class="form-control"
-                                           th:field="*{username}"
-                                           maxlength="40"
-                                           required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
-                                </div>
-
-                                <div class="form-field">
-                                    <label for="email">E-mail</label>
-                                    <input id="email"
-                                           type="email"
-                                           class="form-control"
-                                           th:field="*{email}"
-                                           maxlength="160"
-                                           placeholder="usuario@clinica.com"
-                                           required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-                                </div>
+                        <div class="helper-card">
+                            <div class="helper-copy">
+                                <h4>Administrador com acesso total</h4>
+                                <p>O perfil Administrador tem acesso completo e fixo ao sistema. As alterações abaixo afetam Fisioterapeuta, Recepção, Assessoria e Financeiro.</p>
                             </div>
-
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
-                                    <input id="password"
-                                           type="password"
-                                           class="form-control"
-                                           th:field="*{password}"
-                                           maxlength="120"
-                                           th:attr="required=${!editMode}">
-                                    <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
-                                    <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
-                                </div>
-
-                                <div class="form-field">
-                                    <label for="role">Tipo</label>
-                                    <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
-                                        <option th:each="tipo : ${tiposUsuario}"
-                                                th:value="${tipo}"
-                                                th:title="${tipo.description}"
-                                                th:text="${tipo.label}">
-                                            Administrador
-                                        </option>
-                                    </select>
-                                    <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
-                                </div>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="action-button primary">
-                                    <i data-lucide="save"></i>
-                                    <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
-                                </button>
-
-                                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="action-button ghost">
-                                    <i data-lucide="shield-check"></i>
-                                    Permissões por função
-                                </a>
-
-                                <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
-                                    <i data-lucide="x"></i>
-                                    Cancelar edição
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                </article>
-
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="users"></i> Usuários Cadastrados</h3>
-                        <p class="section-subtitle" th:text="${usuarios != null ? usuarios.size() + ' registros' : '0 registros'}">0 registros</p>
-                    </header>
-
-                    <div class="section-body" th:if="${usuarios.empty}">
-                        <div class="empty-box">
-                            <i data-lucide="user-x"></i>
-                            <p>Nenhum usuário cadastrado.</p>
                         </div>
                     </div>
+                </section>
 
-                    <div class="data-table-wrap" th:unless="${usuarios.empty}">
-                        <table class="data-table compact">
-                            <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Usuário</th>
-                                <th>E-mail</th>
-                                <th>Tipo</th>
-                                <th class="text-right">Ações</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="user : ${usuarios}">
-                                <td>
-                                    <p class="entity-name" th:text="${user.nome}">Nome</p>
-                                </td>
-                                <td>
-                                    <div class="entity-inline">
-                                        <span class="entity-avatar"
-                                              th:text="${user.nome != null and !#strings.isEmpty(user.nome) ? #strings.substring(user.nome, 0, 1) : 'U'}">U</span>
-                                        <div>
-                                            <p class="entity-name" th:text="${user.username}">usuario</p>
-                                            <p class="entity-meta">Login do sistema</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
+                <section class="permissions-layout">
+                    <article class="section-card permissions-card"
+                             th:each="funcao : ${funcoesUsuario}"
+                             th:with="expanded=${editingRole != null and editingRole == funcao.role.name()}"
+                             th:classappend="${editingRole != null and editingRole == funcao.role.name() ? ' section-card-highlight' : ''} + ${expanded ? '' : ' is-collapsed'}">
+                        <header class="section-head">
+                            <div class="permission-head-main">
+                                <div class="permission-head-copy">
+                                    <h3 class="section-title">
+                                        <i data-lucide="shield"></i>
+                                        <span th:text="${funcao.label}" th:title="${funcao.role.description}">Função</span>
+                                    </h3>
+                                    <p class="section-subtitle" th:text="${funcao.readOnly ? 'Acesso total fixo do sistema.' : 'Selecione os menus liberados para essa função.'}">Descrição</p>
+                                    <p class="permission-head-summary"
+                                       th:text="${funcao.readOnly
+                                           ? funcao.grantedMenus.size() + ' funções visíveis neste perfil.'
+                                           : funcao.grantedMenus.size() + ' funções habilitadas de ' + menusConfiguraveis.size()}">Resumo</p>
+                                </div>
+                            </div>
+                            <div class="permission-head-actions">
+                                <span class="chip"
+                                      th:classappend="${' role-' + #strings.toLowerCase(funcao.role.name())}"
+                                      th:title="${funcao.role.description}"
+                                      th:text="${funcao.label}">Perfil</span>
+                                <button type="button"
+                                        class="permission-toggle"
+                                        th:attr="aria-expanded=${expanded ? 'true' : 'false'}"
+                                        th:title="${expanded ? 'Minimizar funções' : 'Expandir funções'}"
+                                        th:aria-label="${expanded ? 'Minimizar funções' : 'Expandir funções'}">
+                                    <i data-lucide="shield"></i>
+                                    <i data-lucide="chevron-down"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="section-body permission-collapsible">
+                            <div th:if="${funcao.readOnly}" class="permission-grid permission-grid-readonly">
+                                <div class="permission-option permission-option-static"
+                                     th:each="menu : ${funcao.grantedMenus}"
+                                     th:title="${menu.description}">
+                                    <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
                                     <div>
-                                        <p class="entity-name" th:text="${user.email}">email@exemplo.com</p>
-                                        <p class="entity-meta">Canal principal de acesso</p>
+                                        <strong th:text="${menu.label}">Menu</strong>
+                                        <p th:text="${menu.footer ? 'Disponível no rodapé da navegação.' : 'Disponível na navegação principal.'}">Descrição</p>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="chip"
-                                          th:classappend="${' role-' + #strings.toLowerCase(user.role.name())}"
-                                          th:title="${user.role.description}"
-                                          th:text="${user.label}">
-                                        Administrador
-                                    </span>
-                                </td>
-                                <td class="text-right">
-                                    <div class="table-actions">
-                                        <a th:href="@{/usuarios(editar=${user.id})}"
-                                           class="action-button ghost inline-icon"
-                                           aria-label="Editar usuário">
-                                            <i data-lucide="pencil"></i>
-                                        </a>
-
-                                        <form th:action="@{/usuarios/{id}/reenviar-acesso(id=${user.id})}"
-                                              method="post"
-                                              class="inline-form">
-                                            <button type="submit"
-                                                    class="action-button success inline-icon"
-                                                    aria-label="Reenviar acesso por e-mail">
-                                                <i data-lucide="send"></i>
-                                            </button>
-                                        </form>
-
-                                        <form th:if="${loggedUsername != user.username}"
-                                              th:action="@{/usuarios/{id}/excluir(id=${user.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Excluir usuário?"
-                                              data-confirm-message="Deseja excluir este usuário?"
-                                              data-confirm-helper-title="O acesso será removido"
-                                              data-confirm-helper-message="Depois da confirmação, esse usuário não poderá mais entrar no sistema."
-                                              data-confirm-action-label="Excluir usuário">
-                                            <button type="submit"
-                                                    class="action-button danger inline-icon"
-                                                    aria-label="Excluir usuário">
-                                                <i data-lucide="trash-2"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </article>
-            </section>
+                                </div>
+                            </div>
+                            <form th:unless="${funcao.readOnly}" th:action="@{/funcoes-usuarios/{role}(role=${funcao.role})}" method="post" class="modern-form">
+                                <div class="permission-grid">
+                                    <label class="permission-option"
+                                           th:each="menu : ${menusConfiguraveis}"
+                                           th:classappend="${funcao.grantedMenus.contains(menu) ? ' is-selected' : ''}"
+                                           th:title="${menu.description}">
+                                        <input type="checkbox" name="menus" th:value="${menu}" th:checked="${funcao.grantedMenus.contains(menu)}">
+                                        <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
+                                        <span class="permission-option-copy">
+                                            <strong th:text="${menu.label}">Menu</strong>
+                                            <span th:text="${menu.footer ? 'Mostra o item no rodapé da sidebar.' : 'Libera o acesso ao módulo e o item na sidebar.'}">Descrição</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <p class="helper-text">É necessário manter ao menos um menu interno para a função continuar navegando após o login.</p>
+                                <div class="form-actions">
+                                    <button type="submit" class="action-button primary">
+                                        <i data-lucide="save"></i>
+                                        Salvar acessos
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </article>
+                </section>
+            </div>
         </main>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
@@ -289,10 +347,46 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+        (() => {
+            // ── Permission card collapse/expand ──
+            document.querySelectorAll('.permissions-card').forEach((card) => {
+                const toggle = card.querySelector('.permission-toggle');
+                const body = card.querySelector('.permission-collapsible');
+                if (!toggle || !body) return;
+                toggle.addEventListener('click', () => {
+                    const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+                    card.classList.toggle('is-collapsed', !expanded);
+                    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    toggle.setAttribute('title', expanded ? 'Minimizar funções' : 'Expandir funções');
+                });
+            });
+
+            // ── Tab switching ──
+            const main = document.querySelector('[data-active-tab]');
+            if (!main) return;
+
+            const serverTab = main.dataset.activeTab || 'usuarios';
+            const tabBtns = document.querySelectorAll('[data-tab-btn]');
+            const tabPanels = document.querySelectorAll('[data-tab-panel]');
+
+            function activateTab(name) {
+                tabBtns.forEach(btn => {
+                    const isActive = btn.dataset.tabBtn === name;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+                tabPanels.forEach(panel => {
+                    panel.classList.toggle('tab-panel-hidden', panel.dataset.tabPanel !== name);
+                });
+                history.replaceState(null, '', '#tab-' + name);
+            }
+
+            tabBtns.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.tabBtn)));
+
+            const hashTab = window.location.hash.startsWith('#tab-') ? window.location.hash.slice(5) : null;
+            activateTab(hashTab || serverTab);
+        })();
+    </script>
 </body>
 </html>
-
-
-
-
-

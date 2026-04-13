@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -73,6 +74,28 @@ public class UserMenuAccessService {
                                 .build())
                         .toList()
         );
+    }
+
+    @Transactional
+    public List<SidebarNavItem> montarSidebarNavItems(UserRole role, String currentPath) {
+        EnumSet<AppMenuItem> liberados = listarMenusLiberados(role);
+        List<SidebarNavItem> result = new ArrayList<>();
+        AppMenuItem.MenuSection currentSection = null;
+        for (AppMenuItem menu : AppMenuItem.sidebarPrincipais()) {
+            if (!podeVisualizarMenu(role, liberados, menu)) continue;
+            AppMenuItem.MenuSection section = menu.getSection();
+            if (section != currentSection) {
+                if (section.hasLabel()) {
+                    result.add(SidebarNavItem.sectionHeader(section.getLabel()));
+                }
+                currentSection = section;
+            }
+            result.add(SidebarNavItem.menuItem(
+                    menu.name(), menu.getLabel(), menu.getHref(), menu.getIcon(),
+                    menu.matchesPath(currentPath), menu.isExternal()
+            ));
+        }
+        return result;
     }
 
     @Transactional
@@ -245,6 +268,24 @@ public class UserMenuAccessService {
             boolean active,
             boolean external
     ) {
+    }
+
+    public record SidebarNavItem(
+            boolean section,
+            String label,
+            String href,
+            String icon,
+            boolean active,
+            boolean external
+    ) {
+        public static SidebarNavItem sectionHeader(String label) {
+            return new SidebarNavItem(true, label, null, null, false, false);
+        }
+
+        public static SidebarNavItem menuItem(
+                String key, String label, String href, String icon, boolean active, boolean external) {
+            return new SidebarNavItem(false, label, href, icon, active, external);
+        }
     }
 
     public record RolePermissionsView(

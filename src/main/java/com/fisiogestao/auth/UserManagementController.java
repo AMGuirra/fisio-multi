@@ -29,10 +29,12 @@ public class UserManagementController {
 
     private final InMemoryUserCatalog userCatalog;
     private final PasswordResetService passwordResetService;
+    private final UserMenuAccessService userMenuAccessService;
 
     @GetMapping
     public String listar(
             @RequestParam(name = "editar", required = false) UUID editarId,
+            @RequestParam(name = "tab", required = false, defaultValue = "usuarios") String tab,
             Model model
     ) {
         UsuarioForm form = new UsuarioForm();
@@ -49,7 +51,7 @@ public class UserManagementController {
             }, () -> model.addAttribute("errorMessage", "Usuário selecionado para edição não foi encontrado."));
         }
 
-        prepararPagina(model, form);
+        prepararPagina(model, form, tab);
         return "usuarios/index";
     }
 
@@ -64,7 +66,7 @@ public class UserManagementController {
         validarSenhaCadastro(form, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form);
+            prepararPagina(model, form, "usuarios");
             model.addAttribute("editMode", false);
             return "usuarios/index";
         }
@@ -84,7 +86,7 @@ public class UserManagementController {
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("editMode", false);
-            prepararPagina(model, form);
+            prepararPagina(model, form, "usuarios");
             return "usuarios/index";
         }
     }
@@ -103,7 +105,7 @@ public class UserManagementController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("editMode", true);
             model.addAttribute("editingUserId", id);
-            prepararPagina(model, form);
+            prepararPagina(model, form, "usuarios");
             return "usuarios/index";
         }
 
@@ -123,7 +125,7 @@ public class UserManagementController {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("editMode", true);
             model.addAttribute("editingUserId", id);
-            prepararPagina(model, form);
+            prepararPagina(model, form, "usuarios");
             return "usuarios/index";
         }
     }
@@ -165,10 +167,13 @@ public class UserManagementController {
         return "redirect:/usuarios";
     }
 
-    private void prepararPagina(Model model, UsuarioForm form) {
+    public void prepararPagina(Model model, UsuarioForm form, String activeTab) {
         model.addAttribute("usuarioForm", form);
         model.addAttribute("tiposUsuario", userCatalog.listarPerfis());
         model.addAttribute("usuarios", userCatalog.listar());
+        model.addAttribute("menusConfiguraveis", userMenuAccessService.listarMenusConfiguraveis());
+        model.addAttribute("funcoesUsuario", userMenuAccessService.listarPermissoesPorFuncao());
+        model.addAttribute("activeTab", activeTab != null ? activeTab : "usuarios");
         if (!model.containsAttribute("editMode")) {
             model.addAttribute("editMode", false);
         }
