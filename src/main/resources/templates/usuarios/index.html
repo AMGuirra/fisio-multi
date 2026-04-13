@@ -39,8 +39,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
                         </form>
@@ -56,7 +56,7 @@
                     <p class="hero-subtitle">Cadastre e gerencie os usuários do sistema com visual moderno e objetivo.</p>
                 </div>
                 <div class="hero-actions">
-                    <a href="/funcoes-usuarios" class="action-button ghost">
+                    <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="action-button ghost">
                         <i data-lucide="sliders-horizontal"></i>
                         Funções de usuários
                     </a>
@@ -65,11 +65,11 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções Administrativas">
-                <a href="/usuarios" class="page-tab active"><i data-lucide="users"></i> Usuários</a>
-                <a href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
-                <a href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
-                <a href="/whatsapp" class="page-tab"><i data-lucide="messages-square"></i> WhatsApp</a>
-                <a href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab active"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab"><i data-lucide="messages-square"></i> WhatsApp</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
 
             <div class="flash-stack">
@@ -170,7 +170,7 @@
                                     <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
                                 </button>
 
-                                <a href="/funcoes-usuarios" class="action-button ghost">
+                                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="action-button ghost">
                                     <i data-lucide="shield-check"></i>
                                     Permissões por função
                                 </a>

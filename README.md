@@ -65,9 +65,13 @@ $env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
 
 ## Deploy no Render
 
-- Em ambiente Render, mantenha `DATABASE_URL` ou `SPRING_DATASOURCE_*` configurados no proprio servico para apontar sempre para o mesmo PostgreSQL persistente.
-- O arquivo `render.yaml` foi ajustado para nao sobrescrever automaticamente a conexao do banco em syncs futuros do Blueprint.
-- A aplicacao agora bloqueia o boot no Render se tentar subir sem uma configuracao explicita de banco ou apontando para `localhost`, evitando deploys em base errada/vazia.
+- Em ambiente Render, prefira a `Internal Database URL` do Postgres quando o banco e o web service estiverem na mesma regiao.
+- Mantenha `DATABASE_URL` ou `SPRING_DATASOURCE_*` configurados no proprio servico para apontar sempre para o mesmo PostgreSQL persistente.
+- Configure `APP_BASE_URL` com o dominio publico final do servico no Render. Essa URL e usada em links de redefinicao de senha e acessos publicos.
+- Defina `APP_ENCRYPTION_KEY` antes de salvar configuracoes SMTP. A troca dessa chave depois impede a leitura dos segredos ja criptografados.
+- Para o primeiro acesso em ambiente vazio, configure `APP_BOOTSTRAP_ADMIN_*` apenas ate criar o primeiro usuario administrador.
+- O arquivo `render.yaml` foi ajustado para nao sobrescrever automaticamente a conexao do banco em syncs futuros do Blueprint e agora usa nomes padrao coerentes com o FisioGestao.
+- A aplicacao bloqueia o boot no Render se tentar subir sem uma configuracao explicita de banco ou apontando para `localhost`, evitando deploys em base errada ou vazia.
 
 ## Estrutura principal
 

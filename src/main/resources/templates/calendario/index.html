@@ -34,8 +34,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -52,9 +52,9 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a href="/agenda" class="page-tab"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
-                <a href="/calendario" class="page-tab active"><i data-lucide="calendar-range"></i> Calendário</a>
-                <a href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/agenda}" href="/agenda" class="page-tab"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab active"><i data-lucide="calendar-range"></i> Calendário</a>
+                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
             </nav>
 
             <div class="flash-stack">
@@ -196,7 +196,7 @@
                                 </div>
                                 <div class="form-actions">
                                     <a th:href="@{/bloqueios(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
-                                    <a href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
+                                    <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
                                 </div>
                             </div>
                         </div>
@@ -262,7 +262,7 @@
 
                         <div class="modal-actions">
                             <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
-                            <a id="abrirAgendaDiaModalAction" href="/agenda" class="action-button primary">
+                            <a id="abrirAgendaDiaModalAction" th:href="@{/agenda}" href="/agenda" class="action-button primary">
                                 <i data-lucide="calendar-days"></i>
                                 Abrir agenda
                             </a>
@@ -295,7 +295,7 @@
 
                         <div class="modal-actions">
                             <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
-                            <a id="abrirBloqueioDiaModalAction" href="/bloqueios" class="action-button danger">
+                            <a id="abrirBloqueioDiaModalAction" th:href="@{/bloqueios}" href="/bloqueios" class="action-button danger">
                                 <i data-lucide="calendar-x-2"></i>
                                 Abrir bloqueios
                             </a>

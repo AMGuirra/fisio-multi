@@ -10,8 +10,9 @@ Se voce estiver usando Blueprint, prefira o arquivo `render.yaml` na raiz do pro
 
 - um web service Docker
 - um Postgres gerenciado pelo Render
-- vinculacao automatica da `DATABASE_URL`
+- preservacao da configuracao de banco no painel do servico
 - health check em `/actuator/health`
+- variaveis para bootstrap do primeiro administrador sem gravar segredo no Git
 
 Se os recursos ja existirem no seu workspace, ajuste os nomes no `render.yaml` para bater exatamente com os nomes atuais antes do primeiro sync.
 
@@ -24,6 +25,18 @@ Se preferir manter o servico manual, defina no proprio dashboard uma destas opco
 
 - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
 - ou `DATABASE_URL`
+
+Tambem configure obrigatoriamente:
+
+- `APP_BASE_URL` com a URL publica final do servico, por exemplo `https://seu-servico.onrender.com`
+- `APP_ENCRYPTION_KEY` com uma chave forte e estavel para criptografar credenciais SMTP
+
+Opcionalmente, para um ambiente novo sem usuarios:
+
+- `APP_BOOTSTRAP_ADMIN_ENABLED=true`
+- `APP_BOOTSTRAP_ADMIN_USERNAME`
+- `APP_BOOTSTRAP_ADMIN_EMAIL`
+- `APP_BOOTSTRAP_ADMIN_PASSWORD`
 
 Copie `render-db.env.example` para `render-db.env` na raiz do projeto e preencha com a `External Database URL` do Render.
 
@@ -54,7 +67,6 @@ PGPASSWORD=SENHA
 Depois disso:
 
 - `iniciar.bat` carrega `render-db.env` automaticamente
-- `startup-serv.bat` carrega `render-db.env` automaticamente
 - a aplicacao passa a priorizar essas variaveis antes do fallback local
 
 ## Migrar o banco local para o Render
@@ -75,7 +87,7 @@ Use:
 
 Por padrao, ele:
 
-- exporta o banco local `financeiro`
+- exporta o banco local `fisioterapia`
 - conecta em `localhost:5432`
 - usa usuario local `postgres`
 - restaura no banco configurado em `render-db.env`
@@ -86,16 +98,17 @@ Por padrao, ele:
 .\scripts\migrate-local-db-to-render.ps1 `
   -LocalHost localhost `
   -LocalPort 5432 `
-  -LocalDatabase financeiro `
+  -LocalDatabase fisioterapia `
   -LocalUser postgres `
   -LocalPassword postgres `
   -EnvFile render-db.env `
-  -DumpFile financeiro.dump
+  -DumpFile local-fisioterapia.dump
 ```
 
 ## Observacoes importantes
 
 - Para rodar localmente a partir da sua maquina, use a `External Database URL` do Render.
-- A `Internal Database URL` serve para servicos rodando dentro do proprio Render.
+- Para o web service no proprio Render, prefira a `Internal Database URL`.
 - Para conexao externa, mantenha `sslmode=require`.
 - Se o cliente PostgreSQL nao estiver instalado, o script vai falhar com uma mensagem explicita.
+- Em deploys no Render, o sistema bloqueia startup se detectar banco ausente ou apontando para `localhost`.

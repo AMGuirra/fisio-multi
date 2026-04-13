@@ -216,8 +216,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -330,7 +330,7 @@
                         <h4 class="section-subtitle">Histórico</h4>
 
                         <!-- Filtros ────────────────────────────────────────────── -->
-                        <form method="get" action="/solicitacoes" class="modern-form filtro-form" id="filtroHistoricoForm">
+                        <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="modern-form filtro-form" id="filtroHistoricoForm">
                             <div class="form-field">
                                 <label for="filtroStatus">Status</label>
                                 <select id="filtroStatus" name="filtroStatus" class="form-control">
@@ -354,7 +354,7 @@
                                 <button type="submit" class="action-button success">
                                     <i data-lucide="search"></i> Filtrar
                                 </button>
-                                <a href="/solicitacoes" class="action-button ghost">Limpar</a>
+                                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="action-button ghost">Limpar</a>
                             </div>
                         </form>
                         <div th:if="${historico == null or historico.empty}" class="empty-box">

@@ -33,8 +33,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" href="/solicitacoes" class="user-menu-item" role="menuitem"><i data-lucide="calendar-plus"></i><span>Solicitações</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" th:href="@{/solicitacoes}" href="/solicitacoes" class="user-menu-item" role="menuitem"><i data-lucide="calendar-plus"></i><span>Solicitações</span></a>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
                         </form>
@@ -53,11 +53,11 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções Administrativas">
-                <a href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
-                <a href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
-                <a href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
-                <a href="/whatsapp" class="page-tab active"><i data-lucide="messages-square"></i> WhatsApp</a>
-                <a href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab active"><i data-lucide="messages-square"></i> WhatsApp</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
 
             <section class="metrics-grid" aria-label="Resumo da fila de WhatsApp">
@@ -99,7 +99,7 @@
                             </div>
                             <div class="form-actions">
                                 <button type="submit" class="action-button primary"><i data-lucide="search"></i>Aplicar filtro</button>
-                                <a href="/whatsapp" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
+                                <a th:href="@{/whatsapp}" href="/whatsapp" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
                             </div>
                         </form>
                         <div class="helper-card" style="margin-top: 14px;">

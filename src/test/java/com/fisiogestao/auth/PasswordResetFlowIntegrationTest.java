@@ -84,8 +84,9 @@ class PasswordResetFlowIntegrationTest {
 
         assertTrue(passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId()).size() == 1);
         verify(systemEmailService).send(argThat(emailRequestComLinkDeResetPara(usuario)));
-        assertTrue(output.getOut().contains("Link de redefinição disponível para desenvolvimento local"));
-        assertTrue(output.getOut().contains("http://localhost:8083/resetar-senha?token="));
+        assertTrue(output.getOut().contains("Link de redefinição disponível para desenvolvimento local com token oculto"));
+        assertTrue(output.getOut().contains("http://localhost:8083/resetar-senha?token=<oculto>"));
+        assertTrue(output.getOut().contains("app.security.log-sensitive-reset-links=true"));
     }
 
     @Test

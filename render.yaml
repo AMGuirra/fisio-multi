@@ -5,7 +5,7 @@
 # vazia e aparentar "perder" usuarios e demais cadastros.
 services:
   - type: web
-    name: luzguirra-financeiro-aplicacao
+    name: fisiogestao-web
     runtime: docker
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
@@ -32,6 +32,14 @@ services:
         sync: false
       - key: APP_ENCRYPTION_KEY
         sync: false
+      - key: APP_BOOTSTRAP_ADMIN_ENABLED
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
       - key: SERVER_SESSION_COOKIE_SECURE
         value: "true"
       - key: SPRING_THYMELEAF_CACHE
@@ -41,10 +49,10 @@ services:
 # Em servicos ja existentes, confirme manualmente no painel do Render se os
 # nomes abaixo correspondem exatamente aos recursos persistentes corretos.
 databases:
-  - name: luzguirra-financeiro-banco
+  - name: fisiogestao-db
     plan: free
     region: ohio
     postgresMajorVersion: "18"
-    databaseName: fisio_anne
-    user: fisio_anne_user
+    databaseName: fisiogestao
+    user: fisiogestao_user
     ipAllowList: []

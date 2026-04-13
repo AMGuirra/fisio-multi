@@ -33,8 +33,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
                         </form>
@@ -144,8 +144,8 @@
 
                             <div class="form-actions">
                                 <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuração</button>
-                                <a href="/agenda" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                                <a href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
+                                <a th:href="@{/agenda}" href="/agenda" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
+                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
                             </div>
                         </form>
                     </div>

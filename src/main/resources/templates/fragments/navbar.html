@@ -9,7 +9,7 @@
 <body>
     <th:block th:fragment="sidebar">
         <aside class="sidebar">
-            <a href="/dashboard" class="sidebar-brand">
+            <a th:href="@{/dashboard}" href="/dashboard" class="sidebar-brand">
                 <div class="sidebar-brand-icon">
                     <i data-lucide="heart-pulse"></i>
                 </div>
@@ -17,86 +17,86 @@
             </a>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
-                    <a href="/dashboard" class="sidebar-nav-link">
+                    <a th:href="@{/dashboard}" href="/dashboard" class="sidebar-nav-link">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/agenda" class="sidebar-nav-link">
+                    <a th:href="@{/agenda}" href="/agenda" class="sidebar-nav-link">
                         <i data-lucide="calendar-check"></i>
                         <span>Agenda</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/calendario" class="sidebar-nav-link">
+                    <a th:href="@{/calendario}" href="/calendario" class="sidebar-nav-link">
                         <i data-lucide="calendar-range"></i>
                         <span>Calendário</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/bloqueios" class="sidebar-nav-link">
+                    <a th:href="@{/bloqueios}" href="/bloqueios" class="sidebar-nav-link">
                         <i data-lucide="calendar-x-2"></i>
                         <span>Bloqueios</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/solicitacoes" class="sidebar-nav-link">
+                    <a th:href="@{/solicitacoes}" href="/solicitacoes" class="sidebar-nav-link">
                         <i data-lucide="calendar-plus"></i>
                         <span>Solicitações</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pacotes-consumo" class="sidebar-nav-link">
+                    <a th:href="@{/pacotes-consumo}" href="/pacotes-consumo" class="sidebar-nav-link">
                         <i data-lucide="package-open"></i>
                     <span>Planos de Tratamentos</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pacientes" class="sidebar-nav-link">
+                    <a th:href="@{/pacientes}" href="/pacientes" class="sidebar-nav-link">
                         <i data-lucide="id-card"></i>
                         <span>Pacientes</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/prontuario" class="sidebar-nav-link">
+                    <a th:href="@{/prontuario}" href="/prontuario" class="sidebar-nav-link">
                         <i data-lucide="notebook-pen"></i>
                         <span>Prontuário</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/financeiro" class="sidebar-nav-link">
+                    <a th:href="@{/financeiro}" href="/financeiro" class="sidebar-nav-link">
                         <i data-lucide="wallet"></i>
                         <span>Financeiro</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/relatorios" class="sidebar-nav-link">
+                    <a th:href="@{/relatorios}" href="/relatorios" class="sidebar-nav-link">
                         <i data-lucide="file-text"></i>
                         <span>Relatórios</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
-                    <a href="/configuracoes/email" class="sidebar-nav-link">
+                    <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="sidebar-nav-link">
                         <i data-lucide="mail-check"></i>
                         <span>Config. E-mail</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
-                    <a href="/usuarios" class="sidebar-nav-link">
+                    <a th:href="@{/usuarios}" href="/usuarios" class="sidebar-nav-link">
                         <i data-lucide="users"></i>
                         <span>Usuários</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item" th:if="${loggedUserRole == 'ADMIN'}">
-                    <a href="/auditoria" class="sidebar-nav-link">
+                    <a th:href="@{/auditoria}" href="/auditoria" class="sidebar-nav-link">
                         <i data-lucide="shield-check"></i>
                         <span>Auditoria</span>
                     </a>
                 </li>
             </ul>
             <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                <a href="/agendamento-online" target="_blank" class="sidebar-nav-link">
+                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" class="sidebar-nav-link">
                     <i data-lucide="external-link"></i>
                     <span>Agendamento Online</span>
                 </a>

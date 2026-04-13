@@ -34,8 +34,8 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                         <button type="button" class="period-quick-btn" data-periodo="trimestre">Últimos 3 meses</button>
                         <button type="button" class="period-quick-btn" data-periodo="ano">Este ano</button>
                     </div>
-                    <form method="get" action="/financeiro" class="period-form" id="periodForm">
+                    <form method="get" th:action="@{/financeiro}" action="/financeiro" class="period-form" id="periodForm">
                         <span class="period-label">De</span>
                         <div class="period-input-group">
                             <input type="date" id="periodoInicioInput" name="inicio" class="form-control"
@@ -154,7 +154,7 @@
                                th:if="${editMode and lancamentoEmEdicao != null}"
                                th:text="${lancamentoEmEdicao.descricao + ' • ' + lancamentoEmEdicao.status}">Lançamento em edição</p>
                         </div>
-                        <a th:if="${editMode and lancamentoEmEdicao != null}" href="/financeiro" class="action-button ghost">
+                        <a th:if="${editMode and lancamentoEmEdicao != null}" th:href="@{/financeiro}" href="/financeiro" class="action-button ghost">
                             <i data-lucide="x"></i>
                             Cancelar edição
                         </a>

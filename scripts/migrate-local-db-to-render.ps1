@@ -1,11 +1,11 @@
 param(
     [string]$LocalHost = "localhost",
     [int]$LocalPort = 5432,
-    [string]$LocalDatabase = "financeiro",
+    [string]$LocalDatabase = "fisioterapia",
     [string]$LocalUser = "postgres",
     [string]$LocalPassword = "postgres",
     [string]$EnvFile = "render-db.env",
-    [string]$DumpFile = "local-financeiro.dump"
+    [string]$DumpFile = "local-fisioterapia.dump"
 )
 
 $ErrorActionPreference = "Stop"

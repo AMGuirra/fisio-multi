@@ -67,11 +67,11 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" href="/dashboard" class="user-menu-item" role="menuitem">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem">
                             <i data-lucide="layout-dashboard" aria-hidden="true"></i>
                             <span>Painel</span>
                         </a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="user-menu-item" role="menuitem">
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem">
                             <i data-lucide="calendar-days" aria-hidden="true"></i>
                             <span>Agenda</span>
                         </a>
@@ -102,7 +102,7 @@
             </div>
 
             <section class="metrics-grid" aria-label="Resumo de métricas">
-                <a href="/pacientes"
+                <a th:href="@{/pacientes}" href="/pacientes"
                    class="metric-card metric-card-link metric-pacientes"
                    aria-label="Abrir a página de pacientes ativos">
                     <div class="metric-top">
@@ -122,7 +122,7 @@
                     <p class="metric-label">Sessões Hoje</p>
                 </a>
 
-                <a href="/solicitacoes"
+                <a th:href="@{/solicitacoes}" href="/solicitacoes"
                    class="metric-card metric-card-link metric-pendencias"
                    aria-label="Abrir solicitações pendentes">
                     <div class="metric-top">
@@ -142,7 +142,7 @@
                     <p class="metric-label">Mensagens Pendentes</p>
                 </a>
 
-                <a href="/financeiro#financeiroReceitasPendentes"
+                <a th:href="@{/financeiro#financeiroReceitasPendentes}" href="/financeiro#financeiroReceitasPendentes"
                    class="metric-card metric-card-link metric-receita"
                    aria-label="Abrir resumo de receitas pendentes">
                     <div class="metric-top">
@@ -152,7 +152,7 @@
                     <p class="metric-label">Receitas Pendentes</p>
                 </a>
 
-                <a href="/financeiro#financeiroDespesasPendentes"
+                <a th:href="@{/financeiro#financeiroDespesasPendentes}" href="/financeiro#financeiroDespesasPendentes"
                    class="metric-card metric-card-link metric-despesa"
                    aria-label="Abrir resumo de despesas pendentes">
                     <div class="metric-top">
@@ -162,7 +162,7 @@
                     <p class="metric-label">Despesas Pendentes</p>
                 </a>
 
-                <a href="/financeiro#financeiroSaldoProjetado"
+                <a th:href="@{/financeiro#financeiroSaldoProjetado}" href="/financeiro#financeiroSaldoProjetado"
                    class="metric-card metric-card-link metric-saldo"
                    aria-label="Abrir resumo de saldo projetado">
                     <div class="metric-top">
@@ -183,67 +183,67 @@
                     </header>
                     <div class="panel-body">
                         <div class="quick-actions-grid">
-                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" href="/agenda" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Nova Sessão</p>
                                 <p class="quick-action-hint">Criar atendimento</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('CALENDARIO')}" href="/calendario" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('CALENDARIO')}" th:href="@{/calendario}" href="/calendario" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Calendário</p>
                                 <p class="quick-action-hint">Gestão mensal</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" href="/bloqueios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" th:href="@{/bloqueios}" href="/bloqueios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Bloqueios</p>
                                 <p class="quick-action-hint">Indisponibilidades</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" href="/solicitacoes" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" th:href="@{/solicitacoes}" href="/solicitacoes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Solicitações</p>
                                 <p class="quick-action-hint">Aprovar agenda</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('WHATSAPP')}" href="/whatsapp" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('WHATSAPP')}" th:href="@{/whatsapp}" href="/whatsapp" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Fila WhatsApp</p>
                                 <p class="quick-action-hint">Monitorar mensagens</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('PACIENTES')}" href="/pacientes" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('PACIENTES')}" th:href="@{/pacientes}" href="/pacientes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Pacientes</p>
                                 <p class="quick-action-hint">Cadastro clínico</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('PRONTUARIO')}" href="/prontuario" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('PRONTUARIO')}" th:href="@{/prontuario}" href="/prontuario" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Prontuário</p>
                                 <p class="quick-action-hint">Evolução SOAP</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('USUARIOS')}" href="/usuarios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('USUARIOS')}" th:href="@{/usuarios}" href="/usuarios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Usuários</p>
                                 <p class="quick-action-hint">Gerenciar equipe</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('FUNCOES_USUARIOS')}" href="/funcoes-usuarios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('FUNCOES_USUARIOS')}" th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="sliders-horizontal" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Funções</p>
                                 <p class="quick-action-hint">Permissões por tipo</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('FINANCEIRO')}" href="/financeiro" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('FINANCEIRO')}" th:href="@{/financeiro}" href="/financeiro" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="banknote" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Financeiro</p>
                                 <p class="quick-action-hint">Fluxo de caixa</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('RELATORIOS')}" href="/relatorios" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('RELATORIOS')}" th:href="@{/relatorios}" href="/relatorios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Relatórios</p>
                                 <p class="quick-action-hint">Exportar e enviar</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('CONFIG_CLINICA')}" href="/configuracoes/clinica" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('CONFIG_CLINICA')}" th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Config. Clínica</p>
                                 <p class="quick-action-hint">Expediente e canais</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Agendamento Online</p>
                                 <p class="quick-action-hint">Abrir portal público</p>

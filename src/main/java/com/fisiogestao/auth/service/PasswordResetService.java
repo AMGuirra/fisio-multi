@@ -27,6 +27,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -49,6 +51,9 @@ public class PasswordResetService {
 
     @Value("${app.base-url:http://localhost:8083}")
     private String baseUrl;
+
+    @Value("${app.security.log-sensitive-reset-links:false}")
+    private boolean logSensitiveResetLinks;
 
     @Transactional
     public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent) {
@@ -254,17 +259,45 @@ public class PasswordResetService {
         if (result.sent() || !isLocalDevelopmentLink(link.link())) {
             return;
         }
+        if (logSensitiveResetLinks) {
+            LOGGER.warn(
+                    "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local: {}",
+                    tipo,
+                    usuario.getEmail(),
+                    link.link()
+            );
+            return;
+        }
         LOGGER.warn(
-                "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local: {}",
+                "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local com token oculto: {}. "
+                        + "Ative app.security.log-sensitive-reset-links=true apenas em ambiente local se precisar inspecionar a URL completa.",
                 tipo,
                 usuario.getEmail(),
-                link.link()
+                maskSensitiveResetLink(link.link())
         );
     }
 
     private boolean isLocalDevelopmentLink(String link) {
         String normalized = link == null ? "" : link.trim().toLowerCase(Locale.ROOT);
         return normalized.contains("localhost") || normalized.contains("127.0.0.1");
+    }
+
+    private String maskSensitiveResetLink(String link) {
+        if (link == null || link.isBlank()) {
+            return "link indisponivel";
+        }
+        try {
+            URI uri = new URI(link.trim());
+            String scheme = uri.getScheme() == null ? "http" : uri.getScheme();
+            String authority = uri.getRawAuthority();
+            if (authority == null || authority.isBlank()) {
+                return uri.getPath() == null ? "link indisponivel" : uri.getPath() + "?token=<oculto>";
+            }
+            String path = uri.getRawPath() == null || uri.getRawPath().isBlank() ? "/resetar-senha" : uri.getRawPath();
+            return scheme + "://" + authority + path + "?token=<oculto>";
+        } catch (URISyntaxException ex) {
+            return "/resetar-senha?token=<oculto>";
+        }
     }
 
     private Map<String, Object> snapshotResetUsuario(UsuarioSistemaEntity usuario, OffsetDateTime redefinicao) {
