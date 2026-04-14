@@ -3,6 +3,8 @@ package com.fisiogestao.calendario;
 import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.pacientes.service.PacienteService;
+import com.fisiogestao.pacientes.service.PacoteSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
@@ -10,6 +12,7 @@ import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,15 +41,19 @@ import java.util.stream.Collectors;
 public class CalendarioController {
 
     private final AgendaService agendaService;
+    private final PacienteService pacienteService;
+    private final PacoteSessaoService pacoteSessaoService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
 
     @GetMapping
     public String index(
             @RequestParam(name = "mes", required = false) String mes,
+            @RequestParam(name = "data", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             Model model
     ) {
-        YearMonth mesSelecionado = parseMes(mes);
-        carregarPagina(model, mesSelecionado);
+        YearMonth mesSelecionado = resolverMesSelecionado(mes, data);
+        LocalDate dataSelecionada = resolverDataSelecionada(mesSelecionado, data);
+        carregarPagina(model, mesSelecionado, dataSelecionada);
         return "calendario/index";
     }
 
@@ -54,6 +61,7 @@ public class CalendarioController {
     public String aprovarSolicitacao(
             @PathVariable UUID id,
             @RequestParam(name = "mesContexto", required = false) String mesContexto,
+            @RequestParam(name = "dataContexto", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataContexto,
             RedirectAttributes redirectAttributes
     ) {
         YearMonth mesSelecionado = parseMes(mesContexto);
@@ -65,13 +73,14 @@ public class CalendarioController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível aprovar a solicitação.");
         }
-        return redirectMes(mesSelecionado);
+        return redirectMes(mesSelecionado, dataContexto);
     }
 
     @PostMapping("/solicitacoes/{id}/rejeitar")
     public String rejeitarSolicitacao(
             @PathVariable UUID id,
             @RequestParam(name = "mesContexto", required = false) String mesContexto,
+            @RequestParam(name = "dataContexto", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataContexto,
             RedirectAttributes redirectAttributes
     ) {
         YearMonth mesSelecionado = parseMes(mesContexto);
@@ -83,13 +92,14 @@ public class CalendarioController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível rejeitar a solicitação.");
         }
-        return redirectMes(mesSelecionado);
+        return redirectMes(mesSelecionado, dataContexto);
     }
 
     @PostMapping("/solicitacoes/{id}/reagendar")
     public String reagendarSolicitacao(
             @PathVariable UUID id,
             @RequestParam(name = "mesContexto", required = false) String mesContexto,
+            @RequestParam(name = "dataContexto", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataContexto,
             @RequestParam("data") String data,
             @RequestParam("horario") String horario,
             @RequestParam(name = "motivo", required = false) String motivo,
@@ -104,7 +114,7 @@ public class CalendarioController {
             form.setMotivo(motivo);
         } catch (DateTimeParseException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Data ou horário inválidos para reagendamento.");
-            return redirectMes(mesSelecionado);
+            return redirectMes(mesSelecionado, dataContexto);
         }
 
         try {
@@ -115,13 +125,14 @@ public class CalendarioController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível reagendar a solicitação.");
         }
-        return redirectMes(mesSelecionado);
+        return redirectMes(mesSelecionado, dataContexto);
     }
 
     @PostMapping("/solicitacoes/{id}/bloquear")
     public String bloquearSolicitacao(
             @PathVariable UUID id,
             @RequestParam(name = "mesContexto", required = false) String mesContexto,
+            @RequestParam(name = "dataContexto", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataContexto,
             @RequestParam(name = "motivo", required = false) String motivo,
             Authentication authentication,
             RedirectAttributes redirectAttributes
@@ -136,14 +147,15 @@ public class CalendarioController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível bloquear a solicitação.");
         }
-        return redirectMes(mesSelecionado);
+        return redirectMes(mesSelecionado, dataContexto);
     }
 
-    private void carregarPagina(Model model, YearMonth mesSelecionado) {
+    private void carregarPagina(Model model, YearMonth mesSelecionado, LocalDate dataSelecionada) {
         LocalDate inicio = mesSelecionado.atDay(1);
         LocalDate fim = mesSelecionado.plusMonths(1).atDay(1);
 
         List<SessaoEntity> sessoesMes = agendaService.listarSessoesNoPeriodo(inicio, fim);
+        List<SessaoEntity> sessoesDia = agendaService.listarSessoesDoDia(dataSelecionada);
         List<SolicitacaoAgendamentoEntity> solicitacoesMes = solicitacaoAgendamentoService.listarNoPeriodo(inicio, fim);
         List<BloqueioAgendaEntity> bloqueiosMes = agendaService.listarBloqueiosAgendaNoPeriodo(inicio, fim);
         List<SolicitacaoAgendamentoEntity> pendentes = solicitacaoAgendamentoService.listarPendentes();
@@ -151,7 +163,13 @@ public class CalendarioController {
         model.addAttribute("mesSelecionado", mesSelecionado);
         model.addAttribute("mesAnterior", mesSelecionado.minusMonths(1));
         model.addAttribute("mesProximo", mesSelecionado.plusMonths(1));
-        model.addAttribute("calendarioSemanas", montarSemanas(mesSelecionado, sessoesMes, solicitacoesMes, bloqueiosMes));
+        model.addAttribute("dataSelecionada", dataSelecionada);
+        model.addAttribute("dataMesAnterior", ajustarDataParaMes(dataSelecionada, mesSelecionado.minusMonths(1)));
+        model.addAttribute("dataMesProximo", ajustarDataParaMes(dataSelecionada, mesSelecionado.plusMonths(1)));
+        model.addAttribute("calendarioSemanas", montarSemanas(mesSelecionado, dataSelecionada, sessoesMes, solicitacoesMes, bloqueiosMes));
+        model.addAttribute("sessoes", sessoesDia);
+        model.addAttribute("pacientes", pacienteService.listarAtivos());
+        model.addAttribute("pacotesAgenda", pacoteSessaoService.listarDisponiveisParaAgenda());
         model.addAttribute("pendentes", pendentes);
         model.addAttribute("bloqueiosAtivosMes", bloqueiosMes.stream()
                 .sorted((a, b) -> a.getDataHoraInicio().compareTo(b.getDataHoraInicio()))
@@ -160,6 +178,7 @@ public class CalendarioController {
 
     private List<List<CalendarioDiaView>> montarSemanas(
             YearMonth mesSelecionado,
+            LocalDate dataSelecionada,
             List<SessaoEntity> sessoesMes,
             List<SolicitacaoAgendamentoEntity> solicitacoesMes,
             List<BloqueioAgendaEntity> bloqueiosMes
@@ -190,7 +209,8 @@ public class CalendarioController {
                     solicitacoesPendentesPorDia.getOrDefault(data, 0L),
                     bloqueiosPorDia.getOrDefault(data, 0L),
                     resumoBloqueios(bloqueiosDetalhadosPorDia.getOrDefault(data, List.of())),
-                    data.equals(LocalDate.now())
+                    data.equals(LocalDate.now()),
+                    data.equals(dataSelecionada)
             ));
         }
 
@@ -217,7 +237,35 @@ public class CalendarioController {
         }
     }
 
-    private String redirectMes(YearMonth mesSelecionado) {
+    private YearMonth resolverMesSelecionado(String mes, LocalDate data) {
+        if (mes != null && !mes.isBlank()) {
+            return parseMes(mes);
+        }
+        if (data != null) {
+            return YearMonth.from(data);
+        }
+        return YearMonth.now();
+    }
+
+    private LocalDate resolverDataSelecionada(YearMonth mesSelecionado, LocalDate data) {
+        if (data == null) {
+            return YearMonth.now().equals(mesSelecionado) ? LocalDate.now() : mesSelecionado.atDay(1);
+        }
+        if (YearMonth.from(data).equals(mesSelecionado)) {
+            return data;
+        }
+        return ajustarDataParaMes(data, mesSelecionado);
+    }
+
+    private LocalDate ajustarDataParaMes(LocalDate base, YearMonth mesDestino) {
+        int dia = Math.min(base.getDayOfMonth(), mesDestino.lengthOfMonth());
+        return mesDestino.atDay(dia);
+    }
+
+    private String redirectMes(YearMonth mesSelecionado, LocalDate dataSelecionada) {
+        if (dataSelecionada != null) {
+            return "redirect:/calendario?data=" + dataSelecionada;
+        }
         return "redirect:/calendario?mes=" + mesSelecionado;
     }
 
@@ -241,10 +289,11 @@ public class CalendarioController {
             long solicitacoesPendentes,
             long bloqueios,
             List<String> resumosBloqueio,
-            boolean hoje
+            boolean hoje,
+            boolean selecionado
     ) {
         public static CalendarioDiaView vazio() {
-            return new CalendarioDiaView(null, false, 0, 0, 0, List.of(), false);
+            return new CalendarioDiaView(null, false, 0, 0, 0, List.of(), false, false);
         }
     }
 }

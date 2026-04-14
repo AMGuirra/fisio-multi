@@ -87,14 +87,6 @@ public class GlobalViewAttributes {
         return request != null ? request.getRequestURI() : "";
     }
 
-    @ModelAttribute("sidebarMainMenus")
-    public List<UserMenuAccessService.SidebarMenuView> sidebarMainMenus(
-            Authentication authentication,
-            HttpServletRequest request
-    ) {
-        return userMenuAccessService.montarSidebarPrincipal(resolveRole(authentication, request), currentPath(request));
-    }
-
     @ModelAttribute("sidebarNavItems")
     public List<UserMenuAccessService.SidebarNavItem> sidebarNavItems(
             Authentication authentication,

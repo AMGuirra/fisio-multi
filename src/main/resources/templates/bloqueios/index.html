@@ -35,7 +35,7 @@
                     </button>
                     <div class="user-menu-panel" role="menu">
                         <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -52,8 +52,7 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/agenda}" href="/agenda" class="page-tab"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
-                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-range"></i> Calendário</a>
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda e Calendário</a>
                 <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab active"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
             </nav>
 
@@ -84,8 +83,7 @@
                 <header class="section-head">
                     <h3 class="section-title"><i data-lucide="filter"></i> Filtros e Navegação</h3>
                     <div class="form-actions">
-                        <a th:href="@{/agenda(data=${bloqueioForm.dataInicial})}" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir Agenda</a>
-                        <a th:href="@{/calendario(mes=${#temporals.format(bloqueioForm.dataInicial, 'yyyy-MM')})}" class="action-button ghost"><i data-lucide="calendar-range"></i>Ver Calendário</a>
+                        <a th:href="@{/calendario(data=${bloqueioForm.dataInicial})}" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir Agenda e Calendário</a>
                     </div>
                 </header>
                 <div class="section-body">

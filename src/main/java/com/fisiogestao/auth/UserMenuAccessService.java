@@ -25,10 +25,10 @@ public class UserMenuAccessService {
         if (role == null) {
             return EnumSet.noneOf(AppMenuItem.class);
         }
-        if (role.isAdministrador()) {
-            return EnumSet.allOf(AppMenuItem.class);
-        }
-        return carregarOuCriarPermissoes(role);
+        EnumSet<AppMenuItem> menus = role.isAdministrador()
+                ? EnumSet.allOf(AppMenuItem.class)
+                : carregarOuCriarPermissoes(role);
+        return normalizarMenusLegados(menus);
     }
 
     public List<AppMenuItem> listarMenusConfiguraveis() {
@@ -38,7 +38,7 @@ public class UserMenuAccessService {
     @Transactional
     public List<RolePermissionsView> listarPermissoesPorFuncao() {
         return List.of(
-                new RolePermissionsView(UserRole.ADMIN, UserRole.ADMIN.getLabel(), EnumSet.allOf(AppMenuItem.class), true),
+                new RolePermissionsView(UserRole.ADMIN, UserRole.ADMIN.getLabel(), listarMenusLiberados(UserRole.ADMIN), true),
                 buildRolePermissionsView(UserRole.FISIOTERAPEUTA),
                 buildRolePermissionsView(UserRole.RECEPCAO),
                 buildRolePermissionsView(UserRole.ASSESSORIA),
@@ -96,22 +96,6 @@ public class UserMenuAccessService {
             ));
         }
         return result;
-    }
-
-    @Transactional
-    public List<SidebarMenuView> montarSidebarPrincipal(UserRole role, String currentPath) {
-        EnumSet<AppMenuItem> liberados = listarMenusLiberados(role);
-        return AppMenuItem.sidebarPrincipais().stream()
-                .filter(menu -> podeVisualizarMenu(role, liberados, menu))
-                .map(menu -> new SidebarMenuView(
-                        menu.name(),
-                        menu.getLabel(),
-                        menu.getHref(),
-                        menu.getIcon(),
-                        menu.matchesPath(currentPath),
-                        menu.isExternal()
-                ))
-                .toList();
     }
 
     @Transactional
@@ -226,7 +210,6 @@ public class UserMenuAccessService {
             case RECEPCAO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
-                    AppMenuItem.CALENDARIO,
                     AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
                     AppMenuItem.WHATSAPP,
@@ -255,8 +238,18 @@ public class UserMenuAccessService {
             return normalizados;
         }
         menusSolicitados.stream()
+                .map(menu -> menu == AppMenuItem.CALENDARIO ? AppMenuItem.AGENDA : menu)
                 .filter(AppMenuItem::isConfiguravelParaNaoAdmin)
                 .forEach(normalizados::add);
+        return normalizados;
+    }
+
+    private EnumSet<AppMenuItem> normalizarMenusLegados(Set<AppMenuItem> menus) {
+        EnumSet<AppMenuItem> normalizados = EnumSet.noneOf(AppMenuItem.class);
+        if (menus == null || menus.isEmpty()) {
+            return normalizados;
+        }
+        menus.forEach(menu -> normalizados.add(menu == AppMenuItem.CALENDARIO ? AppMenuItem.AGENDA : menu));
         return normalizados;
     }
 

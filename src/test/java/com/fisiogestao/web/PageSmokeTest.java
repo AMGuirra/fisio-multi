@@ -151,7 +151,6 @@ class PageSmokeTest {
     @ValueSource(strings = {
             "/",
             "/dashboard",
-            "/agenda",
             "/bloqueios",
             "/calendario",
             "/auditoria",
@@ -177,7 +176,6 @@ class PageSmokeTest {
     @ParameterizedTest
     @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     @ValueSource(strings = {
-            "/agenda",
             "/calendario",
             "/bloqueios",
             "/solicitacoes",
@@ -216,9 +214,9 @@ class PageSmokeTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void agendaRenderizaComPlanoESessaoMesmoComOpenInViewDesabilitado() throws Exception {
-        mockMvc.perform(get("/agenda")
+        mockMvc.perform(get("/calendario")
                         .param("data", agendaDate.toString())
-                        .param("editar", sessaoAgendaId.toString()))
+                        .param("mes", agendaDate.withDayOfMonth(1).toString().substring(0, 7)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente Teste Agenda")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")))
@@ -235,7 +233,7 @@ class PageSmokeTest {
         sessao.setStatus(SessaoStatus.REALIZADA);
         sessaoRepository.save(sessao);
 
-        mockMvc.perform(get("/agenda")
+        mockMvc.perform(get("/calendario")
                         .param("data", agendaDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("REALIZADA")))
@@ -253,7 +251,7 @@ class PageSmokeTest {
         sessao.setStatus(SessaoStatus.CANCELADA);
         sessaoRepository.save(sessao);
 
-        mockMvc.perform(get("/agenda")
+        mockMvc.perform(get("/calendario")
                         .param("data", agendaDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("CANCELADA")))
@@ -263,25 +261,22 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void agendaRenderizaVersaoModalSemEstruturaCompletaDaAplicacao() throws Exception {
+    void agendaRedirecionaParaCalendarioUnificado() throws Exception {
         mockMvc.perform(get("/agenda")
-                        .param("data", agendaDate.toString())
-                        .param("modal", "true"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("agenda-modal-shell")))
-                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("id=\"sidebarBackdrop\""))))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Confirmar realização")));
+                        .param("data", agendaDate.toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/calendario?data=" + agendaDate));
     }
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void calendarioRenderizaComDomingoPrimeiroEModaisDeAcao() throws Exception {
+    void calendarioRenderizaComDomingoPrimeiroEAgendaDoDiaNaMesmaTela() throws Exception {
         mockMvc.perform(get("/calendario"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("<span>Dom</span><span>Seg</span>")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("modal=true")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirAgendaDiaModal\"")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirBloqueioDiaModal\"")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Sessões do Dia")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"editarSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("agendaDiaIframe"))));
     }
 
     @Test
@@ -399,7 +394,7 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Data atual")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Hora atual")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/pacientes\"")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/agenda?data=")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/calendario?data=")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/solicitacoes\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/whatsapp?status=PENDENTE\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroReceitasPendentes\"")))

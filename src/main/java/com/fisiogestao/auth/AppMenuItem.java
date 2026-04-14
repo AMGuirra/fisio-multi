@@ -6,8 +6,8 @@ import java.util.Optional;
 
 public enum AppMenuItem {
     DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard")),
-    AGENDA("Agenda",                 "/agenda",              "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda")),
-    CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, true,  false, MenuSection.AGENDA, List.of("/calendario")),
+    AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
+    CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/bloqueios",           "calendar-x-2",        false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
     WHATSAPP("Fila WhatsApp",        "/whatsapp",            "messages-square",     false, false, true,  false, MenuSection.AGENDA, List.of("/whatsapp")),
@@ -119,9 +119,9 @@ public enum AppMenuItem {
             case DASHBOARD:
                 return "Mostra o painel geral com os principais indicadores e atalhos do sistema.";
             case AGENDA:
-                return "Permite visualizar e organizar os agendamentos do dia a dia.";
+                return "Permite acompanhar o calendario mensal e organizar as sessoes do dia em uma unica tela.";
             case CALENDARIO:
-                return "Exibe a agenda em formato de calendario para planejar os horarios.";
+                return "Alias legado do modulo unificado da agenda.";
             case BLOQUEIOS:
                 return "Controla bloqueios de horarios e indisponibilidades da agenda.";
             case SOLICITACOES:
@@ -176,7 +176,7 @@ public enum AppMenuItem {
     public static List<AppMenuItem> sidebarPrincipais() {
         return List.of(
                 DASHBOARD,
-                CALENDARIO,
+                AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
                 WHATSAPP,

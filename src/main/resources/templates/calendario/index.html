@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Calendário - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +37,7 @@
                     </button>
                     <div class="user-menu-panel" role="menu">
                         <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
@@ -45,17 +47,11 @@
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
-                    <h1 class="hero-title">Calendário Clínico</h1>
-                    <p class="hero-subtitle">Gerencie solicitações online, reagendamentos e bloqueios de agenda por período.</p>
+                    <h1 class="hero-title">Agenda e Calendário</h1>
+                    <p class="hero-subtitle">Acompanhe o mês, selecione um dia e gerencie as sessões da clínica em uma única tela.</p>
                 </div>
-                <span class="hero-pill">Calendário</span>
+                <span class="hero-pill">Agenda unificada</span>
             </section>
-
-            <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/agenda}" href="/agenda" class="page-tab"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
-                <a th:href="@{/calendario}" href="/calendario" class="page-tab active"><i data-lucide="calendar-range"></i> Calendário</a>
-                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
-            </nav>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
@@ -66,9 +62,9 @@
                 <header class="section-head">
                     <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
                     <div class="calendar-month-nav">
-                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
+                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
                         <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
-                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
+                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
                     </div>
                 </header>
                 <div class="section-body">
@@ -78,7 +74,7 @@
                     <div class="calendar-grid-body">
                         <th:block th:each="semana : ${calendarioSemanas}">
                             <th:block th:each="dia : ${semana}">
-                                <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '')}">
+                                <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
                                     <th:block th:if="${dia.pertenceAoMes}">
                                         <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
                                         <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
@@ -88,16 +84,14 @@
                                             <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
                                         </div>
                                         <div class="calendar-day-links">
-                                            <button type="button"
-                                                    class="calendar-link js-open-agenda-modal"
-                                                    th:attr="data-target-url=@{/agenda(data=${dia.data},modal=true)},data-date-label=${#temporals.format(dia.data, 'EEEE, dd/MM/yyyy')}">
-                                                Abrir agenda
-                                            </button>
-                                            <button type="button"
-                                                    class="calendar-link js-open-bloqueio-modal"
-                                                    th:attr="data-target-url=@{/bloqueios(data=${dia.data})},data-date-label=${#temporals.format(dia.data, 'EEEE, dd/MM/yyyy')}">
+                                            <a class="calendar-link"
+                                               th:href="@{/calendario(data=${dia.data})}">
+                                                Ver dia
+                                            </a>
+                                            <a class="calendar-link"
+                                               th:href="@{/bloqueios(data=${dia.data})}">
                                                 Bloquear
-                                            </button>
+                                            </a>
                                         </div>
                                     </th:block>
                                 </article>
@@ -106,6 +100,8 @@
                     </div>
                 </div>
             </section>
+
+            <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
 
             <section class="crud-layout two-column">
                 <article class="section-card">
@@ -137,11 +133,13 @@
                                         <div class="request-actions">
                                             <form th:action="@{/calendario/solicitacoes/{id}/aprovar(id=${sol.id})}" method="post" class="inline-form">
                                                 <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                                <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                                 <button type="submit" class="action-button success"><i data-lucide="check"></i>Aprovar</button>
                                             </form>
                                             <form th:action="@{/calendario/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
                                                 <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                                <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                                 <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
                                             </form>
@@ -149,6 +147,7 @@
 
                                         <form th:action="@{/calendario/solicitacoes/{id}/reagendar(id=${sol.id})}" method="post" class="modern-form">
                                             <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                            <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <div class="calendar-inline-grid">
                                                 <div class="form-field">
@@ -169,6 +168,7 @@
 
                                         <form th:action="@{/calendario/solicitacoes/{id}/bloquear(id=${sol.id})}" method="post" class="modern-form">
                                             <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                            <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <div class="form-field">
                                                 <label>Motivo para bloquear este horário</label>
@@ -239,158 +239,19 @@
             </section>
         </main>
 
-        <div id="abrirAgendaDiaModal" class="app-modal" aria-hidden="true">
-            <div class="app-modal-backdrop" data-modal-close></div>
-            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="abrirAgendaDiaModalTitle">
-                <div class="app-modal-card">
-                    <header class="app-modal-header">
-                        <div class="app-modal-title-block">
-                            <h3 id="abrirAgendaDiaModalTitle"><i data-lucide="calendar-days"></i> Agenda do Dia</h3>
-                            <p id="abrirAgendaDiaModalMessage">Carregando agenda...</p>
-                        </div>
-                        <button type="button" class="app-modal-close" data-modal-close aria-label="Voltar ao calendário">
-                            <i data-lucide="x"></i>
-                        </button>
-                    </header>
-                    <div class="app-modal-body">
-                        <iframe id="agendaDiaIframe" src="" title="Agenda do Dia"></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="abrirBloqueioDiaModal" class="app-modal" aria-hidden="true">
-            <div class="app-modal-backdrop" data-modal-close></div>
-            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="abrirBloqueioDiaModalTitle">
-                <div class="app-modal-card">
-                    <header class="app-modal-header">
-                        <div class="app-modal-title-block">
-                            <h3 id="abrirBloqueioDiaModalTitle">Bloquear período do dia</h3>
-                            <p id="abrirBloqueioDiaModalMessage">Você vai abrir o módulo oficial de bloqueios já apontando para a data selecionada.</p>
-                        </div>
-                        <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
-                            <i data-lucide="x"></i>
-                        </button>
-                    </header>
-                    <div class="app-modal-body">
-                        <div class="helper-card modal-helper-card">
-                            <div class="helper-copy">
-                                <h4 id="abrirBloqueioDiaModalHelperTitle">Bloqueio com governança</h4>
-                                <p id="abrirBloqueioDiaModalHelperMessage">O cadastro será aberto com a data já sugerida para você registrar o bloqueio com segurança.</p>
-                            </div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
-                            <a id="abrirBloqueioDiaModalAction" th:href="@{/bloqueios}" href="/bloqueios" class="action-button danger">
-                                <i data-lucide="calendar-x-2"></i>
-                                Abrir bloqueios
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
     <style>
-        #abrirAgendaDiaModal .app-modal-dialog {
-            width: min(1320px, calc(100vw - 48px));
-            max-width: min(1320px, calc(100vw - 48px));
-            height: min(920px, calc(100vh - 48px));
-            max-height: min(920px, calc(100vh - 48px));
-        }
-        #abrirAgendaDiaModal .app-modal-card {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        #abrirAgendaDiaModal .app-modal-body {
-            flex: 1;
-            padding: 0;
-            overflow: hidden;
-            min-height: 0;
-        }
-        #agendaDiaIframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-        @media (max-width: 720px) {
-            #abrirAgendaDiaModal .app-modal-dialog {
-                width: calc(100vw - 16px);
-                max-width: calc(100vw - 16px);
-                height: calc(100vh - 16px);
-                max-height: calc(100vh - 16px);
-            }
+        .calendar-day.day-selected {
+            border-color: rgba(45, 194, 163, 0.52);
+            box-shadow: 0 0 0 2px rgba(24, 176, 149, 0.16);
+            background: linear-gradient(180deg, rgba(11, 28, 36, 0.98), rgba(12, 30, 38, 0.98));
         }
     </style>
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
-    <script>
-        (() => {
-            const body = document.body;
-
-            const bindDayModal = ({ modalId, triggerSelector, messageId, actionId, iframeId, prefix }) => {
-                const modal = document.getElementById(modalId);
-                const message = document.getElementById(messageId);
-                const action = actionId ? document.getElementById(actionId) : null;
-                const iframe = iframeId ? document.getElementById(iframeId) : null;
-                if (!modal || !message || (!action && !iframe)) {
-                    return;
-                }
-
-                const setOpen = (open) => {
-                    modal.classList.toggle('is-open', open);
-                    modal.setAttribute('aria-hidden', open ? 'false' : 'true');
-                    body.classList.toggle('modal-open', open);
-                    if (!open && iframe) {
-                        iframe.src = '';
-                    }
-                };
-
-                document.querySelectorAll(triggerSelector).forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const dateLabel = button.dataset.dateLabel || 'dia selecionado';
-                        const targetUrl = button.dataset.targetUrl || '#';
-                        message.textContent = `${prefix} ${dateLabel}.`;
-                        if (action) action.setAttribute('href', targetUrl);
-                        if (iframe) iframe.src = targetUrl;
-                        setOpen(true);
-                    });
-                });
-
-                modal.querySelectorAll('[data-modal-close]').forEach((element) => {
-                    element.addEventListener('click', () => setOpen(false));
-                });
-
-                document.addEventListener('keydown', (event) => {
-                    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
-                        setOpen(false);
-                    }
-                });
-            };
-
-            bindDayModal({
-                modalId: 'abrirAgendaDiaModal',
-                triggerSelector: '.js-open-agenda-modal',
-                messageId: 'abrirAgendaDiaModalMessage',
-                iframeId: 'agendaDiaIframe',
-                prefix: 'Agenda de'
-            });
-
-            bindDayModal({
-                modalId: 'abrirBloqueioDiaModal',
-                triggerSelector: '.js-open-bloqueio-modal',
-                messageId: 'abrirBloqueioDiaModalMessage',
-                actionId: 'abrirBloqueioDiaModalAction',
-                prefix: 'O módulo de bloqueios será aberto para'
-            });
-        })();
-    </script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
 

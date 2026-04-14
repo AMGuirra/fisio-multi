@@ -38,7 +38,6 @@ class UserMenuAccessServiceTest {
                 EnumSet.of(
                         AppMenuItem.DASHBOARD,
                         AppMenuItem.AGENDA,
-                        AppMenuItem.CALENDARIO,
                         AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
                         AppMenuItem.WHATSAPP,
@@ -52,6 +51,17 @@ class UserMenuAccessServiceTest {
         ArgumentCaptor<List<UserRoleMenuPermissionEntity>> captor = ArgumentCaptor.forClass(List.class);
         verify(permissionRepository).saveAll(captor.capture());
         assertEquals(menus.size(), captor.getValue().size());
+    }
+
+    @Test
+    void deveTratarPermissaoLegadaDeCalendarioComoAgendaUnificada() {
+        when(permissionRepository.findByRoleOrderByMenuKeyAsc(UserRole.RECEPCAO)).thenReturn(List.of(
+                UserRoleMenuPermissionEntity.builder().role(UserRole.RECEPCAO).menuKey(AppMenuItem.CALENDARIO).build()
+        ));
+
+        EnumSet<AppMenuItem> menus = userMenuAccessService.listarMenusLiberados(UserRole.RECEPCAO);
+
+        assertEquals(EnumSet.of(AppMenuItem.AGENDA), menus);
     }
 
     @Test

@@ -71,7 +71,7 @@
                             <i data-lucide="layout-dashboard" aria-hidden="true"></i>
                             <span>Painel</span>
                         </a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem">
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem">
                             <i data-lucide="calendar-days" aria-hidden="true"></i>
                             <span>Agenda</span>
                         </a>
@@ -112,7 +112,7 @@
                     <p class="metric-label">Pacientes Ativos</p>
                 </a>
 
-                <a th:href="@{/agenda(data=${dashboardToday})}"
+                <a th:href="@{/calendario(data=${dashboardToday})}"
                    class="metric-card metric-card-link metric-sessoes"
                    aria-label="Abrir a agenda do dia">
                     <div class="metric-top">
@@ -183,15 +183,10 @@
                     </header>
                     <div class="panel-body">
                         <div class="quick-actions-grid">
-                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="quick-action">
-                                <span class="quick-action-icon"><i data-lucide="calendar-plus" aria-hidden="true"></i></span>
-                                <p class="quick-action-label">Nova Sessão</p>
-                                <p class="quick-action-hint">Criar atendimento</p>
-                            </a>
-                            <a th:if="${accessibleMenuKeys.contains('CALENDARIO')}" th:href="@{/calendario}" href="/calendario" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
-                                <p class="quick-action-label">Calendário</p>
-                                <p class="quick-action-hint">Gestão mensal</p>
+                                <p class="quick-action-label">Agenda</p>
+                                <p class="quick-action-hint">Visão diária e mensal</p>
                             </a>
                             <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" th:href="@{/bloqueios}" href="/bloqueios" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>

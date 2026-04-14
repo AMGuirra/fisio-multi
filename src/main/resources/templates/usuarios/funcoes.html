@@ -117,7 +117,7 @@
                     </button>
                     <div class="user-menu-panel" role="menu">
                         <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/agenda}" href="/agenda" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
                         </form>
