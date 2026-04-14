@@ -13,6 +13,394 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
     <style>
+        .solicitacoes-page {
+            background: #f2f5f4;
+        }
+        .solicitacoes-topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0 0 1rem;
+            border-bottom: 1px solid #d9e5e1;
+            margin-bottom: 1.25rem;
+        }
+        .solicitacoes-title {
+            margin: 0;
+            color: #085041;
+            font-size: clamp(1.9rem, 3vw, 2.5rem);
+            font-weight: 600;
+            line-height: 1.05;
+        }
+        .solicitacoes-subtitle {
+            margin: .35rem 0 0;
+            color: #5f716b;
+            font-size: 1rem;
+            max-width: 720px;
+        }
+        .solicitacoes-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-bottom: 1.5rem;
+        }
+        .solicitacoes-flash-stack {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+        .solicitacoes-flash {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            background: #eaf7f2;
+            border: 0.5px solid #86d8bf;
+            border-radius: 12px;
+            color: #0c5b4a;
+            padding: .95rem 1rem;
+        }
+        .solicitacoes-flash.error {
+            background: #fff0f0;
+            border-color: #efb3b3;
+            color: #a32d2d;
+        }
+        .solicitacoes-flash i {
+            width: 1.1rem;
+            height: 1.1rem;
+            flex-shrink: 0;
+        }
+        .solicitacoes-flash span {
+            flex: 1;
+            min-width: 0;
+        }
+        .flash-close {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .flash-close i {
+            width: 1rem;
+            height: 1rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .metric-card,
+        .sol-card {
+            background: #fff;
+            border: .5px solid #d9e5e1;
+            border-radius: 12px;
+        }
+        .metric-card {
+            padding: 1rem 1.1rem;
+            min-height: 156px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .metric-label {
+            margin: 0;
+            font-size: .88rem;
+            font-weight: 400;
+            line-height: 1.2;
+            color: #6a7d77;
+        }
+        .metric-value {
+            margin: .35rem 0;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            line-height: 1;
+            font-weight: 600;
+        }
+        .metric-value.pending {
+            color: #854f0b;
+        }
+        .metric-value.approved {
+            color: #085041;
+        }
+        .metric-value.denied {
+            color: #a32d2d;
+        }
+        .metric-value.total {
+            color: #0d4b3d;
+        }
+        .metric-subtext {
+            margin: 0;
+            color: #7b8c86;
+            font-size: .9rem;
+            line-height: 1.25;
+        }
+        .solicitacoes-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .solicitacoes-main {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+        .solicitacoes-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+        .sol-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: 1.1rem 1.25rem;
+            border-bottom: .5px solid #d9e5e1;
+        }
+        .sol-card-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            min-width: 0;
+        }
+        .sol-card-title {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #0a5a48;
+        }
+        .sol-card-title-wrap i {
+            color: #0a5a48;
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.1rem;
+            padding: .32rem .7rem;
+            border-radius: 999px;
+            background: #fdf0db;
+            color: #854f0b;
+            font-size: .9rem;
+            font-weight: 500;
+        }
+        .sol-card-body {
+            padding: 0;
+        }
+        .sol-card-body.compact {
+            padding: 1rem 1.1rem 1.1rem;
+        }
+        .req-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .req-item {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-bottom: .5px solid #ecf1ef;
+        }
+        .req-item:last-child {
+            border-bottom: 0;
+        }
+        .req-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #f7ead5;
+            color: #8b5a18;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .req-avatar.history-approved {
+            background: #dff3ed;
+            color: #085041;
+        }
+        .req-avatar.history-denied {
+            background: #f7e2e2;
+            color: #a32d2d;
+        }
+        .req-avatar.history-neutral {
+            background: #edf2f0;
+            color: #4f5d59;
+        }
+        .req-content {
+            min-width: 0;
+        }
+        .req-name {
+            margin: 0;
+            color: #182321;
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+        .req-meta,
+        .req-note {
+            margin: .2rem 0 0;
+            color: #6b7a76;
+            font-size: .94rem;
+            line-height: 1.35;
+        }
+        .req-note {
+            color: #86948f;
+        }
+        .req-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: .8rem;
+        }
+        .req-datetime {
+            margin: 0;
+            text-align: right;
+            color: #7b8c86;
+            font-size: .92rem;
+            line-height: 1.3;
+        }
+        .req-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: .55rem;
+        }
+        .sol-btn {
+            border: .5px solid transparent;
+            border-radius: 10px;
+            padding: .7rem 1rem;
+            font-size: .92rem;
+            font-weight: 500;
+            line-height: 1;
+            cursor: pointer;
+            transition: opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .sol-btn[disabled] {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+        .sol-btn-primary {
+            background: #1d9e75;
+            border-color: #1d9e75;
+            color: #fff;
+        }
+        .sol-btn-danger {
+            background: #fdf0f0;
+            border-color: #f1c9c9;
+            color: #a32d2d;
+        }
+        .sol-btn-neutral {
+            background: #f5f7f6;
+            border-color: #d9e5e1;
+            color: #50615c;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: .36rem .78rem;
+            font-size: .88rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .status-pill.approved {
+            background: #dff3ed;
+            color: #085041;
+        }
+        .status-pill.denied {
+            background: #f8e1e1;
+            color: #a32d2d;
+        }
+        .status-pill.pending {
+            background: #fdf0db;
+            color: #854f0b;
+        }
+        .empty-state {
+            padding: 2rem 1.25rem;
+            text-align: center;
+            color: #72827d;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .65rem;
+        }
+        .empty-state i {
+            width: 1.4rem;
+            height: 1.4rem;
+            color: #8fa09b;
+        }
+        .filter-form {
+            display: flex;
+            flex-direction: column;
+            gap: .85rem;
+        }
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: .38rem;
+        }
+        .filter-field label {
+            color: #61726d;
+            font-size: .9rem;
+            font-weight: 400;
+        }
+        .filter-actions {
+            display: flex;
+            gap: .65rem;
+            margin-top: .35rem;
+        }
+        .filter-actions .sol-btn {
+            flex: 1;
+        }
+        .quick-rate {
+            display: flex;
+            flex-direction: column;
+            gap: .85rem;
+        }
+        .quick-rate-value {
+            margin: 0;
+            color: #085041;
+            font-size: 2rem;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .quick-rate-caption,
+        .quick-rate-legend {
+            margin: 0;
+            color: #6c7d78;
+            font-size: .92rem;
+        }
+        .quick-rate-track {
+            width: 100%;
+            height: 10px;
+            background: #e5eeeb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .quick-rate-fill {
+            height: 100%;
+            background: #1d9e75;
+            border-radius: inherit;
+        }
+
         /* ── Wizard step indicator ─────────────────────────────── */
         .wizard-progress {
             display: flex;
@@ -193,6 +581,29 @@
         }
 
         @media (max-width: 768px) {
+            .metrics-grid,
+            .solicitacoes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .req-item {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+
+            .req-side {
+                grid-column: 1 / -1;
+                align-items: flex-start;
+                padding-left: calc(48px + 1rem);
+            }
+
+            .req-datetime {
+                text-align: left;
+            }
+
+            .filter-actions {
+                flex-direction: column;
+            }
+
             .wizard-progress {
                 overflow-x: auto;
                 padding-bottom: .35rem;
@@ -212,19 +623,24 @@
             .confirm-summary-label {
                 min-width: 0;
             }
-
-            .filtro-form {
-                align-items: stretch;
-            }
-
-            .filtro-form .form-field,
-            .filtro-actions {
-                width: 100%;
-                min-width: 0;
-            }
         }
 
         @media (max-width: 480px) {
+            .solicitacoes-topbar {
+                padding-bottom: .85rem;
+                margin-bottom: 1rem;
+            }
+
+            .metric-card {
+                min-height: 136px;
+            }
+
+            .sol-card-header,
+            .req-item {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
             .wizard-step-item {
                 font-size: .72rem;
                 padding: .25rem .4rem;
@@ -232,10 +648,6 @@
 
             .wizard-step-divider {
                 min-width: 10px;
-            }
-
-            .filtro-actions {
-                flex-direction: column;
             }
         }
     </style>
@@ -271,213 +683,238 @@
             </div>
         </header>
 
-        <main class="dashboard-main crud-main">
-            <section class="hero-card crud-hero">
-                <div class="hero-content">
-                    <h1 class="hero-title">Solicitações de Agendamento</h1>
-                    <p class="hero-subtitle">Aprove ou rejeite pedidos do agendamento online com fluxo rápido.</p>
+        <main class="dashboard-main crud-main solicitacoes-page">
+            <section class="solicitacoes-topbar">
+                <div>
+                    <h1 class="solicitacoes-title">Central de Solicitações</h1>
+                    <p class="solicitacoes-subtitle">Aprove ou rejeite pedidos de agendamento online com um fluxo mais direto e um histórico fácil de consultar.</p>
                 </div>
-                <span class="hero-pill">SOLICITAÇÕES</span>
             </section>
 
-            <div class="flash-stack">
-                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
-                <div th:if="${errorMessage}"   class="flash-message error">  <i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            <div class="solicitacoes-content">
+                <div class="solicitacoes-flash-stack flash-stack" id="solicitacoesFlashStack">
+                    <div th:if="${successMessage}" class="solicitacoes-flash success" data-auto-dismiss="true">
+                        <i data-lucide="circle-check"></i>
+                        <span th:text="${successMessage}">Sucesso</span>
+                        <button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>
+                    </div>
+                    <div th:if="${errorMessage}" class="solicitacoes-flash error" data-auto-dismiss="true">
+                        <i data-lucide="circle-alert"></i>
+                        <span th:text="${errorMessage}">Erro</span>
+                        <button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>
+                    </div>
+                </div>
+
+                <section class="metrics-grid">
+                    <article class="metric-card">
+                        <p class="metric-label">Pendentes</p>
+                        <p class="metric-value pending" th:text="${totalPendentes}">0</p>
+                        <p class="metric-subtext">aguardando ação</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Aprovadas (mês)</p>
+                        <p class="metric-value approved" th:text="${totalAprovadas}">0</p>
+                        <p class="metric-subtext">agendamentos gerados</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Negadas (mês)</p>
+                        <p class="metric-value denied" th:text="${totalNegadas}">0</p>
+                        <p class="metric-subtext">pedidos recusados</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Total recebido</p>
+                        <p class="metric-value total" th:text="${totalGeral}">0</p>
+                        <p class="metric-subtext">este mês</p>
+                    </article>
+                </section>
+
+                <section class="solicitacoes-grid">
+                    <div class="solicitacoes-main">
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="circle-check-big"></i>
+                                    <h2 class="sol-card-title">Pendentes</h2>
+                                    <span class="count-badge" th:text="${solicitacoesPendentes != null ? solicitacoesPendentes.size() : 0}">0</span>
+                                </div>
+                                <button type="button" id="bulkApproveBtn" class="action-button sol-btn sol-btn-primary"
+                                        th:disabled="${solicitacoesPendentes == null or solicitacoesPendentes.empty}">Aprovar todas</button>
+                            </header>
+                            <div class="sol-card-body">
+                                <div th:if="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="empty-state">
+                                    <i data-lucide="inbox"></i>
+                                    <p>Nenhuma solicitação pendente.</p>
+                                </div>
+
+                                <div th:unless="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="req-list">
+                                    <article th:each="sol : ${solicitacoesPendentes}" class="req-item"
+                                             th:attr="data-sol-id=${sol.id},data-can-auto-approve=${sol.cliente != null}">
+                                        <span class="req-avatar" th:text="${sol.iniciaisPaciente}">PA</span>
+
+                                        <div class="req-content">
+                                            <p class="req-name" th:text="${sol.nomePaciente}">Nome do paciente</p>
+                                            <p class="req-meta">
+                                                <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.telefone}">(67) 99999-0000</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Sem observações</span>
+                                            </p>
+                                            <p class="req-note"
+                                               th:text="${sol.cliente != null ? 'Paciente já cadastrado.' : 'Pré-cadastro pendente antes da aprovação.'}">
+                                                Paciente já cadastrado.
+                                            </p>
+                                        </div>
+
+                                        <div class="req-side">
+                                            <p class="req-datetime"
+                                               th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">
+                                                14/04/2026 às 15:00
+                                            </p>
+                                            <div class="req-actions">
+                                                <button type="button"
+                                                        class="action-button sol-btn sol-btn-primary open-wizard"
+                                                        th:attr="data-sol-id=${sol.id},
+                                                                 data-nome=${sol.nomePaciente},
+                                                                 data-telefone=${sol.telefone},
+                                                                 data-email=${sol.email},
+                                                                 data-cpf=${sol.cpf},
+                                                                 data-local=${sol.localAtendimento}">Aprovar</button>
+                                                <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
+                                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                    <button type="submit" class="action-button sol-btn sol-btn-danger">Negar</button>
+                                                </form>
+                                                <button type="button"
+                                                        class="action-button sol-btn sol-btn-neutral open-editar"
+                                                        th:attr="data-sol-id=${sol.id},
+                                                                 data-nome=${sol.nomePaciente},
+                                                                 data-telefone=${sol.telefone},
+                                                                 data-email=${sol.email != null ? sol.email : ''},
+                                                                 data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
+                                                                 data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')},
+                                                                 data-local=${sol.localAtendimento},
+                                                                 data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">Ver</button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="history"></i>
+                                    <h2 class="sol-card-title">Histórico</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body">
+
+                                <div th:if="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="empty-state">
+                                    <i data-lucide="archive"></i>
+                                    <p>Nenhuma solicitação encontrada no histórico.</p>
+                                </div>
+
+                                <div th:unless="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="req-list">
+                                    <article th:each="sol : ${solicitacoesHistorico}" class="req-item">
+                                        <span class="req-avatar"
+                                              th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' history-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' history-denied' : ' history-neutral')"
+                                              th:text="${sol.iniciaisPaciente}">PA</span>
+                                        <div class="req-content">
+                                            <p class="req-name" th:text="${sol.nomePaciente}">Nome do paciente</p>
+                                            <p class="req-meta">
+                                                <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.telefone}">(67) 99999-0000</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Sem observações</span>
+                                            </p>
+                                            <p class="req-note"
+                                               th:text="${'Processada em ' + #temporals.format(sol.updatedAt, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.updatedAt, 'HH:mm')}">
+                                                Processada em 14/04/2026 às 15:00
+                                            </p>
+                                        </div>
+                                        <div class="req-side">
+                                            <p class="req-datetime"
+                                               th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">
+                                                14/04/2026 às 15:00
+                                            </p>
+                                            <div class="req-actions">
+                                                <span class="status-pill"
+                                                      th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' denied' : ' pending')"
+                                                      th:text="${sol.status != null and sol.status.name() == 'APROVADA' ? 'Aprovada' : (sol.status != null and sol.status.name() == 'REJEITADA' ? 'Negada' : (sol.status != null and sol.status.name() == 'CANCELADA' ? 'Cancelada' : 'Pendente'))}">Aprovada</span>
+                                                <button th:if="${sol.status != null and sol.status.name() == 'APROVADA'}"
+                                                        type="button"
+                                                        class="action-button sol-btn sol-btn-neutral open-confirmar danger"
+                                                        th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},data-title='Cancelar agendamento',data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">Cancelar</button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <aside class="solicitacoes-sidebar">
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="list-filter"></i>
+                                    <h2 class="sol-card-title">Filtrar histórico</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body compact">
+                                <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="filter-form" id="filtroHistoricoForm">
+                                    <div class="filter-field">
+                                        <label for="filtroStatus">Status</label>
+                                        <select id="filtroStatus" name="filtroStatus" class="form-control">
+                                            <option value="" th:selected="${filtroStatus == null}">Todos</option>
+                                            <option value="APROVADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'APROVADA'}">Aprovadas</option>
+                                            <option value="REJEITADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'REJEITADA'}">Negadas</option>
+                                            <option value="PENDENTE" th:selected="${filtroStatus != null and filtroStatus.name() == 'PENDENTE'}">Pendentes</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroInicio">De</label>
+                                        <input id="filtroInicio" name="filtroInicio" type="date" class="form-control" th:value="${filtroInicio}">
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroFim">Até</label>
+                                        <input id="filtroFim" name="filtroFim" type="date" class="form-control" th:value="${filtroFim}">
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroPaciente">Paciente</label>
+                                        <input id="filtroPaciente" name="filtroPaciente" type="text" class="form-control" placeholder="Nome ou telefone" th:value="${filtroPaciente}">
+                                    </div>
+                                    <div class="filter-actions">
+                                        <button type="submit" class="sol-btn sol-btn-primary">Filtrar</button>
+                                        <a th:href="@{/solicitacoes}" href="/solicitacoes" class="sol-btn sol-btn-neutral">Limpar</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </article>
+
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="chart-no-axes-column"></i>
+                                    <h2 class="sol-card-title">Resumo rápido</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body compact">
+                                <div class="quick-rate">
+                                    <p class="quick-rate-caption">Taxa de aprovação</p>
+                                    <p class="quick-rate-value" th:text="${taxaAprovacao + '%'}">0%</p>
+                                    <div class="quick-rate-track">
+                                        <div class="quick-rate-fill" th:style="${'width:' + taxaAprovacao + '%;'}"></div>
+                                    </div>
+                                    <p class="quick-rate-legend" th:text="${totalAprovadas + ' aprovadas · ' + totalNegadas + ' negadas'}">0 aprovadas · 0 negadas</p>
+                                </div>
+                            </div>
+                        </article>
+                    </aside>
+                </section>
             </div>
-
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="calendar-range"></i> Central de Solicitações</h3>
-                </header>
-
-                <div class="section-body">
-                    <!-- ── PENDENTES ─────────────────────────────────────────── -->
-                    <div class="section-block">
-                        <h4 class="section-subtitle">
-                            Pendentes
-                            <span class="chip status-warning" th:text="${pendentes != null ? pendentes.size() : 0}">0</span>
-                        </h4>
-                        <div th:if="${pendentes == null or pendentes.empty}" class="empty-box">
-                            <i data-lucide="inbox"></i>
-                            <p>Nenhuma solicitação pendente.</p>
-                        </div>
-
-                        <div th:unless="${pendentes == null or pendentes.empty}" class="request-list">
-                            <article th:each="sol : ${pendentes}" class="request-card">
-                                <div class="request-row">
-                                    <span class="entity-avatar"
-                                          th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente,0,1) : 'P'}">P</span>
-
-                                    <div class="request-detail">
-                                        <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
-                                        <p class="request-text">
-                                            <span th:text="${sol.telefone}">Telefone</span>
-                                            <span> • </span>
-                                            <span th:text="${sol.cpf != null and !#strings.isEmpty(sol.cpf) ? sol.cpf : 'CPF não informado'}">CPF</span>
-                                        </p>
-                                        <p class="request-text">
-                                            <i data-lucide="calendar"></i>
-                                            <span th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</span>
-                                        </p>
-                                        <p class="request-text">
-                                            <i data-lucide="map-pinned"></i>
-                                            <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
-                                            <span th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}"> • </span>
-                                            <span th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}" th:text="${sol.enderecoResumo}">Endereço</span>
-                                        </p>
-                                        <p class="request-text">
-                                            <span class="chip"
-                                                  th:classappend="${sol.cliente != null ? 'status-approved' : 'status-warning'}"
-                                                  th:text="${sol.cliente != null ? 'Paciente cadastrado' : 'Pré-cadastro pendente'}">Paciente cadastrado</span>
-                                        </p>
-                                    </div>
-
-                                    <div class="request-actions">
-                                        <!-- Botão principal: abre o wizard ──────────────── -->
-                                        <button type="button"
-                                                class="action-button success open-wizard"
-                                                th:attr="data-sol-id=${sol.id},
-                                                         data-nome=${sol.nomePaciente},
-                                                         data-telefone=${sol.telefone},
-                                                         data-email=${sol.email},
-                                                         data-cpf=${sol.cpf},
-                                                         data-local=${sol.localAtendimento}">
-                                            <i data-lucide="check"></i>
-                                            <span>Aprovar</span>
-                                        </button>
-
-                                        <!-- Editar ─────────────────────────────────────── -->
-                                        <button type="button"
-                                                class="action-button secondary open-editar"
-                                                th:attr="data-sol-id=${sol.id},
-                                                         data-nome=${sol.nomePaciente},
-                                                         data-telefone=${sol.telefone},
-                                                         data-email=${sol.email != null ? sol.email : ''},
-                                                         data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
-                                                         data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')},
-                                                         data-local=${sol.localAtendimento},
-                                                         data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">
-                                            <i data-lucide="pencil"></i>
-                                            <span>Editar</span>
-                                        </button>
-
-                                        <!-- Rejeitar: form POST tradicional ────────────── -->
-                                        <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
-                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-
-                    <!-- ── HISTÓRICO ─────────────────────────────────────────── -->
-                    <div class="section-block">
-                        <h4 class="section-subtitle">Histórico</h4>
-
-                        <!-- Filtros ────────────────────────────────────────────── -->
-                        <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="modern-form filtro-form" id="filtroHistoricoForm">
-                            <div class="form-field">
-                                <label for="filtroStatus">Status</label>
-                                <select id="filtroStatus" name="filtroStatus" class="form-control">
-                                    <option value="" th:selected="${filtroStatus == null}">Todos</option>
-                                    <option value="APROVADA"  th:selected="${filtroStatus != null and filtroStatus.name() == 'APROVADA'}">Aprovada</option>
-                                    <option value="REJEITADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'REJEITADA'}">Rejeitada</option>
-                                    <option value="CANCELADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'CANCELADA'}">Cancelada</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroInicio">De</label>
-                                <input id="filtroInicio" name="filtroInicio" type="date" class="form-control"
-                                       th:value="${filtroInicio}">
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroFim">Até</label>
-                                <input id="filtroFim" name="filtroFim" type="date" class="form-control"
-                                       th:value="${filtroFim}">
-                            </div>
-                            <div class="filtro-actions">
-                                <button type="submit" class="action-button success">
-                                    <i data-lucide="search"></i> Filtrar
-                                </button>
-                                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="action-button ghost">Limpar</a>
-                            </div>
-                        </form>
-                        <div th:if="${historico == null or historico.empty}" class="empty-box">
-                            <i data-lucide="history"></i>
-                            <p>Nenhuma solicitação no histórico.</p>
-                        </div>
-
-                        <div th:unless="${historico == null or historico.empty}" class="request-list">
-                            <article th:each="sol : ${historico}" class="request-card">
-                                <div class="request-row">
-                                    <span class="entity-avatar"
-                                          th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente,0,1) : 'P'}">P</span>
-                                    <div class="request-detail">
-                                        <p class="request-title" th:text="${sol.nomePaciente}">Nome</p>
-                                        <p class="request-text">
-                                            <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
-                                            <span th:if="${sol.cpf != null and !#strings.isEmpty(sol.cpf)}"> • </span>
-                                            <span th:if="${sol.cpf != null and !#strings.isEmpty(sol.cpf)}" th:text="${sol.cpf}">CPF</span>
-                                        </p>
-                                        <p class="request-text" th:if="${sol.enderecoResumo != null and !#strings.isEmpty(sol.enderecoResumo)}" th:text="${sol.enderecoResumo}">Endereço</p>
-                                        <p class="request-text" th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Obs</p>
-                                        <p class="request-text" th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</p>
-                                    </div>
-                                    <div class="request-actions">
-                                        <span class="chip"
-                                              th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? 'status-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? 'status-rejected' : (${sol.status != null and sol.status.name() == 'CANCELADA'} ? 'status-rejected' : 'status-pendente'))"
-                                              th:text="${sol.status != null ? sol.status.name() : 'PENDENTE'}">PENDENTE</span>
-
-                                        <!-- Ações para APROVADA ───────────────────────── -->
-                                        <th:block th:if="${sol.status != null and sol.status.name() == 'APROVADA'}">
-                                            <button type="button" class="action-button danger open-confirmar"
-                                                    th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},
-                                                             data-title='Cancelar agendamento',
-                                                             data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">
-                                                <i data-lucide="ban"></i> Cancelar
-                                            </button>
-                                        </th:block>
-
-                                        <!-- Ações para REJEITADA ──────────────────────── -->
-                                        <th:block th:if="${sol.status != null and sol.status.name() == 'REJEITADA'}">
-                                            <button type="button" class="action-button success open-confirmar"
-                                                    th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},
-                                                             data-title='Aceitar novamente',
-                                                             data-msg='Deseja restaurar esta solicitação como pendente para aprovar novamente?'">
-                                                <i data-lucide="rotate-ccw"></i> Aceitar novamente
-                                            </button>
-                                            <button type="button" class="action-button danger open-confirmar"
-                                                    th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},
-                                                             data-title='Excluir solicitação',
-                                                             data-msg='Esta ação é permanente e não pode ser desfeita. Confirma a exclusão?'">
-                                                <i data-lucide="trash-2"></i> Excluir
-                                            </button>
-                                        </th:block>
-
-                                        <!-- Ações para CANCELADA ──────────────────────── -->
-                                        <th:block th:if="${sol.status != null and sol.status.name() == 'CANCELADA'}">
-                                            <button type="button" class="action-button success open-confirmar"
-                                                    th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},
-                                                             data-title='Reaver solicitação',
-                                                             data-msg='Deseja reativar esta solicitação como pendente? O horário será reservado novamente.'">
-                                                <i data-lucide="refresh-cw"></i> Reaver
-                                            </button>
-                                            <button type="button" class="action-button danger open-confirmar"
-                                                    th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},
-                                                             data-title='Excluir solicitação',
-                                                             data-msg='Esta ação é permanente e não pode ser desfeita. Confirma a exclusão?'">
-                                                <i data-lucide="trash-2"></i> Excluir
-                                            </button>
-                                        </th:block>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </main>
 
         <!-- ════════════════════════════════════════════════════════════
@@ -1404,22 +1841,101 @@
             });
         })();
 
-        // ── redirecionar se ?sucesso=1 ou ?reagendado=1 ──────────────────────────
+        const flashStack = document.getElementById('solicitacoesFlashStack');
+
+        const dismissFlash = flash => {
+            if (!flash) return;
+            flash.style.opacity = '0';
+            flash.style.transform = 'translateY(-4px)';
+            setTimeout(() => flash.remove(), 180);
+        };
+
+        const wireFlash = flash => {
+            if (!flash) return;
+            flash.querySelector('[data-flash-close]')?.addEventListener('click', () => dismissFlash(flash));
+            if (flash.dataset.autoDismiss === 'true') {
+                setTimeout(() => dismissFlash(flash), 4000);
+            }
+        };
+
+        const showFlash = (type, text) => {
+            if (!flashStack || !text) return;
+            const div = document.createElement('div');
+            const icon = type === 'error' ? 'circle-alert' : 'circle-check';
+            div.className = `solicitacoes-flash ${type === 'error' ? 'error' : 'success'}`;
+            div.dataset.autoDismiss = 'true';
+            div.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span><button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>`;
+            flashStack.prepend(div);
+            wireFlash(div);
+            if (window.lucide) lucide.createIcons({ nodes: [div] });
+        };
+
+        document.querySelectorAll('.solicitacoes-flash').forEach(wireFlash);
+
+        const savedFlash = sessionStorage.getItem('solicitacoesFlash');
+        if (savedFlash) {
+            sessionStorage.removeItem('solicitacoesFlash');
+            try {
+                const parsed = JSON.parse(savedFlash);
+                showFlash(parsed.type, parsed.text);
+            } catch (err) {
+                console.warn('Falha ao ler flash salvo de solicitações.', err);
+            }
+        }
+
+        const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+        bulkApproveBtn?.addEventListener('click', async () => {
+            const pendentes = Array.from(document.querySelectorAll('.req-item[data-sol-id][data-can-auto-approve="true"]'));
+            if (!pendentes.length) {
+                showFlash('error', 'Nenhuma solicitação pronta para aprovação em lote.');
+                return;
+            }
+
+            btnLoading(bulkApproveBtn, true);
+            let aprovadas = 0;
+            let ignoradas = 0;
+
+            for (const item of pendentes) {
+                const id = item.dataset.solId;
+                try {
+                    const fluxo = await getJson(`/api/solicitacoes/${id}/fluxo`);
+                    if (!fluxo?.paciente?.encontrado || !fluxo?.disponibilidade?.disponivel) {
+                        ignoradas++;
+                        continue;
+                    }
+
+                    await postJson(`/api/solicitacoes/${id}/aprovar`, {
+                        pacoteSessaoId: fluxo?.plano?.planos?.[0]?.id ?? null
+                    });
+                    aprovadas++;
+                } catch (err) {
+                    ignoradas++;
+                }
+            }
+
+            btnLoading(bulkApproveBtn, false);
+
+            if (aprovadas > 0) {
+                const texto = ignoradas > 0
+                    ? `${aprovadas} solicitações aprovadas. ${ignoradas} ficaram pendentes para revisão manual.`
+                    : `${aprovadas} solicitações aprovadas com sucesso.`;
+                sessionStorage.setItem('solicitacoesFlash', JSON.stringify({ type: 'success', text: texto }));
+                window.location.reload();
+                return;
+            }
+
+            showFlash('error', 'Nenhuma solicitação pôde ser aprovada em lote.');
+        });
+
         const flashParam = new URLSearchParams(location.search);
         if (flashParam.get('sucesso') === '1' || flashParam.get('reagendado') === '1') {
-            history.replaceState(null, '', '/solicitacoes');
-            const flashStack = document.querySelector('.flash-stack');
-            if (flashStack) {
-                const div = document.createElement('div');
-                div.className = 'flash-message success';
-                const texto = flashParam.get('reagendado') === '1'
+            history.replaceState(null, '', window.location.pathname);
+            showFlash(
+                'success',
+                flashParam.get('reagendado') === '1'
                     ? 'Solicitação reagendada com sucesso.'
-                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.';
-                div.innerHTML = `<i data-lucide="circle-check"></i><span>${texto}</span>`;
-                flashStack.prepend(div);
-                if (window.lucide) lucide.createIcons({ nodes: [div] });
-                setTimeout(() => div.remove(), 6000);
-            }
+                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.'
+            );
         }
     })();
     </script>

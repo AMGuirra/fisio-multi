@@ -116,6 +116,26 @@ public class SolicitacaoAgendamentoEntity extends BaseEntity {
         return builder.toString();
     }
 
+    public String getIniciaisPaciente() {
+        if (nomePaciente == null || nomePaciente.isBlank()) {
+            return "PA";
+        }
+
+        String[] partes = nomePaciente.trim().split("\\s+");
+        if (partes.length == 1) {
+            return limitarInicial(partes[0], 2);
+        }
+        return (limitarInicial(partes[0], 1) + limitarInicial(partes[partes.length - 1], 1)).toUpperCase();
+    }
+
+    private String limitarInicial(String texto, int tamanho) {
+        String valor = texto == null ? "" : texto.trim();
+        if (valor.isEmpty()) {
+            return "";
+        }
+        return valor.substring(0, Math.min(valor.length(), tamanho)).toUpperCase();
+    }
+
     private void appendParte(StringBuilder builder, String valor) {
         if (valor == null || valor.isBlank()) {
             return;

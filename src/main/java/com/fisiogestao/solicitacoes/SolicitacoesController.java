@@ -32,20 +32,25 @@ public class SolicitacoesController {
             @RequestParam(required = false) SolicitacaoStatus filtroStatus,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate filtroInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate filtroFim,
+            @RequestParam(required = false) String filtroPaciente,
             Model model
     ) {
-        model.addAttribute("pendentes", solicitacaoAgendamentoService.listarPendentes());
-
-        boolean temFiltro = filtroStatus != null || filtroInicio != null || filtroFim != null;
-        if (temFiltro) {
-            model.addAttribute("historico", solicitacaoAgendamentoService.filtrarHistorico(filtroStatus, filtroInicio, filtroFim));
-        } else {
-            model.addAttribute("historico", solicitacaoAgendamentoService.listarHistorico());
-        }
+        var resumo = solicitacaoAgendamentoService.resumoMesAtual();
+        model.addAttribute("solicitacoesPendentes", solicitacaoAgendamentoService.listarPendentes());
+        model.addAttribute(
+                "solicitacoesHistorico",
+                solicitacaoAgendamentoService.filtrarHistorico(filtroStatus, filtroInicio, filtroFim, filtroPaciente)
+        );
 
         model.addAttribute("filtroStatus", filtroStatus);
         model.addAttribute("filtroInicio", filtroInicio);
         model.addAttribute("filtroFim", filtroFim);
+        model.addAttribute("filtroPaciente", filtroPaciente);
+        model.addAttribute("totalPendentes", resumo.totalPendentes());
+        model.addAttribute("totalAprovadas", resumo.totalAprovadas());
+        model.addAttribute("totalNegadas", resumo.totalNegadas());
+        model.addAttribute("totalGeral", resumo.totalGeral());
+        model.addAttribute("taxaAprovacao", resumo.taxaAprovacao());
         model.addAttribute("aprovacaoForm", new AprovacaoSolicitacaoForm());
         return "solicitacoes/index";
     }

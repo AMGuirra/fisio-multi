@@ -68,14 +68,63 @@ public class SolicitacaoAgendamentoService {
     }
 
     public List<SolicitacaoAgendamentoEntity> listarHistorico() {
-        return solicitacaoAgendamentoRepository.findByStatusNotOrderByCreatedAtDesc(SolicitacaoStatus.PENDENTE);
+        return filtrarHistorico(null, null, null, null);
     }
 
-    public List<SolicitacaoAgendamentoEntity> filtrarHistorico(SolicitacaoStatus status, LocalDate inicioInclusive, LocalDate fimInclusive) {
+    public List<SolicitacaoAgendamentoEntity> filtrarHistorico(
+            SolicitacaoStatus status,
+            LocalDate inicioInclusive,
+            LocalDate fimInclusive,
+            String buscaPaciente
+    ) {
         ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
         OffsetDateTime inicio = inicioInclusive != null ? inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime() : null;
         OffsetDateTime fim    = fimInclusive    != null ? fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime() : null;
-        return solicitacaoAgendamentoRepository.filtrarHistorico(SolicitacaoStatus.PENDENTE, status, inicio, fim);
+        String buscaTexto = texto(buscaPaciente);
+        String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
+        return solicitacaoAgendamentoRepository.filtrarHistorico(
+                SolicitacaoStatus.PENDENTE,
+                status,
+                inicio,
+                fim,
+                buscaTexto,
+                buscaTelefone
+        );
+    }
+
+    public ResumoSolicitacoes resumoMesAtual() {
+        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+        LocalDate hoje = LocalDate.now(zoneId);
+        OffsetDateTime inicioMes = hoje.withDayOfMonth(1).atStartOfDay(zoneId).toOffsetDateTime();
+        OffsetDateTime inicioProximoMes = hoje.withDayOfMonth(1).plusMonths(1).atStartOfDay(zoneId).toOffsetDateTime();
+
+        List<SolicitacaoAgendamentoEntity> solicitacoes = listarTodas();
+
+        long totalPendentes = solicitacoes.stream()
+                .filter(sol -> sol.getStatus() == SolicitacaoStatus.PENDENTE)
+                .filter(sol -> estaNoPeriodo(sol.getCreatedAt(), inicioMes, inicioProximoMes))
+                .count();
+
+        long totalAprovadas = solicitacoes.stream()
+                .filter(sol -> sol.getStatus() == SolicitacaoStatus.APROVADA)
+                .filter(sol -> estaNoPeriodo(sol.getUpdatedAt(), inicioMes, inicioProximoMes))
+                .count();
+
+        long totalNegadas = solicitacoes.stream()
+                .filter(sol -> sol.getStatus() == SolicitacaoStatus.REJEITADA)
+                .filter(sol -> estaNoPeriodo(sol.getUpdatedAt(), inicioMes, inicioProximoMes))
+                .count();
+
+        long totalGeral = solicitacoes.stream()
+                .filter(sol -> estaNoPeriodo(sol.getCreatedAt(), inicioMes, inicioProximoMes))
+                .count();
+
+        long totalProcessadas = totalAprovadas + totalNegadas;
+        int taxaAprovacao = totalProcessadas > 0
+                ? (int) Math.round((totalAprovadas * 100.0) / totalProcessadas)
+                : 0;
+
+        return new ResumoSolicitacoes(totalPendentes, totalAprovadas, totalNegadas, totalGeral, taxaAprovacao);
     }
 
     public SolicitacaoAgendamentoEntity buscarPorId(UUID id) {
@@ -646,6 +695,20 @@ public class SolicitacaoAgendamentoService {
         return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
+    private String normalizarBuscaTelefone(String buscaTexto) {
+        if (buscaTexto == null) {
+            return null;
+        }
+        String somenteDigitos = buscaTexto.replaceAll("\\D", "");
+        return somenteDigitos.isBlank() ? null : somenteDigitos;
+    }
+
+    private boolean estaNoPeriodo(OffsetDateTime valor, OffsetDateTime inicioInclusive, OffsetDateTime fimExclusive) {
+        return valor != null
+                && !valor.isBefore(inicioInclusive)
+                && valor.isBefore(fimExclusive);
+    }
+
     private void validarFormularioPublico(AgendamentoOnlineForm form) {
         String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
         normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos.");
@@ -792,4 +855,12 @@ public class SolicitacaoAgendamentoService {
     private record IntervaloPeriodo(OffsetDateTime inicio, OffsetDateTime fim) {}
 
     private record DadosEndereco(String cep, String rua, String numero, String bairro, String cidade, String estado) {}
+
+    public record ResumoSolicitacoes(
+            long totalPendentes,
+            long totalAprovadas,
+            long totalNegadas,
+            long totalGeral,
+            int taxaAprovacao
+    ) {}
 }

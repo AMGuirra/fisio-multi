@@ -17,8 +17,6 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
 
     List<SolicitacaoAgendamentoEntity> findAllByOrderByCreatedAtDesc();
 
-    List<SolicitacaoAgendamentoEntity> findByStatusNotOrderByCreatedAtDesc(SolicitacaoStatus status);
-
     long countByStatus(SolicitacaoStatus status);
 
     List<SolicitacaoAgendamentoEntity> findByStatusAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
@@ -36,15 +34,28 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
 
     boolean existsByClienteId(UUID clienteId);
 
-    @Query("SELECT s FROM SolicitacaoAgendamentoEntity s WHERE s.status <> :excluido" +
-           " AND (:status IS NULL OR s.status = :status)" +
-           " AND (:inicio IS NULL OR s.dataHoraInicio >= :inicio)" +
-           " AND (:fim IS NULL OR s.dataHoraInicio < :fim)" +
-           " ORDER BY s.createdAt DESC")
+    @Query("""
+           SELECT s
+           FROM SolicitacaoAgendamentoEntity s
+           WHERE (
+               (:status IS NULL AND s.status <> :pendente)
+               OR (:status IS NOT NULL AND s.status = :status)
+           )
+           AND (:inicio IS NULL OR s.updatedAt >= :inicio)
+           AND (:fim IS NULL OR s.updatedAt < :fim)
+           AND (
+               :buscaTexto IS NULL
+               OR LOWER(s.nomePaciente) LIKE LOWER(CONCAT('%', :buscaTexto, '%'))
+               OR (:buscaTelefone IS NOT NULL AND s.telefone LIKE CONCAT('%', :buscaTelefone, '%'))
+           )
+           ORDER BY s.updatedAt DESC
+           """)
     List<SolicitacaoAgendamentoEntity> filtrarHistorico(
-            @Param("excluido") SolicitacaoStatus excluido,
+            @Param("pendente") SolicitacaoStatus pendente,
             @Param("status") SolicitacaoStatus status,
             @Param("inicio") OffsetDateTime inicio,
-            @Param("fim") OffsetDateTime fim
+            @Param("fim") OffsetDateTime fim,
+            @Param("buscaTexto") String buscaTexto,
+            @Param("buscaTelefone") String buscaTelefone
     );
 }
