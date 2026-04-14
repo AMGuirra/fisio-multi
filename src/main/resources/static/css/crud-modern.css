@@ -1136,6 +1136,25 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.13);
 }
 
+.calendar-day.day-selected {
+    border-color: rgba(15, 143, 122, 0.42);
+    box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.12);
+    background: linear-gradient(180deg, #f7fffc 0%, #eef8f5 100%);
+}
+
+.calendar-day.day-selected .calendar-day-number,
+.calendar-day.day-selected .calendar-day-item strong {
+    color: var(--text-strong);
+}
+
+.calendar-day.day-selected .calendar-day-item {
+    color: #5a6974;
+}
+
+.calendar-day.day-selected .calendar-link {
+    color: var(--brand-600);
+}
+
 .calendar-day-number {
     font-size: 0.9rem;
     font-weight: 760;
@@ -1590,6 +1609,21 @@ body[data-theme='dark'] .tab-modern .nav-link.active {
 body[data-theme='dark'] .calendar-day.day-today {
     border-color: rgba(87, 223, 192, 0.58);
     box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.2);
+}
+
+body[data-theme='dark'] .calendar-day.day-selected {
+    border-color: rgba(45, 194, 163, 0.52);
+    box-shadow: 0 0 0 2px rgba(24, 176, 149, 0.16);
+    background: linear-gradient(180deg, rgba(11, 28, 36, 0.98), rgba(12, 30, 38, 0.98));
+}
+
+body[data-theme='dark'] .calendar-day.day-selected .calendar-day-number,
+body[data-theme='dark'] .calendar-day.day-selected .calendar-day-item strong {
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .calendar-day.day-selected .calendar-day-item {
+    color: var(--text-body);
 }
 
 body[data-theme='dark'] .calendar-tag {
