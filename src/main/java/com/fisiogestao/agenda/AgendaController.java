@@ -51,13 +51,14 @@ public class AgendaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(required = false) UUID paciente,
             @RequestParam(required = false) UUID editar,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             Model model
     ) {
         LocalDate dataSelecionada = data != null ? data : LocalDate.now();
         AgendaManualForm agendaForm = resolverAgendaManualForm(model, dataSelecionada, paciente);
         PacoteConsumoForm pacoteAgendaForm = resolverPacoteAgendaForm(model, agendaForm.getClienteId(), dataSelecionada);
         boolean pacoteModalOpen = Boolean.TRUE.equals(model.asMap().get("pacoteModalOpen"));
-        prepararPaginaComFallback(model, dataSelecionada, agendaForm, editar, null, pacoteAgendaForm, pacoteModalOpen);
+        prepararPaginaComFallback(model, dataSelecionada, agendaForm, editar, null, pacoteAgendaForm, pacoteModalOpen, modal);
         return "agenda/index";
     }
 
@@ -65,6 +66,7 @@ public class AgendaController {
     public String criarSessao(
             @Valid @ModelAttribute("agendaManualForm") AgendaManualForm form,
             BindingResult bindingResult,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes
@@ -73,16 +75,16 @@ public class AgendaController {
         PacoteConsumoForm pacoteAgendaForm = criarPacoteAgendaFormPadrao(form.getClienteId(), dataSelecionada);
 
         if (bindingResult.hasErrors()) {
-            prepararPaginaComFallback(model, dataSelecionada, form, null, null, pacoteAgendaForm, false);
+            prepararPaginaComFallback(model, dataSelecionada, form, null, null, pacoteAgendaForm, false, modal);
             return "agenda/index";
         }
 
         try {
             agendaService.agendarSessaoManual(form, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Sessão agendada com sucesso.");
-            return "redirect:/agenda?data=" + form.getData();
+            return construirDestinoAgenda(form.getData(), null, null, modal);
         } catch (BusinessException ex) {
-            prepararPaginaComFallback(model, dataSelecionada, form, null, ex.getMessage(), pacoteAgendaForm, false);
+            prepararPaginaComFallback(model, dataSelecionada, form, null, ex.getMessage(), pacoteAgendaForm, false, modal);
             return "agenda/index";
         }
     }
@@ -97,6 +99,7 @@ public class AgendaController {
             @RequestParam(required = false, name = "agendaHorario") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime agendaHorario,
             @RequestParam(required = false, name = "agendaTipoAtendimento") String agendaTipoAtendimento,
             @RequestParam(required = false, name = "agendaObservacoes") String agendaObservacoes,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -111,7 +114,7 @@ public class AgendaController {
         );
 
         if (bindingResult.hasErrors()) {
-            prepararPaginaComFallback(model, dataSelecionada, agendaForm, sessaoEdicaoId, null, form, true);
+            prepararPaginaComFallback(model, dataSelecionada, agendaForm, sessaoEdicaoId, null, form, true, modal);
             return "agenda/index";
         }
 
@@ -119,10 +122,10 @@ public class AgendaController {
             PacoteSessaoEntity salvo = pacoteSessaoService.criarViaCrud(form);
             agendaForm.setPacoteSessaoId(salvo.getId());
             redirectAttributes.addFlashAttribute("agendaManualForm", agendaForm);
-        redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento criado e selecionado para o agendamento.");
-            return construirDestinoAgenda(dataSelecionada, form.getClienteId(), sessaoEdicaoId);
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento criado e selecionado para o agendamento.");
+            return construirDestinoAgenda(dataSelecionada, form.getClienteId(), sessaoEdicaoId, modal);
         } catch (BusinessException ex) {
-            prepararPaginaComFallback(model, dataSelecionada, agendaForm, sessaoEdicaoId, ex.getMessage(), form, true);
+            prepararPaginaComFallback(model, dataSelecionada, agendaForm, sessaoEdicaoId, ex.getMessage(), form, true, modal);
             return "agenda/index";
         }
     }
@@ -132,6 +135,7 @@ public class AgendaController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("sessaoEdicaoForm") AgendaManualForm form,
             BindingResult bindingResult,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes
@@ -139,7 +143,7 @@ public class AgendaController {
         LocalDate retorno = form.getData() != null ? form.getData() : LocalDate.now();
         PacoteConsumoForm pacoteAgendaForm = criarPacoteAgendaFormPadrao(form.getClienteId(), retorno);
         if (bindingResult.hasErrors()) {
-            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, "Revise os dados da sessão antes de salvar.", pacoteAgendaForm, false);
+            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, "Revise os dados da sessão antes de salvar.", pacoteAgendaForm, false, modal);
             model.addAttribute("sessaoEdicaoForm", form);
             return "agenda/index";
         }
@@ -148,11 +152,11 @@ public class AgendaController {
             agendaService.atualizarSessaoManual(id, form, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Sessão atualizada com sucesso.");
         } catch (BusinessException ex) {
-            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, ex.getMessage(), pacoteAgendaForm, false);
+            prepararPaginaComFallback(model, retorno, new AgendaManualForm(), id, ex.getMessage(), pacoteAgendaForm, false, modal);
             model.addAttribute("sessaoEdicaoForm", form);
             return "agenda/index";
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @PostMapping("/sessoes/{id}/cancelar")
@@ -160,6 +164,7 @@ public class AgendaController {
             @PathVariable UUID id,
             @RequestParam(required = false) String observacoes,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = data != null ? data : LocalDate.now();
@@ -169,13 +174,14 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @PostMapping("/sessoes/{id}/reabrir")
     public String reverterRealizacao(
             @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = data != null ? data : LocalDate.now();
@@ -185,13 +191,14 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @PostMapping("/sessoes/{id}/restaurar")
     public String restaurarSessaoCancelada(
             @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = data != null ? data : LocalDate.now();
@@ -201,7 +208,7 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @PostMapping("/sessoes/{id}/realizar")
@@ -209,6 +216,7 @@ public class AgendaController {
             @PathVariable java.util.UUID id,
             @RequestParam(required = false) String observacoes,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = data != null ? data : LocalDate.now();
@@ -218,13 +226,14 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @PostMapping("/sessoes/{id}/excluir")
     public String excluirSessao(
             @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "modal", defaultValue = "false") boolean modal,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = data != null ? data : LocalDate.now();
@@ -234,7 +243,7 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/agenda?data=" + retorno;
+        return construirDestinoAgenda(retorno, null, null, modal);
     }
 
     @GetMapping("/sessoes/{id}/json")
@@ -304,7 +313,8 @@ public class AgendaController {
             UUID sessaoEdicaoId,
             String errorMessage,
             PacoteConsumoForm pacoteAgendaForm,
-            boolean pacoteModalOpen
+            boolean pacoteModalOpen,
+            boolean modoModal
     ) {
         try {
             prepararPagina(model, data, agendaForm, sessaoEdicaoId);
@@ -331,6 +341,7 @@ public class AgendaController {
             model.addAttribute("errorMessage", errorMessage != null ? errorMessage : ex.getMessage());
         }
         prepararContextoPacoteAgenda(model, data, agendaForm, pacoteAgendaForm, pacoteModalOpen);
+        model.addAttribute("modoModal", modoModal);
     }
 
     private void prepararPagina(Model model, LocalDate data, AgendaManualForm agendaForm, UUID sessaoEdicaoId) {
@@ -476,7 +487,7 @@ public class AgendaController {
         return form;
     }
 
-    private String construirDestinoAgenda(LocalDate data, UUID pacienteId, UUID sessaoEdicaoId) {
+    private String construirDestinoAgenda(LocalDate data, UUID pacienteId, UUID sessaoEdicaoId, boolean modoModal) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/agenda");
         if (data != null) {
             builder.queryParam("data", data);
@@ -486,6 +497,9 @@ public class AgendaController {
         }
         if (sessaoEdicaoId != null) {
             builder.queryParam("editar", sessaoEdicaoId);
+        }
+        if (modoModal) {
+            builder.queryParam("modal", true);
         }
         return "redirect:" + builder.build().encode().toUriString();
     }

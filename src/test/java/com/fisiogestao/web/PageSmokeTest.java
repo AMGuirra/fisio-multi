@@ -263,10 +263,23 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaRenderizaVersaoModalSemEstruturaCompletaDaAplicacao() throws Exception {
+        mockMvc.perform(get("/agenda")
+                        .param("data", agendaDate.toString())
+                        .param("modal", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("agenda-modal-shell")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("id=\"sidebarBackdrop\""))))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Confirmar realização")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void calendarioRenderizaComDomingoPrimeiroEModaisDeAcao() throws Exception {
         mockMvc.perform(get("/calendario"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("<span>Dom</span><span>Seg</span>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("modal=true")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirAgendaDiaModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"abrirBloqueioDiaModal\"")));
     }

@@ -13,13 +13,23 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
-<body class="dashboard-app dashboard-loading">
-    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+<body th:class="${modoModal} ? 'agenda-modal-page' : 'dashboard-app dashboard-loading'">
+    <script th:inline="javascript">
+        (() => {
+            const preferredTheme = /*[[${loggedUserTheme.cssValue}]]*/ 'light';
+            document.documentElement.style.colorScheme = preferredTheme === 'dark' ? 'dark' : 'light';
+            if (document.body) {
+                document.body.dataset.theme = preferredTheme;
+            }
+        })();
+    </script>
 
-    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+    <button th:if="${!modoModal}" class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
-    <div class="app-shell">
-        <header class="app-header">
+    <th:block th:if="${!modoModal}" th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div th:class="${modoModal} ? 'agenda-modal-shell' : 'app-shell'">
+        <header th:if="${!modoModal}" class="app-header">
             <div class="header-left">
                 <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
@@ -44,8 +54,8 @@
             </div>
         </header>
 
-        <main class="dashboard-main crud-main">
-            <section class="hero-card crud-hero">
+        <main th:class="${modoModal} ? 'agenda-modal-main' : 'dashboard-main crud-main'">
+            <section th:if="${!modoModal}" class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Agenda do Dia</h1>
                     <p class="hero-subtitle">Agende pacientes manualmente pela equipe, edite sessões da agenda e acompanhe indisponibilidades oficiais em um fluxo único.</p>
@@ -53,7 +63,7 @@
                 <span class="hero-pill">Agenda</span>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções da Agenda">
+            <nav th:if="${!modoModal}" class="page-tabs" aria-label="Seções da Agenda">
                 <a th:href="@{/agenda}" href="/agenda" class="page-tab active"><i data-lucide="calendar-days"></i> Agenda do Dia</a>
                 <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-range"></i> Calendário</a>
                 <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
@@ -81,9 +91,9 @@
             </section>
 
             <section class="date-control">
-                <a th:href="@{/agenda(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
+                <a th:href="${modoModal} ? @{/agenda(data=${dataSelecionada.minusDays(1)},modal=true)} : @{/agenda(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
                 <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
-                <a th:href="@{/agenda(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
+                <a th:href="${modoModal} ? @{/agenda(data=${dataSelecionada.plusDays(1)},modal=true)} : @{/agenda(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
             </section>
 
             <section class="crud-layout">
@@ -136,6 +146,7 @@
                                                       data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
                                                       data-confirm-action-label="Confirmar realização">
                                                     <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                                     <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
                                                 </form>
                                                 <form th:if="${sessao.status.name() == 'REALIZADA'}"
@@ -149,6 +160,7 @@
                                                       data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
                                                       data-confirm-action-label="Desfazer realização">
                                                     <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                                     <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
                                                 </form>
                                                 <form th:if="${sessao.status.name() == 'CANCELADA'}"
@@ -162,6 +174,7 @@
                                                       data-confirm-helper-message="O horário volta a ficar reservado e a sessão poderá ser realizada ou editada novamente."
                                                       data-confirm-action-label="Voltar para pendente">
                                                     <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                                     <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Voltar para pendente</button>
                                                 </form>
                                             </div>
@@ -186,6 +199,7 @@
                                                       data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
                                                       data-confirm-action-label="Excluir sessão">
                                                     <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                    <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                                     <button type="submit" class="action-button session-action-delete"><i data-lucide="trash-2"></i>Excluir</button>
                                                 </form>
                                             </div>
@@ -197,6 +211,7 @@
                                                   class="inline-form"
                                                   hidden>
                                                 <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                             </form>
                                             <form th:if="${sessao.status.name() != 'CANCELADA'}"
                                                   th:id="${'sessao-cancelar-' + sessao.id}"
@@ -205,6 +220,7 @@
                                                   class="inline-form"
                                                   hidden>
                                                 <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                                <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                                             </form>
                                         </div>
                                     </div>
@@ -416,7 +432,7 @@
             </section>
         </main>
 
-        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+        <footer th:if="${!modoModal}" class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
     <div id="pacoteAgendaModal"
@@ -440,6 +456,7 @@
                         <input type="hidden" th:field="*{clienteId}" id="pacoteAgendaClienteId">
                         <input type="hidden" th:field="*{sessoesConsumidas}">
                         <input type="hidden" th:field="*{status}">
+                        <input th:if="${modoModal}" type="hidden" name="modal" value="true">
                         <input type="hidden" name="editar" th:value="${sessaoEmEdicao != null ? sessaoEmEdicao.id : null}">
                         <input type="hidden" name="agendaPacoteSessaoId" id="pacoteAgendaAtualId" th:value="${agendaManualForm.pacoteSessaoId}">
                         <input type="hidden" name="agendaData" id="pacoteAgendaDataSync" th:value="${agendaManualForm.data != null ? #temporals.format(agendaManualForm.data, 'yyyy-MM-dd') : ''}">
@@ -625,8 +642,41 @@
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
+    <style th:if="${modoModal}">
+        .agenda-modal-page {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, rgba(7, 19, 27, 0.98), rgba(8, 23, 31, 1));
+        }
+
+        .agenda-modal-shell {
+            min-height: 100vh;
+        }
+
+        .agenda-modal-main {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 24px;
+        }
+
+        .agenda-modal-page .date-control,
+        .agenda-modal-page .section-card {
+            margin: 0;
+        }
+
+        .agenda-modal-page .flash-stack {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 720px) {
+            .agenda-modal-main {
+                padding: 16px;
+            }
+        }
+    </style>
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
-    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:if="${!modoModal}" th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script>
         (() => {
