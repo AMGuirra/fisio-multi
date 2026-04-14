@@ -40,6 +40,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,19 +78,20 @@ public class SolicitacaoAgendamentoService {
             LocalDate fimInclusive,
             String buscaPaciente
     ) {
-        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
-        OffsetDateTime inicio = inicioInclusive != null ? inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime() : null;
-        OffsetDateTime fim    = fimInclusive    != null ? fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime() : null;
         String buscaTexto = texto(buscaPaciente);
         String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
-        return solicitacaoAgendamentoRepository.filtrarHistorico(
-                SolicitacaoStatus.PENDENTE,
-                status,
-                inicio,
-                fim,
-                buscaTexto,
-                buscaTelefone
-        );
+        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+
+        return listarTodas().stream()
+                .filter(sol -> sol.getStatus() != SolicitacaoStatus.PENDENTE)
+                .filter(sol -> status == null || sol.getStatus() == status)
+                .filter(sol -> correspondeDataHistorico(sol, inicioInclusive, fimInclusive, zoneId))
+                .filter(sol -> correspondeBuscaHistorico(sol, buscaTexto, buscaTelefone))
+                .sorted(Comparator.comparing(
+                        SolicitacaoAgendamentoEntity::getUpdatedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
+                .toList();
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
@@ -701,6 +703,47 @@ public class SolicitacaoAgendamentoService {
         }
         String somenteDigitos = buscaTexto.replaceAll("\\D", "");
         return somenteDigitos.isBlank() ? null : somenteDigitos;
+    }
+
+    private boolean correspondeDataHistorico(
+            SolicitacaoAgendamentoEntity solicitacao,
+            LocalDate inicioInclusive,
+            LocalDate fimInclusive,
+            ZoneId zoneId
+    ) {
+        if (inicioInclusive == null && fimInclusive == null) {
+            return true;
+        }
+
+        OffsetDateTime referencia = solicitacao.getUpdatedAt() != null
+                ? solicitacao.getUpdatedAt()
+                : solicitacao.getCreatedAt();
+        if (referencia == null) {
+            return false;
+        }
+
+        LocalDate dataReferencia = referencia.atZoneSameInstant(zoneId).toLocalDate();
+        if (inicioInclusive != null && dataReferencia.isBefore(inicioInclusive)) {
+            return false;
+        }
+        return fimInclusive == null || !dataReferencia.isAfter(fimInclusive);
+    }
+
+    private boolean correspondeBuscaHistorico(
+            SolicitacaoAgendamentoEntity solicitacao,
+            String buscaTexto,
+            String buscaTelefone
+    ) {
+        if (buscaTexto == null) {
+            return true;
+        }
+
+        String nomePaciente = texto(solicitacao.getNomePaciente());
+        boolean nomeCorresponde = nomePaciente != null && nomePaciente.toLowerCase().contains(buscaTexto.toLowerCase());
+        boolean telefoneCorresponde = buscaTelefone != null
+                && solicitacao.getTelefone() != null
+                && solicitacao.getTelefone().contains(buscaTelefone);
+        return nomeCorresponde || telefoneCorresponde;
     }
 
     private boolean estaNoPeriodo(OffsetDateTime valor, OffsetDateTime inicioInclusive, OffsetDateTime fimExclusive) {
