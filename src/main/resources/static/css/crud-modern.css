@@ -634,6 +634,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 
 .data-table-wrap {
     overflow-x: auto;
+    scrollbar-width: thin;
 }
 
 .data-table {
@@ -656,6 +657,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     background: var(--bg-soft);
     padding: 12px 14px;
     border-bottom: 1px solid var(--stroke-soft);
+    overflow-wrap: anywhere;
 }
 
 .data-table tbody td {
@@ -664,6 +666,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     padding: 12px 14px;
     border-bottom: 1px solid var(--stroke-soft);
     vertical-align: middle;
+    overflow-wrap: anywhere;
 }
 
 .data-table tbody tr:hover {
@@ -1751,7 +1754,11 @@ body[data-theme='dark'] .calendar-cell {
     }
 
     .data-table {
-        min-width: 560px;
+        min-width: 520px;
+    }
+
+    .data-table.compact {
+        min-width: 460px;
     }
 
     /* Table cell action buttons must stay compact — never full-width */
@@ -1875,6 +1882,14 @@ body.modal-open {
     .data-table tbody td {
         font-size: 0.875rem;
         padding: 10px 10px;
+    }
+
+    .data-table {
+        min-width: 460px;
+    }
+
+    .data-table.compact {
+        min-width: 400px;
     }
 
     /* Session/request text: keep readable */

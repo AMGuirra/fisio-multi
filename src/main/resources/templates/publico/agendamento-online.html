@@ -246,6 +246,10 @@
         }
 
         @media (max-width: 640px) {
+            body {
+                padding: 1.4rem 0.9rem;
+            }
+
             .public-card {
                 padding: 1.5rem 1.2rem;
             }
@@ -253,6 +257,41 @@
             .input-with-button,
             .address-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .input-with-button .secondary-button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.75rem;
+            }
+
+            .public-card {
+                padding: 1.2rem 1rem;
+            }
+
+            .public-header {
+                margin-bottom: 1.4rem;
+            }
+
+            .public-header-icon {
+                width: 62px;
+                height: 62px;
+                margin-bottom: 1rem;
+            }
+
+            .public-header h1 {
+                font-size: 1.45rem;
+            }
+
+            .form-control,
+            .form-select,
+            .secondary-button,
+            .btn-primary {
+                min-height: 46px;
             }
         }
     </style>

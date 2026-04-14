@@ -37,7 +37,9 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+            padding: 24px 16px;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         body::before {
@@ -210,6 +212,77 @@
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fecaca;
+        }
+
+        @media (max-height: 720px) {
+            body {
+                align-items: flex-start;
+            }
+
+            .login-card {
+                margin: 16px 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                align-items: flex-start;
+                padding: 18px 14px;
+            }
+
+            .login-card {
+                max-width: 100%;
+                padding: 1.75rem 1.25rem;
+                margin: clamp(12px, 4vh, 32px) 0;
+            }
+
+            .login-brand {
+                margin-bottom: 1.75rem;
+            }
+
+            .login-brand-title {
+                font-size: 1.55rem;
+            }
+
+            .login-brand-subtitle {
+                font-size: 0.82rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body::before {
+                width: 380px;
+                height: 380px;
+                top: -160px;
+                right: -160px;
+            }
+
+            body::after {
+                width: 280px;
+                height: 280px;
+                bottom: -80px;
+                left: -80px;
+            }
+
+            .login-card {
+                padding: 1.4rem 1rem;
+                border-radius: 0.9rem;
+            }
+
+            .login-brand-icon {
+                width: 54px;
+                height: 54px;
+                font-size: 1.5rem;
+            }
+
+            .login-brand-title {
+                font-size: 1.4rem;
+            }
+
+            .form-control,
+            .btn-primary {
+                font-size: 0.95rem;
+            }
         }
 
     </style>
