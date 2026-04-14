@@ -1,12 +1,12 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="agendaDia">
-    <section id="agenda-do-dia" class="date-control">
-        <a th:href="@{/calendario(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
-        <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
-        <a th:href="@{/calendario(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
-    </section>
+    <section class="agenda-day-panel">
+        <section id="agenda-do-dia" class="date-control">
+            <a th:href="@{/calendario(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
+            <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
+            <a th:href="@{/calendario(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
+        </section>
 
-    <section class="crud-layout">
-        <article class="section-card">
+        <article class="section-card agenda-day-card">
             <header class="section-head">
                 <h3 class="section-title"><i data-lucide="clock-3"></i> Sessões do Dia</h3>
                 <p class="section-subtitle" th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</p>

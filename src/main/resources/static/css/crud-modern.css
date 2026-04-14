@@ -21,6 +21,47 @@
     grid-template-columns: minmax(280px, 370px) 1fr;
 }
 
+.agenda-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.agenda-workspace > *,
+.agenda-support-grid > * {
+    min-width: 0;
+}
+
+.agenda-calendar-card .section-body {
+    display: grid;
+    gap: 14px;
+}
+
+.agenda-day-column {
+    min-width: 0;
+}
+
+.agenda-day-panel {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    position: sticky;
+    top: 16px;
+}
+
+.agenda-day-card {
+    min-height: 100%;
+}
+
+.agenda-support-grid {
+    align-items: start;
+}
+
+.agenda-support-stack {
+    grid-template-columns: 1fr;
+}
+
 .section-card {
     background: var(--bg-surface);
     border: 1px solid var(--stroke-soft);
@@ -1712,6 +1753,16 @@ body[data-theme='dark'] .calendar-cell {
     .crud-layout.two-column,
     .crud-layout.form-table {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1360px) {
+    .agenda-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-day-panel {
+        position: static;
     }
 }
 

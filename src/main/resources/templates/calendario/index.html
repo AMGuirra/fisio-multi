@@ -58,52 +58,56 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
-                    <div class="calendar-month-nav">
-                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
-                        <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
-                        <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
-                    </div>
-                </header>
-                <div class="section-body">
-                    <div class="calendar-grid-head">
-                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-                    </div>
-                    <div class="calendar-grid-body">
-                        <th:block th:each="semana : ${calendarioSemanas}">
-                            <th:block th:each="dia : ${semana}">
-                                <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
-                                    <th:block th:if="${dia.pertenceAoMes}">
-                                        <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
-                                        <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
-                                        <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
-                                        <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
-                                        <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
-                                            <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
-                                        </div>
-                                        <div class="calendar-day-links">
-                                            <a class="calendar-link"
-                                               th:href="@{/calendario(data=${dia.data})}">
-                                                Ver dia
-                                            </a>
-                                            <a class="calendar-link"
-                                               th:href="@{/bloqueios(data=${dia.data})}">
-                                                Bloquear
-                                            </a>
-                                        </div>
-                                    </th:block>
-                                </article>
+            <section class="agenda-workspace">
+                <article class="section-card agenda-calendar-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
+                        <div class="calendar-month-nav">
+                            <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
+                            <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
+                            <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
+                        </div>
+                    </header>
+                    <div class="section-body">
+                        <div class="calendar-grid-head">
+                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                        </div>
+                        <div class="calendar-grid-body">
+                            <th:block th:each="semana : ${calendarioSemanas}">
+                                <th:block th:each="dia : ${semana}">
+                                    <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
+                                        <th:block th:if="${dia.pertenceAoMes}">
+                                            <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
+                                            <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
+                                            <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
+                                            <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                            <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
+                                                <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
+                                            </div>
+                                            <div class="calendar-day-links">
+                                                <a class="calendar-link"
+                                                   th:href="@{/calendario(data=${dia.data})}">
+                                                    Ver dia
+                                                </a>
+                                                <a class="calendar-link"
+                                                   th:href="@{/bloqueios(data=${dia.data})}">
+                                                    Bloquear
+                                                </a>
+                                            </div>
+                                        </th:block>
+                                    </article>
+                                </th:block>
                             </th:block>
-                        </th:block>
+                        </div>
                     </div>
+                </article>
+
+                <div class="agenda-day-column">
+                    <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
                 </div>
             </section>
 
-            <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
-
-            <section class="crud-layout two-column">
+            <section class="crud-layout two-column agenda-support-grid">
                 <article class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="clock-3"></i> Solicitações Pendentes</h3>
@@ -183,7 +187,7 @@
                     </div>
                 </article>
 
-                <div class="crud-layout">
+                <div class="crud-layout agenda-support-stack">
                     <article class="section-card">
                         <header class="section-head">
                             <h3 class="section-title"><i data-lucide="calendar-x-2"></i> Gestão Oficial de Bloqueios</h3>
