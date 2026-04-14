@@ -58,8 +58,54 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
+            <section class="agenda-mobile-shell" aria-label="Painel mobile da agenda">
+                <div class="agenda-mobile-summary">
+                    <div class="agenda-mobile-summary-copy">
+                        <span class="agenda-mobile-eyebrow">Agenda inteligente</span>
+                        <h2 class="agenda-mobile-title">Operação do dia</h2>
+                        <p class="agenda-mobile-date" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Terça-feira, 28/04/2026</p>
+                    </div>
+                    <div class="agenda-mobile-stats">
+                        <span class="agenda-mobile-pill">
+                            <i data-lucide="clock-3"></i>
+                            <span th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</span>
+                        </span>
+                        <span class="agenda-mobile-pill agenda-mobile-pill-soft">
+                            <i data-lucide="inbox"></i>
+                            <span th:text="${pendentes != null ? pendentes.size() + ' pendentes' : '0 pendentes'}">0 pendentes</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="agenda-mobile-tabs" role="tablist" aria-label="Alternar visão mobile da agenda">
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="mes"
+                            aria-selected="false"
+                            aria-controls="agendaMobilePanelMes">
+                        Mês
+                    </button>
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="dia"
+                            aria-selected="true"
+                            aria-controls="agendaMobilePanelDia">
+                        Dia
+                    </button>
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="solicitacoes"
+                            aria-selected="false"
+                            aria-controls="agendaMobilePanelSolicitacoes">
+                        <span>Solicitações</span>
+                        <span class="agenda-mobile-tab-badge"
+                              th:text="${pendentes != null ? pendentes.size() : 0}">0</span>
+                    </button>
+                </div>
+            </section>
+
             <section class="agenda-workspace">
-                <article class="section-card agenda-calendar-card">
+                <article id="agendaMobilePanelMes" class="section-card agenda-calendar-card agenda-panel-month">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
                         <div class="calendar-month-nav">
@@ -81,6 +127,17 @@
                                             <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
                                             <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
                                             <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                            <div class="calendar-day-mobile-signals">
+                                                <span class="calendar-day-signal sessions"
+                                                      th:if="${dia.sessoes > 0}"
+                                                      th:text="${dia.sessoes}">1</span>
+                                                <span class="calendar-day-signal pending"
+                                                      th:if="${dia.solicitacoesPendentes > 0}"
+                                                      th:text="${dia.solicitacoesPendentes}">1</span>
+                                                <span class="calendar-day-signal blocked"
+                                                      th:if="${dia.bloqueios > 0}"
+                                                      th:text="${dia.bloqueios}">1</span>
+                                            </div>
                                             <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
                                                 <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
                                             </div>
@@ -102,12 +159,12 @@
                     </div>
                 </article>
 
-                <div class="agenda-day-column">
+                <div id="agendaMobilePanelDia" class="agenda-day-column agenda-panel-day">
                     <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
                 </div>
             </section>
 
-            <section class="crud-layout two-column agenda-support-grid">
+            <section id="agendaMobilePanelSolicitacoes" class="crud-layout two-column agenda-support-grid agenda-panel-solicitacoes">
                 <article class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="clock-3"></i> Solicitações Pendentes</h3>
@@ -123,7 +180,7 @@
 
                     <div class="section-body" th:unless="${pendentes == null or pendentes.empty}">
                         <div class="request-list">
-                            <article class="request-card" th:each="sol : ${pendentes}">
+                            <article class="request-card request-card-pending" th:each="sol : ${pendentes}">
                                 <div class="request-row" style="align-items:flex-start;">
                                     <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
 
@@ -221,7 +278,7 @@
 
                         <div class="section-body" th:unless="${bloqueiosAtivosMes == null or bloqueiosAtivosMes.empty}">
                             <div class="request-list">
-                                <article class="request-card" th:each="bloqueio : ${bloqueiosAtivosMes}">
+                                <article class="request-card request-card-block" th:each="bloqueio : ${bloqueiosAtivosMes}">
                                     <div class="request-row" style="align-items:flex-start;">
                                         <div class="request-detail">
                                             <p class="request-title" th:text="${bloqueio.diaInteiro ? (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy') + ' - Dia inteiro') : (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy HH:mm') + ' - ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm'))}">Data</p>
@@ -248,6 +305,58 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+        (() => {
+            const buttons = Array.from(document.querySelectorAll('.agenda-mobile-tab'));
+            if (!buttons.length) {
+                return;
+            }
+
+            const mobileMedia = window.matchMedia('(max-width: 920px)');
+            let activeTab = 'dia';
+
+            const applyTabState = (tab) => {
+                activeTab = tab;
+
+                if (mobileMedia.matches) {
+                    document.body.setAttribute('data-agenda-mobile-tab', tab);
+                } else {
+                    document.body.removeAttribute('data-agenda-mobile-tab');
+                }
+
+                buttons.forEach((button) => {
+                    const selected = button.dataset.mobileTab === tab;
+                    button.classList.toggle('is-active', selected);
+                    button.setAttribute('aria-selected', selected ? 'true' : 'false');
+                });
+            };
+
+            const syncViewportState = () => {
+                if (mobileMedia.matches) {
+                    applyTabState(activeTab);
+                    return;
+                }
+
+                document.body.removeAttribute('data-agenda-mobile-tab');
+                buttons.forEach((button) => {
+                    button.classList.remove('is-active');
+                    button.setAttribute('aria-selected', button.dataset.mobileTab === activeTab ? 'true' : 'false');
+                });
+            };
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', () => applyTabState(button.dataset.mobileTab || 'dia'));
+            });
+
+            if (typeof mobileMedia.addEventListener === 'function') {
+                mobileMedia.addEventListener('change', syncViewportState);
+            } else if (typeof mobileMedia.addListener === 'function') {
+                mobileMedia.addListener(syncViewportState);
+            }
+
+            syncViewportState();
+        })();
+    </script>
 </body>
 </html>
 

@@ -62,6 +62,180 @@
     grid-template-columns: 1fr;
 }
 
+.agenda-mobile-shell {
+    display: none;
+}
+
+.agenda-mobile-summary {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
+    background: linear-gradient(145deg, #0f7f6c 0%, #0b6a5a 100%);
+    color: #f4fffc;
+    box-shadow: 0 18px 36px rgba(8, 82, 71, 0.24);
+}
+
+.agenda-mobile-summary-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.agenda-mobile-eyebrow {
+    font-size: 0.73rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(239, 255, 250, 0.76);
+    font-weight: 700;
+}
+
+.agenda-mobile-title {
+    margin: 0;
+    font-size: 1.45rem;
+    line-height: 1.05;
+    color: #ffffff;
+}
+
+.agenda-mobile-date {
+    margin: 0;
+    color: rgba(239, 255, 250, 0.86);
+    font-size: 0.92rem;
+    text-transform: capitalize;
+}
+
+.agenda-mobile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.agenda-mobile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.agenda-mobile-pill-soft {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.agenda-mobile-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 6px;
+    border-radius: 18px;
+    background: #eaf5f1;
+    border: 1px solid #d5e8e2;
+}
+
+.agenda-mobile-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    color: #4f6e67;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard), transform var(--ease-standard);
+}
+
+.agenda-mobile-tab:hover,
+.agenda-mobile-tab:focus-visible {
+    background: rgba(15, 143, 122, 0.08);
+    color: #0c6d5d;
+    outline: none;
+}
+
+.agenda-mobile-tab.is-active,
+.agenda-mobile-tab[aria-selected='true'] {
+    background: #ffffff;
+    color: #0b6a5a;
+    box-shadow: 0 10px 18px rgba(9, 87, 74, 0.12);
+}
+
+.agenda-mobile-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ffb84d;
+    color: #6b3900;
+    font-size: 0.73rem;
+    font-weight: 800;
+}
+
+.calendar-day-mobile-signals {
+    display: none;
+}
+
+.calendar-day-signal {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.66rem;
+    font-weight: 800;
+}
+
+.calendar-day-signal.sessions {
+    background: #dcf6ed;
+    color: #13724b;
+}
+
+.calendar-day-signal.pending {
+    background: #fff1d1;
+    color: #a16600;
+}
+
+.calendar-day-signal.blocked {
+    background: #ffe3e3;
+    color: #ad4242;
+}
+
+.session-card-success {
+    border-left: 4px solid #24aa7a;
+}
+
+.session-card-warning {
+    border-left: 4px solid #f0aa27;
+}
+
+.session-card-danger {
+    border-left: 4px solid #ea5b5b;
+}
+
+.request-card-pending {
+    border-color: #f0cd72;
+    background: linear-gradient(180deg, #fffdfa 0%, #ffffff 100%);
+}
+
+.request-card-block {
+    border-color: #c9dfd8;
+    background: linear-gradient(180deg, #fbfefd 0%, #ffffff 100%);
+}
+
 .section-card {
     background: var(--bg-surface);
     border: 1px solid var(--stroke-soft);
@@ -1767,6 +1941,161 @@ body[data-theme='dark'] .calendar-cell {
 }
 
 @media (max-width: 920px) {
+    .agenda-mobile-shell {
+        display: grid;
+        gap: 12px;
+    }
+
+    body[data-agenda-mobile-tab='mes'] .agenda-workspace,
+    body[data-agenda-mobile-tab='dia'] .agenda-workspace {
+        display: block;
+    }
+
+    body[data-agenda-mobile-tab='solicitacoes'] .agenda-workspace {
+        display: none;
+    }
+
+    body[data-agenda-mobile-tab='mes'] .agenda-support-grid,
+    body[data-agenda-mobile-tab='dia'] .agenda-support-grid {
+        display: none;
+    }
+
+    body[data-agenda-mobile-tab='mes'] .agenda-panel-day {
+        display: none;
+    }
+
+    body[data-agenda-mobile-tab='dia'] .agenda-panel-month {
+        display: none;
+    }
+
+    .agenda-workspace {
+        gap: 12px;
+    }
+
+    .agenda-day-panel {
+        gap: 12px;
+    }
+
+    .agenda-calendar-card .section-head,
+    .agenda-day-card .section-head,
+    .agenda-support-grid .section-head {
+        align-items: center;
+    }
+
+    .agenda-calendar-card .section-body {
+        gap: 10px;
+    }
+
+    .calendar-grid-head {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+
+    .calendar-grid-head span {
+        border: none;
+        background: transparent;
+        border-radius: 0;
+        padding: 0 0 4px;
+        font-size: 0.66rem;
+        letter-spacing: 0.04em;
+    }
+
+    .calendar-grid-body {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .calendar-day {
+        min-height: 74px;
+        padding: 8px 4px;
+        gap: 6px;
+        align-items: center;
+        justify-content: flex-start;
+        border-radius: 16px;
+    }
+
+    .calendar-day.day-empty {
+        min-height: 74px;
+    }
+
+    .calendar-day-number {
+        font-size: 0.92rem;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .calendar-day-item,
+    .calendar-day-tags,
+    .calendar-day-links {
+        display: none;
+    }
+
+    .calendar-day-mobile-signals {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        margin-top: auto;
+    }
+
+    .date-control {
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #f7fbfa 0%, #eef8f5 100%);
+    }
+
+    .date-control-label {
+        text-align: center;
+        font-size: 0.96rem;
+    }
+
+    .session-card,
+    .request-card {
+        border-radius: 18px;
+        padding: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 24px rgba(18, 48, 56, 0.06);
+    }
+
+    .session-row,
+    .request-row {
+        gap: 14px;
+    }
+
+    .session-time {
+        width: 58px;
+        min-width: 58px;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #16594e;
+        font-size: 1rem;
+        font-weight: 800;
+        text-align: left;
+    }
+
+    .session-title,
+    .request-title {
+        font-size: 1rem;
+    }
+
+    .session-text,
+    .request-text {
+        font-size: 0.84rem;
+        line-height: 1.45;
+    }
+
+    .request-actions,
+    .session-actions {
+        justify-content: flex-start;
+    }
+
+    .helper-card {
+        border-radius: 18px;
+        padding: 14px;
+    }
+
     .form-grid-two {
         grid-template-columns: 1fr;
     }
@@ -1788,11 +2117,6 @@ body[data-theme='dark'] .calendar-cell {
     .request-actions,
     .session-actions {
         width: 100%;
-    }
-
-    .calendar-grid-head,
-    .calendar-grid-body {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .calendar-inline-grid {
@@ -1925,6 +2249,34 @@ body.modal-open {
    =================================================== */
 
 @media (max-width: 480px) {
+    .agenda-mobile-summary {
+        padding: 16px;
+        border-radius: 22px;
+    }
+
+    .agenda-mobile-title {
+        font-size: 1.28rem;
+    }
+
+    .agenda-mobile-tabs {
+        gap: 6px;
+        padding: 5px;
+        border-radius: 16px;
+    }
+
+    .agenda-mobile-tab {
+        min-height: 42px;
+        padding: 0 8px;
+        font-size: 0.82rem;
+        gap: 6px;
+    }
+
+    .agenda-mobile-tab-badge {
+        min-width: 20px;
+        height: 20px;
+        font-size: 0.68rem;
+    }
+
     /* Hero subtitle: hide to save precious vertical space */
     .hero-subtitle {
         display: none;
@@ -1987,8 +2339,8 @@ body.modal-open {
     .session-time {
         width: 58px;
         min-width: 58px;
-        font-size: 0.84rem;
-        padding: 6px 4px;
+        font-size: 0.9rem;
+        padding: 0;
     }
 
     /* Form labels at very small screens */

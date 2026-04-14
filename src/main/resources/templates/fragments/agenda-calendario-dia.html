@@ -13,7 +13,7 @@
             </header>
 
             <div class="section-body" th:if="${sessoes == null or sessoes.empty}">
-                <div class="empty-box">
+                <div class="empty-box agenda-empty-box">
                     <i data-lucide="calendar-x"></i>
                     <p>Nenhuma sessão agendada para a data selecionada.</p>
                 </div>
@@ -21,7 +21,9 @@
 
             <div class="section-body" th:unless="${sessoes == null or sessoes.empty}">
                 <div class="session-list">
-                    <article class="session-card" th:each="sessao : ${sessoes}">
+                    <article class="session-card"
+                             th:each="sessao : ${sessoes}"
+                             th:classappend="${sessao.status.name() == 'AGENDADA' ? ' session-card-warning' : (sessao.status.name() == 'REALIZADA' ? ' session-card-success' : ' session-card-danger')}">
                         <div class="session-row align-start">
                             <span class="session-time" th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">09:00</span>
                             <div class="session-content">
