@@ -164,9 +164,9 @@
                     <div class="section-body" th:unless="${prontuarios == null or prontuarios.empty}">
                         <div class="request-list">
                             <article class="request-card" th:each="registro : ${prontuarios}">
-                                <div class="request-row" style="align-items:flex-start;">
+                                <div class="request-row align-start">
                                     <span class="entity-avatar"><i data-lucide="notebook-pen"></i></span>
-                                    <div class="request-detail" style="display:flex; flex-direction:column; gap:10px;">
+                                    <div class="request-detail stack-10">
                                         <div>
                                             <p class="request-title" th:text="${#temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm')}">Data</p>
                                             <p class="request-text">

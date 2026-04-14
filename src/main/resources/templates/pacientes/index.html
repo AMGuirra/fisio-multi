@@ -163,7 +163,7 @@
                                         <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
                                     </td>
                                     <td class="text-right">
-                                        <div class="table-actions" style="justify-content:flex-end;">
+                                        <div class="table-actions">
                                         <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}"
                                               method="post"
                                               class="inline-form"

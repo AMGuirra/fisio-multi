@@ -136,7 +136,7 @@
                                     <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
                                 </td>
                                 <td class="text-right">
-                                    <div class="table-actions" style="justify-content:flex-end;">
+                                    <div class="table-actions">
                                         <a th:href="@{/pacotes-consumo(paciente=${paciente.id},busca=${buscaPaciente},agendar=true)}" class="action-button ghost">
                                             <i data-lucide="check"></i>
                                             <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Selecionar'}">Selecionar</span>
