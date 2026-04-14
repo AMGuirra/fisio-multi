@@ -53,7 +53,10 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
-                .rememberMe(Customizer.withDefaults());
+                .rememberMe(Customizer.withDefaults())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                );
 
         return http.build();
     }
