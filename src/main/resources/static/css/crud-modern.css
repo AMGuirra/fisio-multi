@@ -326,6 +326,83 @@
     gap: 10px;
 }
 
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.workflow-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--stroke-soft);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.workflow-step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-soft);
+    color: var(--text-soft);
+    font-size: 0.92rem;
+    font-weight: 800;
+    flex: 0 0 auto;
+}
+
+.workflow-step-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.workflow-step-label,
+.workflow-step-text {
+    margin: 0;
+}
+
+.workflow-step-label {
+    color: var(--text-strong);
+    font-size: 0.84rem;
+    font-weight: 720;
+}
+
+.workflow-step-text {
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.workflow-step.is-current {
+    border-color: rgba(15, 143, 122, 0.22);
+    background: linear-gradient(145deg, rgba(15, 143, 122, 0.08), rgba(47, 111, 236, 0.05));
+}
+
+.workflow-step.is-current .workflow-step-number {
+    background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+    color: #ffffff;
+}
+
+.workflow-step.is-complete .workflow-step-number {
+    background: #dff5ea;
+    color: #127247;
+}
+
 .flash-message {
     display: flex;
     align-items: center;
@@ -529,11 +606,24 @@
     .summary-grid.grid-5 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+
+    .workflow-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .patient-spotlight {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 640px) {
     .summary-grid.grid-5 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .patient-spotlight-stats,
+    .plan-card-metrics {
+        grid-template-columns: 1fr;
     }
     .period-form {
         margin-left: 0;
@@ -1068,6 +1158,174 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     font-size: 0.84rem;
     color: var(--text-soft);
     line-height: 1.5;
+}
+
+.patient-spotlight {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.95fr);
+    gap: 18px;
+    align-items: stretch;
+}
+
+.patient-spotlight-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.patient-spotlight-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.patient-spotlight-stat {
+    border-radius: 14px;
+    border: 1px solid #d9e8e3;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 14px 12px;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+}
+
+.patient-spotlight-stat-label {
+    color: var(--text-soft);
+    font-size: 0.73rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.patient-spotlight-stat-value {
+    color: var(--text-strong);
+    font-size: 1.24rem;
+    font-weight: 780;
+}
+
+.plan-card-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.plan-card {
+    border: 1px solid #d9e7e3;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+}
+
+.plan-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.plan-card-title,
+.plan-card-subtitle {
+    margin: 0;
+}
+
+.plan-card-title {
+    color: var(--text-strong);
+    font-size: 1rem;
+    font-weight: 740;
+}
+
+.plan-card-subtitle {
+    margin-top: 4px;
+    color: var(--text-soft);
+    font-size: 0.81rem;
+    line-height: 1.45;
+}
+
+.plan-card-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.plan-card-metric {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--bg-soft);
+    border: 1px solid #d7e6e1;
+}
+
+.plan-card-metric-label {
+    color: var(--text-soft);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.plan-card-metric-value {
+    color: var(--text-strong);
+    font-size: 0.98rem;
+    font-weight: 760;
+}
+
+.plan-progress {
+    display: grid;
+    gap: 8px;
+}
+
+.plan-progress-copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text-body);
+    font-size: 0.84rem;
+    font-weight: 650;
+}
+
+.plan-progress-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: #e4eeeb;
+    overflow: hidden;
+}
+
+.plan-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--brand-500), #29b591);
+}
+
+.plan-progress-fill.is-progress-0 {
+    width: 8%;
+    opacity: 0.35;
+}
+
+.plan-progress-fill.is-progress-25 {
+    width: 25%;
+}
+
+.plan-progress-fill.is-progress-50 {
+    width: 50%;
+}
+
+.plan-progress-fill.is-progress-75 {
+    width: 75%;
+}
+
+.plan-progress-fill.is-progress-100 {
+    width: 100%;
+}
+
+.plan-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .timeline-list {

@@ -38,7 +38,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Controller
-@RequestMapping({"/relatorios", "/relatorio"})
+@RequestMapping({ "/relatorios", "/relatorio" })
 @RequiredArgsConstructor
 public class RelatoriosController {
 
@@ -55,8 +55,7 @@ public class RelatoriosController {
             @RequestParam(name = "incluirAgenda", defaultValue = "true") boolean incluirAgenda,
             @RequestParam(name = "incluirFinanceiro", defaultValue = "true") boolean incluirFinanceiro,
             @RequestParam(name = "incluirSolicitacoes", defaultValue = "true") boolean incluirSolicitacoes,
-            Model model
-    ) {
+            Model model) {
         FiltroRelatorioForm filtro = filtroPadrao();
         if (dataInicial != null) {
             filtro.setDataInicial(dataInicial);
@@ -75,8 +74,7 @@ public class RelatoriosController {
     @GetMapping("/exportar")
     public ResponseEntity<ByteArrayResource> exportar(
             @ModelAttribute FiltroRelatorioForm filtro,
-            @RequestParam FormatoRelatorio formato
-    ) {
+            @RequestParam FormatoRelatorio formato) {
         RelatorioDocumento documento = relatoriosService.exportar(relatoriosService.gerarRelatorio(filtro), formato);
         String rawContentType = documento.contentType();
         String contentType = rawContentType == null || rawContentType.isBlank()
@@ -94,8 +92,7 @@ public class RelatoriosController {
                 payloadExportacao(filtro, formato),
                 null,
                 "Exportação manual de relatório operacional.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(MediaType.parseMediaType(contentType))
@@ -110,8 +107,7 @@ public class RelatoriosController {
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
             Authentication authentication,
             Model model,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             prepararPagina(model, filtro);
             return "relatorios/index";
@@ -120,8 +116,7 @@ public class RelatoriosController {
             var result = relatoriosService.enviarRelatorioPorEmail(
                     relatoriosService.gerarRelatorio(filtro),
                     form,
-                    authentication != null ? authentication.getName() : "sistema"
-            );
+                    authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
             return "redirect:/relatorios" + queryString(filtro);
         } catch (BusinessException ex) {
@@ -138,14 +133,14 @@ public class RelatoriosController {
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
             Authentication authentication,
             Model model,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             prepararPagina(model, filtro);
             return "relatorios/index";
         }
         try {
-            var result = relatoriosService.enviarLembrete(form, authentication != null ? authentication.getName() : "sistema");
+            var result = relatoriosService.enviarLembrete(form,
+                    authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
             return "redirect:/relatorios" + queryString(filtro);
         } catch (BusinessException ex) {
@@ -162,14 +157,14 @@ public class RelatoriosController {
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
             Authentication authentication,
             Model model,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             prepararPagina(model, filtro);
             return "relatorios/index";
         }
         try {
-            var result = relatoriosService.enviarCobranca(form, authentication != null ? authentication.getName() : "sistema");
+            var result = relatoriosService.enviarCobranca(form,
+                    authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
             return "redirect:/relatorios" + queryString(filtro);
         } catch (BusinessException ex) {

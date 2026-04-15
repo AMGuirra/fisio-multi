@@ -50,7 +50,17 @@
                     <h1 class="hero-title">Planos de Tratamentos</h1>
                     <p class="hero-subtitle">Busque o paciente, selecione-o e então gerencie os planos de tratamento desse paciente.</p>
                 </div>
-                <span class="hero-pill">Planos</span>
+                <div class="hero-actions">
+                    <span class="hero-pill" th:text="${pacienteSelecionado != null ? 'Paciente Selecionado' : 'Planos'}">Planos</span>
+                    <a th:if="${pacienteSelecionado != null}" href="#novoPlanoSection" class="action-button primary">
+                        <i data-lucide="package-plus"></i>
+                        Novo Plano
+                    </a>
+                    <button th:if="${pacienteSelecionado == null}" type="button" class="action-button ghost" disabled>
+                        <i data-lucide="package-plus"></i>
+                        Selecione um paciente
+                    </button>
+                </div>
             </section>
 
             <nav class="page-tabs" aria-label="Seções de Pacientes">
@@ -63,6 +73,30 @@
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
+
+            <section class="workflow-strip">
+                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-complete' : 'is-current'}">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Escolha o paciente</p>
+                        <p class="workflow-step-text" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Busque e selecione um paciente para iniciar'}">Busque e selecione um paciente para iniciar</p>
+                    </div>
+                </article>
+                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-current' : ''}">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Cadastre ou edite planos</p>
+                        <p class="workflow-step-text">Defina quantidade de sessões, valor, vigência e status do tratamento.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Acompanhe consumo</p>
+                        <p class="workflow-step-text">Visualize a evolução do plano e agende sessões sem sair desta tela.</p>
+                    </div>
+                </article>
+            </section>
 
             <section class="summary-grid">
                 <article class="summary-card saldo">
@@ -187,8 +221,8 @@
                     </div>
                 </header>
                 <div class="section-body">
-                    <div class="helper-card">
-                        <div class="helper-copy">
+                    <div class="helper-card patient-spotlight">
+                        <div class="helper-copy patient-spotlight-copy">
                             <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
                             <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
                             <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
@@ -198,12 +232,26 @@
                                 O atalho de agenda fica no topo desta seção e a seleção do paciente já pode abrir o modal automaticamente.
                             </p>
                         </div>
+                        <div class="patient-spotlight-stats">
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Planos</span>
+                                <strong class="patient-spotlight-stat-value" th:text="${totalPacotes}">0</strong>
+                            </div>
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Sessões contratadas</span>
+                                <strong class="patient-spotlight-stat-value" th:text="${totalSessoesContratadas}">0</strong>
+                            </div>
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Sessões disponíveis</span>
+                                <strong class="patient-spotlight-stat-value" th:text="${totalSessoesDisponiveis}">0</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
-                <article class="section-card">
+                <article class="section-card" id="novoPlanoSection">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Plano</h3>
                         <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
@@ -269,67 +317,81 @@
                             <p>Nenhum plano de tratamento cadastrado para este paciente.</p>
                         </div>
                     </div>
-                    <div class="data-table-wrap" th:unless="${pacotes == null or pacotes.empty}">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Plano</th>
-                                    <th>Consumo</th>
-                                    <th>Status</th>
-                                    <th class="text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="pacote : ${pacotes}">
-                                    <td>
-                                        <p class="entity-name" th:text="${pacote.nomePacote}">Plano</p>
-                                        <p class="entity-meta" th:text="${'Início: ' + #temporals.format(pacote.dataInicio, 'dd/MM/yyyy')}">Início</p>
-                                    </td>
-                                    <td>
-                                        <strong th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
-                                        <p class="entity-meta" th:text="${pacote.dataValidade != null ? 'Validade: ' + #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : 'Sem validade'}">Validade</p>
-                                    </td>
-                                    <td>
-                                        <span class="chip"
-                                              th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
-                                              th:text="${pacote.status.name()}">ATIVO</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="table-actions">
-                                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id},busca=${buscaPaciente})}" class="action-button ghost">
-                                                <i data-lucide="pencil"></i>
-                                                Editar
-                                            </a>
-                                            <form th:action="@{/pacotes-consumo/{id}/cancelar(id=${pacote.id})}" method="post" class="inline-form">
-                                                <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                                                <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
-                                                <button type="submit" class="action-button danger"
-                                                        th:disabled="${pacote.status.name() == 'CANCELADO'}">
-                                                    <i data-lucide="x-circle"></i>
-                                                    Cancelar
-                                                </button>
-                                            </form>
-                                            <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}"
-                                                  method="post"
-                                                  class="inline-form"
-                                                  data-confirm-modal
-                                                  data-confirm-title="Excluir plano de tratamento?"
-                                                  data-confirm-message="Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele."
-                                                  data-confirm-helper-title="Os dados pendentes serão removidos"
-                                                  data-confirm-helper-message="Use essa opção apenas quando o plano não precisar mais existir no cadastro."
-                                                  data-confirm-action-label="Excluir plano">
-                                                <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                                                <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
-                                                <button type="submit" class="action-button danger">
-                                                    <i data-lucide="trash-2"></i>
-                                                    Excluir
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="section-body plan-card-grid" th:unless="${pacotes == null or pacotes.empty}">
+                        <article class="plan-card"
+                                 th:each="pacote : ${pacotes}"
+                                 th:with="percentual=${pacote.sessoesContratadas > 0 ? T(java.lang.Math).round((pacote.sessoesConsumidas * 100.0) / pacote.sessoesContratadas) : 0}">
+                            <div class="plan-card-head">
+                                <div>
+                                    <h4 class="plan-card-title" th:text="${pacote.nomePacote}">Plano</h4>
+                                    <p class="plan-card-subtitle"
+                                       th:text="${'Início: ' + #temporals.format(pacote.dataInicio, 'dd/MM/yyyy') + (pacote.dataValidade != null ? ' • Validade: ' + #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : ' • Sem validade')}">
+                                        Início e validade
+                                    </p>
+                                </div>
+                                <span class="chip"
+                                      th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
+                                      th:text="${pacote.status.name()}">ATIVO</span>
+                            </div>
+
+                            <div class="plan-card-metrics">
+                                <div class="plan-card-metric">
+                                    <span class="plan-card-metric-label">Sessões</span>
+                                    <strong class="plan-card-metric-value" th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
+                                </div>
+                                <div class="plan-card-metric">
+                                    <span class="plan-card-metric-label">Disponíveis</span>
+                                    <strong class="plan-card-metric-value" th:text="${T(java.lang.Math).max(0, pacote.sessoesContratadas - pacote.sessoesConsumidas)}">0</strong>
+                                </div>
+                                <div class="plan-card-metric">
+                                    <span class="plan-card-metric-label">Valor</span>
+                                    <strong class="plan-card-metric-value" th:text="${#numbers.formatDecimal(pacote.valorTotal, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
+                                </div>
+                            </div>
+
+                            <div class="plan-progress">
+                                <div class="plan-progress-copy">
+                                    <span>Conclusão do plano</span>
+                                    <strong th:text="${percentual + '%'}">0%</strong>
+                                </div>
+                                <div class="plan-progress-track">
+                                    <div class="plan-progress-fill"
+                                         th:classappend="${percentual == 0 ? ' is-progress-0' : (percentual <= 25 ? ' is-progress-25' : (percentual <= 50 ? ' is-progress-50' : (percentual <= 75 ? ' is-progress-75' : ' is-progress-100')))}"></div>
+                                </div>
+                            </div>
+
+                            <div class="plan-card-actions">
+                                <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id},busca=${buscaPaciente})}" class="action-button ghost">
+                                    <i data-lucide="pencil"></i>
+                                    Editar
+                                </a>
+                                <form th:action="@{/pacotes-consumo/{id}/cancelar(id=${pacote.id})}" method="post" class="inline-form">
+                                    <input type="hidden" name="busca" th:value="${buscaPaciente}">
+                                    <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
+                                    <button type="submit" class="action-button danger"
+                                            th:disabled="${pacote.status.name() == 'CANCELADO'}">
+                                        <i data-lucide="x-circle"></i>
+                                        Cancelar
+                                    </button>
+                                </form>
+                                <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}"
+                                      method="post"
+                                      class="inline-form"
+                                      data-confirm-modal
+                                      data-confirm-title="Excluir plano de tratamento?"
+                                      data-confirm-message="Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele."
+                                      data-confirm-helper-title="Os dados pendentes serão removidos"
+                                      data-confirm-helper-message="Use essa opção apenas quando o plano não precisar mais existir no cadastro."
+                                      data-confirm-action-label="Excluir plano">
+                                    <input type="hidden" name="busca" th:value="${buscaPaciente}">
+                                    <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
+                                    <button type="submit" class="action-button danger">
+                                        <i data-lucide="trash-2"></i>
+                                        Excluir
+                                    </button>
+                                </form>
+                            </div>
+                        </article>
                     </div>
                 </article>
             </section>
