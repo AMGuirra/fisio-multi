@@ -164,7 +164,6 @@ class PageSmokeTest {
             "/prontuario",
             "/relatorios",
             "/solicitacoes",
-            "/whatsapp",
             "/usuarios",
             "/funcoes-usuarios"
     })
@@ -179,7 +178,6 @@ class PageSmokeTest {
             "/calendario",
             "/bloqueios",
             "/solicitacoes",
-            "/whatsapp",
             "/pacientes",
             "/pacotes-consumo"
     })
@@ -194,6 +192,22 @@ class PageSmokeTest {
         mockMvc.perform(get("/relatorios"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
+    }
+
+    @Test
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    void recepcaoNaoPodeAcessarWhatsapp() throws Exception {
+        mockMvc.perform(get("/whatsapp"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void whatsappRedirecionaParaDashboardQuandoPaginaEstaInativa() throws Exception {
+        mockMvc.perform(get("/whatsapp"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
     }
 
     @ParameterizedTest
@@ -396,10 +410,11 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/pacientes\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/calendario?data=")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/solicitacoes\"")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/whatsapp?status=PENDENTE\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroReceitasPendentes\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroDespesasPendentes\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/financeiro#financeiroSaldoProjetado\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("href=\"/whatsapp"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Fila WhatsApp"))))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("info-list"))));
     }
 

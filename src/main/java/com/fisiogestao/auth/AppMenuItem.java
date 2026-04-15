@@ -114,6 +114,10 @@ public enum AppMenuItem {
         return !external;
     }
 
+    public boolean isDisponivelNaInterface() {
+        return this != WHATSAPP;
+    }
+
     public String getDescription() {
         switch (this) {
             case DASHBOARD:
@@ -179,7 +183,6 @@ public enum AppMenuItem {
                 AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
-                WHATSAPP,
                 PACIENTES,
                 PACOTES_SESSOES,
                 PRONTUARIO,
@@ -202,6 +205,7 @@ public enum AppMenuItem {
     public static List<AppMenuItem> configuraveisParaNaoAdmin() {
         return Arrays.stream(values())
                 .filter(AppMenuItem::isConfiguravelParaNaoAdmin)
+                .filter(AppMenuItem::isDisponivelNaInterface)
                 .toList();
     }
 

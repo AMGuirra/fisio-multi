@@ -38,7 +38,12 @@ public class UserMenuAccessService {
     @Transactional
     public List<RolePermissionsView> listarPermissoesPorFuncao() {
         return List.of(
-                new RolePermissionsView(UserRole.ADMIN, UserRole.ADMIN.getLabel(), listarMenusLiberados(UserRole.ADMIN), true),
+                new RolePermissionsView(
+                        UserRole.ADMIN,
+                        UserRole.ADMIN.getLabel(),
+                        filtrarMenusDisponiveisNaInterface(listarMenusLiberados(UserRole.ADMIN)),
+                        true
+                ),
                 buildRolePermissionsView(UserRole.FISIOTERAPEUTA),
                 buildRolePermissionsView(UserRole.RECEPCAO),
                 buildRolePermissionsView(UserRole.ASSESSORIA),
@@ -117,6 +122,7 @@ public class UserMenuAccessService {
     @Transactional
     public Set<String> listarChavesMenuLiberadas(UserRole role) {
         return listarMenusLiberados(role).stream()
+                .filter(AppMenuItem::isDisponivelNaInterface)
                 .map(Enum::name)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -159,7 +165,12 @@ public class UserMenuAccessService {
     }
 
     private RolePermissionsView buildRolePermissionsView(UserRole role) {
-        return new RolePermissionsView(role, role.getLabel(), listarMenusLiberados(role), false);
+        return new RolePermissionsView(
+                role,
+                role.getLabel(),
+                filtrarMenusDisponiveisNaInterface(listarMenusLiberados(role)),
+                false
+        );
     }
 
     private boolean podeVisualizarMenu(UserRole role, EnumSet<AppMenuItem> menusLiberados, AppMenuItem menu) {
@@ -212,7 +223,6 @@ public class UserMenuAccessService {
                     AppMenuItem.AGENDA,
                     AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.WHATSAPP,
                     AppMenuItem.PACOTES_SESSOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.AGENDAMENTO_ONLINE
@@ -251,6 +261,17 @@ public class UserMenuAccessService {
         }
         menus.forEach(menu -> normalizados.add(menu == AppMenuItem.CALENDARIO ? AppMenuItem.AGENDA : menu));
         return normalizados;
+    }
+
+    private EnumSet<AppMenuItem> filtrarMenusDisponiveisNaInterface(Set<AppMenuItem> menus) {
+        EnumSet<AppMenuItem> filtrados = EnumSet.noneOf(AppMenuItem.class);
+        if (menus == null || menus.isEmpty()) {
+            return filtrados;
+        }
+        menus.stream()
+                .filter(AppMenuItem::isDisponivelNaInterface)
+                .forEach(filtrados::add);
+        return filtrados;
     }
 
     public record SidebarMenuView(
