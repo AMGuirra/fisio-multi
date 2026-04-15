@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -52,7 +53,7 @@ public class ProntuarioService {
                 .plano(form.getPlano().trim())
                 .criadoPor(usuario)
                 .build();
-        ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(prontuario);
+        ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(Objects.requireNonNull(prontuario));
         auditService.recordCreate(
                 AuditModule.PRONTUARIO,
                 "prontuario_soap",

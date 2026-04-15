@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.DayOfWeek;
@@ -38,19 +37,15 @@ public class ConfiguracaoClinicaEntity extends BaseEntity {
                     DayOfWeek.FRIDAY
             );
 
-    @NonNull
     @Column(name = "nome_clinica", nullable = false, length = 150)
     private String nomeClinica;
 
-    @NonNull
     @Column(name = "dias_funcionamento", nullable = false, length = 120)
     private String diasFuncionamento;
 
-    @NonNull
     @Column(name = "horario_abertura", nullable = false)
     private LocalTime horarioAbertura;
 
-    @NonNull
     @Column(name = "horario_fechamento", nullable = false)
     private LocalTime horarioFechamento;
 
@@ -60,11 +55,9 @@ public class ConfiguracaoClinicaEntity extends BaseEntity {
     @Column(name = "horario_fim_almoco")
     private LocalTime horarioFimAlmoco;
 
-    @NonNull
     @Column(name = "duracao_sessao_minutos", nullable = false)
     private Integer duracaoSessaoMinutos;
 
-    @NonNull
     @Column(name = "timezone_id", nullable = false, length = 60)
     private String timezoneId;
 
@@ -74,7 +67,6 @@ public class ConfiguracaoClinicaEntity extends BaseEntity {
     @Column(name = "email_contato", length = 120)
     private String emailContato;
 
-    @NonNull
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;

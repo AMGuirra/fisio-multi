@@ -11,7 +11,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
@@ -26,15 +25,12 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class MensagemWhatsAppEntity extends BaseEntity {
 
-    @NonNull
     @Column(nullable = false, length = 20)
     private String destinatario;
 
-    @NonNull
     @Column(nullable = false, columnDefinition = "TEXT")
     private String conteudo;
 
-    @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -49,7 +45,6 @@ public class MensagemWhatsAppEntity extends BaseEntity {
     @Column(name = "enviada_em")
     private OffsetDateTime enviadaEm;
 
-    @NonNull
     @Column(nullable = false)
     @Builder.Default
     private Integer tentativas = 0;

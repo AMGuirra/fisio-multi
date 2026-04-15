@@ -35,6 +35,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.LinkedHashMap;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Controller
 @RequestMapping({"/relatorios", "/relatorio"})
@@ -77,6 +78,12 @@ public class RelatoriosController {
             @RequestParam FormatoRelatorio formato
     ) {
         RelatorioDocumento documento = relatoriosService.exportar(relatoriosService.gerarRelatorio(filtro), formato);
+        String rawContentType = documento.contentType();
+        String contentType = rawContentType == null || rawContentType.isBlank()
+                ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+                : rawContentType;
+        byte[] content = Objects.requireNonNullElseGet(documento.content(), () -> new byte[0]);
+        String fileName = Objects.requireNonNullElse(documento.fileName(), "relatorio-operacional.bin");
         auditService.recordManual(
                 AuditModule.RELATORIOS,
                 "relatorio_operacional",
@@ -90,10 +97,10 @@ public class RelatoriosController {
                 AuditEventOrigin.MANUAL
         );
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + documento.fileName() + "\"")
-                .contentType(MediaType.parseMediaType(documento.contentType()))
-                .contentLength(documento.content().length)
-                .body(new ByteArrayResource(documento.content()));
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .contentLength(content.length)
+                .body(new ByteArrayResource(content));
     }
 
     @PostMapping("/enviar")

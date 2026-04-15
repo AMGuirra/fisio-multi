@@ -11,10 +11,10 @@ import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,9 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @org.junit.jupiter.api.extension.ExtendWith(OutputCaptureExtension.class)
+@SuppressWarnings("null")
 class PasswordResetFlowIntegrationTest {
 
-    private static final String TEST_USERNAME = "reset-flow-user";
     private static final String TEST_EMAIL = "reset-flow@example.com";
 
     @Autowired
@@ -57,7 +57,7 @@ class PasswordResetFlowIntegrationTest {
     @Autowired
     private PasswordResetService passwordResetService;
 
-    @MockBean
+    @MockitoBean
     private SystemEmailService systemEmailService;
 
     @BeforeEach

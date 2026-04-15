@@ -16,7 +16,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -32,30 +31,24 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class LancamentoFinanceiroEntity extends BaseEntity {
 
-    @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoLancamentoFinanceiro tipo;
 
-    @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
     private StatusLancamentoFinanceiro status = StatusLancamentoFinanceiro.PENDENTE;
 
-    @NonNull
     @Column(nullable = false, length = 180)
     private String descricao;
 
-    @NonNull
     @Column(nullable = false, length = 80)
     private String categoria;
 
-    @NonNull
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal valor;
 
-    @NonNull
     @Column(name = "data_competencia", nullable = false)
     private OffsetDateTime dataCompetencia;
 

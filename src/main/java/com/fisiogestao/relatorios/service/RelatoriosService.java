@@ -213,8 +213,6 @@ public class RelatoriosService {
         long sessoesRealizadasAtual = contarSessoesPorStatus(sessoes, SessaoStatus.REALIZADA);
         long sessoesCanceladasAtual = contarSessoesPorStatus(sessoes, SessaoStatus.CANCELADA);
         long sessoesRealizadasAnterior = contarSessoesPorStatus(sessoesAnterior, SessaoStatus.REALIZADA);
-        long sessoesCanceladasAnterior = contarSessoesPorStatus(sessoesAnterior, SessaoStatus.CANCELADA);
-
         double taxaConclusaoAtual = percentual(sessoesRealizadasAtual, sessoes.size());
         double taxaConclusaoAnterior = percentual(sessoesRealizadasAnterior, sessoesAnterior.size());
 

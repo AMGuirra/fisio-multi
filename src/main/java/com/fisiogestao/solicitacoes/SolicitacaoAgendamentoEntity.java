@@ -15,7 +15,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
@@ -30,11 +29,9 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class SolicitacaoAgendamentoEntity extends BaseEntity {
 
-    @NonNull
     @Column(name = "nome_paciente", nullable = false, length = 160)
     private String nomePaciente;
 
-    @NonNull
     @Column(nullable = false, length = 20)
     private String telefone;
 
@@ -44,18 +41,15 @@ public class SolicitacaoAgendamentoEntity extends BaseEntity {
     @Column(length = 11)
     private String cpf;
 
-    @NonNull
     @Column(name = "data_hora_inicio", nullable = false)
     private OffsetDateTime dataHoraInicio;
 
-    @NonNull
     @Column(name = "data_hora_fim", nullable = false)
     private OffsetDateTime dataHoraFim;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 
-    @NonNull
     @Column(name = "local_atendimento", nullable = false, length = 20)
     @Builder.Default
     private String localAtendimento = "CLINICA";
@@ -78,7 +72,6 @@ public class SolicitacaoAgendamentoEntity extends BaseEntity {
     @Column(length = 2)
     private String estado;
 
-    @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default

@@ -27,6 +27,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class PacoteSessaoService {
 
     private static final List<SessaoStatus> STATUS_SESSAO_COM_PACOTE_ATIVO = List.of(

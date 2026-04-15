@@ -15,7 +15,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
@@ -30,21 +29,17 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class HorarioBloqueadoEntity extends BaseEntity {
 
-    @NonNull
     @Column(name = "data_hora_inicio", nullable = false)
     private OffsetDateTime dataHoraInicio;
 
-    @NonNull
     @Column(name = "data_hora_fim", nullable = false)
     private OffsetDateTime dataHoraFim;
 
-    @NonNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
     private HorarioBloqueadoStatus status = HorarioBloqueadoStatus.PENDENTE;
 
-    @NonNull
     @Column(nullable = false, length = 50)
     private String origem;
 

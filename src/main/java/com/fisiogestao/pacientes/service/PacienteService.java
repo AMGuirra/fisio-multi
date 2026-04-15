@@ -28,6 +28,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class PacienteService {
 
     private final ClienteRepository clienteRepository;

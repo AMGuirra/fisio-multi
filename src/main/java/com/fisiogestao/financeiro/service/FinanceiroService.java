@@ -25,6 +25,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class FinanceiroService {
 
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;

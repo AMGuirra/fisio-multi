@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface LancamentoFinanceiroRepository extends JpaRepository<LancamentoFinanceiroEntity, UUID> {
@@ -20,10 +19,6 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
 
     @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
     List<LancamentoFinanceiroEntity> findByPacoteSessaoId(UUID pacoteSessaoId);
-
-    @Override
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
-    Optional<LancamentoFinanceiroEntity> findById(UUID id);
 
     boolean existsByPacoteSessaoIdAndStatus(UUID pacoteSessaoId, StatusLancamentoFinanceiro status);
 

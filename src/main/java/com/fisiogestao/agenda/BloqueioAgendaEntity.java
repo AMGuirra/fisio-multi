@@ -11,7 +11,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -29,15 +28,12 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class BloqueioAgendaEntity extends BaseEntity {
 
-    @NonNull
     @Column(name = "data_hora_inicio", nullable = false)
     private OffsetDateTime dataHoraInicio;
 
-    @NonNull
     @Column(name = "data_hora_fim", nullable = false)
     private OffsetDateTime dataHoraFim;
 
-    @NonNull
     @Column(nullable = false, length = 255)
     private String motivo;
 

@@ -52,8 +52,9 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatus(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        String message = ex.getReason() != null && !ex.getReason().isBlank()
-                ? ex.getReason()
+        String reason = ex.getReason();
+        String message = reason != null && !reason.isBlank()
+                ? reason
                 : "A requisição não pôde ser processada.";
         return ResponseEntity.status(status)
                 .body(new ApiErrorResponse(message, Map.of()));

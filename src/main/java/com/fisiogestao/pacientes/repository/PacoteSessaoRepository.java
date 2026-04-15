@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface PacoteSessaoRepository extends JpaRepository<PacoteSessaoEntity, UUID> {
@@ -19,7 +18,4 @@ public interface PacoteSessaoRepository extends JpaRepository<PacoteSessaoEntity
     @EntityGraph(attributePaths = "cliente")
     List<PacoteSessaoEntity> findByStatusOrderByCreatedAtDesc(PacoteSessaoStatus status);
 
-    @Override
-    @EntityGraph(attributePaths = "cliente")
-    Optional<PacoteSessaoEntity> findById(UUID id);
 }

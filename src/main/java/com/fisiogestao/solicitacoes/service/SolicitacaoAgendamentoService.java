@@ -47,6 +47,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class SolicitacaoAgendamentoService {
 
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;

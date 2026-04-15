@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -50,6 +51,7 @@ public class SystemEmailService {
     }
 
     @Transactional
+    @SuppressWarnings("null")
     public EmailDispatchResult sendWithConfiguration(EmailConfiguracaoEntity configuracao, EmailRequest request) {
         List<String> destinatarios = sanitizarDestinatarios(request.to());
         if (destinatarios.isEmpty()) {
@@ -62,15 +64,19 @@ public class SystemEmailService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
 
-            helper.setFrom(configuracao.getEmailRemetente(), configuracao.getNomeRemetente());
+            String emailRemetente = Objects.requireNonNull(configuracao.getEmailRemetente(), "E-mail remetente não configurado.");
+            String nomeRemetente = Objects.requireNonNullElse(configuracao.getNomeRemetente(), "FisioGestao");
+            helper.setFrom(emailRemetente, nomeRemetente);
             helper.setTo(destinatarios.toArray(String[]::new));
-            if (request.cc() != null && !request.cc().isEmpty()) {
-                helper.setCc(sanitizarDestinatarios(request.cc()).toArray(String[]::new));
+            List<String> cc = sanitizarDestinatarios(request.cc());
+            if (!cc.isEmpty()) {
+                helper.setCc(cc.toArray(String[]::new));
             }
-            if (request.bcc() != null && !request.bcc().isEmpty()) {
-                helper.setBcc(sanitizarDestinatarios(request.bcc()).toArray(String[]::new));
+            List<String> bcc = sanitizarDestinatarios(request.bcc());
+            if (!bcc.isEmpty()) {
+                helper.setBcc(bcc.toArray(String[]::new));
             }
-            helper.setSubject(request.subject());
+            helper.setSubject(Objects.requireNonNullElse(request.subject(), "(sem assunto)"));
 
             String replyTo = request.replyToOverride() != null && !request.replyToOverride().isBlank()
                     ? request.replyToOverride().trim()
@@ -88,10 +94,13 @@ public class SystemEmailService {
 
             if (request.attachments() != null) {
                 for (EmailAttachment attachment : request.attachments()) {
+                    if (attachment == null) {
+                        continue;
+                    }
                     helper.addAttachment(
-                            attachment.fileName(),
-                            new ByteArrayResource(attachment.content()),
-                            attachment.contentType()
+                            Objects.requireNonNullElse(attachment.fileName(), "anexo.bin"),
+                            new ByteArrayResource(attachment.content() != null ? attachment.content() : new byte[0]),
+                            Objects.requireNonNullElse(attachment.contentType(), "application/octet-stream")
                     );
                 }
             }
@@ -159,7 +168,7 @@ public class SystemEmailService {
                 .entidadeId(request.entityId())
                 .observacoes(request.notes())
                 .build();
-        emailLogRepository.save(entity);
+        emailLogRepository.save(Objects.requireNonNull(entity));
     }
 
     private List<String> sanitizarDestinatarios(List<String> destinatarios) {

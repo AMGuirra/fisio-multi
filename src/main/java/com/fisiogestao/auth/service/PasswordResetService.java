@@ -199,10 +199,6 @@ public class PasswordResetService {
         }
     }
 
-    private String montarLink(String token) {
-        return montarLink(token, null);
-    }
-
     private PasswordResetLink gerarLinkDefinicaoSenha(
             UsuarioSistemaEntity usuario,
             String requestIp,
