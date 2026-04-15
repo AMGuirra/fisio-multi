@@ -36,8 +36,25 @@
                     <h1 class="hero-title">Configuração de Status</h1>
                     <p class="hero-subtitle">Altere o status exibido no topo do sistema para informar usuários sobre a situação operacional.</p>
                 </div>
-                <span class="hero-pill">Administração</span>
+                <div class="hero-actions">
+                    <span class="hero-pill">Administração</span>
+                    <a th:href="@{/dashboard}" class="action-button ghost">
+                        <i data-lucide="layout-dashboard"></i>
+                        Dashboard
+                    </a>
+                    <a href="#formStatusSistema" class="action-button primary">
+                        <i data-lucide="save"></i>
+                        Atualizar Status
+                    </a>
+                </div>
             </section>
+
+            <nav class="page-tabs" aria-label="Seções administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab active"><i data-lucide="activity"></i> Status do Sistema</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+            </nav>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success">
@@ -45,6 +62,51 @@
                     <span th:text="${successMessage}">Sucesso</span>
                 </div>
             </div>
+
+            <section class="workflow-strip">
+                <article class="workflow-step is-complete">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Consulte o cenário atual</p>
+                        <p class="workflow-step-text">Veja o status que está sendo exibido para toda a equipe e a última atualização aplicada.</p>
+                    </div>
+                </article>
+                <article class="workflow-step is-current">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Ajuste a comunicação</p>
+                        <p class="workflow-step-text">Defina o novo estado do sistema e escreva uma mensagem curta, clara e útil.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Oriente a operação</p>
+                        <p class="workflow-step-text">Use o status para reduzir ruído, alinhar expectativa e evitar chamados desnecessários.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="summary-grid">
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="activity"></i></span>
+                    <p class="summary-label">Status atual</p>
+                    <p class="summary-value summary-value-compact" th:text="${statusAtual.status.label}">Online</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="message-square"></i></span>
+                    <p class="summary-label">Mensagem</p>
+                    <p class="summary-value summary-value-compact"
+                       th:text="${statusAtual.mensagem != null and !#strings.isEmpty(statusAtual.mensagem) ? statusAtual.mensagem : 'Sem mensagem complementar'}">
+                        Sem mensagem complementar
+                    </p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
+                    <p class="summary-label">Atualizado em</p>
+                    <p class="summary-value summary-value-compact" th:text="${#temporals.format(statusAtual.atualizadoEm, 'dd/MM HH:mm')}">--</p>
+                </article>
+            </section>
 
             <section class="section-card">
                 <header class="section-head">
@@ -72,7 +134,8 @@
                     <h3 class="section-title"><i data-lucide="settings"></i> Alterar Status</h3>
                 </header>
                 <div class="section-body">
-                    <form th:action="@{/admin/system-status}" method="post" class="modern-form">
+                    <form th:action="@{/admin/system-status}" method="post" class="modern-form" id="formStatusSistema">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <div class="form-field">
                             <label for="status">Status do Sistema</label>
                             <select id="status" name="status" class="form-select" required>

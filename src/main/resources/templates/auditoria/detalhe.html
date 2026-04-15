@@ -49,13 +49,34 @@
                     <h1 class="hero-title">Detalhe da Auditoria</h1>
                     <p class="hero-subtitle" th:text="${eventoAuditoria.descricaoRegistro != null ? eventoAuditoria.descricaoRegistro : 'Registro auditado do sistema'}">Registro auditado do sistema</p>
                 </div>
-                <span class="hero-pill" th:text="${eventoAuditoria.modulo != null ? eventoAuditoria.modulo.label : 'Auditoria'}">Auditoria</span>
+                <div class="hero-actions">
+                    <span class="hero-pill" th:text="${eventoAuditoria.modulo != null ? eventoAuditoria.modulo.label : 'Auditoria'}">Auditoria</span>
+                    <a th:href="@{/auditoria}" href="/auditoria" class="action-button ghost"><i data-lucide="arrow-left"></i>Voltar</a>
+                </div>
             </section>
 
-            <section class="section-card">
-                <div class="section-body">
-                    <a th:href="@{/auditoria}" href="/auditoria" class="audit-back-link"><i data-lucide="arrow-left"></i> Voltar para a Central de Auditoria</a>
-                </div>
+            <nav class="page-tabs" aria-label="Seções administrativas">
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab"><i data-lucide="messages-square"></i> WhatsApp</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab active"><i data-lucide="shield-check"></i> Auditoria</a>
+            </nav>
+
+            <section class="summary-grid">
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="file-search"></i></span>
+                    <p class="summary-label">Ação</p>
+                    <p class="summary-value summary-value-compact" th:text="${eventoAuditoria.tipoAcao != null ? eventoAuditoria.tipoAcao.label : '-'}">Inclusão</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="shield-alert"></i></span>
+                    <p class="summary-label">Criticidade</p>
+                    <p class="summary-value summary-value-compact" th:text="${eventoAuditoria.alteracaoCritica ? 'Crítica' : 'Padrão'}">Crítica</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
+                    <p class="summary-label">Quando</p>
+                    <p class="summary-value summary-value-compact" th:text="${#temporals.format(eventoAuditoria.createdAt, 'dd/MM HH:mm:ss')}">01/04 09:00:00</p>
+                </article>
             </section>
 
             <section class="section-card">

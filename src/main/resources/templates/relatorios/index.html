@@ -56,20 +56,51 @@
                     </span>
                 </div>
             </div>
-            <div class="report-hero-actions">
-                <div class="report-period-card">
-                    <span class="report-period-label">Atual</span>
-                    <strong th:text="${relatorio.analytics.periodoAtualLabel}">01/04/2026 a 30/04/2026</strong>
-                    <span>Comparando com <span th:text="${relatorio.analytics.periodoAnteriorLabel}">02/03/2026 a 31/03/2026</span></span>
+                <div class="report-hero-actions">
+                    <div class="report-period-card">
+                        <span class="report-period-label">Atual</span>
+                        <strong th:text="${relatorio.analytics.periodoAtualLabel}">01/04/2026 a 30/04/2026</strong>
+                        <span>Comparando com <span th:text="${relatorio.analytics.periodoAnteriorLabel}">02/03/2026 a 31/03/2026</span></span>
+                    </div>
+                    <a th:if="${accessibleMenuKeys.contains('CONFIG_EMAIL')}" th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="settings"></i>SMTP</a>
                 </div>
-                <a th:if="${accessibleMenuKeys.contains('CONFIG_EMAIL')}" th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="settings"></i>SMTP</a>
-            </div>
-        </section>
+            </section>
+
+        <nav class="page-tabs" aria-label="Seções de gestão e análise">
+            <a th:href="@{/financeiro}" href="/financeiro" class="page-tab"><i data-lucide="banknote"></i> Financeiro</a>
+            <a th:href="@{/relatorios}" href="/relatorios" class="page-tab active"><i data-lucide="file-text"></i> Relatórios</a>
+            <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+            <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+        </nav>
 
         <div class="flash-stack">
             <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
             <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
         </div>
+
+        <section class="workflow-strip">
+            <article class="workflow-step is-complete">
+                <span class="workflow-step-number">1</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Defina o recorte</p>
+                    <p class="workflow-step-text">Escolha o período e os blocos analíticos que devem compor a leitura do relatório.</p>
+                </div>
+            </article>
+            <article class="workflow-step is-current">
+                <span class="workflow-step-number">2</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Analise o painel</p>
+                    <p class="workflow-step-text">Cruze indicadores, distribuições e comparativos antes de exportar ou compartilhar.</p>
+                </div>
+            </article>
+            <article class="workflow-step">
+                <span class="workflow-step-number">3</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Exporte ou envie</p>
+                    <p class="workflow-step-text">Baixe PDF, gere Excel ou siga para a configuração SMTP quando precisar distribuir o material.</p>
+                </div>
+            </article>
+        </section>
 
         <section class="section-card">
             <header class="section-head">

@@ -45,7 +45,11 @@
                 <h1 class="hero-title">Configuração SMTP / Gmail</h1>
                 <p class="hero-subtitle">Cadastre a conta ativa de envio, teste autenticação e acompanhe o histórico técnico.</p>
             </div>
-            <span class="hero-pill">SMTP</span>
+            <div class="hero-actions">
+                <span class="hero-pill">SMTP</span>
+                <a th:href="@{/relatorios}" href="/relatorios" class="action-button ghost"><i data-lucide="file-text"></i>Relatórios</a>
+                <a th:if="${emailConfiguracaoForm.id != null}" href="#teste-email-rapido" class="action-button primary"><i data-lucide="send"></i>Testar envio</a>
+            </div>
         </section>
         <nav class="page-tabs" aria-label="Seções Administrativas">
             <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
@@ -54,15 +58,64 @@
             <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
         </nav>
 
+        <section class="workflow-strip">
+            <article class="workflow-step is-complete">
+                <span class="workflow-step-number">1</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Cadastre a conta</p>
+                    <p class="workflow-step-text">Defina remetente, host, porta e política de segurança da clínica.</p>
+                </div>
+            </article>
+            <article class="workflow-step is-current">
+                <span class="workflow-step-number">2</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Valide o envio</p>
+                    <p class="workflow-step-text">Faça um teste rápido para confirmar autenticação, reply-to e conectividade.</p>
+                </div>
+            </article>
+            <article class="workflow-step">
+                <span class="workflow-step-number">3</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Acompanhe o histórico</p>
+                    <p class="workflow-step-text">Use o log técnico para enxergar falhas e manter os disparos confiáveis.</p>
+                </div>
+            </article>
+        </section>
+
         <div class="flash-stack">
             <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
             <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
         </div>
+
+        <section class="summary-grid">
+            <article class="summary-card saldo">
+                <span class="summary-icon"><i data-lucide="mail"></i></span>
+                <p class="summary-label">Conta ativa</p>
+                <p class="summary-value summary-value-compact"
+                   th:text="${emailConfiguracaoForm.emailRemetente != null and !#strings.isEmpty(emailConfiguracaoForm.emailRemetente) ? emailConfiguracaoForm.emailRemetente : 'Não configurada'}">
+                    Não configurada
+                </p>
+            </article>
+            <article class="summary-card receita">
+                <span class="summary-icon"><i data-lucide="server"></i></span>
+                <p class="summary-label">SMTP</p>
+                <p class="summary-value summary-value-compact"
+                   th:text="${emailConfiguracaoForm.smtpHost != null and !#strings.isEmpty(emailConfiguracaoForm.smtpHost) ? emailConfiguracaoForm.smtpHost + ':' + emailConfiguracaoForm.smtpPort : 'Sem host'}">
+                    Sem host
+                </p>
+            </article>
+            <article class="summary-card despesa">
+                <span class="summary-icon"><i data-lucide="history"></i></span>
+                <p class="summary-label">Últimos logs</p>
+                <p class="summary-value" th:text="${historicoEmails != null ? #lists.size(historicoEmails) : 0}">0</p>
+            </article>
+        </section>
         <section class="crud-layout form-table">
             <article class="section-card">
                 <header class="section-head"><h3 class="section-title"><i data-lucide="mail-check"></i> Configuração ativa</h3></header>
                 <div class="section-body">
                     <form th:action="@{/configuracoes/email}" th:object="${emailConfiguracaoForm}" method="post" class="modern-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" th:field="*{id}">
                         <div class="form-grid form-grid-two">
                             <div class="form-field"><label for="nomeRemetente">Nome do remetente</label><input id="nomeRemetente" class="form-control" th:field="*{nomeRemetente}" required></div>
@@ -92,6 +145,7 @@
                     <div th:if="${emailConfiguracaoForm.id != null}" class="section-block" id="teste-email-rapido">
                         <h4 class="section-subtitle">Teste rápido de envio</h4>
                         <form th:action="@{/configuracoes/email/{id}/testar(id=${emailConfiguracaoForm.id})}" th:object="${testeEmailForm}" method="post" class="modern-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <div class="form-field">
                                 <label for="destinatarioTesteRapido">E-mail para teste</label>
                                 <input id="destinatarioTesteRapido" type="email" class="form-control" th:field="*{destinatario}" placeholder="nome@dominio.com" required>

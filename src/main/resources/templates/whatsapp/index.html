@@ -49,7 +49,11 @@
                     <h1 class="hero-title">Fila de WhatsApp</h1>
                     <p class="hero-subtitle">Acompanhe as mensagens operacionais enfileiradas pelo sistema para solicitações, reagendamentos e confirmações.</p>
                 </div>
-                <span class="hero-pill">WhatsApp</span>
+                <div class="hero-actions">
+                    <span class="hero-pill">WhatsApp</span>
+                    <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="mail-check"></i>Config. E-mail</a>
+                    <a href="#filaWhatsApp" class="action-button primary"><i data-lucide="messages-square"></i>Ver Fila</a>
+                </div>
             </section>
 
             <nav class="page-tabs" aria-label="Seções Administrativas">
@@ -59,6 +63,30 @@
                 <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab active"><i data-lucide="messages-square"></i> WhatsApp</a>
                 <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
+
+            <section class="workflow-strip">
+                <article class="workflow-step is-complete">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Acompanhe a fila</p>
+                        <p class="workflow-step-text">Veja rapidamente o volume de mensagens, pendências e erros operacionais.</p>
+                    </div>
+                </article>
+                <article class="workflow-step is-current">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Filtre o cenário</p>
+                        <p class="workflow-step-text">Refine por status para identificar gargalos sem interferir no disparo automático.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Corrija o contexto</p>
+                        <p class="workflow-step-text">Quando necessário, siga para e-mail, auditoria ou operação da agenda com mais contexto.</p>
+                    </div>
+                </article>
+            </section>
 
             <section class="metrics-grid" aria-label="Resumo da fila de WhatsApp">
                 <article class="metric-card metric-mensagens">
@@ -84,7 +112,7 @@
             </section>
 
             <section class="crud-layout form-table">
-                <article class="section-card">
+                <article class="section-card" id="filaWhatsApp">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="list-filter"></i> Filtro</h3>
                     </header>

@@ -49,13 +49,75 @@
                     <h1 class="hero-title">Configuração Operacional da Clínica</h1>
                     <p class="hero-subtitle">Defina expediente, duração padrão das sessões e canais oficiais usados pela agenda, portal público e notificações.</p>
                 </div>
-                <span class="hero-pill">Clínica</span>
+                <div class="hero-actions">
+                    <span class="hero-pill">Clínica</span>
+                    <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
+                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal público</a>
+                </div>
             </section>
+
+            <nav class="page-tabs" aria-label="Seções operacionais da clínica">
+                <a th:href="@{/dashboard}" href="/dashboard" class="page-tab"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab active"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="activity"></i> Status do Sistema</a>
+            </nav>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
+
+            <section class="workflow-strip">
+                <article class="workflow-step is-complete">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Estruture a operação</p>
+                        <p class="workflow-step-text">Defina nome, fuso e expediente da clínica para unificar toda a agenda.</p>
+                    </div>
+                </article>
+                <article class="workflow-step is-current">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Padronize o atendimento</p>
+                        <p class="workflow-step-text">Configure duração das sessões, almoço e dias úteis com o mesmo padrão da equipe.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Conecte os canais</p>
+                        <p class="workflow-step-text">Use telefone e e-mail oficiais para manter agenda, portal e notificações alinhados.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="summary-grid">
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
+                    <p class="summary-label">Expediente</p>
+                    <p class="summary-value summary-value-compact"
+                       th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' às ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Não definido'}">
+                        Não definido
+                    </p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="timer"></i></span>
+                    <p class="summary-label">Sessão padrão</p>
+                    <p class="summary-value"
+                       th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' min' : '0 min'}">
+                        0 min
+                    </p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="calendar-range"></i></span>
+                    <p class="summary-label">Dias ativos</p>
+                    <p class="summary-value"
+                       th:text="${configuracaoClinicaForm.diasFuncionamento != null ? configuracaoClinicaForm.diasFuncionamento.size() : 0}">
+                        0
+                    </p>
+                </article>
+            </section>
 
             <section class="crud-layout two-column">
                 <article class="section-card">
@@ -64,6 +126,7 @@
                     </header>
                     <div class="section-body">
                         <form th:action="@{/configuracoes/clinica}" th:object="${configuracaoClinicaForm}" method="post" class="modern-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" th:field="*{id}">
 
                             <div class="form-grid form-grid-two">
