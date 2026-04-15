@@ -46,9 +46,23 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Prontuário SOAP</h1>
-                    <p class="hero-subtitle">Registre evolução clínica com histórico por paciente e vínculo opcional com sessão.</p>
+                    <p class="hero-subtitle">Centralize a evolução clínica, mantenha o histórico organizado e documente cada atendimento com clareza.</p>
                 </div>
-                <span class="hero-pill">Prontuário</span>
+                <div class="hero-actions">
+                    <span class="hero-pill" th:text="${pacienteSelecionado != null ? 'Paciente em atendimento' : 'Prontuário'}">Prontuário</span>
+                    <a th:if="${pacienteSelecionado != null}" href="#novoRegistroSoap" class="action-button primary">
+                        <i data-lucide="file-plus"></i>
+                        Nova Evolução
+                    </a>
+                    <a th:if="${pacienteSelecionado != null}" href="#historicoSoap" class="action-button ghost">
+                        <i data-lucide="history"></i>
+                        Ver Histórico
+                    </a>
+                    <button th:if="${pacienteSelecionado == null}" type="button" class="action-button ghost" disabled>
+                        <i data-lucide="search"></i>
+                        Selecione um paciente
+                    </button>
+                </div>
             </section>
 
             <nav class="page-tabs" aria-label="Seções de Pacientes">
@@ -61,6 +75,51 @@
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
+
+            <section class="workflow-strip">
+                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-complete' : 'is-current'}">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Escolha o paciente</p>
+                        <p class="workflow-step-text" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Selecione o paciente para carregar o histórico clínico'}">Selecione o paciente para carregar o histórico clínico</p>
+                    </div>
+                </article>
+                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-current' : ''}">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Registre a evolução</p>
+                        <p class="workflow-step-text">Preencha os campos S, O, A e P com linguagem clara e objetiva para cada atendimento.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Consulte o histórico</p>
+                        <p class="workflow-step-text">Revise rapidamente a linha do tempo das evoluções e o vínculo com sessões registradas.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="summary-grid">
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="notebook-pen"></i></span>
+                    <p class="summary-label">Registros SOAP</p>
+                    <p class="summary-value" th:text="${prontuarios != null ? prontuarios.size() : 0}">0</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="calendar-days"></i></span>
+                    <p class="summary-label">Sessões para vínculo</p>
+                    <p class="summary-value" th:text="${sessoesPaciente != null ? sessoesPaciente.size() : 0}">0</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="clock-3"></i></span>
+                    <p class="summary-label">Última evolução</p>
+                    <p class="summary-value summary-value-compact"
+                       th:text="${prontuarios != null and !prontuarios.empty ? #temporals.format(prontuarios.get(0).createdAt, 'dd/MM HH:mm') : 'Sem histórico'}">
+                        Sem histórico
+                    </p>
+                </article>
+            </section>
 
             <section class="section-card">
                 <header class="section-head">
@@ -93,15 +152,91 @@
                 </div>
             </section>
 
+            <section class="section-card" th:if="${pacienteSelecionado != null}">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente em Foco</h3>
+                        <p class="section-subtitle">Tudo que você precisa para evoluir o prontuário sem perder o contexto do atendimento.</p>
+                    </div>
+                    <a href="#novoRegistroSoap" class="action-button ghost">
+                        <i data-lucide="arrow-down"></i>
+                        Ir para o registro
+                    </a>
+                </header>
+                <div class="section-body">
+                    <div class="helper-card patient-spotlight">
+                        <div class="helper-copy patient-spotlight-copy">
+                            <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
+                            <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
+                            <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
+                            <p th:text="${pacienteSelecionado.dataNascimento != null ? 'Nascimento: ' + #temporals.format(pacienteSelecionado.dataNascimento, 'dd/MM/yyyy') : 'Data de nascimento não informada'}">Nascimento</p>
+                            <p class="helper-text" th:text="${#strings.isEmpty(pacienteSelecionado.enderecoCompleto) ? 'Sem endereço cadastrado para este paciente.' : pacienteSelecionado.enderecoCompleto}">Endereço</p>
+                        </div>
+                        <div class="patient-spotlight-stats">
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Registros</span>
+                                <strong class="patient-spotlight-stat-value" th:text="${prontuarios != null ? prontuarios.size() : 0}">0</strong>
+                            </div>
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Sessões</span>
+                                <strong class="patient-spotlight-stat-value" th:text="${sessoesPaciente != null ? sessoesPaciente.size() : 0}">0</strong>
+                            </div>
+                            <div class="patient-spotlight-stat">
+                                <span class="patient-spotlight-stat-label">Último registro</span>
+                                <strong class="patient-spotlight-stat-value patient-spotlight-stat-value-compact"
+                                        th:text="${prontuarios != null and !prontuarios.empty ? #temporals.format(prontuarios.get(0).createdAt, 'dd/MM HH:mm') : 'Sem histórico'}">
+                                    Sem histórico
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="crud-layout two-column" th:if="${pacienteSelecionado != null}">
-                <article class="section-card">
+                <article class="section-card" id="novoRegistroSoap">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="file-plus"></i> Novo Registro SOAP</h3>
-                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                        <div>
+                            <h3 class="section-title"><i data-lucide="file-plus"></i> Novo Registro SOAP</h3>
+                            <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                        </div>
+                        <span class="chip status-approved">Fluxo clínico ativo</span>
                     </header>
                     <div class="section-body">
                         <form th:action="@{/prontuario/soap}" th:object="${prontuarioForm}" method="post" class="modern-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" th:field="*{clienteId}">
+
+                            <div class="soap-guide-grid">
+                                <article class="soap-guide-card">
+                                    <span class="soap-guide-badge">S</span>
+                                    <div class="soap-guide-copy">
+                                        <p class="soap-guide-title">Subjetivo</p>
+                                        <p class="soap-guide-text">Queixa principal, percepção do paciente e sintomas relatados.</p>
+                                    </div>
+                                </article>
+                                <article class="soap-guide-card">
+                                    <span class="soap-guide-badge">O</span>
+                                    <div class="soap-guide-copy">
+                                        <p class="soap-guide-title">Objetivo</p>
+                                        <p class="soap-guide-text">Achados observáveis, testes, medidas e sinais clínicos do atendimento.</p>
+                                    </div>
+                                </article>
+                                <article class="soap-guide-card">
+                                    <span class="soap-guide-badge">A</span>
+                                    <div class="soap-guide-copy">
+                                        <p class="soap-guide-title">Avaliação</p>
+                                        <p class="soap-guide-text">Interpretação clínica do caso e evolução percebida pelo profissional.</p>
+                                    </div>
+                                </article>
+                                <article class="soap-guide-card">
+                                    <span class="soap-guide-badge">P</span>
+                                    <div class="soap-guide-copy">
+                                        <p class="soap-guide-title">Plano</p>
+                                        <p class="soap-guide-text">Conduta, próximos passos, orientações e continuidade do tratamento.</p>
+                                    </div>
+                                </article>
+                            </div>
 
                             <div class="form-field">
                                 <label for="sessaoId">Sessão vinculada (opcional)</label>
@@ -113,6 +248,7 @@
                                         Sessão
                                     </option>
                                 </select>
+                                <p class="helper-text">Use o vínculo com sessão quando quiser conectar a evolução clínica a um atendimento agendado.</p>
                                 <p class="form-error" th:if="${#fields.hasErrors('sessaoId')}" th:errors="*{sessaoId}"></p>
                             </div>
 
@@ -144,14 +280,32 @@
                                 <i data-lucide="save"></i>
                                 Salvar Registro
                             </button>
+
+                            <div class="helper-card soap-helper-card">
+                                <div class="helper-copy">
+                                    <h4>Boas práticas do registro</h4>
+                                    <p>Prefira textos objetivos, evite abreviações ambíguas e destaque apenas o que ajuda a acompanhar a evolução do paciente.</p>
+                                </div>
+                                <div class="soap-helper-pills">
+                                    <span class="chip status-approved">Clareza clínica</span>
+                                    <span class="chip status-success">Histórico organizado</span>
+                                    <span class="chip status-warning">Sessão opcional</span>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </article>
 
-                <article class="section-card">
+                <article class="section-card" id="historicoSoap">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="history"></i> Histórico SOAP</h3>
-                        <p class="section-subtitle" th:text="${prontuarios != null ? prontuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                        <div>
+                            <h3 class="section-title"><i data-lucide="history"></i> Histórico SOAP</h3>
+                            <p class="section-subtitle" th:text="${prontuarios != null ? prontuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                        </div>
+                        <a href="#novoRegistroSoap" class="action-button ghost">
+                            <i data-lucide="arrow-up"></i>
+                            Novo Registro
+                        </a>
                     </header>
 
                     <div class="section-body" th:if="${prontuarios == null or prontuarios.empty}">
@@ -162,39 +316,49 @@
                     </div>
 
                     <div class="section-body" th:unless="${prontuarios == null or prontuarios.empty}">
-                        <div class="request-list">
-                            <article class="request-card" th:each="registro : ${prontuarios}">
-                                <div class="request-row align-start">
-                                    <span class="entity-avatar"><i data-lucide="notebook-pen"></i></span>
-                                    <div class="request-detail stack-10">
-                                        <div>
-                                            <p class="request-title" th:text="${#temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm')}">Data</p>
-                                            <p class="request-text">
-                                                <span th:text="${'Criado por: ' + registro.criadoPor}">Criado por</span>
-                                                <span th:if="${registro.sessao != null}" th:text="${' • Sessão: ' + #temporals.format(registro.sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Sessão</span>
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p class="entity-name">S - Subjetivo</p>
-                                            <p class="request-text" th:text="${registro.subjetivo}">Subjetivo</p>
-                                        </div>
-
-                                        <div>
-                                            <p class="entity-name">O - Objetivo</p>
-                                            <p class="request-text" th:text="${registro.objetivo}">Objetivo</p>
-                                        </div>
-
-                                        <div>
-                                            <p class="entity-name">A - Avaliação</p>
-                                            <p class="request-text" th:text="${registro.avaliacao}">Avaliação</p>
-                                        </div>
-
-                                        <div>
-                                            <p class="entity-name">P - Plano</p>
-                                            <p class="request-text" th:text="${registro.plano}">Plano</p>
+                        <div class="soap-history-stack">
+                            <article class="request-card soap-entry-card" th:each="registro : ${prontuarios}">
+                                <div class="soap-entry-head">
+                                    <div class="request-row align-start">
+                                        <span class="entity-avatar"><i data-lucide="notebook-pen"></i></span>
+                                        <div class="request-detail stack-10">
+                                            <div>
+                                                <p class="request-title" th:text="${#temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm')}">Data</p>
+                                                <p class="request-text" th:text="${'Registrado por ' + registro.criadoPor}">Registrado por</p>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="soap-entry-badges">
+                                        <span class="chip status-approved" th:if="${registro.sessao != null}">Sessão vinculada</span>
+                                        <span class="chip status-warning" th:if="${registro.sessao == null}">Sem sessão vinculada</span>
+                                        <span class="chip status-success" th:if="${registro.sessao != null}"
+                                              th:text="${#temporals.format(registro.sessao.dataHoraInicio, 'dd/MM HH:mm')}">
+                                            Sessão
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="soap-entry-grid">
+                                    <article class="soap-entry-block">
+                                        <span class="soap-entry-label">S</span>
+                                        <p class="soap-entry-title">Subjetivo</p>
+                                        <p class="soap-entry-text" th:text="${registro.subjetivo}">Subjetivo</p>
+                                    </article>
+                                    <article class="soap-entry-block">
+                                        <span class="soap-entry-label">O</span>
+                                        <p class="soap-entry-title">Objetivo</p>
+                                        <p class="soap-entry-text" th:text="${registro.objetivo}">Objetivo</p>
+                                    </article>
+                                    <article class="soap-entry-block">
+                                        <span class="soap-entry-label">A</span>
+                                        <p class="soap-entry-title">Avaliação</p>
+                                        <p class="soap-entry-text" th:text="${registro.avaliacao}">Avaliação</p>
+                                    </article>
+                                    <article class="soap-entry-block">
+                                        <span class="soap-entry-label">P</span>
+                                        <p class="soap-entry-title">Plano</p>
+                                        <p class="soap-entry-text" th:text="${registro.plano}">Plano</p>
+                                    </article>
                                 </div>
                             </article>
                         </div>

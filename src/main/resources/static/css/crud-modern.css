@@ -622,9 +622,25 @@
     }
 
     .patient-spotlight-stats,
-    .plan-card-metrics {
+    .plan-card-metrics,
+    .soap-entry-grid {
         grid-template-columns: 1fr;
     }
+
+    .soap-guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .soap-entry-head,
+    .soap-helper-card {
+        flex-direction: column;
+    }
+
+    .soap-entry-badges,
+    .soap-helper-pills {
+        justify-content: flex-start;
+    }
+
     .period-form {
         margin-left: 0;
         width: 100%;
@@ -1200,6 +1216,137 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     color: var(--text-strong);
     font-size: 1.24rem;
     font-weight: 780;
+}
+
+.patient-spotlight-stat-value-compact,
+.summary-value-compact {
+    font-size: 0.98rem;
+    line-height: 1.35;
+    letter-spacing: 0;
+}
+
+.soap-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.soap-guide-card {
+    border: 1px solid #d8e7e2;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.soap-guide-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.96rem;
+    font-weight: 800;
+    flex: 0 0 auto;
+}
+
+.soap-guide-copy {
+    display: grid;
+    gap: 4px;
+}
+
+.soap-guide-title,
+.soap-entry-title {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.88rem;
+    font-weight: 720;
+}
+
+.soap-guide-text {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.81rem;
+    line-height: 1.5;
+}
+
+.soap-helper-card {
+    margin-top: 14px;
+}
+
+.soap-helper-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.soap-history-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.soap-entry-card {
+    padding: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+}
+
+.soap-entry-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.soap-entry-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.soap-entry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.soap-entry-block {
+    border: 1px solid #dce9e4;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 14px;
+    display: grid;
+    gap: 8px;
+}
+
+.soap-entry-label {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ddf4ec;
+    color: #0f7459;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.soap-entry-text {
+    margin: 0;
+    color: var(--text-body);
+    font-size: 0.84rem;
+    line-height: 1.65;
+    white-space: pre-line;
 }
 
 .plan-card-grid {
@@ -2019,6 +2166,8 @@ body[data-theme='dark'] .date-control,
 body[data-theme='dark'] .session-card,
 body[data-theme='dark'] .request-card,
 body[data-theme='dark'] .timeline-item,
+body[data-theme='dark'] .soap-guide-card,
+body[data-theme='dark'] .soap-entry-block,
 body[data-theme='dark'] .empty-box,
 body[data-theme='dark'] .app-modal-card,
 body[data-theme='dark'] .app-modal-close,
@@ -2063,7 +2212,9 @@ body[data-theme='dark'] .calendar-cell,
 body[data-theme='dark'] .permission-card,
 body[data-theme='dark'] .permission-card-readonly,
 body[data-theme='dark'] .field-hint,
-body[data-theme='dark'] .helper-card {
+body[data-theme='dark'] .helper-card,
+body[data-theme='dark'] .soap-guide-card,
+body[data-theme='dark'] .soap-entry-block {
     background: rgba(12, 22, 28, 0.92);
 }
 
@@ -2079,6 +2230,8 @@ body[data-theme='dark'] .timeline-item,
 body[data-theme='dark'] .session-card,
 body[data-theme='dark'] .request-card,
 body[data-theme='dark'] .date-control,
+body[data-theme='dark'] .soap-guide-card,
+body[data-theme='dark'] .soap-entry-block,
 body[data-theme='dark'] .calendar-day,
 body[data-theme='dark'] .calendar-day.day-empty,
 body[data-theme='dark'] .calendar-grid-head span,
