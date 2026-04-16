@@ -1,0 +1,51 @@
+{
+  "properties": [
+    {
+      "name": "app.timezone",
+      "type": "java.lang.String",
+      "description": "Timezone padrão da clínica (ex: America/Campo_Grande)."
+    },
+    {
+      "name": "app.base-url",
+      "type": "java.lang.String",
+      "description": "URL base da aplicação, usada para gerar links em e-mails e notificações."
+    },
+    {
+      "name": "app.security.encryption-key",
+      "type": "java.lang.String",
+      "description": "Chave de criptografia AES-GCM para dados sensíveis (ex: senha SMTP)."
+    },
+    {
+      "name": "app.security.log-sensitive-reset-links",
+      "type": "java.lang.Boolean",
+      "description": "Se true, loga links de reset de senha no console (apenas para desenvolvimento).",
+      "defaultValue": false
+    },
+    {
+      "name": "app.bootstrap-admin.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Habilita a criação automática do primeiro usuário administrador na inicialização.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.bootstrap-admin.nome",
+      "type": "java.lang.String",
+      "description": "Nome do usuário administrador criado no bootstrap."
+    },
+    {
+      "name": "app.bootstrap-admin.username",
+      "type": "java.lang.String",
+      "description": "Username (login) do usuário administrador criado no bootstrap."
+    },
+    {
+      "name": "app.bootstrap-admin.email",
+      "type": "java.lang.String",
+      "description": "E-mail do usuário administrador criado no bootstrap."
+    },
+    {
+      "name": "app.bootstrap-admin.password",
+      "type": "java.lang.String",
+      "description": "Senha inicial do usuário administrador criado no bootstrap."
+    }
+  ]
+}
