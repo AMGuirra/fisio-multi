@@ -1,0 +1,332 @@
+(() => {
+    const body = document.body;
+    const finishDashboardLoading = () => {
+        if (body) {
+            body.classList.remove('dashboard-loading');
+        }
+    };
+
+    window.setTimeout(finishDashboardLoading, 380);
+
+    try {
+        const appSidebar = document.getElementById('appSidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const appHeader = document.querySelector('.app-header');
+        const headerCopy = appHeader ? appHeader.querySelector('.header-copy') : null;
+        const headerRight = appHeader ? appHeader.querySelector('.header-right') : null;
+        const userMenu = document.getElementById('userMenu');
+        const userMenuToggle = document.getElementById('userMenuToggle');
+        const greetingElement = document.getElementById('dynamicGreeting');
+        let headerDateElement = document.getElementById('headerFullDate');
+        let infoDateElement = document.getElementById('infoDate');
+        let liveClockElement = document.getElementById('liveClock');
+        let infoTimeElement = document.getElementById('infoTime');
+        let systemStatusElement = document.getElementById('systemStatus');
+
+        const SIDEBAR_STORAGE_KEY = 'sidebarCollapsed';
+        const MOBILE_BREAKPOINT = 920;
+        const sidebarToggleHome = sidebarToggle ? document.createComment('sidebar-toggle-home') : null;
+
+        if (sidebarToggle && sidebarToggle.parentNode && sidebarToggleHome) {
+            sidebarToggle.parentNode.insertBefore(sidebarToggleHome, sidebarToggle);
+        }
+
+        const capitalize = (text) => {
+            if (!text) {
+                return '';
+            }
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        };
+
+        const toFirstName = (name) => {
+            if (!name || !name.trim()) {
+                return 'Usuário';
+            }
+            return name.trim().split(/\s+/)[0];
+        };
+
+        const getGreeting = (hour) => {
+            if (hour < 12) {
+                return 'Bom dia';
+            }
+            if (hour < 18) {
+                return 'Boa tarde';
+            }
+            return 'Boa noite';
+        };
+
+        const isMobileViewport = () => window.innerWidth <= MOBILE_BREAKPOINT;
+
+        const readSidebarPreference = () => {
+            try {
+                return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+            } catch (error) {
+                return false;
+            }
+        };
+
+        const saveSidebarPreference = (collapsed) => {
+            try {
+                localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
+            } catch (error) {
+                // Ignore storage failures to keep the interface functional.
+            }
+        };
+
+        const ensureSharedHeader = () => {
+            if (!appHeader || !headerRight) {
+                return;
+            }
+
+            appHeader.classList.add('dashboard-header');
+
+            if (headerDateElement && headerCopy && headerDateElement.classList.contains('header-date')) {
+                headerDateElement.className = 'header-context';
+                headerDateElement.textContent = 'Painel clínico em tempo real para a sua rotina.';
+            }
+
+            if (!headerRight.querySelector('.header-insights')) {
+                const insights = document.createElement('div');
+                insights.className = 'header-insights';
+                insights.setAttribute('aria-label', 'Informações do sistema');
+                insights.innerHTML = `
+                    <div class="header-info-chip">
+                        <span class="header-info-icon status"><i data-lucide="activity" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Status do sistema</span>
+                            <span class="header-info-value skeletonable system-status" id="systemStatus">Online</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Data atual</span>
+                            <span class="header-info-value skeletonable" id="infoDate">00/00/0000</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Hora atual</span>
+                            <span class="header-info-value skeletonable" id="infoTime">00:00:00</span>
+                        </span>
+                    </div>
+                `;
+                headerRight.insertBefore(insights, headerRight.firstChild);
+
+                infoDateElement = insights.querySelector('#infoDate');
+                infoTimeElement = insights.querySelector('#infoTime');
+                systemStatusElement = insights.querySelector('#systemStatus');
+            }
+
+            if (liveClockElement) {
+                liveClockElement.style.display = 'none';
+                liveClockElement.setAttribute('aria-hidden', 'true');
+            }
+        };
+
+        const updateDateTime = () => {
+            const now = new Date();
+
+            const fullDate = capitalize(now.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            }));
+
+            const shortDate = now.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            const timeWithSeconds = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const timeNoSeconds = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            if (headerDateElement && headerDateElement.classList.contains('header-date')) {
+                headerDateElement.textContent = fullDate;
+            }
+
+            if (infoDateElement) {
+                infoDateElement.textContent = shortDate;
+            }
+
+            if (liveClockElement && liveClockElement.style.display !== 'none') {
+                liveClockElement.textContent = timeNoSeconds;
+            }
+
+            if (infoTimeElement) {
+                infoTimeElement.textContent = timeWithSeconds;
+            }
+
+            if (greetingElement) {
+                const username = greetingElement.getAttribute('data-username') || 'Usuário';
+                const firstName = toFirstName(username);
+                greetingElement.textContent = `${getGreeting(now.getHours())}, ${firstName}`;
+            }
+        };
+
+        const updateConnectionStatus = () => {
+            if (!systemStatusElement) {
+                return;
+            }
+
+            const online = navigator.onLine;
+            systemStatusElement.classList.toggle('offline', !online);
+            systemStatusElement.textContent = online ? 'Online' : 'Offline';
+        };
+
+        const closeUserMenu = () => {
+            if (userMenu) {
+                userMenu.classList.remove('open');
+            }
+        };
+
+        const updateSidebarAccessibility = () => {
+            const mobileViewport = isMobileViewport();
+            const sidebarOpen = body.classList.contains('sidebar-open');
+            const sidebarCollapsed = body.classList.contains('sidebar-collapsed');
+            const sidebarExpanded = mobileViewport ? sidebarOpen : !sidebarCollapsed;
+            const sidebarHidden = mobileViewport && !sidebarOpen;
+
+            if (sidebarToggle) {
+                sidebarToggle.setAttribute('aria-expanded', String(sidebarExpanded));
+            }
+
+            if (appSidebar) {
+                appSidebar.setAttribute('aria-hidden', String(sidebarHidden));
+            }
+
+            if (sidebarBackdrop) {
+                sidebarBackdrop.setAttribute('aria-hidden', String(!sidebarOpen));
+                sidebarBackdrop.tabIndex = sidebarOpen ? 0 : -1;
+            }
+        };
+
+        const closeMobileSidebar = () => {
+            body.classList.remove('sidebar-open');
+            updateSidebarAccessibility();
+        };
+
+        const relocateSidebarToggle = () => {
+            if (!sidebarToggle || !appSidebar || !sidebarToggleHome) {
+                return;
+            }
+
+            if (isMobileViewport()) {
+                const homeParent = sidebarToggleHome.parentNode;
+                if (homeParent && (sidebarToggle.parentNode !== homeParent || sidebarToggle.previousSibling !== sidebarToggleHome)) {
+                    homeParent.insertBefore(sidebarToggle, sidebarToggleHome.nextSibling);
+                }
+                return;
+            }
+
+            const sidebarHeader = appSidebar.querySelector('.sidebar-header');
+            if (sidebarHeader && sidebarToggle.parentNode !== sidebarHeader) {
+                sidebarHeader.appendChild(sidebarToggle);
+            }
+        };
+
+        const syncSidebarLayout = () => {
+            if (isMobileViewport()) {
+                body.classList.remove('sidebar-collapsed');
+            } else {
+                body.classList.remove('sidebar-open');
+                body.classList.toggle('sidebar-collapsed', readSidebarPreference());
+            }
+
+            relocateSidebarToggle();
+            updateSidebarAccessibility();
+        };
+
+        function toggleSidebar() {
+            if (isMobileViewport()) {
+                body.classList.toggle('sidebar-open');
+            } else {
+                const nextCollapsedState = !body.classList.contains('sidebar-collapsed');
+                body.classList.toggle('sidebar-collapsed', nextCollapsedState);
+                saveSidebarPreference(nextCollapsedState);
+            }
+
+            updateSidebarAccessibility();
+        }
+
+        const setActiveSidebarLink = () => {
+            const navLinks = document.querySelectorAll('.app-sidebar .sidebar-link[href]');
+            const currentPath = window.location.pathname;
+
+            navLinks.forEach((link) => {
+                const targetPath = new URL(link.getAttribute('href'), window.location.origin).pathname;
+                let isActive = false;
+
+                if (targetPath === '/dashboard') {
+                    isActive = currentPath === '/' || currentPath === '/dashboard';
+                } else {
+                    isActive = currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+                }
+
+                link.classList.toggle('active', isActive);
+            });
+        };
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+        }
+
+        if (userMenuToggle) {
+            userMenuToggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (userMenu) {
+                    userMenu.classList.toggle('open');
+                }
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!userMenu || !userMenu.contains(event.target)) {
+                closeUserMenu();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeUserMenu();
+                closeMobileSidebar();
+            }
+        });
+
+        window.addEventListener('resize', syncSidebarLayout);
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        ensureSharedHeader();
+        syncSidebarLayout();
+        setActiveSidebarLink();
+        updateConnectionStatus();
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        window.toggleSidebar = toggleSidebar;
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    } catch (error) {
+        console.error('Falha ao inicializar a interface do painel.', error);
+        finishDashboardLoading();
+    }
+})();

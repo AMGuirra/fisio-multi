@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "FisioGestaoApplication",
+      "request": "launch",
+      "mainClass": "com.fisiogestao.FisioGestaoApplication",
+      "projectName": "fisiogestao"
+    }
+  ]
+}

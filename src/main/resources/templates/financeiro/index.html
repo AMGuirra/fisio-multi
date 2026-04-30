@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Controle Financeiro</h1>
+                    <p class="hero-subtitle">Registre receitas e despesas para acompanhar o saldo projetado da clínica em tempo real.</p>
+                </div>
+                <span class="hero-pill">Financeiro</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções de Gestão">
+                <a th:href="@{/financeiro}" href="/financeiro" class="page-tab active"><i data-lucide="wallet"></i> Financeiro</a>
+                <a th:href="@{/relatorios}" href="/relatorios" class="page-tab"><i data-lucide="file-text"></i> Relatórios</a>
+            </nav>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <!-- Filtro de período -->
+            <div class="section-card period-filter-card">
+                <div class="period-filter-bar">
+                    <div class="period-quick-btns">
+                        <button type="button" class="period-quick-btn" data-periodo="mes-atual">Este mês</button>
+                        <button type="button" class="period-quick-btn" data-periodo="mes-anterior">Mês anterior</button>
+                        <button type="button" class="period-quick-btn" data-periodo="trimestre">Últimos 3 meses</button>
+                        <button type="button" class="period-quick-btn" data-periodo="ano">Este ano</button>
+                    </div>
+                    <form method="get" th:action="@{/financeiro}" action="/financeiro" class="period-form" id="periodForm">
+                        <span class="period-label">De</span>
+                        <div class="period-input-group">
+                            <input type="date" id="periodoInicioInput" name="inicio" class="form-control"
+                                   aria-label="Data de início do período"
+                                   th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
+                        </div>
+                        <span class="period-label">Até</span>
+                        <div class="period-input-group">
+                            <input type="date" id="periodoFimInput" name="fim" class="form-control"
+                                   aria-label="Data de fim do período"
+                                   th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
+                        </div>
+                        <button type="submit" class="action-button primary">
+                            <i data-lucide="search"></i>
+                            Filtrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cards de resumo -->
+            <section class="summary-grid grid-5">
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="circle-check-big"></i></span>
+                    <p class="summary-label">Já Recebido</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.receitasRecebidas(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card receita-pendente">
+                    <span class="summary-icon"><i data-lucide="arrow-up-circle"></i></span>
+                    <p class="summary-label">A Receber</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.receitasPendentes(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="circle-x"></i></span>
+                    <p class="summary-label">Já Pago</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.despesasPagas(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card despesa-pendente">
+                    <span class="summary-icon"><i data-lucide="arrow-down-circle"></i></span>
+                    <p class="summary-label">A Pagar</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.despesasPendentes(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="piggy-bank"></i></span>
+                    <p class="summary-label">Saldo Realizado</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.saldoRealizado(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+            </section>
+
+            <!-- Barra de métricas -->
+            <div class="section-card metrics-strip-card">
+                <div class="metrics-strip">
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="receipt"></i> Ticket Médio</span>
+                        <span class="metric-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.ticketMedio(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="percent"></i> Taxa de Recebimento</span>
+                        <span class="metric-value">
+                            <span class="metric-badge" th:classappend="${'tone-' + resumo.taxaTone()}" th:text="${resumo.taxaRecebimento()}">0,0%</span>
+                        </span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="trending-up"></i> Saldo Projetado</span>
+                        <span class="metric-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.saldoProjetado(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="layers"></i> Lançamentos Ativos</span>
+                        <span class="metric-value" th:text="${resumo.lancamentosAtivosCount()}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="crud-layout form-table">
+                <article class="section-card">
+                    <header class="section-head">
+                        <div>
+                            <h3 class="section-title">
+                                <i th:attr="data-lucide=${editMode and lancamentoEmEdicao != null ? 'square-pen' : 'plus-circle'}" data-lucide="plus-circle"></i>
+                                <span th:text="${editMode and lancamentoEmEdicao != null ? 'Editar Lançamento' : 'Novo Lançamento'}">Novo Lançamento</span>
+                            </h3>
+                            <p class="section-subtitle"
+                               th:if="${editMode and lancamentoEmEdicao != null}"
+                               th:text="${lancamentoEmEdicao.descricao + ' • ' + lancamentoEmEdicao.status}">Lançamento em edição</p>
+                        </div>
+                        <a th:if="${editMode and lancamentoEmEdicao != null}" th:href="@{/financeiro}" href="/financeiro" class="action-button ghost">
+                            <i data-lucide="x"></i>
+                            Cancelar edição
+                        </a>
+                    </header>
+                    <div class="section-body">
+                        <form th:object="${lancamentoForm}"
+                              method="post"
+                              class="modern-form"
+                              th:attr="action=${editMode and lancamentoEmEdicao != null ? '/financeiro/lancamentos/' + lancamentoEmEdicao.id : '/financeiro/lancamentos'}">
+                            <div class="form-field">
+                                <label for="tipo">Tipo</label>
+                                <select id="tipo" class="form-select" th:field="*{tipo}" required>
+                                    <option th:each="tipo : ${tiposLancamento}" th:value="${tipo}" th:text="${tipo}">RECEITA</option>
+                                </select>
+                                <p class="form-error" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="descricao">Descrição</label>
+                                <input id="descricao" type="text" class="form-control" th:field="*{descricao}" maxlength="180" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="categoria">Categoria</label>
+                                <input id="categoria" type="text" class="form-control" th:field="*{categoria}" maxlength="80" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="valor">Valor</label>
+                                <input id="valor" type="number" step="0.01" min="0.01" class="form-control" th:field="*{valor}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataCompetencia">Data de Competência</label>
+                                <input id="dataCompetencia" type="date" class="form-control" th:field="*{dataCompetencia}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataCompetencia')}" th:errors="*{dataCompetencia}"></p>
+                            </div>
+
+                            <button type="submit" class="action-button primary">
+                                <i th:attr="data-lucide=${editMode and lancamentoEmEdicao != null ? 'save' : 'check'}" data-lucide="check"></i>
+                                <span th:text="${editMode and lancamentoEmEdicao != null ? 'Salvar alterações' : 'Salvar Lançamento'}">Salvar Lançamento</span>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="list-checks"></i> Lançamentos</h3>
+                        <p class="section-subtitle" th:text="${lancamentos != null ? lancamentos.size() + ' itens' : '0 itens'}">0 itens</p>
+                    </header>
+
+                    <div class="section-body" th:if="${lancamentos.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="wallet"></i>
+                            <p>Nenhum lançamento financeiro cadastrado.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap" th:unless="${lancamentos.empty}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Competência</th>
+                                    <th>Descrição</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Valor</th>
+                                    <th class="text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="lancamento : ${lancamentos}">
+                                    <td th:text="${#temporals.format(lancamento.dataCompetencia, 'dd/MM/yyyy')}">01/01/2026</td>
+                                    <td>
+                                        <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
+                                        <p class="entity-meta" th:text="${lancamento.categoria}">Categoria</p>
+                                    </td>
+                                    <td>
+                                        <span class="chip" th:classappend="${lancamento.tipo.name() == 'RECEITA' ? 'tipo-receita' : 'tipo-despesa'}" th:text="${lancamento.tipo.name()}">RECEITA</span>
+                                    </td>
+                                    <td>
+                                        <span class="chip" th:classappend="${lancamento.status.name() == 'PAGO' ? 'status-pago' : (lancamento.status.name() == 'CANCELADO' ? 'status-cancelado' : 'status-pendente')}" th:text="${lancamento.status.name()}">PENDENTE</span>
+                                    </td>
+                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
+                                    <td class="text-right">
+                                        <div class="table-actions">
+                                            <a th:if="${lancamento.status.name() != 'CANCELADO'}"
+                                               th:href="@{/financeiro(editar=${lancamento.id})}"
+                                               class="action-button ghost">
+                                                <i data-lucide="square-pen"></i>
+                                                Editar
+                                            </a>
+                                            <form th:if="${lancamento.status.name() == 'PENDENTE'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/cancelar(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Cancelar lançamento?"
+                                                  data-confirm-message="Deseja cancelar este lançamento financeiro?"
+                                                  data-confirm-helper-title="O lançamento será cancelado agora"
+                                                  data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
+                                                  data-confirm-action-label="Cancelar lançamento">
+                                                <button type="submit" class="action-button danger">
+                                                    <i data-lucide="x-circle"></i>
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                            <form th:if="${lancamento.status.name() == 'PENDENTE'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Marcar como pago?"
+                                                  data-confirm-message="Deseja marcar este lançamento como pago?"
+                                                  data-confirm-helper-title="A baixa será registrada agora"
+                                                  data-confirm-helper-message="O lançamento sairá dos pendentes e ficará registrado como pago."
+                                                  data-confirm-action-label="Marcar pago">
+                                                <button type="submit" class="action-button success">
+                                                    <i data-lucide="check-check"></i>
+                                                    Marcar pago
+                                                </button>
+                                            </form>
+                                            <form th:if="${lancamento.status.name() == 'PAGO'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Cancelar baixa?"
+                                                  data-confirm-message="Deseja desfazer a baixa deste lançamento?"
+                                                  data-confirm-helper-title="O lançamento voltará para pendente"
+                                                  data-confirm-helper-message="Use esta ação quando precisar revisar ou refazer o pagamento."
+                                                  data-confirm-action-label="Cancelar baixa">
+                                                <button type="submit" class="action-button ghost">
+                                                    <i data-lucide="rotate-ccw"></i>
+                                                    Cancelar baixa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+    (() => {
+        const inicioInput = document.getElementById('periodoInicioInput');
+        const fimInput    = document.getElementById('periodoFimInput');
+        const form        = document.getElementById('periodForm');
+
+        const fmt = d => d.toISOString().slice(0, 10);
+        const hoje = new Date();
+
+        const periodos = {
+            'mes-atual':    () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth(), 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+            }),
+            'mes-anterior': () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth(), 0)
+            }),
+            'trimestre':    () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+            }),
+            'ano':          () => ({
+                inicio: new Date(hoje.getFullYear(), 0, 1),
+                fim:    new Date(hoje.getFullYear(), 11, 31)
+            }),
+        };
+
+        document.querySelectorAll('.period-quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const { inicio, fim } = periodos[btn.dataset.periodo]();
+                inicioInput.value = fmt(inicio);
+                fimInput.value    = fmt(fim);
+                form.submit();
+            });
+        });
+
+        // marcar botão ativo baseado nos valores atuais
+        const iniVal = inicioInput.value;
+        const fimVal = fimInput.value;
+        Object.entries(periodos).forEach(([key, fn]) => {
+            const { inicio, fim } = fn();
+            if (fmt(inicio) === iniVal && fmt(fim) === fimVal) {
+                document.querySelector(`[data-periodo="${key}"]`)?.classList.add('active');
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
+
+
+
+
+

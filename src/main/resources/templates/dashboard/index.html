@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header dashboard-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting"
+                        th:attr="data-username=${loggedUserDisplayName}">
+                        Bom dia, Usuário
+                    </h2>
+                    <p class="header-context">Painel clínico em tempo real para a sua rotina.</p>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="header-insights" aria-label="Informações do sistema">
+                    <div class="header-info-chip">
+                        <span class="header-info-icon status" th:classappend="${systemStatusAtual != null and systemStatusAtual.status.name() != 'ONLINE' ? 'text-' + systemStatusAtual.status.name().toLowerCase() : ''}">
+                            <i data-lucide="activity" aria-hidden="true"></i>
+                        </span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Status do sistema</span>
+                            <span class="header-info-value skeletonable system-status" 
+                                  id="systemStatus"
+                                  th:classappend="${systemStatusAtual != null and systemStatusAtual.status.name() != 'ONLINE' ? 'status-' + systemStatusAtual.status.name().toLowerCase() : ''}"
+                                  th:text="${systemStatusAtual != null ? systemStatusAtual.status.label : 'Online'}">Online</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Data atual</span>
+                            <span class="header-info-value skeletonable" id="infoDate">00/00/0000</span>
+                        </span>
+                    </div>
+                    <div class="header-info-chip">
+                        <span class="header-info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
+                        <span class="header-info-copy">
+                            <span class="header-info-label">Hora atual</span>
+                            <span class="header-info-value skeletonable" id="infoTime">00:00:00</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar"
+                              th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name"
+                              th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem">
+                            <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+                            <span>Painel</span>
+                        </a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem">
+                            <i data-lucide="calendar-days" aria-hidden="true"></i>
+                            <span>Agenda</span>
+                        </a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="user-menu-item" role="menuitem">
+                                <i data-lucide="log-out" aria-hidden="true"></i>
+                                <span>Sair</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <section class="hero-card">
+                <div class="hero-content">
+                    <h1 class="hero-title">Visão geral da sua clínica</h1>
+                    <p class="hero-subtitle">Métricas em tempo real para acompanhar pacientes, sessões e saúde financeira.</p>
+                </div>
+            </section>
+
+            <div class="flash-stack" th:if="${errorMessage}">
+                <div class="flash-message error">
+                    <i data-lucide="triangle-alert" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Erro</span>
+                </div>
+            </div>
+
+            <section class="metrics-grid" aria-label="Resumo de métricas">
+                <a th:href="@{/pacientes}" href="/pacientes"
+                   class="metric-card metric-card-link metric-pacientes"
+                   aria-label="Abrir a página de pacientes ativos">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.pacientesAtivos()}">0</p>
+                    <p class="metric-label">Pacientes Ativos</p>
+                </a>
+
+                <a th:href="@{/calendario(data=${dashboardToday})}"
+                   class="metric-card metric-card-link metric-sessoes"
+                   aria-label="Abrir a agenda do dia">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.sessoesHoje()}">0</p>
+                    <p class="metric-label">Sessões Hoje</p>
+                </a>
+
+                <a th:href="@{/solicitacoes}" href="/solicitacoes"
+                   class="metric-card metric-card-link metric-pendencias"
+                   aria-label="Abrir solicitações pendentes">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.solicitacoesPendentes()}">0</p>
+                    <p class="metric-label">Solicitações Pendentes</p>
+                </a>
+
+                <a th:href="@{/financeiro#financeiroReceitasPendentes}" href="/financeiro#financeiroReceitasPendentes"
+                   class="metric-card metric-card-link metric-receita"
+                   aria-label="Abrir resumo de receitas pendentes">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="arrow-up-circle" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.receitasPendentes(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                    <p class="metric-label">Receitas Pendentes</p>
+                </a>
+
+                <a th:href="@{/financeiro#financeiroDespesasPendentes}" href="/financeiro#financeiroDespesasPendentes"
+                   class="metric-card metric-card-link metric-despesa"
+                   aria-label="Abrir resumo de despesas pendentes">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="arrow-down-circle" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.despesasPendentes(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                    <p class="metric-label">Despesas Pendentes</p>
+                </a>
+
+                <a th:href="@{/financeiro#financeiroSaldoProjetado}" href="/financeiro#financeiroSaldoProjetado"
+                   class="metric-card metric-card-link metric-saldo"
+                   aria-label="Abrir resumo de saldo projetado">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="piggy-bank" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${'R$ ' + #numbers.formatDecimal(summary.saldoProjetado(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                    <p class="metric-label">Saldo Projetado</p>
+                </a>
+            </section>
+
+            <section class="panels-grid panels-grid-single">
+                <article class="panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="zap" aria-hidden="true"></i>
+                            Ações Rápidas
+                        </h3>
+                    </header>
+                    <div class="panel-body">
+                        <div class="quick-actions-grid">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Agenda</p>
+                                <p class="quick-action-hint">Visão diária e mensal</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" th:href="@{/bloqueios}" href="/bloqueios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Bloqueios</p>
+                                <p class="quick-action-hint">Indisponibilidades</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" th:href="@{/solicitacoes}" href="/solicitacoes" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Solicitações</p>
+                                <p class="quick-action-hint">Aprovar agenda</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('PACIENTES')}" th:href="@{/pacientes}" href="/pacientes" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Pacientes</p>
+                                <p class="quick-action-hint">Cadastro clínico</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('PRONTUARIO')}" th:href="@{/prontuario}" href="/prontuario" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Prontuário</p>
+                                <p class="quick-action-hint">Evolução SOAP</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('USUARIOS')}" th:href="@{/usuarios}" href="/usuarios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Usuários</p>
+                                <p class="quick-action-hint">Gerenciar equipe</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('FUNCOES_USUARIOS')}" th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="sliders-horizontal" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Funções</p>
+                                <p class="quick-action-hint">Permissões por tipo</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('FINANCEIRO')}" th:href="@{/financeiro}" href="/financeiro" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="banknote" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Financeiro</p>
+                                <p class="quick-action-hint">Fluxo de caixa</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('RELATORIOS')}" th:href="@{/relatorios}" href="/relatorios" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="file-text" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Relatórios</p>
+                                <p class="quick-action-hint">Exportar e enviar</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('CONFIG_CLINICA')}" th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Config. Clínica</p>
+                                <p class="quick-action-hint">Expediente e canais</p>
+                            </a>
+                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
+                                <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
+                                <p class="quick-action-label">Agendamento Online</p>
+                                <p class="quick-action-hint">Abrir portal público</p>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            © 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia
+        </footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+
+
+
+
+

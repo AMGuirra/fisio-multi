@@ -1,0 +1,564 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="agendaDia">
+    <section class="agenda-day-panel">
+        <section id="agenda-do-dia" class="date-control">
+            <a th:href="@{/calendario(data=${dataSelecionada.minusDays(1)})}" class="date-control-nav" aria-label="Dia anterior"><i data-lucide="chevron-left"></i></a>
+            <p class="date-control-label" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Data</p>
+            <a th:href="@{/calendario(data=${dataSelecionada.plusDays(1)})}" class="date-control-nav" aria-label="Próximo dia"><i data-lucide="chevron-right"></i></a>
+        </section>
+
+        <article class="section-card agenda-day-card">
+            <header class="section-head">
+                <h3 class="section-title"><i data-lucide="clock-3"></i> Sessões do Dia</h3>
+                <p class="section-subtitle" th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</p>
+            </header>
+
+            <div class="section-body" th:if="${sessoes == null or sessoes.empty}">
+                <div class="empty-box agenda-empty-box">
+                    <i data-lucide="calendar-x"></i>
+                    <p>Nenhuma sessão agendada para a data selecionada.</p>
+                </div>
+            </div>
+
+            <div class="section-body" th:unless="${sessoes == null or sessoes.empty}">
+                <div class="session-list">
+                    <article class="session-card"
+                             th:each="sessao : ${sessoes}"
+                             th:classappend="${sessao.status.name() == 'AGENDADA' ? ' session-card-warning' : (sessao.status.name() == 'REALIZADA' ? ' session-card-success' : ' session-card-danger')}">
+                        <div class="session-row align-start">
+                            <span class="session-time" th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm')}">09:00</span>
+                            <div class="session-content">
+                                <div class="session-detail">
+                                    <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
+                                    <p class="session-text" th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</p>
+                                    <p class="session-text" th:text="${sessao.tipoAgendamento != null and sessao.tipoAgendamento.name() == 'AVULSO' ? 'Consulta avulsa' : (sessao.pacoteSessao != null ? 'Plano: ' + sessao.pacoteSessao.nomePacote : 'Sem plano vinculado')}">Plano</p>
+                                    <p class="session-text" th:if="${sessao.valorAvulso != null}" th:text="${'Valor: R$ ' + #numbers.formatDecimal(sessao.valorAvulso, 1, 'POINT', 2, 'COMMA')}">Valor</p>
+                                    <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
+                                </div>
+                                <div class="session-actions">
+                                    <div class="session-actions-top">
+                                        <span class="chip"
+                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
+                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : sessao.status.name()}">STATUS</span>
+                                        <span class="chip status-success" th:if="${sessao.recorrencia != null or sessao.recorrenciaPai != null}">RECORRENTE</span>
+                                        <a th:if="${sessao.status.name() != 'CANCELADA'}"
+                                           href="javascript:void(0)"
+                                           class="action-button session-action-edit js-btn-editar-sessao"
+                                           th:data-sessao-id="${sessao.id}">
+                                            <i data-lucide="square-pen"></i>Editar
+                                        </a>
+                                    </div>
+                                    <div class="session-actions-main">
+                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/realizar(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Confirmar realização?"
+                                              data-confirm-message="Deseja confirmar a realização desta sessão?"
+                                              data-confirm-helper-title="A sessão será marcada como realizada"
+                                              data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
+                                              data-confirm-action-label="Confirmar realização">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
+                                        </form>
+                                        <form th:if="${sessao.status.name() == 'REALIZADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Desfazer realização?"
+                                              data-confirm-message="Deseja reverter esta sessão para agendada?"
+                                              data-confirm-helper-title="A sessão voltará a ficar pendente"
+                                              data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
+                                              data-confirm-action-label="Desfazer realização">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
+                                        </form>
+                                        <form th:if="${sessao.status.name() == 'CANCELADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/restaurar(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Voltar sessão para pendente?"
+                                              data-confirm-message="Deseja tirar esta sessão do cancelado?"
+                                              data-confirm-helper-title="A sessão voltará a ficar pendente"
+                                              data-confirm-helper-message="O horário volta a ficar reservado e a sessão poderá ser realizada ou editada novamente."
+                                              data-confirm-action-label="Voltar para pendente">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Voltar para pendente</button>
+                                        </form>
+                                    </div>
+                                    <div class="session-actions-bottom">
+                                        <button th:if="${sessao.status.name() != 'CANCELADA'}"
+                                                type="button"
+                                                class="action-button session-action-cancel js-btn-status-sessao"
+                                                th:attr="data-session-status=${sessao.status.name()},
+                                                         data-session-patient=${sessao.cliente.nomeCompleto},
+                                                         data-session-datetime=${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')},
+                                                         data-session-recorrente=${sessao.recorrencia != null or sessao.recorrenciaPai != null},
+                                                         data-cancel-form-id=${'sessao-cancelar-' + sessao.id},
+                                                         data-pending-form-id=${sessao.status.name() == 'REALIZADA' ? 'sessao-reabrir-' + sessao.id : ''}">
+                                            <i data-lucide="x-circle"></i>Cancelar
+                                        </button>
+                                        <form th:action="@{/agenda/sessoes/{id}/excluir(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Excluir sessão?"
+                                              data-confirm-message="Deseja excluir esta sessão de forma permanente?"
+                                              data-confirm-helper-title="A exclusão remove a sessão do histórico"
+                                              data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
+                                              data-confirm-action-label="Excluir sessão">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button session-action-delete"><i data-lucide="trash-2"></i>Excluir</button>
+                                        </form>
+                                    </div>
+
+                                    <form th:if="${sessao.status.name() == 'REALIZADA'}"
+                                          th:id="${'sessao-reabrir-' + sessao.id}"
+                                          th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
+                                          method="post"
+                                          class="inline-form"
+                                          hidden>
+                                        <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                    </form>
+                                    <form th:if="${sessao.status.name() != 'CANCELADA'}"
+                                          th:id="${'sessao-cancelar-' + sessao.id}"
+                                          th:action="@{/agenda/sessoes/{id}/cancelar(id=${sessao.id})}"
+                                          method="post"
+                                          class="inline-form"
+                                          hidden>
+                                        <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <div id="editarSessaoModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editarSessaoModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="editarSessaoModalTitle"><i data-lucide="square-pen"></i> Editar Sessão</h3>
+                        <p>Editando sessão de <span id="editarSessaoPacienteNome">...</span></p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form id="editarSessaoForm" class="modern-form">
+                        <input type="hidden" id="editarSessaoId" name="id">
+
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="editarSessaoData">Data</label>
+                                <input id="editarSessaoData" type="date" name="data" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="editarSessaoHorario">Horário</label>
+                                <input id="editarSessaoHorario" type="time" name="horario" class="form-control" step="60" required>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editarSessaoCliente">Paciente</label>
+                            <select id="editarSessaoCliente" name="clienteId" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nomeCompleto}">Paciente</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label>Tipo de consulta</label>
+                            <div class="segmented-control appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
+                                <label class="appointment-type-option">
+                                    <input type="radio" name="tipoAgendamento" value="PACOTE" checked>
+                                    <span>📦 Pacote</span>
+                                </label>
+                                <label class="appointment-type-option">
+                                    <input type="radio" name="tipoAgendamento" value="AVULSO">
+                                    <span>⚡ Avulso</span>
+                                </label>
+                            </div>
+                            <p class="helper-text" id="editarSessaoRecorrenteHelper" hidden>Este agendamento faz parte de uma recorrência. Ao salvar ou cancelar, escolha se a mudança é somente desta ocorrência ou dos próximos atendimentos.</p>
+                        </div>
+
+                        <div class="form-field js-editar-pacote-field">
+                            <label for="editarSessaoPacote">Plano de tratamento</label>
+                            <select id="editarSessaoPacote" name="pacoteSessaoId" class="form-select">
+                                <option value="">Selecionar automaticamente o plano ativo</option>
+                                <option th:each="pacote : ${pacotesAgenda}"
+                                        th:value="${pacote.id}"
+                                        th:attr="data-cliente-id=${pacote.cliente.id}"
+                                        th:text="${pacote.nomePacote + ' • ' + pacote.cliente.nomeCompleto + ' • ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponíveis'}">
+                                    Pacote
+                                </option>
+                            </select>
+                            <p class="helper-text">Ao trocar o plano, o sistema estorna o consumo anterior e reserva no novo automaticamente.</p>
+                        </div>
+
+                        <div class="form-field js-editar-avulso-field initially-hidden">
+                            <div class="flash-message success compact-banner">
+                                <i data-lucide="circle-check"></i>
+                                <span>Será contabilizada como consulta avulsa — sem vínculo com pacote.</span>
+                            </div>
+                            <label for="editarSessaoValorAvulso">Valor da consulta</label>
+                            <input id="editarSessaoValorAvulso" type="number" name="valorAvulso" class="form-control" min="0" step="0.01">
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editarSessaoTipoAtendimento">Tipo de Atendimento</label>
+                            <input id="editarSessaoTipoAtendimento" type="text" name="tipoAtendimento" class="form-control" placeholder="Ex: Pilates, RPG">
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editarSessaoObservacoes">Observações</label>
+                            <textarea id="editarSessaoObservacoes" name="observacoes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-error initially-hidden" id="editarSessaoError"></div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
+                            <button type="submit" class="action-button primary" id="editarSessaoSalvar">
+                                <i data-lucide="save"></i>
+                                Salvar alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gerenciarStatusSessaoModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gerenciarStatusSessaoModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="gerenciarStatusSessaoModalTitle">Gerenciar status da sessão</h3>
+                        <p id="gerenciarStatusSessaoModalSubtitle">Revise o próximo passo antes de continuar.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <div class="helper-card modal-helper-card">
+                        <div class="helper-copy">
+                            <h4 id="gerenciarStatusSessaoModalHelperTitle">Escolha o destino da sessão</h4>
+                            <p id="gerenciarStatusSessaoModalHelperMessage">Você pode manter a sessão pendente ou concluir o cancelamento.</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="action-button ghost" data-modal-close id="gerenciarStatusSessaoCloseAction">Manter pendente</button>
+                        <button type="button" class="action-button primary" id="gerenciarStatusSessaoPendingAction" hidden>
+                            <i data-lucide="undo-2"></i>
+                            Voltar para pendente
+                        </button>
+                        <button type="button" class="action-button danger" id="gerenciarStatusSessaoCancelAction">
+                            <i data-lucide="x-circle"></i>
+                            Cancelar sessão
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
+    <script>
+        (() => {
+            (() => {
+                const modal = document.getElementById('gerenciarStatusSessaoModal');
+                const subtitle = document.getElementById('gerenciarStatusSessaoModalSubtitle');
+                const helperTitle = document.getElementById('gerenciarStatusSessaoModalHelperTitle');
+                const helperMessage = document.getElementById('gerenciarStatusSessaoModalHelperMessage');
+                const closeAction = document.getElementById('gerenciarStatusSessaoCloseAction');
+                const pendingAction = document.getElementById('gerenciarStatusSessaoPendingAction');
+                const cancelAction = document.getElementById('gerenciarStatusSessaoCancelAction');
+
+                let pendingForm = null;
+                let cancelForm = null;
+
+                const setOpen = (open) => {
+                    if (!modal) {
+                        return;
+                    }
+                    modal.classList.toggle('is-open', open);
+                    modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    document.body.classList.toggle('modal-open', open);
+                };
+
+                const close = () => {
+                    pendingForm = null;
+                    cancelForm = null;
+                    setOpen(false);
+                };
+
+                document.querySelectorAll('.js-btn-status-sessao').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const status = button.dataset.sessionStatus || 'AGENDADA';
+                        const patient = button.dataset.sessionPatient || 'Paciente';
+                        const datetime = button.dataset.sessionDatetime || '';
+                        const recorrente = button.dataset.sessionRecorrente === 'true';
+                        const pendingFormId = button.dataset.pendingFormId;
+                        const cancelFormId = button.dataset.cancelFormId;
+
+                        pendingForm = pendingFormId ? document.getElementById(pendingFormId) : null;
+                        cancelForm = cancelFormId ? document.getElementById(cancelFormId) : null;
+
+                        subtitle.textContent = datetime ? `${patient} • ${datetime}` : patient;
+
+                        if (status === 'REALIZADA') {
+                            closeAction.textContent = 'Fechar';
+                            helperTitle.textContent = 'A realização será desfeita antes do próximo passo';
+                            helperMessage.textContent = 'Você pode reabrir a sessão como pendente ou seguir para o cancelamento definitivo do atendimento.';
+                            pendingAction.hidden = false;
+                        } else {
+                            closeAction.textContent = 'Manter pendente';
+                            helperTitle.textContent = recorrente ? 'Alterar somente este ou todos os próximos?' : 'A sessão ainda está pendente';
+                            helperMessage.textContent = recorrente
+                                ? 'Por enquanto esta ação cancela somente esta ocorrência. Use a edição dos próximos atendimentos quando quiser aplicar em lote.'
+                                : 'Se você continuar, a sessão será movida para cancelada e o horário ficará livre novamente.';
+                            pendingAction.hidden = true;
+                        }
+
+                        setOpen(true);
+                    });
+                });
+
+                if (pendingAction) {
+                    pendingAction.addEventListener('click', () => {
+                        if (!pendingForm) {
+                            close();
+                            return;
+                        }
+                        const formToSubmit = pendingForm;
+                        close();
+                        HTMLFormElement.prototype.submit.call(formToSubmit);
+                    });
+                }
+
+                if (cancelAction) {
+                    cancelAction.addEventListener('click', () => {
+                        if (!cancelForm) {
+                            close();
+                            return;
+                        }
+                        const formToSubmit = cancelForm;
+                        close();
+                        HTMLFormElement.prototype.submit.call(formToSubmit);
+                    });
+                }
+
+                if (modal) {
+                    modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                        element.addEventListener('click', close);
+                    });
+                }
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && modal && modal.classList.contains('is-open')) {
+                        close();
+                    }
+                });
+            })();
+
+            (() => {
+                const editarSessaoModal = document.getElementById('editarSessaoModal');
+                const editarSessaoForm = document.getElementById('editarSessaoForm');
+                const editarSessaoIdInput = document.getElementById('editarSessaoId');
+                const editarSessaoDataInput = document.getElementById('editarSessaoData');
+                const editarSessaoHorarioInput = document.getElementById('editarSessaoHorario');
+                const editarSessaoClienteSelect = document.getElementById('editarSessaoCliente');
+                const editarSessaoPacoteSelect = document.getElementById('editarSessaoPacote');
+                const editarSessaoTipoAgendamentoInputs = Array.from(document.querySelectorAll('#editarSessaoForm input[name="tipoAgendamento"]'));
+                const editarSessaoValorAvulsoInput = document.getElementById('editarSessaoValorAvulso');
+                const editarSessaoRecorrenteHelper = document.getElementById('editarSessaoRecorrenteHelper');
+                const editarSessaoTipoInput = document.getElementById('editarSessaoTipoAtendimento');
+                const editarSessaoObservacoesInput = document.getElementById('editarSessaoObservacoes');
+                const editarSessaoPacienteNome = document.getElementById('editarSessaoPacienteNome');
+                const editarSessaoError = document.getElementById('editarSessaoError');
+                const editarSessaoSalvarBtn = document.getElementById('editarSessaoSalvar');
+
+                const setEditarModalOpen = (open) => {
+                    if (!editarSessaoModal) return;
+                    editarSessaoModal.classList.toggle('is-open', open);
+                    editarSessaoModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    document.body.classList.toggle('modal-open', open);
+                };
+
+                const syncPacotesModal = () => {
+                    if (!editarSessaoPacoteSelect || !editarSessaoClienteSelect) return;
+                    const clienteId = editarSessaoClienteSelect.value;
+                    Array.from(editarSessaoPacoteSelect.options).forEach((option, index) => {
+                        if (index === 0) {
+                            option.hidden = false;
+                            return;
+                        }
+                        const optionCliente = option.getAttribute('data-cliente-id');
+                        const visivel = !clienteId || optionCliente === clienteId;
+                        option.hidden = !visivel;
+                    });
+                    const selecionada = editarSessaoPacoteSelect.selectedOptions[0];
+                    if (selecionada && selecionada.getAttribute('data-cliente-id') && selecionada.getAttribute('data-cliente-id') !== clienteId) {
+                        editarSessaoPacoteSelect.value = '';
+                    }
+                };
+
+                const syncTipoAgendamentoModal = () => {
+                    const tipo = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PACOTE';
+                    const avulso = tipo === 'AVULSO';
+                    document.querySelectorAll('#editarSessaoForm .js-editar-pacote-field').forEach((field) => {
+                        field.classList.toggle('initially-hidden', avulso);
+                    });
+                    document.querySelectorAll('#editarSessaoForm .js-editar-avulso-field').forEach((field) => {
+                        field.classList.toggle('initially-hidden', !avulso);
+                    });
+                    if (editarSessaoPacoteSelect) {
+                        editarSessaoPacoteSelect.disabled = avulso;
+                        if (avulso) {
+                            editarSessaoPacoteSelect.value = '';
+                        }
+                    }
+                };
+
+                document.querySelectorAll('.js-btn-editar-sessao').forEach((btn) => {
+                    btn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const sessaoId = btn.dataset.sessaoId;
+                        if (!sessaoId || !editarSessaoSalvarBtn) return;
+
+                        editarSessaoSalvarBtn.disabled = true;
+                        editarSessaoSalvarBtn.innerHTML = '<i data-lucide="loader-2"></i> Carregando...';
+                        if (window.lucide) lucide.createIcons();
+
+                        try {
+                            const response = await fetch('/agenda/sessoes/' + sessaoId + '/json');
+                            if (!response.ok) {
+                                const err = await response.json();
+                                throw new Error(err.error || 'Erro ao carregar sessão');
+                            }
+                            const sessao = await response.json();
+
+                            editarSessaoIdInput.value = sessao.id;
+                            editarSessaoDataInput.value = sessao.data;
+                            editarSessaoHorarioInput.value = sessao.horario;
+                            editarSessaoClienteSelect.value = sessao.clienteId || '';
+                            editarSessaoPacoteSelect.value = sessao.pacoteSessaoId || '';
+                            editarSessaoTipoAgendamentoInputs.forEach((input) => {
+                                input.checked = input.value === (sessao.tipoAgendamento || 'PACOTE');
+                            });
+                            editarSessaoValorAvulsoInput.value = sessao.valorAvulso || '';
+                            if (editarSessaoRecorrenteHelper) {
+                                editarSessaoRecorrenteHelper.hidden = !sessao.recorrente;
+                            }
+                            editarSessaoTipoInput.value = sessao.tipoAtendimento || '';
+                            editarSessaoObservacoesInput.value = sessao.observacoes || '';
+                            editarSessaoPacienteNome.textContent = sessao.clienteNome || 'Paciente';
+                            editarSessaoError.style.display = 'none';
+
+                            syncPacotesModal();
+                            syncTipoAgendamentoModal();
+                            setEditarModalOpen(true);
+                        } catch (err) {
+                            editarSessaoError.textContent = err.message;
+                            editarSessaoError.style.display = 'block';
+                        } finally {
+                            editarSessaoSalvarBtn.disabled = false;
+                            editarSessaoSalvarBtn.innerHTML = '<i data-lucide="save"></i> Salvar alterações';
+                            if (window.lucide) lucide.createIcons();
+                        }
+                    });
+                });
+
+                if (editarSessaoClienteSelect) {
+                    editarSessaoClienteSelect.addEventListener('change', syncPacotesModal);
+                }
+                editarSessaoTipoAgendamentoInputs.forEach((input) => {
+                    input.addEventListener('change', syncTipoAgendamentoModal);
+                });
+
+                if (editarSessaoForm) {
+                    editarSessaoForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        if (!editarSessaoIdInput.value) return;
+
+                        const formData = new URLSearchParams();
+                        formData.append('clienteId', editarSessaoClienteSelect.value);
+                        const tipoAgendamento = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PACOTE';
+                        formData.append('tipoAgendamento', tipoAgendamento);
+                        if (tipoAgendamento === 'PACOTE' && editarSessaoPacoteSelect.value) {
+                            formData.append('pacoteSessaoId', editarSessaoPacoteSelect.value);
+                        }
+                        if (tipoAgendamento === 'AVULSO' && editarSessaoValorAvulsoInput.value) {
+                            formData.append('valorAvulso', editarSessaoValorAvulsoInput.value);
+                        }
+                        formData.append('data', editarSessaoDataInput.value);
+                        formData.append('horario', editarSessaoHorarioInput.value);
+                        if (editarSessaoTipoInput.value) {
+                            formData.append('tipoAtendimento', editarSessaoTipoInput.value);
+                        }
+                        if (editarSessaoObservacoesInput.value) {
+                            formData.append('observacoes', editarSessaoObservacoesInput.value);
+                        }
+
+                        editarSessaoSalvarBtn.disabled = true;
+                        editarSessaoSalvarBtn.innerHTML = '<i data-lucide="loader-2"></i> Salvando...';
+                        if (window.lucide) lucide.createIcons();
+
+                        try {
+                            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                            if (csrfToken && csrfHeader) {
+                                headers[csrfHeader] = csrfToken;
+                            }
+                            const response = await fetch('/agenda/sessoes/' + editarSessaoIdInput.value + '/json', {
+                                method: 'POST',
+                                headers,
+                                body: formData
+                            });
+                            const result = await response.json();
+                            if (!response.ok) {
+                                throw new Error(result.error || 'Erro ao salvar sessão');
+                            }
+                            setEditarModalOpen(false);
+                            window.location.reload();
+                        } catch (err) {
+                            editarSessaoError.textContent = err.message;
+                            editarSessaoError.style.display = 'block';
+                        } finally {
+                            editarSessaoSalvarBtn.disabled = false;
+                            editarSessaoSalvarBtn.innerHTML = '<i data-lucide="save"></i> Salvar alterações';
+                            if (window.lucide) lucide.createIcons();
+                        }
+                    });
+                }
+
+                if (editarSessaoModal) {
+                    editarSessaoModal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                        element.addEventListener('click', () => setEditarModalOpen(false));
+                    });
+                }
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && editarSessaoModal && editarSessaoModal.classList.contains('is-open')) {
+                        setEditarModalOpen(false);
+                    }
+                });
+            })();
+        })();
+    </script>
+</th:block>

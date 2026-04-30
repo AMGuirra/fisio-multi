@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/relatorios-dashboard.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+<div class="app-shell">
+    <header class="app-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia</h2>
+                <p class="header-date skeletonable" id="headerFullDate"></p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-clock skeletonable" id="liveClock"></div>
+            <div class="user-menu" id="userMenu">
+                <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                    <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                    <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                    <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
+                </button>
+                <div class="user-menu-panel" role="menu">
+                    <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Painel</span></a>
+                    <a th:if="${accessibleMenuKeys.contains('RELATORIOS')}" th:href="@{/relatorios}" href="/relatorios" class="user-menu-item" role="menuitem"><i data-lucide="file-text" aria-hidden="true"></i><span>Relatórios</span></a>
+                    <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out" aria-hidden="true"></i><span>Sair</span></button></form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-main crud-main">
+        <section class="hero-card crud-hero report-hero">
+            <div class="hero-content">
+                <p class="report-kicker">Painel Analítico</p>
+                <h1 class="hero-title">Central de Relatórios e E-mails</h1>
+                <p class="hero-subtitle">Visualize a operação em formato executivo, compare períodos, acompanhe gráficos em tela e mantenha exportações e disparos por e-mail no mesmo fluxo.</p>
+                <div class="report-highlight-strip" th:if="${relatorio.analytics != null and !#lists.isEmpty(relatorio.analytics.destaques)}">
+                    <span th:each="destaque : ${relatorio.analytics.destaques}"
+                          class="report-highlight"
+                          th:classappend="${' tone-' + destaque.tone}">
+                        <strong th:text="${destaque.label}">Período</strong>
+                        <span th:text="${destaque.value}">01/04/2026 a 30/04/2026</span>
+                    </span>
+                </div>
+            </div>
+                <div class="report-hero-actions">
+                    <div class="report-period-card">
+                        <span class="report-period-label">Atual</span>
+                        <strong th:text="${relatorio.analytics.periodoAtualLabel}">01/04/2026 a 30/04/2026</strong>
+                        <span>Comparando com <span th:text="${relatorio.analytics.periodoAnteriorLabel}">02/03/2026 a 31/03/2026</span></span>
+                    </div>
+                    <a th:if="${accessibleMenuKeys.contains('CONFIG_EMAIL')}" th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="settings"></i>SMTP</a>
+                </div>
+            </section>
+
+        <nav class="page-tabs" aria-label="Seções de Gestão">
+            <a th:href="@{/financeiro}" href="/financeiro" class="page-tab"><i data-lucide="wallet"></i> Financeiro</a>
+            <a th:href="@{/relatorios}" href="/relatorios" class="page-tab active"><i data-lucide="file-text"></i> Relatórios</a>
+        </nav>
+
+        <div class="flash-stack">
+            <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+            <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+        </div>
+
+        <section class="workflow-strip">
+            <article class="workflow-step is-complete">
+                <span class="workflow-step-number">1</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Defina o recorte</p>
+                    <p class="workflow-step-text">Escolha o período e os blocos analíticos que devem compor a leitura do relatório.</p>
+                </div>
+            </article>
+            <article class="workflow-step is-current">
+                <span class="workflow-step-number">2</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Analise o painel</p>
+                    <p class="workflow-step-text">Cruze indicadores, distribuições e comparativos antes de exportar ou compartilhar.</p>
+                </div>
+            </article>
+            <article class="workflow-step">
+                <span class="workflow-step-number">3</span>
+                <div class="workflow-step-copy">
+                    <p class="workflow-step-label">Exporte ou envie</p>
+                    <p class="workflow-step-text">Baixe PDF, gere Excel ou siga para a configuração SMTP quando precisar distribuir o material.</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="section-card">
+            <header class="section-head">
+                <div>
+                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros do relatório</h3>
+                    <p class="section-subtitle">A leitura analítica e os comparativos consideram o período atual contra um intervalo anterior com o mesmo tamanho.</p>
+                </div>
+            </header>
+            <div class="section-body">
+                <form th:action="@{/relatorios}" th:object="${filtroRelatorioForm}" method="get" class="modern-form">
+                    <div class="form-grid form-grid-two">
+                        <div class="form-field"><label for="dataInicial">Data inicial</label><input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}"></div>
+                        <div class="form-field"><label for="dataFinal">Data final</label><input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}"></div>
+                    </div>
+                    <div class="form-grid form-grid-two">
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirPacientes}"> Pacientes</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirAgenda}"> Agenda</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirFinanceiro}"> Financeiro</label>
+                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirSolicitacoes}"> Solicitações</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="action-button primary"><i data-lucide="search"></i>Atualizar painel</button>
+                        <a th:href="@{/relatorios/exportar(formato='PDF',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="file-text"></i>PDF</a>
+                        <a th:href="@{/relatorios/exportar(formato='EXCEL',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="sheet"></i>Excel</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="report-kpi-grid">
+            <article th:each="card : ${relatorio.analytics.metricas}"
+                     class="report-kpi-card"
+                     th:classappend="${' accent-' + card.accent}">
+                <div class="report-kpi-topline">
+                    <span class="report-kpi-icon"><i th:attr="data-lucide=${card.icon}"></i></span>
+                    <span class="report-kpi-change" th:classappend="${' tone-' + card.changeTone}" th:text="${card.changeLabel}">Sem variação</span>
+                </div>
+                <p class="report-kpi-title" th:text="${card.title}">Pacientes ativos</p>
+                <p class="report-kpi-value" th:text="${card.value}">0</p>
+                <p class="report-kpi-detail" th:text="${card.detail}">Detalhe</p>
+            </article>
+        </section>
+
+        <section class="crud-layout report-analytics-layout">
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="chart-line"></i> Ritmo diário</h3>
+                        <p class="section-subtitle">Leitura visual do período atual para agenda e financeiro.</p>
+                    </div>
+                </header>
+                <div class="section-body report-chart-stack">
+                    <section class="report-chart-block">
+                        <div class="report-chart-head">
+                            <div>
+                                <h4 class="mini-title">Sessões por dia</h4>
+                                <p class="muted-copy">Colunas empilhadas por status para facilitar picos, cancelamentos e ritmo de atendimento.</p>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(relatorio.analytics.agendaDiaria)}" class="empty-box chart-empty">
+                            <i data-lucide="calendar-x"></i>
+                            <p>Nenhuma sessão encontrada no período atual com os filtros selecionados.</p>
+                        </div>
+                        <div th:unless="${#lists.isEmpty(relatorio.analytics.agendaDiaria)}" class="timeline-scroll">
+                            <div class="timeline-chart">
+                                <div class="timeline-column"
+                                     th:each="item : ${relatorio.analytics.agendaDiaria}"
+                                     th:attr="title=${item.fullLabel + ' • ' + item.detalhamentoLabel}">
+                                    <div class="timeline-stack-bars">
+                                        <span class="timeline-segment agendada" th:style="${'height:' + item.agendadasPercent + '%'}"></span>
+                                        <span class="timeline-segment realizada" th:style="${'height:' + item.realizadasPercent + '%'}"></span>
+                                        <span class="timeline-segment cancelada" th:style="${'height:' + item.canceladasPercent + '%'}"></span>
+                                    </div>
+                                    <strong class="timeline-total" th:text="${item.totalLabel}">0</strong>
+                                    <span class="timeline-label" th:text="${item.shortLabel}">01/04</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-legend">
+                            <span><i class="legend-dot agendada"></i>Agendadas</span>
+                            <span><i class="legend-dot realizada"></i>Realizadas</span>
+                            <span><i class="legend-dot cancelada"></i>Canceladas</span>
+                        </div>
+                    </section>
+
+                    <section class="report-chart-block">
+                        <div class="report-chart-head">
+                            <div>
+                                <h4 class="mini-title">Movimento financeiro diário</h4>
+                                <p class="muted-copy">Receitas e despesas lado a lado para leitura rápida do caixa ao longo do período.</p>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(relatorio.analytics.financeiroDiario)}" class="empty-box chart-empty">
+                            <i data-lucide="wallet-cards"></i>
+                            <p>Nenhum lançamento financeiro encontrado no período atual com os filtros selecionados.</p>
+                        </div>
+                        <div th:unless="${#lists.isEmpty(relatorio.analytics.financeiroDiario)}" class="timeline-scroll">
+                            <div class="finance-chart">
+                                <div class="finance-column"
+                                     th:each="item : ${relatorio.analytics.financeiroDiario}"
+                                     th:attr="title=${item.fullLabel + ' • Receitas ' + item.receitasLabel + ' • Despesas ' + item.despesasLabel + ' • Saldo ' + item.saldoLabel}">
+                                    <div class="finance-bars">
+                                        <span class="finance-bar receita" th:style="${'height:' + item.receitasPercent + '%'}"></span>
+                                        <span class="finance-bar despesa" th:style="${'height:' + item.despesasPercent + '%'}"></span>
+                                    </div>
+                                    <span class="finance-saldo" th:classappend="${' tone-' + item.saldoTone}" th:text="${item.saldoLabel}">R$ 0,00</span>
+                                    <span class="timeline-label" th:text="${item.shortLabel}">01/04</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-legend">
+                            <span><i class="legend-dot receita"></i>Receitas</span>
+                            <span><i class="legend-dot despesa"></i>Despesas</span>
+                        </div>
+                    </section>
+                </div>
+            </article>
+
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="chart-pie"></i> Distribuições</h3>
+                        <p class="section-subtitle">Visão resumida das composições mais importantes do período.</p>
+                    </div>
+                </header>
+                <div class="section-body donut-stack">
+                    <section class="donut-card">
+                        <div class="donut-ring" th:style="${'background:' + relatorio.analytics.graficoSessoes.gradientStyle}">
+                            <div class="donut-center">
+                                <strong th:text="${relatorio.analytics.graficoSessoes.centerValue}">0</strong>
+                                <span th:text="${relatorio.analytics.graficoSessoes.centerLabel}">sessões</span>
+                            </div>
+                        </div>
+                        <div class="donut-content">
+                            <h4 class="mini-title" th:text="${relatorio.analytics.graficoSessoes.title}">Sessões por status</h4>
+                            <div class="donut-legend">
+                                <div th:each="item : ${relatorio.analytics.graficoSessoes.itens}" class="donut-legend-item">
+                                    <span class="donut-legend-label"><i class="legend-dot" th:style="${'background:' + item.color}"></i><span th:text="${item.label}">Agendadas</span></span>
+                                    <strong th:text="${item.value}">0</strong>
+                                    <span th:text="${item.percentLabel}">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="donut-card">
+                        <div class="donut-ring" th:style="${'background:' + relatorio.analytics.graficoSolicitacoes.gradientStyle}">
+                            <div class="donut-center">
+                                <strong th:text="${relatorio.analytics.graficoSolicitacoes.centerValue}">0</strong>
+                                <span th:text="${relatorio.analytics.graficoSolicitacoes.centerLabel}">solicitações</span>
+                            </div>
+                        </div>
+                        <div class="donut-content">
+                            <h4 class="mini-title" th:text="${relatorio.analytics.graficoSolicitacoes.title}">Solicitações por status</h4>
+                            <div class="donut-legend">
+                                <div th:each="item : ${relatorio.analytics.graficoSolicitacoes.itens}" class="donut-legend-item">
+                                    <span class="donut-legend-label"><i class="legend-dot" th:style="${'background:' + item.color}"></i><span th:text="${item.label}">Pendentes</span></span>
+                                    <strong th:text="${item.value}">0</strong>
+                                    <span th:text="${item.percentLabel}">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="donut-card">
+                        <div class="donut-ring" th:style="${'background:' + relatorio.analytics.graficoFinanceiro.gradientStyle}">
+                            <div class="donut-center">
+                                <strong th:text="${relatorio.analytics.graficoFinanceiro.centerValue}">R$ 0,00</strong>
+                                <span th:text="${relatorio.analytics.graficoFinanceiro.centerLabel}">movimentado</span>
+                            </div>
+                        </div>
+                        <div class="donut-content">
+                            <h4 class="mini-title" th:text="${relatorio.analytics.graficoFinanceiro.title}">Movimento financeiro</h4>
+                            <div class="donut-legend">
+                                <div th:each="item : ${relatorio.analytics.graficoFinanceiro.itens}" class="donut-legend-item">
+                                    <span class="donut-legend-label"><i class="legend-dot" th:style="${'background:' + item.color}"></i><span th:text="${item.label}">Receitas</span></span>
+                                    <strong th:text="${item.value}">R$ 0,00</strong>
+                                    <span th:text="${item.percentLabel}">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </article>
+        </section>
+
+        <section class="crud-layout two-column">
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="rows-3"></i> Quadro comparativo</h3>
+                        <p class="section-subtitle">Atual versus período anterior equivalente.</p>
+                    </div>
+                </header>
+                <div class="section-body">
+                    <div class="data-table-wrap">
+                        <table class="data-table compact report-comparison-table">
+                            <thead>
+                            <tr>
+                                <th>Indicador</th>
+                                <th>Atual</th>
+                                <th>Anterior</th>
+                                <th>Variação</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${relatorio.analytics.comparativos}">
+                                <td class="report-comparison-label" th:text="${item.indicador}">Sessões totais</td>
+                                <td th:text="${item.atual}">0</td>
+                                <td th:text="${item.anterior}">0</td>
+                                <td><span class="report-pill" th:classappend="${' tone-' + item.tone}" th:text="${item.variacao}">Sem variação</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="trophy"></i> Rankings e categorias</h3>
+                        <p class="section-subtitle">Pacientes com maior movimento e categorias financeiras mais relevantes.</p>
+                    </div>
+                </header>
+                <div class="section-body report-ranking-stack">
+                    <div class="section-block">
+                        <h4 class="mini-title">Pacientes com maior movimento</h4>
+                        <div th:if="${#lists.isEmpty(relatorio.analytics.rankingPacientes)}" class="empty-box chart-empty">
+                            <i data-lucide="users-round"></i>
+                            <p>Sem dados suficientes para montar ranking de pacientes neste período.</p>
+                        </div>
+                        <div th:unless="${#lists.isEmpty(relatorio.analytics.rankingPacientes)}" class="ranking-list">
+                            <article th:each="item, iter : ${relatorio.analytics.rankingPacientes}" class="ranking-item">
+                                <span class="ranking-position" th:text="${iter.count}">1</span>
+                                <div class="ranking-copy">
+                                    <strong th:text="${item.nome}">Paciente</strong>
+                                    <span th:text="${item.totalSessoes + ' • ' + item.sessoesRealizadas}">0 sessões • 0 realizadas</span>
+                                </div>
+                                <span class="ranking-value" th:text="${item.faturamento}">R$ 0,00</span>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div class="section-block">
+                        <h4 class="mini-title">Categorias financeiras</h4>
+                        <div th:if="${#lists.isEmpty(relatorio.analytics.categoriasFinanceiras)}" class="empty-box chart-empty">
+                            <i data-lucide="badge-dollar-sign"></i>
+                            <p>Sem lançamentos financeiros no período para compor categorias.</p>
+                        </div>
+                        <div th:unless="${#lists.isEmpty(relatorio.analytics.categoriasFinanceiras)}" class="data-table-wrap">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th>Receitas</th>
+                                    <th>Despesas</th>
+                                    <th>Saldo</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${relatorio.analytics.categoriasFinanceiras}">
+                                    <td th:text="${item.categoria}">Categoria</td>
+                                    <td th:text="${item.receitas}">R$ 0,00</td>
+                                    <td th:text="${item.despesas}">R$ 0,00</td>
+                                    <td><span class="report-pill" th:classappend="${' tone-' + item.saldoTone}" th:text="${item.saldo}">R$ 0,00</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="crud-layout">
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="mail"></i> Enviar relatório</h3></header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios/enviar}" th:object="${envioRelatorioForm}" method="post" class="modern-form">
+                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
+                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
+                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
+                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
+                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
+                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
+                        <div class="form-field"><label for="destinatario">Destinatário</label><input id="destinatario" type="email" class="form-control" th:field="*{destinatario}"></div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="formato">Formato</label><select id="formato" class="form-select" th:field="*{formato}"><option value="PDF">PDF</option><option value="EXCEL">Excel</option></select></div>
+                            <div class="form-field"><label for="assunto">Assunto</label><input id="assunto" class="form-control" th:field="*{assunto}"></div>
+                        </div>
+                        <div class="form-field"><label for="mensagem">Mensagem</label><textarea id="mensagem" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
+                        <button type="submit" class="action-button primary"><i data-lucide="send"></i>Enviar relatório</button>
+                    </form>
+                </div>
+            </article>
+        </section>
+
+        <section class="crud-layout">
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="table-properties"></i> Dados filtrados</h3>
+                        <p class="section-subtitle">Tabelas detalhadas para conferência operacional sem sair do painel.</p>
+                    </div>
+                </header>
+                <div class="section-body">
+                    <div class="section-block" th:if="${!#lists.isEmpty(relatorio.analytics.pacientesRecentes)}">
+                        <h4 class="mini-title">Pacientes recentes</h4>
+                        <div class="data-table-wrap">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Cadastro</th>
+                                    <th>Contato</th>
+                                    <th>E-mail</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${relatorio.analytics.pacientesRecentes}">
+                                    <td th:text="${item.nome}">Paciente</td>
+                                    <td th:text="${item.cadastroEm}">01/04/2026 08:00</td>
+                                    <td th:text="${item.contato}">Contato</td>
+                                    <td th:text="${item.email}">email@exemplo.com</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section-block" th:if="${!#lists.isEmpty(relatorio.sessoes)}">
+                        <h4 class="mini-title">Sessões filtradas</h4>
+                        <div class="data-table-wrap">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Início</th>
+                                    <th>Tipo</th>
+                                    <th>Plano</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="sessao : ${relatorio.sessoes}">
+                                    <td th:text="${sessao.cliente.nomeCompleto}">Paciente</td>
+                                    <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
+                                    <td th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</td>
+                                    <td th:text="${sessao.pacoteSessao != null ? sessao.pacoteSessao.nomePacote : 'Sem plano vinculado'}">Plano</td>
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${sessao.status.name() == 'REALIZADA' ? ' status-completed' : (sessao.status.name() == 'CANCELADA' ? ' status-danger' : ' status-warning')}"
+                                              th:text="${sessao.status}">AGENDADA</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section-block" th:if="${!#lists.isEmpty(relatorio.lancamentos)}">
+                        <h4 class="mini-title">Financeiro filtrado</h4>
+                        <div class="data-table-wrap">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Valor</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${relatorio.lancamentos}">
+                                    <td th:text="${item.descricao}">Desc</td>
+                                    <td th:text="${item.categoria}">Categoria</td>
+                                    <td><span class="chip" th:classappend="${item.tipo.name() == 'RECEITA' ? ' tipo-receita' : ' tipo-despesa'}" th:text="${item.tipo}">RECEITA</span></td>
+                                    <td><span class="chip" th:classappend="${item.status.name() == 'PAGO' ? ' status-pago' : (item.status.name() == 'CANCELADO' ? ' status-cancelado' : ' status-pendente')}" th:text="${item.status}">PENDENTE</span></td>
+                                    <td th:text="${'R$ ' + item.valor}">R$ 0,00</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section-block" th:if="${!#lists.isEmpty(relatorio.solicitacoes)}">
+                        <h4 class="mini-title">Solicitações filtradas</h4>
+                        <div class="data-table-wrap">
+                            <table class="data-table compact">
+                                <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Data</th>
+                                    <th>Telefone</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${relatorio.solicitacoes}">
+                                    <td th:text="${item.nomePaciente}">Paciente</td>
+                                    <td th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
+                                    <td th:text="${item.telefone}">Telefone</td>
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${item.status.name() == 'APROVADA' ? ' status-approved' : (item.status.name() == 'PENDENTE' ? ' status-warning' : ' status-danger')}"
+                                              th:text="${item.status}">PENDENTE</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+</div>
+<script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+<script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+
+
+

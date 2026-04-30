@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Calendário - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Agenda e Calendário</h1>
+                    <p class="hero-subtitle">Acompanhe o mês, selecione um dia e gerencie as sessões da clínica em uma única tela.</p>
+                </div>
+                <span class="hero-pill">Agenda unificada</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções da Agenda">
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab active"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+            </nav>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="agenda-mobile-shell" aria-label="Painel mobile da agenda">
+                <div class="agenda-mobile-summary">
+                    <div class="agenda-mobile-summary-copy">
+                        <span class="agenda-mobile-eyebrow">Agenda inteligente</span>
+                        <h2 class="agenda-mobile-title">Operação do dia</h2>
+                        <p class="agenda-mobile-date" th:text="${#temporals.format(dataSelecionada, 'EEEE, dd/MM/yyyy')}">Terça-feira, 28/04/2026</p>
+                    </div>
+                    <div class="agenda-mobile-stats">
+                        <span class="agenda-mobile-pill">
+                            <i data-lucide="clock-3"></i>
+                            <span th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</span>
+                        </span>
+                        <span class="agenda-mobile-pill agenda-mobile-pill-soft">
+                            <i data-lucide="inbox"></i>
+                            <span th:text="${pendentes != null ? pendentes.size() + ' pendentes' : '0 pendentes'}">0 pendentes</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="agenda-mobile-tabs" role="tablist" aria-label="Alternar visão mobile da agenda">
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="mes"
+                            aria-selected="false"
+                            aria-controls="agendaMobilePanelMes">
+                        Mês
+                    </button>
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="dia"
+                            aria-selected="true"
+                            aria-controls="agendaMobilePanelDia">
+                        Dia
+                    </button>
+                    <button type="button"
+                            class="agenda-mobile-tab"
+                            data-mobile-tab="solicitacoes"
+                            aria-selected="false"
+                            aria-controls="agendaMobilePanelSolicitacoes">
+                        <span>Solicitações</span>
+                        <span class="agenda-mobile-tab-badge"
+                              th:text="${pendentes != null ? pendentes.size() : 0}">0</span>
+                    </button>
+                </div>
+            </section>
+
+            <div class="agenda-desktop-shell">
+                <section class="agenda-workspace">
+                    <article id="agendaMobilePanelMes" class="section-card agenda-calendar-card agenda-panel-month">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
+                            <div class="calendar-month-nav">
+                                <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
+                                <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
+                                <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
+                            </div>
+                        </header>
+                        <div class="section-body">
+                            <div class="calendar-grid-head">
+                                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                            </div>
+                            <div class="calendar-grid-body">
+                                <th:block th:each="semana : ${calendarioSemanas}">
+                                    <th:block th:each="dia : ${semana}">
+                                        <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
+                                            <th:block th:if="${dia.pertenceAoMes}">
+                                                <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
+                                                <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
+                                                <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
+                                                <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                                <div class="calendar-day-mobile-signals">
+                                                    <span class="calendar-day-signal sessions"
+                                                          th:if="${dia.sessoes > 0}"
+                                                          th:text="${dia.sessoes}">1</span>
+                                                    <span class="calendar-day-signal pending"
+                                                          th:if="${dia.solicitacoesPendentes > 0}"
+                                                          th:text="${dia.solicitacoesPendentes}">1</span>
+                                                    <span class="calendar-day-signal blocked"
+                                                          th:if="${dia.bloqueios > 0}"
+                                                          th:text="${dia.bloqueios}">1</span>
+                                                </div>
+                                                <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
+                                                    <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
+                                                </div>
+                                                <div class="calendar-day-links">
+                                                    <a class="calendar-link"
+                                                       th:href="@{/calendario(data=${dia.data})}">
+                                                        Ver dia
+                                                    </a>
+                                                    <a class="calendar-link"
+                                                       th:href="@{/bloqueios(data=${dia.data})}">
+                                                        Bloquear
+                                                    </a>
+                                                </div>
+                                            </th:block>
+                                        </article>
+                                    </th:block>
+                                </th:block>
+                            </div>
+                        </div>
+                    </article>
+
+                    <div id="agendaMobilePanelDia" class="agenda-day-column agenda-panel-day">
+                        <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
+                    </div>
+                </section>
+
+                <section id="agendaMobilePanelSolicitacoes" class="crud-layout two-column agenda-support-grid agenda-panel-solicitacoes">
+                <article class="section-card agenda-requests-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="clock-3"></i> Solicitações Pendentes</h3>
+                        <p class="section-subtitle" th:text="${pendentes != null ? pendentes.size() + ' pendentes' : '0 pendentes'}">0 pendentes</p>
+                    </header>
+
+                    <div class="section-body" th:if="${pendentes == null or pendentes.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="inbox"></i>
+                            <p>Não há solicitações pendentes no momento.</p>
+                        </div>
+                    </div>
+
+                    <div class="section-body" th:unless="${pendentes == null or pendentes.empty}">
+                        <div class="request-list">
+                            <article class="request-card request-card-pending" th:each="sol : ${pendentes}">
+                                <div class="request-row align-start">
+                                    <span class="entity-avatar" th:text="${sol.nomePaciente != null and !#strings.isEmpty(sol.nomePaciente) ? #strings.substring(sol.nomePaciente, 0, 1) : 'P'}">P</span>
+
+                                    <div class="request-detail stack-10">
+                                        <div>
+                                            <p class="request-title" th:text="${sol.nomePaciente}">Paciente</p>
+                                            <p class="request-text" th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">Data</p>
+                                            <p class="request-text" th:text="${sol.telefone}">Telefone</p>
+                                        </div>
+
+                                        <div class="request-actions">
+                                            <form th:action="@{/calendario/solicitacoes/{id}/aprovar(id=${sol.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                                <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <button type="submit" class="action-button success"><i data-lucide="check"></i>Aprovar</button>
+                                            </form>
+                                            <form th:action="@{/calendario/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
+                                                <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                                <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <button type="submit" class="action-button danger"><i data-lucide="x"></i>Rejeitar</button>
+                                            </form>
+                                        </div>
+
+                                        <form th:action="@{/calendario/solicitacoes/{id}/reagendar(id=${sol.id})}" method="post" class="modern-form">
+                                            <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                            <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                            <div class="calendar-inline-grid">
+                                                <div class="form-field">
+                                                    <label>Nova data</label>
+                                                    <input type="date" name="data" class="form-control" th:value="${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')}" required>
+                                                </div>
+                                                <div class="form-field">
+                                                    <label>Novo horário</label>
+                                                    <input type="time" name="horario" class="form-control" th:value="${#temporals.format(sol.dataHoraInicio, 'HH:mm')}" required>
+                                                </div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label>Motivo (opcional)</label>
+                                                <input type="text" name="motivo" class="form-control" maxlength="255" placeholder="Ex: ajuste de agenda da clínica">
+                                            </div>
+                                            <button type="submit" class="action-button ghost"><i data-lucide="calendar-sync"></i>Reagendar</button>
+                                        </form>
+
+                                        <form th:action="@{/calendario/solicitacoes/{id}/bloquear(id=${sol.id})}" method="post" class="modern-form">
+                                            <input type="hidden" name="mesContexto" th:value="${mesSelecionado}">
+                                            <input type="hidden" name="dataContexto" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                            <div class="form-field">
+                                                <label>Motivo para bloquear este horário</label>
+                                                <input type="text" name="motivo" class="form-control" maxlength="255" placeholder="Ex: Viagem / evento / palestra" required>
+                                            </div>
+                                            <button type="submit" class="action-button danger"><i data-lucide="ban"></i>Bloquear Período da Solicitação</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="crud-layout agenda-support-stack">
+                    <article class="section-card agenda-blocks-card">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="calendar-x-2"></i> Gestão Oficial de Bloqueios</h3>
+                        </header>
+                        <div class="section-body">
+                            <div class="helper-card">
+                                <div class="helper-copy">
+                                    <h4>Bloqueie períodos com governança</h4>
+                                    <p>Use o módulo de bloqueios para cadastrar indisponibilidades por faixa de horário ou dia inteiro, com edição segura, histórico e integração real com agenda e agendamento online.</p>
+                                </div>
+                                <div class="form-actions">
+                                    <a th:href="@{/bloqueios(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
+                                    <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="section-card agenda-month-blocks-card">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="list-checks"></i> Bloqueios do Mês</h3>
+                            <p class="section-subtitle" th:text="${bloqueiosAtivosMes != null ? bloqueiosAtivosMes.size() + ' bloqueios' : '0 bloqueios'}">0 bloqueios</p>
+                        </header>
+
+                        <div class="section-body" th:if="${bloqueiosAtivosMes == null or bloqueiosAtivosMes.empty}">
+                            <div class="empty-box">
+                                <i data-lucide="calendar-check"></i>
+                                <p>Sem bloqueios ativos neste mês.</p>
+                            </div>
+                        </div>
+
+                        <div class="section-body" th:unless="${bloqueiosAtivosMes == null or bloqueiosAtivosMes.empty}">
+                            <div class="request-list">
+                                <article class="request-card request-card-block" th:each="bloqueio : ${bloqueiosAtivosMes}">
+                                    <div class="request-row align-start">
+                                        <div class="request-detail">
+                                            <p class="request-title" th:text="${bloqueio.diaInteiro ? (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy') + ' - Dia inteiro') : (#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy HH:mm') + ' - ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm'))}">Data</p>
+                                            <p class="request-text" th:text="${bloqueio.motivo}">Motivo</p>
+                                            <p class="request-text" th:text="${bloqueio.observacao != null ? bloqueio.observacao : 'Sem observações complementares.'}">Observação</p>
+                                            <p class="request-text" th:text="${'Criado por: ' + (bloqueio.criadoPor != null ? bloqueio.criadoPor : 'sistema')} + ' • Origem: ' + bloqueio.origem">Usuário</p>
+                                        </div>
+                                        <div class="request-actions">
+                                            <span class="chip status-warning" th:if="${bloqueio.diaInteiro}">Dia inteiro</span>
+                                            <span class="chip status-success" th:text="${bloqueio.status}">ATIVO</span>
+                                            <a th:href="@{/bloqueios(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+        (() => {
+            const buttons = Array.from(document.querySelectorAll('.agenda-mobile-tab'));
+            if (!buttons.length) {
+                return;
+            }
+
+            const mobileMedia = window.matchMedia('(max-width: 920px)');
+            let activeTab = 'dia';
+
+            const applyTabState = (tab) => {
+                activeTab = tab;
+
+                if (mobileMedia.matches) {
+                    document.body.setAttribute('data-agenda-mobile-tab', tab);
+                } else {
+                    document.body.removeAttribute('data-agenda-mobile-tab');
+                }
+
+                buttons.forEach((button) => {
+                    const selected = button.dataset.mobileTab === tab;
+                    button.classList.toggle('is-active', selected);
+                    button.setAttribute('aria-selected', selected ? 'true' : 'false');
+                });
+            };
+
+            const syncViewportState = () => {
+                if (mobileMedia.matches) {
+                    applyTabState(activeTab);
+                    return;
+                }
+
+                document.body.removeAttribute('data-agenda-mobile-tab');
+                buttons.forEach((button) => {
+                    button.classList.remove('is-active');
+                    button.setAttribute('aria-selected', button.dataset.mobileTab === activeTab ? 'true' : 'false');
+                });
+            };
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', () => applyTabState(button.dataset.mobileTab || 'dia'));
+            });
+
+            if (typeof mobileMedia.addEventListener === 'function') {
+                mobileMedia.addEventListener('change', syncViewportState);
+            } else if (typeof mobileMedia.addListener === 'function') {
+                mobileMedia.addListener(syncViewportState);
+            }
+
+            syncViewportState();
+        })();
+    </script>
+</body>
+</html>
+
+
+

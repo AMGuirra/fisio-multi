@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.vscode
+.mvn-local
+target
+render-db.env
+.env
+*.log
+*.tmp

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <th:block th:fragment="sidebar">
+        <script th:inline="javascript">
+            (() => {
+                const preferredTheme = /*[[${loggedUserTheme.cssValue}]]*/ 'light';
+                document.documentElement.style.colorScheme = preferredTheme === 'dark' ? 'dark' : 'light';
+                if (document.body) {
+                    document.body.dataset.theme = preferredTheme;
+                }
+            })();
+        </script>
+
+        <aside class="app-sidebar" id="appSidebar" role="navigation" aria-label="Menu lateral principal" aria-hidden="false">
+            <div class="sidebar-header">
+                <a th:href="@{/dashboard}" href="/dashboard" class="sidebar-brand">
+                    <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
+                    <span class="sidebar-brand-copy">
+                        <span class="sidebar-brand-title">FisioGestao</span>
+                        <span class="sidebar-brand-subtitle">Painel Clínico</span>
+                    </span>
+                </a>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li th:each="item : ${sidebarNavItems}"
+                    th:class="${item.section ? 'sidebar-section' : ''}">
+                    <span th:if="${item.section}"
+                          class="sidebar-section-label"
+                          th:text="${item.label}">Seção</span>
+                    <a th:unless="${item.section}"
+                       th:href="${item.href}"
+                       class="sidebar-link"
+                       th:classappend="${item.active ? ' active' : ''}"
+                       th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">
+                        <span class="sidebar-link-icon">
+                            <i th:attr="data-lucide=${item.icon}"></i>
+                        </span>
+                        <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a th:each="item : ${sidebarFooterMenus}"
+                   th:href="${item.href}"
+                   class="sidebar-link"
+                   th:classappend="${item.active ? ' active' : ''}"
+                   th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">
+                    <span class="sidebar-link-icon">
+                        <i th:attr="data-lucide=${item.icon}"></i>
+                    </span>
+                    <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
+                </a>
+                <div class="sidebar-preferences" aria-label="Preferências visuais">
+                    <p class="sidebar-preferences-label">Tema da interface</p>
+                    <form th:action="@{/preferencias/tema}" method="post" class="theme-switcher">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                        <button type="submit"
+                                name="tema"
+                                value="LIGHT"
+                                class="theme-option"
+                                th:classappend="${loggedUserTheme.name() == 'LIGHT' ? ' active' : ''}"
+                                th:attr="aria-pressed=${loggedUserTheme.name() == 'LIGHT'}">
+                            <i data-lucide="sun-medium" aria-hidden="true"></i>
+                            <span>Claro</span>
+                        </button>
+                        <button type="submit"
+                                name="tema"
+                                value="DARK"
+                                class="theme-option"
+                                th:classappend="${loggedUserTheme.name() == 'DARK' ? ' active' : ''}"
+                                th:attr="aria-pressed=${loggedUserTheme.name() == 'DARK'}">
+                            <i data-lucide="moon-star" aria-hidden="true"></i>
+                            <span>Escuro</span>
+                        </button>
+                    </form>
+                </div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="sidebar-link sidebar-logout">
+                        <span class="sidebar-link-icon"><i data-lucide="log-out"></i></span>
+                        <span class="sidebar-link-label">Sair</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+    </th:block>
+</body>
+</html>

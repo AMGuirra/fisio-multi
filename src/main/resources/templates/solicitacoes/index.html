@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitações - FisioGestao</title>
+    <meta name="csrf-token"  th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main solicitacoes-page">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Central de Solicitações</h1>
+                    <p class="hero-subtitle">Aprove ou rejeite pedidos de agendamento online com um fluxo mais direto e um histórico fácil de consultar.</p>
+                </div>
+                <span class="hero-pill">Solicitações</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções da Agenda">
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
+            </nav>
+
+            <div class="solicitacoes-content">
+                <div class="solicitacoes-flash-stack flash-stack" id="solicitacoesFlashStack">
+                    <div th:if="${successMessage}" class="solicitacoes-flash success" data-auto-dismiss="true">
+                        <i data-lucide="circle-check"></i>
+                        <span th:text="${successMessage}">Sucesso</span>
+                        <button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>
+                    </div>
+                    <div th:if="${errorMessage}" class="solicitacoes-flash error" data-auto-dismiss="true">
+                        <i data-lucide="circle-alert"></i>
+                        <span th:text="${errorMessage}">Erro</span>
+                        <button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>
+                    </div>
+                </div>
+
+                <section class="metrics-grid">
+                    <article class="metric-card">
+                        <p class="metric-label">Pendentes</p>
+                        <p class="metric-value pending" th:text="${totalPendentes}">0</p>
+                        <p class="metric-subtext">aguardando ação</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Aprovadas (mês)</p>
+                        <p class="metric-value approved" th:text="${totalAprovadas}">0</p>
+                        <p class="metric-subtext">agendamentos gerados</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Negadas (mês)</p>
+                        <p class="metric-value denied" th:text="${totalNegadas}">0</p>
+                        <p class="metric-subtext">pedidos recusados</p>
+                    </article>
+                    <article class="metric-card">
+                        <p class="metric-label">Total recebido</p>
+                        <p class="metric-value total" th:text="${totalGeral}">0</p>
+                        <p class="metric-subtext">este mês</p>
+                    </article>
+                </section>
+
+                <section class="solicitacoes-grid">
+                    <div class="solicitacoes-main">
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="circle-check-big"></i>
+                                    <h2 class="sol-card-title">Pendentes</h2>
+                                    <span class="count-badge" th:text="${solicitacoesPendentes != null ? solicitacoesPendentes.size() : 0}">0</span>
+                                </div>
+                                <button type="button" id="bulkApproveBtn" class="action-button sol-btn sol-btn-primary"
+                                        th:disabled="${solicitacoesPendentes == null or solicitacoesPendentes.empty}">Aprovar todas</button>
+                            </header>
+                            <div class="sol-card-body">
+                                <div th:if="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="empty-state">
+                                    <i data-lucide="inbox"></i>
+                                    <p>Nenhuma solicitação pendente.</p>
+                                </div>
+
+                                <div th:unless="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="req-list">
+                                    <article th:each="sol : ${solicitacoesPendentes}" class="req-item"
+                                             th:attr="data-sol-id=${sol.id},data-can-auto-approve=${sol.cliente != null}">
+                                        <span class="req-avatar" th:text="${sol.iniciaisPaciente}">PA</span>
+
+                                        <div class="req-content">
+                                            <p class="req-name" th:text="${sol.nomePaciente}">Nome do paciente</p>
+                                            <p class="req-meta">
+                                                <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.telefone}">(67) 99999-0000</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Sem observações</span>
+                                            </p>
+                                            <p class="req-note"
+                                               th:text="${sol.cliente != null ? 'Paciente já cadastrado.' : 'Pré-cadastro pendente antes da aprovação.'}">
+                                                Paciente já cadastrado.
+                                            </p>
+                                        </div>
+
+                                        <div class="req-side">
+                                            <p class="req-datetime"
+                                               th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">
+                                                14/04/2026 às 15:00
+                                            </p>
+                                            <div class="req-actions">
+                                                <button type="button"
+                                                        class="action-button sol-btn sol-btn-primary open-wizard"
+                                                        th:attr="data-sol-id=${sol.id},
+                                                                 data-nome=${sol.nomePaciente},
+                                                                 data-telefone=${sol.telefone},
+                                                                 data-email=${sol.email},
+                                                                 data-cpf=${sol.cpf},
+                                                                 data-local=${sol.localAtendimento}">Aprovar</button>
+                                                <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
+                                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                    <button type="submit" class="action-button sol-btn sol-btn-danger">Negar</button>
+                                                </form>
+                                                <button type="button"
+                                                        class="action-button sol-btn sol-btn-neutral open-editar"
+                                                        th:attr="data-sol-id=${sol.id},
+                                                                 data-nome=${sol.nomePaciente},
+                                                                 data-telefone=${sol.telefone},
+                                                                 data-email=${sol.email != null ? sol.email : ''},
+                                                                 data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
+                                                                 data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')},
+                                                                 data-local=${sol.localAtendimento},
+                                                                 data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">Ver</button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="history"></i>
+                                    <h2 class="sol-card-title">Histórico</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body">
+
+                                <div th:if="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="empty-state">
+                                    <i data-lucide="archive"></i>
+                                    <p>Nenhuma solicitação encontrada no histórico.</p>
+                                </div>
+
+                                <div th:unless="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="req-list">
+                                    <article th:each="sol : ${solicitacoesHistorico}" class="req-item">
+                                        <span class="req-avatar"
+                                              th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' history-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' history-denied' : ' history-neutral')"
+                                              th:text="${sol.iniciaisPaciente}">PA</span>
+                                        <div class="req-content">
+                                            <p class="req-name" th:text="${sol.nomePaciente}">Nome do paciente</p>
+                                            <p class="req-meta">
+                                                <span th:text="${sol.localAtendimentoDescricao}">Clínica</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.telefone}">(67) 99999-0000</span>
+                                                <span> · </span>
+                                                <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Sem observações</span>
+                                            </p>
+                                            <p class="req-note"
+                                               th:text="${'Processada em ' + #temporals.format(sol.updatedAt, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.updatedAt, 'HH:mm')}">
+                                                Processada em 14/04/2026 às 15:00
+                                            </p>
+                                        </div>
+                                        <div class="req-side">
+                                            <p class="req-datetime"
+                                               th:text="${#temporals.format(sol.dataHoraInicio, 'dd/MM/yyyy') + ' às ' + #temporals.format(sol.dataHoraInicio, 'HH:mm')}">
+                                                14/04/2026 às 15:00
+                                            </p>
+                                            <div class="req-actions">
+                                                <span class="status-pill"
+                                                      th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' denied' : ' pending')"
+                                                      th:text="${sol.status != null and sol.status.name() == 'APROVADA' ? 'Aprovada' : (sol.status != null and sol.status.name() == 'REJEITADA' ? 'Negada' : (sol.status != null and sol.status.name() == 'CANCELADA' ? 'Cancelada' : 'Pendente'))}">Aprovada</span>
+                                                <button th:if="${sol.status != null and sol.status.name() == 'APROVADA'}"
+                                                        type="button"
+                                                        class="action-button sol-btn sol-btn-neutral open-confirmar danger"
+                                                        th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},data-title='Cancelar agendamento',data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">Cancelar</button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <aside class="solicitacoes-sidebar">
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="list-filter"></i>
+                                    <h2 class="sol-card-title">Filtrar histórico</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body compact">
+                                <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="filter-form" id="filtroHistoricoForm">
+                                    <div class="filter-field">
+                                        <label for="filtroStatus">Status</label>
+                                        <select id="filtroStatus" name="filtroStatus" class="form-control">
+                                            <option value="" th:selected="${filtroStatus == null}">Todos</option>
+                                            <option value="APROVADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'APROVADA'}">Aprovadas</option>
+                                            <option value="REJEITADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'REJEITADA'}">Negadas</option>
+                                            <option value="PENDENTE" th:selected="${filtroStatus != null and filtroStatus.name() == 'PENDENTE'}">Pendentes</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroInicio">De</label>
+                                        <input id="filtroInicio" name="filtroInicio" type="date" class="form-control" th:value="${filtroInicio}">
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroFim">Até</label>
+                                        <input id="filtroFim" name="filtroFim" type="date" class="form-control" th:value="${filtroFim}">
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="filtroPaciente">Paciente</label>
+                                        <input id="filtroPaciente" name="filtroPaciente" type="text" class="form-control" placeholder="Nome ou telefone" th:value="${filtroPaciente}">
+                                    </div>
+                                    <div class="filter-actions">
+                                        <button type="submit" class="sol-btn sol-btn-primary">Filtrar</button>
+                                        <a th:href="@{/solicitacoes}" href="/solicitacoes" class="sol-btn sol-btn-neutral">Limpar</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </article>
+
+                        <article class="sol-card">
+                            <header class="sol-card-header">
+                                <div class="sol-card-title-wrap">
+                                    <i data-lucide="chart-no-axes-column"></i>
+                                    <h2 class="sol-card-title">Resumo rápido</h2>
+                                </div>
+                            </header>
+                            <div class="sol-card-body compact">
+                                <div class="quick-rate">
+                                    <p class="quick-rate-caption">Taxa de aprovação</p>
+                                    <p class="quick-rate-value" th:text="${taxaAprovacao + '%'}">0%</p>
+                                    <div class="quick-rate-track">
+                                        <div class="quick-rate-fill" th:style="${'width:' + taxaAprovacao + '%;'}"></div>
+                                    </div>
+                                    <p class="quick-rate-legend" th:text="${totalAprovadas + ' aprovadas · ' + totalNegadas + ' negadas'}">0 aprovadas · 0 negadas</p>
+                                </div>
+                            </div>
+                        </article>
+                    </aside>
+                </section>
+            </div>
+        </main>
+
+        <!-- ════════════════════════════════════════════════════════════
+             WIZARD MODAL — 3 etapas
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="wizardModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="wizardBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
+                <div class="app-modal-card">
+
+                    <!-- ── Cabeçalho fixo ──────────────────────────── -->
+                    <header class="app-modal-header">
+                        <div class="app-modal-title-block flex-fill">
+                            <h3 id="wizardTitle">Aprovar Solicitação</h3>
+                            <div class="wizard-progress mt-half" id="wizardProgress">
+                                <div class="wizard-step-item" id="ws1"><span class="step-num">1</span><span>Paciente</span></div>
+                                <div class="wizard-step-divider"></div>
+                                <div class="wizard-step-item" id="ws2"><span class="step-num">2</span><span>Plano</span></div>
+                                <div class="wizard-step-divider"></div>
+                                <div class="wizard-step-item" id="ws3"><span class="step-num">3</span><span>Confirmar</span></div>
+                            </div>
+                        </div>
+                        <button type="button" class="app-modal-close" id="wizardClose" aria-label="Fechar modal">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </header>
+
+                    <!-- ── Corpo dinâmico ──────────────────────────── -->
+                    <div class="app-modal-body">
+
+                        <!-- LOADING ──────────────────────────────────── -->
+                        <div id="wizardLoading" class="wizard-loading-box">
+                            <div class="wizard-spinner"></div>
+                            <span id="wizardLoadingMsg">Verificando dados da solicitação…</span>
+                        </div>
+
+                        <!-- ERRO GERAL ───────────────────────────────── -->
+                        <div id="wizardErrorPanel" hidden>
+                            <div class="wizard-status-card danger">
+                                <span class="status-icon"><i data-lucide="circle-x"></i></span>
+                                <div class="status-text">
+                                    <strong>Não foi possível continuar</strong>
+                                    <span id="wizardErrorMsg">Erro inesperado.</span>
+                                </div>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="wizardErrorClose">Fechar</button>
+                            </div>
+                        </div>
+
+                        <!-- ═══════════ ETAPA 1 — PACIENTE ════════════ -->
+                        <div id="wizardStep1" hidden>
+                            <!-- Caso A: paciente encontrado -->
+                            <div id="s1Found" hidden>
+                                <div class="wizard-status-card success">
+                                    <span class="status-icon"><i data-lucide="user-check"></i></span>
+                                    <div class="status-text">
+                                        <strong>Paciente encontrado</strong>
+                                        <span id="s1FoundName">—</span>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="action-button ghost" id="wizardCloseBtn1a">Cancelar</button>
+                                    <button type="button" class="action-button success" id="s1NextBtn">
+                                        <i data-lucide="arrow-right"></i> Próximo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Caso B: paciente não cadastrado -->
+                            <div id="s1Form" hidden>
+                                <div class="wizard-status-card warning">
+                                    <span class="status-icon"><i data-lucide="user-plus"></i></span>
+                                    <div class="status-text">
+                                        <strong>Paciente não cadastrado</strong>
+                                        Confirme os dados abaixo para criar o cadastro e continuar.
+                                    </div>
+                                </div>
+
+                                <form id="formStep1" class="modern-form" novalidate>
+                                    <div class="form-field">
+                                        <label for="s1Nome">Nome completo <span class="required-mark">*</span></label>
+                                        <input id="s1Nome" name="nomeCompleto" type="text" class="form-control" maxlength="160" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Telefone">Telefone <span class="required-mark">*</span></label>
+                                        <input id="s1Telefone" name="telefone" type="text" class="form-control" maxlength="20" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Email">E-mail</label>
+                                        <input id="s1Email" name="email" type="email" class="form-control" maxlength="120">
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="s1Cpf">CPF</label>
+                                        <input id="s1Cpf" name="cpf" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00">
+                                    </div>
+
+                                    <div id="s1EnderecoBloco" hidden>
+                                        <p class="hint-text">
+                                            <i data-lucide="home" class="icon-xs-mid"></i>
+                                            Endereço para atendimento em domicílio
+                                        </p>
+                                        <div class="form-field">
+                                            <label for="s1Cep">CEP</label>
+                                            <input id="s1Cep" name="cep" type="text" class="form-control" maxlength="9" placeholder="00000-000">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Rua">Rua <span class="required-mark">*</span></label>
+                                            <input id="s1Rua" name="rua" type="text" class="form-control" maxlength="160">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Numero">Número <span class="required-mark">*</span></label>
+                                            <input id="s1Numero" name="numero" type="text" class="form-control" maxlength="20">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Bairro">Bairro <span class="required-mark">*</span></label>
+                                            <input id="s1Bairro" name="bairro" type="text" class="form-control" maxlength="120">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Cidade">Cidade <span class="required-mark">*</span></label>
+                                            <input id="s1Cidade" name="cidade" type="text" class="form-control" maxlength="120">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="s1Estado">Estado (UF) <span class="required-mark">*</span></label>
+                                            <input id="s1Estado" name="estado" type="text" class="form-control" maxlength="2" placeholder="UF">
+                                        </div>
+                                    </div>
+
+                                    <div id="s1FormError" class="wizard-status-card danger mt-3q" hidden>
+                                        <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                        <div class="status-text"><span id="s1ErrorMsg"></span></div>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" class="action-button ghost" id="wizardCloseBtn1b">Cancelar</button>
+                                        <button type="submit" class="action-button success" id="s1SubmitBtn">
+                                            <i data-lucide="user-plus"></i>
+                                            <span>Cadastrar e continuar</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- ═══════════ ETAPA 2 — PLANO ══════════════ -->
+                        <div id="wizardStep2" hidden>
+                            <div class="wizard-status-card warning">
+                                <span class="status-icon"><i data-lucide="package-open"></i></span>
+                                <div class="status-text">
+                                    <strong>Sem plano de tratamento disponível</strong>
+                                    <span id="s2PacienteNome">Paciente</span> não possui plano ativo.
+                                    Preencha os dados abaixo para criar um plano e continuar.
+                                </div>
+                            </div>
+
+                            <form id="formStep2" class="modern-form" novalidate>
+                                <div class="form-field">
+                                    <label for="s2NomePlano">Nome do plano <span class="required-mark">*</span></label>
+                                    <input id="s2NomePlano" name="nomePacote" type="text" class="form-control" maxlength="120"
+                                           placeholder="Ex: Plano Mensal, Pacote 10 sessões…">
+                                </div>
+                                <div class="form-field">
+                                    <label for="s2Sessoes">Sessões contratadas <span class="required-mark">*</span></label>
+                                    <input id="s2Sessoes" name="sessoesContratadas" type="number" class="form-control"
+                                           min="1" max="999" placeholder="Ex: 10">
+                                </div>
+                                <div class="form-field">
+                                    <label for="s2Valor">Valor total (R$)</label>
+                                    <input id="s2Valor" name="valorTotal" type="text" class="form-control"
+                                           placeholder="0,00 (opcional)">
+                                </div>
+                                <div class="form-field">
+                                    <label for="s2DataInicio">Data de início <span class="required-mark">*</span></label>
+                                    <input id="s2DataInicio" name="dataInicio" type="date" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <label for="s2DataValidade">Validade (opcional)</label>
+                                    <input id="s2DataValidade" name="dataValidade" type="date" class="form-control">
+                                </div>
+
+                                <div id="s2FormError" class="wizard-status-card danger mt-3q" hidden>
+                                    <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                    <div class="status-text"><span id="s2ErrorMsg"></span></div>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="button" class="action-button ghost" id="s2BackBtn">
+                                        <i data-lucide="arrow-left"></i> Voltar
+                                    </button>
+                                    <button type="submit" class="action-button success" id="s2SubmitBtn">
+                                        <i data-lucide="plus-circle"></i>
+                                        <span>Criar plano e continuar</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- ═══════════ ETAPA 3 — CONFIRMAÇÃO ════════ -->
+                        <div id="wizardStep3" hidden>
+
+                            <!-- Resumo do agendamento -->
+                            <div class="confirm-summary" id="confirmSummary">
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="user" class="icon-xs"></i> Paciente</span>
+                                    <span class="confirm-summary-value" id="cs_paciente">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="calendar" class="icon-xs"></i> Data/Hora</span>
+                                    <span class="confirm-summary-value" id="cs_datahora">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="map-pin" class="icon-xs"></i> Local</span>
+                                    <span class="confirm-summary-value" id="cs_local">—</span>
+                                </div>
+                                <div class="confirm-summary-row">
+                                    <span class="confirm-summary-label"><i data-lucide="package" class="icon-xs"></i> Plano</span>
+                                    <span class="confirm-summary-value" id="cs_plano">—</span>
+                                </div>
+                                <div class="confirm-summary-row" id="cs_obsRow">
+                                    <span class="confirm-summary-label"><i data-lucide="message-square" class="icon-xs"></i> Observações</span>
+                                    <span class="confirm-summary-value" id="cs_obs">—</span>
+                                </div>
+                            </div>
+
+                            <!-- Status da disponibilidade -->
+                            <div id="s3Disponivel" hidden>
+                                <div class="wizard-status-card success">
+                                    <span class="status-icon"><i data-lucide="calendar-check"></i></span>
+                                    <div class="status-text">
+                                        <strong>Horário disponível</strong>
+                                        Tudo certo! Confirme para criar o agendamento oficial.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="s3Indisponivel" hidden>
+                                <div class="wizard-status-card danger">
+                                    <span class="status-icon"><i data-lucide="calendar-x"></i></span>
+                                    <div class="status-text">
+                                        <strong>Horário indisponível</strong>
+                                        <span id="s3MensagemIndisponivel">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="s3ConfirmError" class="wizard-status-card danger mt-3q" hidden>
+                                <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                <div class="status-text"><span id="s3ErrorMsg"></span></div>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="wizardCloseBtn3">Cancelar</button>
+                                <button type="button" class="action-button success" id="s3ConfirmBtn" hidden>
+                                    <i data-lucide="check-check"></i>
+                                    <span>Confirmar agendamento</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- /app-modal-body -->
+                </div><!-- /app-modal-card -->
+            </div><!-- /app-modal-dialog -->
+        </div><!-- /wizardModal -->
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODAL — EDITAR SOLICITAÇÃO
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="editarModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="editarBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editarTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <h3 id="editarTitle"><i data-lucide="pencil"></i> Editar Solicitação</h3>
+                        <button type="button" class="app-modal-close" id="editarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
+                    </header>
+                    <div class="app-modal-body">
+                        <form id="formEditar" class="modern-form" novalidate>
+                            <div class="form-field">
+                                <label for="edNome">Nome do paciente <span class="required-mark">*</span></label>
+                                <input id="edNome" type="text" class="form-control" maxlength="160" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edTelefone">Telefone <span class="required-mark">*</span></label>
+                                <input id="edTelefone" type="text" class="form-control" maxlength="20" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edEmail">E-mail</label>
+                                <input id="edEmail" type="email" class="form-control" maxlength="120">
+                            </div>
+                            <div class="form-field">
+                                <label for="edData">Data <span class="required-mark">*</span></label>
+                                <input id="edData" type="date" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edHorario">Horário <span class="required-mark">*</span></label>
+                                <input id="edHorario" type="time" class="form-control" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="edLocal">Local de atendimento <span class="required-mark">*</span></label>
+                                <select id="edLocal" class="form-control" required>
+                                    <option value="CLINICA">Clínica</option>
+                                    <option value="DOMICILIO">Em domicílio</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="edObs">Observações</label>
+                                <textarea id="edObs" class="form-control" maxlength="2000" rows="3"></textarea>
+                            </div>
+                            <div class="form-field">
+                                <label for="edMotivo">Motivo da alteração (opcional)</label>
+                                <input id="edMotivo" type="text" class="form-control" maxlength="255" placeholder="Ex: Solicitado pelo paciente">
+                            </div>
+                            <div id="edError" class="wizard-status-card danger mt-3q" hidden>
+                                <span class="status-icon"><i data-lucide="alert-circle"></i></span>
+                                <div class="status-text"><span id="edErrorMsg"></span></div>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="editarCloseBtn">Cancelar</button>
+                                <button type="submit" class="action-button success" id="edSubmitBtn">
+                                    <i data-lucide="save"></i> <span>Salvar alterações</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODAL — CONFIRMAÇÃO GENÉRICA
+        ════════════════════════════════════════════════════════════════ -->
+        <div id="confirmarModal" class="app-modal" aria-hidden="true">
+            <div class="app-modal-backdrop" id="confirmarBackdrop"></div>
+            <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmarTitle">
+                <div class="app-modal-card">
+                    <header class="app-modal-header">
+                        <h3 id="confirmarTitle">Confirmar ação</h3>
+                        <button type="button" class="app-modal-close" id="confirmarClose" aria-label="Fechar"><i data-lucide="x"></i></button>
+                    </header>
+                    <div class="app-modal-body">
+                        <p id="confirmarMsg" class="confirmar-msg"></p>
+                        <form id="formConfirmar" method="post" action="#">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                            <div class="modal-actions">
+                                <button type="button" class="action-button ghost" id="confirmarCloseBtn">Cancelar</button>
+                                <button type="submit" id="confirmarSubmitBtn" class="action-button danger">Confirmar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div><!-- /app-shell -->
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+    (() => {
+        'use strict';
+
+        // ── helpers CSRF ──────────────────────────────────────────────────────
+        const csrfToken  = () => document.querySelector('meta[name="csrf-token"]')?.content  ?? '';
+        const csrfHeader = () => document.querySelector('meta[name="csrf-header"]')?.content ?? 'X-CSRF-TOKEN';
+
+        const postJson = async (url, body) => {
+            const r = await fetch(url, {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader()]: csrfToken()
+                },
+                body: JSON.stringify(body)
+            });
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(json.message || `Erro ${r.status}`);
+            return json;
+        };
+
+        const getJson = async (url) => {
+            const r = await fetch(url);
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(json.message || `Erro ${r.status}`);
+            return json;
+        };
+
+        // ── máscaras ──────────────────────────────────────────────────────────
+        const maskCpf = v => {
+            const d = (v||'').replace(/\D/g,'').slice(0,11);
+            return d.replace(/^(\d{3})(\d)/,'$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/,'.$1-$2');
+        };
+        const maskPhone = v => {
+            const d = (v||'').replace(/\D/g,'').slice(0,11);
+            return d.length<=10
+                ? d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2')
+                : d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+        };
+        const maskCep = v => (v||'').replace(/\D/g,'').slice(0,8).replace(/^(\d{5})(\d)/,'$1-$2');
+
+        // ── state ─────────────────────────────────────────────────────────────
+        const state = {
+            solicitacaoId: null,
+            isDomicilio:   false,
+            fluxo:         null,   // último FluxoStatusResponse
+            planoId:       null,   // UUID do plano selecionado/criado
+        };
+
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const modal          = document.getElementById('wizardModal');
+        const loading        = document.getElementById('wizardLoading');
+        const loadingMsg     = document.getElementById('wizardLoadingMsg');
+        const errorPanel     = document.getElementById('wizardErrorPanel');
+        const errorMsg       = document.getElementById('wizardErrorMsg');
+        const step1El        = document.getElementById('wizardStep1');
+        const step2El        = document.getElementById('wizardStep2');
+        const step3El        = document.getElementById('wizardStep3');
+
+        const ws1 = document.getElementById('ws1');
+        const ws2 = document.getElementById('ws2');
+        const ws3 = document.getElementById('ws3');
+
+        // step 1
+        const s1Found    = document.getElementById('s1Found');
+        const s1FoundName= document.getElementById('s1FoundName');
+        const s1Form     = document.getElementById('s1Form');
+        const formStep1  = document.getElementById('formStep1');
+        const s1Nome     = document.getElementById('s1Nome');
+        const s1Telefone = document.getElementById('s1Telefone');
+        const s1Email    = document.getElementById('s1Email');
+        const s1Cpf      = document.getElementById('s1Cpf');
+        const s1EndBloco = document.getElementById('s1EnderecoBloco');
+        const s1FormErr  = document.getElementById('s1FormError');
+        const s1ErrMsg   = document.getElementById('s1ErrorMsg');
+        const s1SubmitBtn= document.getElementById('s1SubmitBtn');
+
+        // step 2
+        const s2PacNome  = document.getElementById('s2PacienteNome');
+        const formStep2  = document.getElementById('formStep2');
+        const s2NomePlano= document.getElementById('s2NomePlano');
+        const s2Sessoes  = document.getElementById('s2Sessoes');
+        const s2Valor    = document.getElementById('s2Valor');
+        const s2DataIni  = document.getElementById('s2DataInicio');
+        const s2DataVal  = document.getElementById('s2DataValidade');
+        const s2FormErr  = document.getElementById('s2FormError');
+        const s2ErrMsg   = document.getElementById('s2ErrorMsg');
+        const s2SubmitBtn= document.getElementById('s2SubmitBtn');
+
+        // step 3
+        const s3Disp     = document.getElementById('s3Disponivel');
+        const s3Indisp   = document.getElementById('s3Indisponivel');
+        const s3IndMsg   = document.getElementById('s3MensagemIndisponivel');
+        const s3ConfirmBtn= document.getElementById('s3ConfirmBtn');
+        const s3ConfErr  = document.getElementById('s3ConfirmError');
+        const s3ErrMsg   = document.getElementById('s3ErrorMsg');
+        const csP        = document.getElementById('cs_paciente');
+        const csDt       = document.getElementById('cs_datahora');
+        const csL        = document.getElementById('cs_local');
+        const csPl       = document.getElementById('cs_plano');
+        const csObs      = document.getElementById('cs_obs');
+        const csObsRow   = document.getElementById('cs_obsRow');
+
+        // ── modal open/close ──────────────────────────────────────────────────
+        const setModalOpen = open => {
+            modal.classList.toggle('is-open', open);
+            modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+            document.body.classList.toggle('modal-open', open);
+        };
+
+        const closeModal = () => setModalOpen(false);
+
+        document.getElementById('wizardClose').addEventListener('click', closeModal);
+        document.getElementById('wizardBackdrop').addEventListener('click', closeModal);
+        document.getElementById('wizardErrorClose').addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn1a')?.addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn1b')?.addEventListener('click', closeModal);
+        document.getElementById('wizardCloseBtn3')?.addEventListener('click', closeModal);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+        });
+
+        // ── mostrar/ocultar painéis ───────────────────────────────────────────
+        const showOnly = (...visible) => {
+            [loading, errorPanel, step1El, step2El, step3El].forEach(el => {
+                if (el) el.hidden = !visible.includes(el);
+            });
+        };
+
+        const setStepIndicator = step => {
+            [ws1, ws2, ws3].forEach((el, i) => {
+                el.className = 'wizard-step-item';
+                if (i + 1 < step)  el.classList.add('done');
+                if (i + 1 === step) el.classList.add('active');
+            });
+        };
+
+        const setLoading = (msg = 'Processando…') => {
+            loadingMsg.textContent = msg;
+            showOnly(loading);
+        };
+
+        const showError = msg => {
+            errorMsg.textContent = msg;
+            showOnly(errorPanel);
+            if (window.lucide) lucide.createIcons({ nodes: [errorPanel] });
+        };
+
+        // ── botão com loading inline ──────────────────────────────────────────
+        const btnLoading = (btn, yes) => {
+            if (yes) {
+                btn.setAttribute('data-loading', '');
+                const icon = btn.querySelector('i[data-lucide]');
+                if (icon && !btn.querySelector('.btn-spinner')) {
+                    const sp = document.createElement('span');
+                    sp.className = 'btn-spinner';
+                    btn.insertBefore(sp, btn.firstChild);
+                }
+            } else {
+                btn.removeAttribute('data-loading');
+                btn.querySelector('.btn-spinner')?.remove();
+            }
+        };
+
+        // ── ETAPA 1 ───────────────────────────────────────────────────────────
+        const showStep1 = fluxo => {
+            setStepIndicator(1);
+            showOnly(step1El);
+
+            if (fluxo.paciente.encontrado) {
+                s1Found.hidden = false;
+                s1Form.hidden  = true;
+                s1FoundName.textContent = fluxo.paciente.nome || fluxo.nomePaciente;
+            } else {
+                s1Found.hidden = true;
+                s1Form.hidden  = false;
+                s1FormErr.hidden = true;
+
+                // preencher com dados da solicitação
+                s1Nome.value     = fluxo.nomePaciente || '';
+                s1Telefone.value = maskPhone(fluxo.telefone || '');
+                s1Email.value    = fluxo.email || '';
+                s1Cpf.value      = maskCpf(fluxo.cpf || '');
+
+                // endereço domiciliar
+                s1EndBloco.hidden = !state.isDomicilio;
+                if (state.isDomicilio) {
+                    document.getElementById('s1Cep').value    = maskCep(fluxo.cep || '');
+                    document.getElementById('s1Rua').value    = fluxo.rua || '';
+                    document.getElementById('s1Numero').value = fluxo.numero || '';
+                    document.getElementById('s1Bairro').value = fluxo.bairro || '';
+                    document.getElementById('s1Cidade').value = fluxo.cidade || '';
+                    document.getElementById('s1Estado').value = fluxo.estado || '';
+                }
+            }
+
+            if (window.lucide) lucide.createIcons({ nodes: [step1El] });
+        };
+
+        // avançar pós-paciente encontrado
+        document.getElementById('s1NextBtn').addEventListener('click', async () => {
+            setLoading('Verificando plano de tratamento…');
+            try {
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                advanceFromPaciente(f);
+            } catch (e) {
+                showError(e.message);
+            }
+        });
+
+        // submeter cadastro de paciente
+        formStep1.addEventListener('submit', async e => {
+            e.preventDefault();
+            s1FormErr.hidden = true;
+
+            const nome     = s1Nome.value.trim();
+            const telefone = s1Telefone.value.trim();
+            if (!nome)     { showS1Err('Informe o nome do paciente.'); return; }
+            if (!telefone) { showS1Err('Informe o telefone do paciente.'); return; }
+
+            const body = {
+                nomeCompleto: nome,
+                telefone,
+                email:  s1Email.value.trim() || null,
+                cpf:    s1Cpf.value.replace(/\D/g,'') || null,
+            };
+            if (state.isDomicilio) {
+                body.cep    = document.getElementById('s1Cep').value.replace(/\D/g,'') || null;
+                body.rua    = document.getElementById('s1Rua').value.trim()    || null;
+                body.numero = document.getElementById('s1Numero').value.trim() || null;
+                body.bairro = document.getElementById('s1Bairro').value.trim() || null;
+                body.cidade = document.getElementById('s1Cidade').value.trim() || null;
+                body.estado = document.getElementById('s1Estado').value.trim().toUpperCase() || null;
+            }
+
+            btnLoading(s1SubmitBtn, true);
+            try {
+                await postJson(`/api/solicitacoes/${state.solicitacaoId}/cadastrar`, body);
+                setLoading('Paciente cadastrado! Verificando plano de tratamento…');
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                advanceFromPaciente(f);
+            } catch (err) {
+                showS1Err(err.message);
+            } finally {
+                btnLoading(s1SubmitBtn, false);
+            }
+        });
+
+        const showS1Err = msg => {
+            s1ErrMsg.textContent = msg;
+            s1FormErr.hidden = false;
+            if (window.lucide) lucide.createIcons({ nodes: [s1FormErr] });
+        };
+
+        const advanceFromPaciente = f => {
+            if (!f.plano.disponivel) {
+                showStep2(f);
+            } else {
+                state.planoId = f.plano.planos[0]?.id ?? null;
+                showStep3(f);
+            }
+        };
+
+        // ── ETAPA 2 ───────────────────────────────────────────────────────────
+        const showStep2 = fluxo => {
+            setStepIndicator(2);
+            showOnly(step2El);
+            s2FormErr.hidden = true;
+            s2PacNome.textContent = fluxo.paciente.nome || fluxo.nomePaciente;
+
+            // defaults inteligentes
+            s2NomePlano.value = 'Plano de Tratamento';
+            s2Sessoes.value   = '10';
+            s2Valor.value     = '';
+            s2DataIni.value   = new Date().toISOString().slice(0,10);
+            s2DataVal.value   = '';
+
+            if (window.lucide) lucide.createIcons({ nodes: [step2El] });
+        };
+
+        document.getElementById('s2BackBtn').addEventListener('click', () => showStep1(state.fluxo));
+
+        formStep2.addEventListener('submit', async e => {
+            e.preventDefault();
+            s2FormErr.hidden = true;
+
+            const nomePlano = s2NomePlano.value.trim();
+            const sessoes   = parseInt(s2Sessoes.value, 10);
+            if (!nomePlano)       { showS2Err('Informe o nome do plano de tratamento.'); return; }
+            if (!sessoes || sessoes < 1) { showS2Err('Informe ao menos 1 sessão.'); return; }
+
+            const valorRaw = s2Valor.value.replace(/[^\d,\.]/g,'').replace(',','.');
+            const valor    = valorRaw ? parseFloat(valorRaw) : 0;
+
+            const body = {
+                nomePacote:          nomePlano,
+                sessoesContratadas:  sessoes,
+                valorTotal:          valor,
+                dataInicio:          s2DataIni.value || null,
+                dataValidade:        s2DataVal.value || null,
+            };
+
+            btnLoading(s2SubmitBtn, true);
+            try {
+                const plano = await postJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo/criar-plano`, body);
+                state.planoId = plano.id;
+                setLoading('Plano criado! Verificando disponibilidade do horário…');
+                const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                state.fluxo = f;
+                showStep3(f);
+            } catch (err) {
+                showS2Err(err.message);
+            } finally {
+                btnLoading(s2SubmitBtn, false);
+            }
+        });
+
+        const showS2Err = msg => {
+            s2ErrMsg.textContent = msg;
+            s2FormErr.hidden = false;
+            if (window.lucide) lucide.createIcons({ nodes: [s2FormErr] });
+        };
+
+        // ── ETAPA 3 ───────────────────────────────────────────────────────────
+        const showStep3 = fluxo => {
+            setStepIndicator(3);
+            showOnly(step3El);
+            s3ConfErr.hidden = true;
+
+            // preencher resumo
+            csP.textContent  = fluxo.paciente.nome || fluxo.nomePaciente;
+            csDt.textContent = fluxo.dataHoraFormatada;
+            csL.textContent  = fluxo.tipoAtendimento
+                + (fluxo.enderecoResumo ? ' — ' + fluxo.enderecoResumo : '');
+
+            // plano
+            if (state.planoId && fluxo.plano.planos.length > 0) {
+                const pl = fluxo.plano.planos.find(p => p.id === state.planoId)
+                        || fluxo.plano.planos[0];
+                if (!state.planoId) state.planoId = pl.id;
+                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+            } else if (fluxo.plano.planos.length > 0) {
+                const pl = fluxo.plano.planos[0];
+                state.planoId = pl.id;
+                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+            } else {
+                csPl.textContent = '—';
+            }
+
+            // observações
+            if (fluxo.observacoes) {
+                csObs.textContent = fluxo.observacoes;
+                csObsRow.hidden   = false;
+            } else {
+                csObsRow.hidden = true;
+            }
+
+            // disponibilidade
+            if (fluxo.disponibilidade.disponivel) {
+                s3Disp.hidden    = false;
+                s3Indisp.hidden  = true;
+                s3ConfirmBtn.hidden = false;
+            } else {
+                s3Disp.hidden    = true;
+                s3Indisp.hidden  = false;
+                s3IndMsg.textContent = fluxo.disponibilidade.mensagem || 'Horário indisponível.';
+                s3ConfirmBtn.hidden = true;
+            }
+
+            if (window.lucide) lucide.createIcons({ nodes: [step3El] });
+        };
+
+        s3ConfirmBtn.addEventListener('click', async () => {
+            s3ConfErr.hidden = true;
+            btnLoading(s3ConfirmBtn, true);
+            try {
+                await postJson(`/api/solicitacoes/${state.solicitacaoId}/aprovar`, {
+                    pacoteSessaoId: state.planoId || null
+                });
+                closeModal();
+                window.location.href = '/solicitacoes?sucesso=1';
+            } catch (err) {
+                s3ErrMsg.textContent = err.message;
+                s3ConfErr.hidden = false;
+                if (window.lucide) lucide.createIcons({ nodes: [s3ConfErr] });
+            } finally {
+                btnLoading(s3ConfirmBtn, false);
+            }
+        });
+
+        // ── entrada do wizard ─────────────────────────────────────────────────
+        document.querySelectorAll('.open-wizard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                state.solicitacaoId = btn.dataset.solId;
+                state.isDomicilio   = btn.dataset.local === 'DOMICILIO';
+                state.fluxo         = null;
+                state.planoId       = null;
+
+                setLoading('Verificando dados da solicitação…');
+                setModalOpen(true);
+                setStepIndicator(1);
+
+                try {
+                    const f = await getJson(`/api/solicitacoes/${state.solicitacaoId}/fluxo`);
+                    state.fluxo = f;
+
+                    if (!f.paciente.encontrado) {
+                        showStep1(f);
+                    } else if (!f.plano.disponivel) {
+                        state.planoId = null;
+                        showStep1(f);   // mostra "encontrado" e espera clique em Próximo
+                    } else {
+                        state.planoId = f.plano.planos[0]?.id ?? null;
+                        showStep1(f);   // mostra "encontrado" e espera clique em Próximo
+                    }
+                } catch (err) {
+                    showError(err.message);
+                }
+            });
+        });
+
+        // ── máscara nos campos de etapa 1 ─────────────────────────────────────
+        s1Cpf?.addEventListener('input', () => { s1Cpf.value = maskCpf(s1Cpf.value); });
+        s1Telefone?.addEventListener('input', () => { s1Telefone.value = maskPhone(s1Telefone.value); });
+
+        // ════════════════════════════════════════════════════════════
+        // MODAL — EDITAR SOLICITAÇÃO
+        // ════════════════════════════════════════════════════════════
+        (() => {
+            const modal      = document.getElementById('editarModal');
+            const form       = document.getElementById('formEditar');
+            const edNome     = document.getElementById('edNome');
+            const edTelefone = document.getElementById('edTelefone');
+            const edEmail    = document.getElementById('edEmail');
+            const edData     = document.getElementById('edData');
+            const edHorario  = document.getElementById('edHorario');
+            const edLocal    = document.getElementById('edLocal');
+            const edObs      = document.getElementById('edObs');
+            const edMotivo   = document.getElementById('edMotivo');
+            const edError    = document.getElementById('edError');
+            const edErrorMsg = document.getElementById('edErrorMsg');
+            const submitBtn  = document.getElementById('edSubmitBtn');
+            let solicitacaoId = null;
+
+            const open = () => {
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+            };
+
+            document.getElementById('editarClose').addEventListener('click', close);
+            document.getElementById('editarCloseBtn').addEventListener('click', close);
+            document.getElementById('editarBackdrop').addEventListener('click', close);
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+            });
+
+            document.querySelectorAll('.open-editar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    solicitacaoId      = btn.dataset.solId;
+                    edNome.value       = btn.dataset.nome       || '';
+                    edTelefone.value   = maskPhone(btn.dataset.telefone || '');
+                    edEmail.value      = btn.dataset.email      || '';
+                    edData.value       = btn.dataset.data       || '';
+                    edHorario.value    = btn.dataset.horario    || '';
+                    edLocal.value      = btn.dataset.local      || 'CLINICA';
+                    edObs.value        = btn.dataset.observacoes|| '';
+                    edMotivo.value     = '';
+                    edError.hidden     = true;
+                    open();
+                    if (window.lucide) lucide.createIcons({ nodes: [modal] });
+                });
+            });
+
+            edTelefone.addEventListener('input', () => { edTelefone.value = maskPhone(edTelefone.value); });
+
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                edError.hidden = true;
+
+                if (!edNome.value.trim())    { showEdErr('Informe o nome do paciente.'); return; }
+                if (!edTelefone.value.trim()){ showEdErr('Informe o telefone.'); return; }
+                if (!edData.value)           { showEdErr('Informe a data.'); return; }
+                if (!edHorario.value)        { showEdErr('Informe o horário.'); return; }
+
+                btnLoading(submitBtn, true);
+                try {
+                    await postJson(`/api/solicitacoes/${solicitacaoId}/editar`, {
+                        nomePaciente:    edNome.value.trim(),
+                        telefone:        edTelefone.value.replace(/\D/g, ''),
+                        email:           edEmail.value.trim()  || null,
+                        data:            edData.value,
+                        horario:         edHorario.value,
+                        localAtendimento:edLocal.value,
+                        observacoes:     edObs.value.trim()    || null,
+                        motivo:          edMotivo.value.trim() || null
+                    });
+                    close();
+                    window.location.href = '/solicitacoes?reagendado=1';
+                } catch (err) {
+                    showEdErr(err.message);
+                } finally {
+                    btnLoading(submitBtn, false);
+                }
+            });
+
+            const showEdErr = msg => {
+                edErrorMsg.textContent = msg;
+                edError.hidden = false;
+                if (window.lucide) lucide.createIcons({ nodes: [edError] });
+            };
+        })();
+
+        // ════════════════════════════════════════════════════════════
+        // MODAL — CONFIRMAÇÃO GENÉRICA (cancelar / restaurar / excluir)
+        // ════════════════════════════════════════════════════════════
+        (() => {
+            const modal      = document.getElementById('confirmarModal');
+            const title      = document.getElementById('confirmarTitle');
+            const msg        = document.getElementById('confirmarMsg');
+            const form       = document.getElementById('formConfirmar');
+            const submitBtn  = document.getElementById('confirmarSubmitBtn');
+
+            const open = () => {
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+            };
+
+            document.getElementById('confirmarClose').addEventListener('click', close);
+            document.getElementById('confirmarCloseBtn').addEventListener('click', close);
+            document.getElementById('confirmarBackdrop').addEventListener('click', close);
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+            });
+
+            document.querySelectorAll('.open-confirmar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    title.textContent     = btn.dataset.title || 'Confirmar ação';
+                    msg.textContent       = btn.dataset.msg   || 'Deseja confirmar esta ação?';
+                    form.action           = btn.dataset.url   || '#';
+
+                    // estilo do botão de confirmação
+                    const isDanger = btn.classList.contains('danger');
+                    submitBtn.className = isDanger ? 'action-button danger' : 'action-button success';
+                    submitBtn.textContent = 'Confirmar';
+
+                    open();
+                    if (window.lucide) lucide.createIcons({ nodes: [modal] });
+                });
+            });
+        })();
+
+        const flashStack = document.getElementById('solicitacoesFlashStack');
+
+        const dismissFlash = flash => {
+            if (!flash) return;
+            flash.style.opacity = '0';
+            flash.style.transform = 'translateY(-4px)';
+            setTimeout(() => flash.remove(), 180);
+        };
+
+        const wireFlash = flash => {
+            if (!flash) return;
+            flash.querySelector('[data-flash-close]')?.addEventListener('click', () => dismissFlash(flash));
+            if (flash.dataset.autoDismiss === 'true') {
+                setTimeout(() => dismissFlash(flash), 4000);
+            }
+        };
+
+        const showFlash = (type, text) => {
+            if (!flashStack || !text) return;
+            const div = document.createElement('div');
+            const icon = type === 'error' ? 'circle-alert' : 'circle-check';
+            div.className = `solicitacoes-flash ${type === 'error' ? 'error' : 'success'}`;
+            div.dataset.autoDismiss = 'true';
+            div.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span><button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>`;
+            flashStack.prepend(div);
+            wireFlash(div);
+            if (window.lucide) lucide.createIcons({ nodes: [div] });
+        };
+
+        document.querySelectorAll('.solicitacoes-flash').forEach(wireFlash);
+
+        const savedFlash = sessionStorage.getItem('solicitacoesFlash');
+        if (savedFlash) {
+            sessionStorage.removeItem('solicitacoesFlash');
+            try {
+                const parsed = JSON.parse(savedFlash);
+                showFlash(parsed.type, parsed.text);
+            } catch (err) {
+                console.warn('Falha ao ler flash salvo de solicitações.', err);
+            }
+        }
+
+        const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+        bulkApproveBtn?.addEventListener('click', async () => {
+            const pendentes = Array.from(document.querySelectorAll('.req-item[data-sol-id][data-can-auto-approve="true"]'));
+            if (!pendentes.length) {
+                showFlash('error', 'Nenhuma solicitação pronta para aprovação em lote.');
+                return;
+            }
+
+            btnLoading(bulkApproveBtn, true);
+            let aprovadas = 0;
+            let ignoradas = 0;
+
+            for (const item of pendentes) {
+                const id = item.dataset.solId;
+                try {
+                    const fluxo = await getJson(`/api/solicitacoes/${id}/fluxo`);
+                    if (!fluxo?.paciente?.encontrado || !fluxo?.disponibilidade?.disponivel) {
+                        ignoradas++;
+                        continue;
+                    }
+
+                    await postJson(`/api/solicitacoes/${id}/aprovar`, {
+                        pacoteSessaoId: fluxo?.plano?.planos?.[0]?.id ?? null
+                    });
+                    aprovadas++;
+                } catch (err) {
+                    ignoradas++;
+                }
+            }
+
+            btnLoading(bulkApproveBtn, false);
+
+            if (aprovadas > 0) {
+                const texto = ignoradas > 0
+                    ? `${aprovadas} solicitações aprovadas. ${ignoradas} ficaram pendentes para revisão manual.`
+                    : `${aprovadas} solicitações aprovadas com sucesso.`;
+                sessionStorage.setItem('solicitacoesFlash', JSON.stringify({ type: 'success', text: texto }));
+                window.location.reload();
+                return;
+            }
+
+            showFlash('error', 'Nenhuma solicitação pôde ser aprovada em lote.');
+        });
+
+        const flashParam = new URLSearchParams(location.search);
+        if (flashParam.get('sucesso') === '1' || flashParam.get('reagendado') === '1') {
+            history.replaceState(null, '', window.location.pathname);
+            showFlash(
+                'success',
+                flashParam.get('reagendado') === '1'
+                    ? 'Solicitação reagendada com sucesso.'
+                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.'
+            );
+        }
+    })();
+    </script>
+</body>
+</html>

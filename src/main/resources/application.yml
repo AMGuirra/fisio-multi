@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: FisioGestao
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fisio}?sslmode=${DB_SSLMODE:disable}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: com.fisiogestao.config.PostgreSqlCompatibleDialect
+        jdbc:
+          "[time_zone]": America/Campo_Grande
+        timezone:
+          "[default_storage]": NORMALIZE
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    default-schema: public
+    schemas: public
+    table: flyway_schema_history_fisiogestao
+    baseline-on-migrate: true
+    baseline-version: 0
+  thymeleaf:
+    cache: false
+  mvc:
+    format:
+      date: dd/MM/yyyy
+      time: HH:mm
+      date-time: dd/MM/yyyy HH:mm
+  jackson:
+    time-zone: America/Campo_Grande
+
+server:
+  port: ${PORT:${SERVER_PORT:8081}}
+
+app:
+  timezone: America/Campo_Grande
+  base-url: ${APP_BASE_URL:http://localhost:8081}
+  security:
+    encryption-key: ${APP_ENCRYPTION_KEY:}
+  bootstrap-admin:
+    enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
+    nome: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}
+    username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
+    email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento Realizado - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #31c9a9;
+            --primary-dark: #1ea387;
+            --primary-light: #7af0d7;
+            --text-main: #15303c;
+            --text-soft: #607988;
+            --shadow-lg: 0 24px 50px rgba(34, 77, 93, 0.14);
+            --radius: 0.65rem;
+            --radius-xl: 1.2rem;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(900px 450px at 14% -12%, rgba(49, 201, 169, 0.16), transparent 65%),
+                radial-gradient(850px 420px at 100% 0%, rgba(86, 149, 255, 0.14), transparent 70%),
+                linear-gradient(145deg, #eef7fb 0%, #e8f5f3 42%, #f7fbfd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .success-card {
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2.6rem 1.8rem;
+            border: 1px solid rgba(102, 183, 164, 0.22);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .success-icon {
+            width: 82px;
+            height: 82px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 1.3rem;
+            color: #fff;
+            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.28);
+        }
+
+        .success-icon i {
+            width: 34px;
+            height: 34px;
+        }
+
+        .success-title {
+            font-size: 1.72rem;
+            color: var(--text-main);
+            margin-bottom: 0.85rem;
+            font-weight: 760;
+        }
+
+        .success-text {
+            color: var(--text-soft);
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            padding: 0.86rem 1.35rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 650;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(49, 201, 169, 0.3);
+            color: #fff;
+        }
+
+        @media (max-width: 640px) {
+            .success-card { padding: 1.8rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-card">
+            <div class="success-icon">
+                <i data-lucide="check"></i>
+            </div>
+            <h1 class="success-title">Solicitação Enviada!</h1>
+            <p class="success-text">
+                Sua solicitação de agendamento foi recebida com sucesso.<br>
+                Em breve nossa equipe entrará em contato pelo WhatsApp
+                para confirmar seu horário.
+            </p>
+            <a th:href="@{/agendamento-online}" href="/agendamento-online" class="btn-home">
+                <i data-lucide="arrow-left"></i>
+                Fazer Novo Agendamento
+            </a>
+        </div>
+    </div>
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script>
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria do Sistema - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/auditoria.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:href="@{/auditoria}" href="/auditoria" class="user-menu-item" role="menuitem"><i data-lucide="shield-check"></i><span>Auditoria</span></a>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main audit-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Auditoria do Sistema</h1>
+                    <p class="hero-subtitle">Rastreabilidade centralizada de inclusões, edições, cancelamentos, exclusões, exportações, autenticação e envios do sistema.</p>
+                </div>
+                <span class="hero-pill">Central de Auditoria</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab active"><i data-lucide="shield-check"></i> Auditoria</a>
+            </nav>
+
+            <section class="section-card">
+                <div class="section-body audit-toolbar">
+                    <div class="audit-toolbar-copy">
+                        <h3 class="audit-toolbar-title">Consulta global de eventos</h3>
+                        <p class="audit-toolbar-text">Filtre por período, módulo, ação, usuário, origem e alterações críticas para reconstruir qualquer operação.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="summary-grid audit-summary-grid">
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Total de ações</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalAcoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Inclusões</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalInclusoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Edições</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalEdicoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Exclusões</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalExclusoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Cancelamentos</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalCancelamentos()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Confirmações</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalConfirmacoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Exportações</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalExportacoes()}">0</p>
+                </article>
+                <article class="audit-summary-card">
+                    <p class="audit-summary-label">Envios por e-mail</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalEnviosEmail()}">0</p>
+                </article>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros da Auditoria</h3>
+                </header>
+                <div class="section-body">
+                    <form th:action="@{/auditoria}" method="get" th:object="${filtroForm}" class="modern-form">
+                        <div class="audit-filter-grid">
+                            <div class="form-field">
+                                <label for="dataInicial">Período inicial</label>
+                                <input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}">
+                            </div>
+                            <div class="form-field">
+                                <label for="dataFinal">Período final</label>
+                                <input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}">
+                            </div>
+                            <div class="form-field">
+                                <label for="modulo">Módulo</label>
+                                <select id="modulo" class="form-select" th:field="*{modulo}">
+                                    <option value="">Todos</option>
+                                    <option th:each="modulo : ${modulosAuditoria}" th:value="${modulo}" th:text="${modulo.label}">Agenda</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="entidade">Entidade</label>
+                                <input id="entidade" type="text" class="form-control" th:field="*{entidade}" list="entidades-auditoria" placeholder="Ex.: sessao">
+                                <datalist id="entidades-auditoria">
+                                    <option th:each="entidade : ${entidadesAuditoria}" th:value="${entidade}"></option>
+                                </datalist>
+                            </div>
+                            <div class="form-field">
+                                <label for="tipoAcao">Tipo de ação</label>
+                                <select id="tipoAcao" class="form-select" th:field="*{tipoAcao}">
+                                    <option value="">Todas</option>
+                                    <option th:each="acao : ${acoesAuditoria}" th:value="${acao}" th:text="${acao.label}">Inclusão</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="usuario">Usuário</label>
+                                <input id="usuario" type="text" class="form-control" th:field="*{usuario}" list="usuarios-auditoria" placeholder="Nome do usuário">
+                                <datalist id="usuarios-auditoria">
+                                    <option th:each="usuario : ${usuariosAuditoria}" th:value="${usuario}"></option>
+                                </datalist>
+                            </div>
+                            <div class="form-field">
+                                <label for="paciente">Paciente</label>
+                                <input id="paciente" type="text" class="form-control" th:field="*{paciente}" placeholder="Nome do paciente">
+                            </div>
+                            <div class="form-field">
+                                <label for="profissional">Profissional</label>
+                                <input id="profissional" type="text" class="form-control" th:field="*{profissional}" placeholder="Nome do profissional">
+                            </div>
+                            <div class="form-field">
+                                <label for="registroAfetado">Registro afetado</label>
+                                <input id="registroAfetado" type="text" class="form-control" th:field="*{registroAfetado}" placeholder="ID ou descrição">
+                            </div>
+                            <div class="form-field">
+                                <label for="origemEvento">Origem do evento</label>
+                                <select id="origemEvento" class="form-select" th:field="*{origemEvento}">
+                                    <option value="">Todas</option>
+                                    <option th:each="origem : ${origensAuditoria}" th:value="${origem}" th:text="${origem.label}">Manual</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="audit-checkbox-grid">
+                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteExclusoes}"> Somente exclusões</label>
+                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteCancelamentos}"> Somente cancelamentos</label>
+                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteEdicoes}"> Somente edições</label>
+                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteAlteracoesCriticas}"> Somente alterações críticas</label>
+                        </div>
+
+                        <div class="audit-button-row">
+                            <button type="submit" class="action-button primary"><i data-lucide="search"></i> Aplicar filtros</button>
+                            <a th:href="@{/auditoria}" href="/auditoria" class="action-button secondary"><i data-lucide="refresh-cw"></i> Limpar</a>
+                            <button type="submit" class="action-button secondary" th:formaction="@{/auditoria/exportar}" name="formato" value="PDF">
+                                <i data-lucide="file-text"></i> Exportar PDF
+                            </button>
+                            <button type="submit" class="action-button secondary" th:formaction="@{/auditoria/exportar}" name="formato" value="EXCEL">
+                                <i data-lucide="sheet"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="history"></i> Eventos auditados</h3>
+                    <p class="section-subtitle" th:text="${eventos.size() + ' registros encontrados'}">0 registros encontrados</p>
+                </header>
+
+                <div class="section-body audit-empty" th:if="${eventos.empty}">
+                    <i data-lucide="search-x"></i>
+                    <p>Nenhum evento encontrado para os filtros aplicados.</p>
+                </div>
+
+                <div class="data-table-wrap" th:unless="${eventos.empty}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Módulo</th>
+                                <th>Entidade</th>
+                                <th>Ação</th>
+                                <th>Registro</th>
+                                <th>Usuário</th>
+                                <th>Origem</th>
+                                <th>Motivo</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="evento : ${eventos}">
+                                <td th:text="${#temporals.format(evento.createdAt, 'dd/MM/yyyy HH:mm')}">01/04/2026 08:00</td>
+                                <td th:text="${evento.modulo != null ? evento.modulo.label : '-'}">Agenda</td>
+                                <td th:text="${evento.entidade}">sessao</td>
+                                <td>
+                                    <div class="audit-inline-stack">
+                                        <span class="audit-action-badge" th:classappend="${evento.tipoAcao != null ? ' ' + evento.tipoAcao.badgeClass : ''}" th:text="${evento.tipoAcao != null ? evento.tipoAcao.label : '-'}">Inclusão</span>
+                                        <span class="audit-critical-badge" th:if="${evento.alteracaoCritica}">Crítica</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="audit-inline-stack">
+                                        <strong th:text="${evento.descricaoRegistro != null && !#strings.isEmpty(evento.descricaoRegistro) ? evento.descricaoRegistro : 'Sem descrição'}">Registro</strong>
+                                        <span class="audit-inline-meta" th:text="${evento.entidadeId != null ? 'ID: ' + evento.entidadeId : 'Sem ID informado'}">ID</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="audit-inline-stack">
+                                        <strong th:text="${evento.usuarioNome != null ? evento.usuarioNome : 'Sistema'}">Usuário</strong>
+                                        <span class="audit-inline-meta" th:text="${evento.perfilUsuario != null ? evento.perfilUsuario : '-'}">Perfil</span>
+                                    </div>
+                                </td>
+                                <td><span class="audit-origin-badge" th:text="${evento.origemEvento != null ? evento.origemEvento.label : '-'}">Manual</span></td>
+                                <td th:text="${evento.motivo != null && !#strings.isEmpty(evento.motivo) ? evento.motivo : '-'}">-</td>
+                                <td class="text-right">
+                                    <a th:href="@{/auditoria/{id}(id=${evento.id})}" class="action-button secondary">
+                                        <i data-lucide="eye"></i> Ver detalhes
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>
+
+
+
+
+

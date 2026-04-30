@@ -1,0 +1,21 @@
+[Unit]
+Description=FisioGestao Application
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/opt/fisiogestao
+ExecStart=/usr/bin/java \
+  -Xms512m -Xmx1024m \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -XX:HeapDumpPath=/opt/fisiogestao/heapdumps/ \
+  -XX:+ExitOnOutOfMemoryError \
+  -jar /opt/fisiogestao/app.jar
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/fisiogestao/app.log
+StandardError=append:/var/log/fisiogestao/error.log
+
+[Install]
+WantedBy=multi-user.target

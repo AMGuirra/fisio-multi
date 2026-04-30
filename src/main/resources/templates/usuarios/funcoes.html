@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funções de Usuários - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia</h2>
+                    <p class="header-date skeletonable" id="headerFullDate"></p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock"></div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Funções de Usuários</h1>
+                    <p class="hero-subtitle">Defina quais menus cada função não-administradora poderá acessar dentro do sistema.</p>
+                </div>
+                <span class="hero-pill">Permissões</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab active"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
+            </nav>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
+            <section class="section-card">
+                <div class="section-body">
+                    <div class="helper-card">
+                        <div class="helper-copy">
+                            <h4>Administrador com acesso total</h4>
+                            <p>O perfil Administrador continua com acesso completo e fixo ao sistema. As alterações abaixo afetam Fisioterapeuta, Recepção, Assessoria e Financeiro.</p>
+                        </div>
+                        <a th:href="@{/usuarios}" href="/usuarios" class="action-button ghost">
+                            <i data-lucide="users"></i>
+                            Voltar aos usuários
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="permissions-layout">
+                <article class="section-card permissions-card"
+                         th:each="funcao : ${funcoesUsuario}"
+                         th:with="expanded=${editingRole != null and editingRole == funcao.role.name()}"
+                         th:classappend="${editingRole != null and editingRole == funcao.role.name() ? ' section-card-highlight' : ''} + ${expanded ? '' : ' is-collapsed'}">
+                    <header class="section-head">
+                        <div class="permission-head-main">
+                            <div class="permission-head-copy">
+                                <h3 class="section-title">
+                                    <i data-lucide="shield"></i>
+                                    <span th:text="${funcao.label}"
+                                          th:title="${funcao.role.description}">Função</span>
+                                </h3>
+                                <p class="section-subtitle" th:text="${funcao.readOnly ? 'Acesso total fixo do sistema.' : 'Selecione os menus liberados para essa função.'}">Descrição</p>
+                                <p class="permission-head-summary"
+                                   th:text="${funcao.readOnly
+                                       ? funcao.grantedMenus.size() + ' funções visíveis neste perfil.'
+                                       : funcao.grantedMenus.size() + ' funções habilitadas de ' + menusConfiguraveis.size()}">Resumo</p>
+                            </div>
+                        </div>
+                        <div class="permission-head-actions">
+                            <span class="chip"
+                                  th:classappend="${' role-' + #strings.toLowerCase(funcao.role.name())}"
+                                  th:title="${funcao.role.description}"
+                                  th:text="${funcao.label}">Perfil</span>
+                            <button type="button"
+                                    class="permission-toggle"
+                                    th:attr="aria-expanded=${expanded ? 'true' : 'false'}"
+                                    th:title="${expanded ? 'Minimizar funções' : 'Expandir funções'}">
+                                <i data-lucide="shield"></i>
+                                <i data-lucide="chevron-down"></i>
+                            </button>
+                        </div>
+                    </header>
+                    <div class="section-body permission-collapsible">
+                        <div th:if="${funcao.readOnly}" class="permission-grid permission-grid-readonly">
+                            <div class="permission-option permission-option-static"
+                                 th:each="menu : ${funcao.grantedMenus}"
+                                 th:title="${menu.description}">
+                                <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
+                                <div>
+                                    <strong th:text="${menu.label}">Menu</strong>
+                                    <p th:text="${menu.footer ? 'Disponível no rodapé da navegação.' : 'Disponível na navegação principal.'}">Descrição</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form th:unless="${funcao.readOnly}" th:action="@{/funcoes-usuarios/{role}(role=${funcao.role})}" method="post" class="modern-form">
+                            <div class="permission-grid">
+                                <label class="permission-option"
+                                       th:each="menu : ${menusConfiguraveis}"
+                                       th:classappend="${funcao.grantedMenus.contains(menu) ? ' is-selected' : ''}"
+                                       th:title="${menu.description}">
+                                    <input type="checkbox" name="menus" th:value="${menu}" th:checked="${funcao.grantedMenus.contains(menu)}">
+                                    <span class="permission-option-icon"><i th:attr="data-lucide=${menu.icon}"></i></span>
+                                    <span class="permission-option-copy">
+                                        <strong th:text="${menu.label}">Menu</strong>
+                                        <span th:text="${menu.footer ? 'Mostra o item no rodapé da sidebar.' : 'Libera o acesso ao módulo e o item na sidebar.'}">Descrição</span>
+                                    </span>
+                                </label>
+                            </div>
+                            <p class="helper-text">É necessário manter ao menos um menu interno para a função continuar navegando após o login.</p>
+                            <div class="form-actions">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="save"></i>
+                                    Salvar acessos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+        (() => {
+            const cards = document.querySelectorAll('.permissions-card');
+            if (cards.length === 0) {
+                return;
+            }
+
+            cards.forEach((card) => {
+                const toggle = card.querySelector('.permission-toggle');
+                const body = card.querySelector('.permission-collapsible');
+                if (!toggle || !body) {
+                    return;
+                }
+
+                const syncState = (expanded) => {
+                    card.classList.toggle('is-collapsed', !expanded);
+                    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    toggle.setAttribute('title', expanded ? 'Minimizar funções' : 'Expandir funções');
+                };
+
+                toggle.addEventListener('click', () => {
+                    const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+                    syncState(expanded);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
+
+
+
+

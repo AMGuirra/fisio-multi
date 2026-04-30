@@ -1,0 +1,33 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.compile.nullAnalysis.nonnull": [
+        "lombok.NonNull",
+        "javax.annotation.Nonnull",
+        "org.eclipse.jdt.annotation.NonNull",
+        "org.springframework.lang.NonNull",
+        "org.jspecify.annotations.NonNull"
+    ],
+    "java.compile.nullAnalysis.nullable": [
+        "javax.annotation.Nullable",
+        "org.eclipse.jdt.annotation.Nullable",
+        "org.springframework.lang.Nullable",
+        "org.jspecify.annotations.Nullable"
+    ],
+    "java.compile.nullAnalysis.nonnullbydefault": [
+        "org.springframework.lang.NonNullApi",
+        "javax.annotation.ParametersAreNonnullByDefault",
+        "org.eclipse.jdt.annotation.NonNullByDefault",
+        "org.jspecify.annotations.NullMarked"
+    ],
+    "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-25.0.2",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Program Files\\Java\\jdk-25.0.2",
+            "default": true
+        }
+    ],
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "chatgpt.openOnStartup": true
+}

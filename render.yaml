@@ -1,0 +1,58 @@
+# Em serviços existentes no Render, NAO permita que o Blueprint sobrescreva a
+# conexao de banco a cada sync. As variaveis abaixo ficam com sync: false para
+# preservar o Postgres persistente configurado no painel do servico.
+# Se este arquivo apontar para outro banco, a aplicacao pode subir em uma base
+# vazia e aparentar "perder" usuarios e demais cadastros.
+services:
+  - type: web
+    name: fisiogestao-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSLMODE
+        value: "require"
+      - key: APP_BASE_URL
+        sync: false
+      - key: APP_ENCRYPTION_KEY
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_ENABLED
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: SERVER_SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SPRING_THYMELEAF_CACHE
+        value: "true"
+
+# Este bloco deve ser usado apenas na criacao inicial de infraestrutura.
+# Em servicos ja existentes, confirme manualmente no painel do Render se os
+# nomes abaixo correspondem exatamente aos recursos persistentes corretos.
+databases:
+  - name: fisiogestao-db
+    plan: free
+    region: ohio
+    postgresMajorVersion: "18"
+    databaseName: fisiogestao
+    user: fisiogestao_user
+    ipAllowList: []

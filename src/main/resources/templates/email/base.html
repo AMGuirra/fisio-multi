@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (titulo, conteudo)">
+<body style="margin:0;padding:0;background:#f2f7f6;font-family:Arial,sans-serif;color:#18323a;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2f7f6;padding:24px 0;">
+    <tr>
+        <td align="center" style="padding:0 16px;">
+            <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #d9e7e3;">
+                <tr>
+                    <td style="padding:28px 32px;background:linear-gradient(135deg,#0f8f7a,#2f6fec);color:#ffffff;">
+                        <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.8;">FisioGestao</div>
+                        <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;" th:text="${titulo}">Título</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px;line-height:1.7;font-size:16px;" th:replace="${conteudo}">
+                        Conteúdo
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 32px;background:#f7fbfa;color:#65808a;font-size:13px;border-top:1px solid #e4efec;">
+                        Este e-mail foi enviado automaticamente pelo FisioGestao.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

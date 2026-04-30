@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fila de WhatsApp - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia</h2>
+                    <p class="header-date skeletonable" id="headerFullDate"></p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock"></div>
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
+                    </button>
+                    <div class="user-menu-panel" role="menu">
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" th:href="@{/solicitacoes}" href="/solicitacoes" class="user-menu-item" role="menuitem"><i data-lucide="calendar-plus"></i><span>Solicitações</span></a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Fila de WhatsApp</h1>
+                    <p class="hero-subtitle">Acompanhe as mensagens operacionais enfileiradas pelo sistema para solicitações, reagendamentos e confirmações.</p>
+                </div>
+                <div class="hero-actions">
+                    <span class="hero-pill">WhatsApp</span>
+                    <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="mail-check"></i>Config. E-mail</a>
+                    <a href="#filaWhatsApp" class="action-button primary"><i data-lucide="messages-square"></i>Ver Fila</a>
+                </div>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções da Agenda">
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab active"><i data-lucide="messages-square"></i> Fila WhatsApp</a>
+            </nav>
+
+            <section class="workflow-strip">
+                <article class="workflow-step is-complete">
+                    <span class="workflow-step-number">1</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Acompanhe a fila</p>
+                        <p class="workflow-step-text">Veja rapidamente o volume de mensagens, pendências e erros operacionais.</p>
+                    </div>
+                </article>
+                <article class="workflow-step is-current">
+                    <span class="workflow-step-number">2</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Filtre o cenário</p>
+                        <p class="workflow-step-text">Refine por status para identificar gargalos sem interferir no disparo automático.</p>
+                    </div>
+                </article>
+                <article class="workflow-step">
+                    <span class="workflow-step-number">3</span>
+                    <div class="workflow-step-copy">
+                        <p class="workflow-step-label">Corrija o contexto</p>
+                        <p class="workflow-step-text">Quando necessário, siga para e-mail, auditoria ou operação da agenda com mais contexto.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="metrics-grid" aria-label="Resumo da fila de WhatsApp">
+                <article class="metric-card metric-mensagens">
+                    <div class="metric-top"><span class="metric-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span></div>
+                    <p class="metric-value skeletonable" th:text="${totalMensagens}">0</p>
+                    <p class="metric-label">Mensagens na fila</p>
+                </article>
+                <article class="metric-card metric-pendencias">
+                    <div class="metric-top"><span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span></div>
+                    <p class="metric-value skeletonable" th:text="${totalPendentes}">0</p>
+                    <p class="metric-label">Pendentes</p>
+                </article>
+                <article class="metric-card metric-pacientes">
+                    <div class="metric-top"><span class="metric-icon"><i data-lucide="circle-check" aria-hidden="true"></i></span></div>
+                    <p class="metric-value skeletonable" th:text="${totalEnviadas}">0</p>
+                    <p class="metric-label">Enviadas</p>
+                </article>
+                <article class="metric-card metric-despesa">
+                    <div class="metric-top"><span class="metric-icon"><i data-lucide="triangle-alert" aria-hidden="true"></i></span></div>
+                    <p class="metric-value skeletonable" th:text="${totalErros}">0</p>
+                    <p class="metric-label">Com erro</p>
+                </article>
+            </section>
+
+            <section class="crud-layout form-table">
+                <article class="section-card" id="filaWhatsApp">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="list-filter"></i> Filtro</h3>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/whatsapp}" method="get" class="modern-form">
+                            <div class="form-field">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option th:each="item : ${statusMensagens}" th:value="${item}" th:text="${item}" th:selected="${statusSelecionado == item}">PENDENTE</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="action-button primary"><i data-lucide="search"></i>Aplicar filtro</button>
+                                <a th:href="@{/whatsapp}" href="/whatsapp" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
+                            </div>
+                        </form>
+                        <div class="helper-card mt-14">
+                            <div class="helper-copy">
+                                <h4>Painel de acompanhamento</h4>
+                                <p>Esta tela é segura para monitoramento. O envio efetivo continua controlado pelo processo de integração, então aqui mostramos a fila sem forçar ações manuais.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="message-square-text"></i> Mensagens registradas</h3>
+                        <p class="section-subtitle" th:text="${mensagensWhatsApp != null ? mensagensWhatsApp.size() + ' itens' : '0 itens'}">0 itens</p>
+                    </header>
+                    <div class="section-body" th:if="${mensagensWhatsApp == null or mensagensWhatsApp.empty}">
+                        <div class="empty-box">
+                            <i data-lucide="inbox"></i>
+                            <p>Nenhuma mensagem encontrada para o filtro selecionado.</p>
+                        </div>
+                    </div>
+                    <div class="data-table-wrap" th:unless="${mensagensWhatsApp == null or mensagensWhatsApp.empty}">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Destino</th>
+                                    <th>Referência</th>
+                                    <th>Conteúdo</th>
+                                    <th>Tentativas</th>
+                                    <th>Agendada</th>
+                                    <th>Enviada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="mensagem : ${mensagensWhatsApp}">
+                                    <td>
+                                        <span class="chip"
+                                              th:classappend="${mensagem.status.name() == 'ENVIADO' ? 'status-approved' : (mensagem.status.name() == 'ERRO' ? 'status-danger' : 'status-warning')}"
+                                              th:text="${mensagem.status}">PENDENTE</span>
+                                    </td>
+                                    <td>
+                                        <p class="entity-name" th:text="${mensagem.destinatario}">5599999999999</p>
+                                        <p class="entity-meta" th:text="${mensagem.erro != null and !#strings.isEmpty(mensagem.erro) ? mensagem.erro : 'Sem erros registrados'}">Sem erros registrados</p>
+                                    </td>
+                                    <td>
+                                        <p class="entity-name" th:text="${mensagem.referencia != null and !#strings.isEmpty(mensagem.referencia) ? mensagem.referencia : 'Sem referência'}">Sem referência</p>
+                                        <p class="entity-meta" th:text="${mensagem.id}">ID</p>
+                                    </td>
+                                    <td>
+                                        <p class="entity-name"
+                                           th:text="${#strings.length(mensagem.conteudo) > 120 ? #strings.substring(mensagem.conteudo, 0, 120) + '...' : mensagem.conteudo}">
+                                            Conteúdo
+                                        </p>
+                                    </td>
+                                    <td th:text="${mensagem.tentativas}">0</td>
+                                    <td th:text="${mensagem.agendadaPara != null ? #temporals.format(mensagem.agendadaPara, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                                    <td th:text="${mensagem.enviadaEm != null ? #temporals.format(mensagem.enviadaEm, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

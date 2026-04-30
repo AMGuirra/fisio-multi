@@ -1,0 +1,14 @@
+entrypoint = "pom.xml"
+hidden = [".git", "target"]
+
+run = "sh mvnw spring-boot:run"
+
+[nix]
+channel = "stable-24_05"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
+
+[deployment]
+build = "sh mvnw -DskipTests package"
+run = "bash start.sh"
