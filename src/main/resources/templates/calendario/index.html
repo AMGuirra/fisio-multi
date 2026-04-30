@@ -104,67 +104,68 @@
                 </div>
             </section>
 
-            <section class="agenda-workspace">
-                <article id="agendaMobilePanelMes" class="section-card agenda-calendar-card agenda-panel-month">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
-                        <div class="calendar-month-nav">
-                            <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
-                            <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
-                            <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
-                        </div>
-                    </header>
-                    <div class="section-body">
-                        <div class="calendar-grid-head">
-                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-                        </div>
-                        <div class="calendar-grid-body">
-                            <th:block th:each="semana : ${calendarioSemanas}">
-                                <th:block th:each="dia : ${semana}">
-                                    <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
-                                        <th:block th:if="${dia.pertenceAoMes}">
-                                            <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
-                                            <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
-                                            <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
-                                            <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
-                                            <div class="calendar-day-mobile-signals">
-                                                <span class="calendar-day-signal sessions"
-                                                      th:if="${dia.sessoes > 0}"
-                                                      th:text="${dia.sessoes}">1</span>
-                                                <span class="calendar-day-signal pending"
-                                                      th:if="${dia.solicitacoesPendentes > 0}"
-                                                      th:text="${dia.solicitacoesPendentes}">1</span>
-                                                <span class="calendar-day-signal blocked"
-                                                      th:if="${dia.bloqueios > 0}"
-                                                      th:text="${dia.bloqueios}">1</span>
-                                            </div>
-                                            <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
-                                                <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
-                                            </div>
-                                            <div class="calendar-day-links">
-                                                <a class="calendar-link"
-                                                   th:href="@{/calendario(data=${dia.data})}">
-                                                    Ver dia
-                                                </a>
-                                                <a class="calendar-link"
-                                                   th:href="@{/bloqueios(data=${dia.data})}">
-                                                    Bloquear
-                                                </a>
-                                            </div>
-                                        </th:block>
-                                    </article>
+            <div class="agenda-desktop-shell">
+                <section class="agenda-workspace">
+                    <article id="agendaMobilePanelMes" class="section-card agenda-calendar-card agenda-panel-month">
+                        <header class="section-head">
+                            <h3 class="section-title"><i data-lucide="calendar-range"></i> Visão Mensal</h3>
+                            <div class="calendar-month-nav">
+                                <a class="date-control-nav" th:href="@{/calendario(mes=${mesAnterior},data=${dataMesAnterior})}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
+                                <strong class="calendar-month-label" th:text="${#temporals.format(mesSelecionado.atDay(1), 'MMMM yyyy')}">mês</strong>
+                                <a class="date-control-nav" th:href="@{/calendario(mes=${mesProximo},data=${dataMesProximo})}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
+                            </div>
+                        </header>
+                        <div class="section-body">
+                            <div class="calendar-grid-head">
+                                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                            </div>
+                            <div class="calendar-grid-body">
+                                <th:block th:each="semana : ${calendarioSemanas}">
+                                    <th:block th:each="dia : ${semana}">
+                                        <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
+                                            <th:block th:if="${dia.pertenceAoMes}">
+                                                <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
+                                                <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
+                                                <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
+                                                <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                                <div class="calendar-day-mobile-signals">
+                                                    <span class="calendar-day-signal sessions"
+                                                          th:if="${dia.sessoes > 0}"
+                                                          th:text="${dia.sessoes}">1</span>
+                                                    <span class="calendar-day-signal pending"
+                                                          th:if="${dia.solicitacoesPendentes > 0}"
+                                                          th:text="${dia.solicitacoesPendentes}">1</span>
+                                                    <span class="calendar-day-signal blocked"
+                                                          th:if="${dia.bloqueios > 0}"
+                                                          th:text="${dia.bloqueios}">1</span>
+                                                </div>
+                                                <div class="calendar-day-tags" th:if="${dia.resumosBloqueio != null and !dia.resumosBloqueio.empty}">
+                                                    <span class="calendar-tag" th:each="resumo : ${dia.resumosBloqueio}" th:text="${resumo}">Dia inteiro - Evento</span>
+                                                </div>
+                                                <div class="calendar-day-links">
+                                                    <a class="calendar-link"
+                                                       th:href="@{/calendario(data=${dia.data})}">
+                                                        Ver dia
+                                                    </a>
+                                                    <a class="calendar-link"
+                                                       th:href="@{/bloqueios(data=${dia.data})}">
+                                                        Bloquear
+                                                    </a>
+                                                </div>
+                                            </th:block>
+                                        </article>
+                                    </th:block>
                                 </th:block>
-                            </th:block>
+                            </div>
                         </div>
+                    </article>
+
+                    <div id="agendaMobilePanelDia" class="agenda-day-column agenda-panel-day">
+                        <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
                     </div>
-                </article>
+                </section>
 
-                <div id="agendaMobilePanelDia" class="agenda-day-column agenda-panel-day">
-                    <th:block th:replace="~{fragments/agenda-calendario-dia :: agendaDia}"></th:block>
-                </div>
-            </section>
-
-            <section id="agendaMobilePanelSolicitacoes" class="crud-layout two-column agenda-support-grid agenda-panel-solicitacoes">
+                <section id="agendaMobilePanelSolicitacoes" class="crud-layout two-column agenda-support-grid agenda-panel-solicitacoes">
                 <article class="section-card agenda-requests-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="clock-3"></i> Solicitações Pendentes</h3>
@@ -297,7 +298,8 @@
                         </div>
                     </article>
                 </div>
-            </section>
+                </section>
+            </div>
         </main>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
@@ -359,7 +361,5 @@
     </script>
 </body>
 </html>
-
-
 
 
