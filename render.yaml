@@ -44,6 +44,8 @@ services:
         value: "true"
       - key: SPRING_THYMELEAF_CACHE
         value: "true"
+      - key: APP_FLYWAY_REPAIR_ON_STARTUP
+        value: "true"
 
 # Este bloco deve ser usado apenas na criacao inicial de infraestrutura.
 # Em servicos ja existentes, confirme manualmente no painel do Render se os

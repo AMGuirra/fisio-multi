@@ -42,6 +42,8 @@ server:
 app:
   timezone: America/Campo_Grande
   base-url: ${APP_BASE_URL:http://localhost:8081}
+  flyway:
+    repair-on-startup: ${APP_FLYWAY_REPAIR_ON_STARTUP:false}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY:}
   bootstrap-admin:
