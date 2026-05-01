@@ -73,6 +73,17 @@ $env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
 - O arquivo `render.yaml` foi ajustado para nao sobrescrever automaticamente a conexao do banco em syncs futuros do Blueprint e agora usa nomes padrao coerentes com o FisioGestao.
 - A aplicacao bloqueia o boot no Render se tentar subir sem uma configuracao explicita de banco ou apontando para `localhost`, evitando deploys em base errada ou vazia.
 
+### Flyway checksum mismatch
+
+Se o deploy falhar com `Migration checksum mismatch`, o banco ja aplicou migrations antigas e os arquivos locais dessas mesmas versoes mudaram depois. Para reconciliar o historico do Flyway no banco persistente:
+
+1. Confirme que `DATABASE_URL` ou `SPRING_DATASOURCE_*` apontam para o PostgreSQL correto.
+2. No Render, defina temporariamente `APP_FLYWAY_REPAIR_ON_STARTUP=true`.
+3. Rode um novo deploy e aguarde a aplicacao subir com sucesso.
+4. Remova a variavel ou volte para `APP_FLYWAY_REPAIR_ON_STARTUP=false` e rode outro deploy.
+
+Use esse procedimento apenas quando a estrutura atual do banco ja estiver compatível com as migrations locais. Para novas alteracoes de schema, crie sempre uma nova migration versionada em vez de editar arquivos `V*.sql` ja aplicados.
+
 ## Estrutura principal
 
 ```text

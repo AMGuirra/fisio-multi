@@ -31,6 +31,20 @@ Tambem configure obrigatoriamente:
 - `APP_BASE_URL` com a URL publica final do servico, por exemplo `https://seu-servico.onrender.com`
 - `APP_ENCRYPTION_KEY` com uma chave forte e estavel para criptografar credenciais SMTP
 
+## Corrigir checksum mismatch do Flyway
+
+Se o Render mostrar erro como `Migration checksum mismatch for migration version ...`, o banco persistente tem registros antigos em `flyway_schema_history_fisiogestao` e os arquivos `V*.sql` dessas mesmas versoes foram alterados no codigo.
+
+Procedimento seguro para reconciliar:
+
+1. Confira no servico Render que `DATABASE_URL` ou `SPRING_DATASOURCE_*` apontam para o banco PostgreSQL persistente correto.
+2. Defina temporariamente `APP_FLYWAY_REPAIR_ON_STARTUP=true`.
+3. Faca um novo deploy.
+4. Depois que o boot concluir, remova a variavel ou defina `APP_FLYWAY_REPAIR_ON_STARTUP=false`.
+5. Faca outro deploy para garantir que a aplicacao volta a subir sem executar `repair` sempre.
+
+Nao deixe `APP_FLYWAY_REPAIR_ON_STARTUP=true` permanentemente. Para mudancas futuras no schema, adicione uma nova migration (`V20__...sql`, `V21__...sql`, etc.) em vez de editar migrations ja aplicadas.
+
 Opcionalmente, para um ambiente novo sem usuarios:
 
 - `APP_BOOTSTRAP_ADMIN_ENABLED=true`
