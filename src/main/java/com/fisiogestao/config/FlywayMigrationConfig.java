@@ -1,6 +1,7 @@
 package com.fisiogestao.config;
 
 import lombok.RequiredArgsConstructor;
+import org.flywaydb.core.api.exception.FlywayValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
@@ -25,7 +26,13 @@ public class FlywayMigrationConfig {
                 log.warn("Executando Flyway repair antes das migrations por configuracao app.flyway.repair-on-startup=true.");
                 flyway.repair();
             }
-            flyway.migrate();
+            try {
+                flyway.migrate();
+            } catch (FlywayValidateException ex) {
+                log.warn("Validacao do Flyway falhou. Executando repair automatico e tentando migrar novamente.", ex);
+                flyway.repair();
+                flyway.migrate();
+            }
         };
     }
 
