@@ -28,7 +28,6 @@ import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.EditarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
-import com.fisiogestao.whatsapp.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,7 +56,6 @@ public class SolicitacaoAgendamentoService {
     private final BloqueioAgendaService bloqueioAgendaService;
     private final PacienteService pacienteService;
     private final PacoteSessaoService pacoteSessaoService;
-    private final WhatsAppService whatsAppService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
     private final AuditService auditService;
 
@@ -208,13 +206,6 @@ public class SolicitacaoAgendamentoService {
                 .build();
         horarioBloqueadoRepository.save(bloqueio);
 
-        whatsAppService.enfileirar(
-                agendaService.obterConfiguracaoAtiva().getTelefoneWhatsapp(),
-                "Nova solicitação de agendamento para " + salva.getNomePaciente()
-                        + " às " + form.getHorario()
-                        + " (" + salva.getLocalAtendimentoDescricao() + ").",
-                "SOLICITACAO:" + salva.getId()
-        );
         agendamentoEmailNotificationService.notificarAguardandoConfirmacao(salva);
         return salva;
     }
@@ -335,13 +326,6 @@ public class SolicitacaoAgendamentoService {
         bloqueio.setStatus(HorarioBloqueadoStatus.CONFIRMADO);
         horarioBloqueadoRepository.save(bloqueio);
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Seu agendamento foi aprovado para " + solicitacao.getDataHoraInicio().toLocalDate() + " às "
-                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0)
-                        + " (" + solicitacao.getLocalAtendimentoDescricao() + ").",
-                "APROVACAO:" + solicitacao.getId()
-        );
         agendamentoEmailNotificationService.notificarConfirmadoPorSolicitacao(solicitacao);
         return salva;
     }
@@ -375,11 +359,6 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL
         );
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Seu pedido de agendamento não pôde ser confirmado. Entre em contato para escolher outro horário.",
-                "REJEICAO:" + solicitacao.getId()
-        );
         agendamentoEmailNotificationService.notificarRecusado(solicitacao);
     }
 
@@ -437,13 +416,6 @@ public class SolicitacaoAgendamentoService {
             bloqueio.setMotivo("Reserva provisória editada");
             horarioBloqueadoRepository.save(bloqueio);
 
-            whatsAppService.enfileirar(
-                    solicitacao.getTelefone(),
-                    "Seu pedido de agendamento foi reagendado para "
-                            + solicitacao.getDataHoraInicio().toLocalDate() + " às "
-                            + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0) + ".",
-                    "REAGENDAMENTO:" + solicitacao.getId()
-            );
         }
         return salva;
     }
@@ -486,13 +458,6 @@ public class SolicitacaoAgendamentoService {
         bloqueio.setMotivo("Reserva provisória reagendada");
         horarioBloqueadoRepository.save(bloqueio);
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Seu pedido de agendamento foi reagendado para "
-                        + solicitacao.getDataHoraInicio().toLocalDate() + " às "
-                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0) + ".",
-                "REAGENDAMENTO:" + solicitacao.getId()
-        );
         return solicitacao;
     }
 
@@ -539,11 +504,6 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL
         );
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Seu agendamento foi cancelado. Entre em contato para reagendar.",
-                "CANCELAMENTO:" + solicitacao.getId()
-        );
         agendamentoEmailNotificationService.notificarCancelado(solicitacao);
     }
 
@@ -591,14 +551,6 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL
         );
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Sua solicitação de agendamento para "
-                        + solicitacao.getDataHoraInicio().toLocalDate() + " às "
-                        + solicitacao.getDataHoraInicio().toLocalTime().withSecond(0).withNano(0)
-                        + " está sendo reavaliada. Em breve retornaremos com a confirmação.",
-                "RESTAURACAO:" + solicitacao.getId()
-        );
     }
 
     @Transactional
@@ -672,11 +624,6 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL
         );
 
-        whatsAppService.enfileirar(
-                solicitacao.getTelefone(),
-                "Seu pedido de agendamento foi cancelado pois o horário ficou indisponível. Entre em contato para escolher outra opção.",
-                "CANCELAMENTO:" + solicitacao.getId()
-        );
     }
 
     private IntervaloPeriodo periodo(LocalDate inicioInclusive, LocalDate fimExclusive) {

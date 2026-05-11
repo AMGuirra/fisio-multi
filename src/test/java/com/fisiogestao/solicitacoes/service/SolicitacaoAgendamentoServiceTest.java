@@ -14,7 +14,6 @@ import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
-import com.fisiogestao.whatsapp.service.WhatsAppService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -60,9 +59,6 @@ class SolicitacaoAgendamentoServiceTest {
 
     @Mock
     private PacoteSessaoService pacoteSessaoService;
-
-    @Mock
-    private WhatsAppService whatsAppService;
 
     @Mock
     private AgendamentoEmailNotificationService agendamentoEmailNotificationService;

@@ -10,7 +10,6 @@ public enum AppMenuItem {
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/bloqueios",           "calendar-x-2",        false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
-    WHATSAPP("Fila WhatsApp",        "/whatsapp",            "messages-square",     false, false, true,  false, MenuSection.AGENDA, List.of("/whatsapp")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
     PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/pacotes-consumo")),
     PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
@@ -115,7 +114,7 @@ public enum AppMenuItem {
     }
 
     public boolean isDisponivelNaInterface() {
-        return this != WHATSAPP;
+        return true;
     }
 
     public String getDescription() {
@@ -130,8 +129,6 @@ public enum AppMenuItem {
                 return "Controla bloqueios de horarios e indisponibilidades da agenda.";
             case SOLICITACOES:
                 return "Centraliza pedidos de agendamento e outras solicitacoes recebidas.";
-            case WHATSAPP:
-                return "Mostra a fila de mensagens e atendimentos vinculados ao WhatsApp.";
             case PACIENTES:
                 return "Permite cadastrar, localizar e acompanhar os pacientes da clinica.";
             case PACOTES_SESSOES:
@@ -183,7 +180,6 @@ public enum AppMenuItem {
                 AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
-                WHATSAPP,
                 PACIENTES,
                 PACOTES_SESSOES,
                 PRONTUARIO,

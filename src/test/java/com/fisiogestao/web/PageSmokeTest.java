@@ -195,22 +195,6 @@ class PageSmokeTest {
                 .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
     }
 
-    @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
-    void recepcaoNaoPodeAcessarWhatsapp() throws Exception {
-        mockMvc.perform(get("/whatsapp"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void whatsappRedirecionaParaDashboardQuandoPaginaEstaInativa() throws Exception {
-        mockMvc.perform(get("/whatsapp"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
-    }
-
     @ParameterizedTest
     @WithMockUser(username = "admin", roles = "ADMIN")
     @ValueSource(strings = {

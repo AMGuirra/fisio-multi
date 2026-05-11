@@ -6,7 +6,6 @@ import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.shared.web.BusinessException;
-import com.fisiogestao.whatsapp.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class DashboardService {
     private final AgendaService agendaService;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final FinanceiroService financeiroService;
-    private final WhatsAppService whatsAppService;
 
     public DashboardSummary carregarResumo() {
         long pacientesAtivos = pacienteService.listarAtivos().size();
@@ -38,7 +36,6 @@ public class DashboardService {
         }
         
         long solicitacoesPendentes = solicitacaoAgendamentoRepository.countByStatus(SolicitacaoStatus.PENDENTE);
-        long mensagensPendentes = whatsAppService.totalPendentes();
         BigDecimal receitasPendentes = BigDecimal.ZERO;
         BigDecimal despesasPendentes = BigDecimal.ZERO;
         
@@ -53,7 +50,6 @@ public class DashboardService {
                 pacientesAtivos,
                 sessoesHoje,
                 solicitacoesPendentes,
-                mensagensPendentes,
                 receitasPendentes,
                 despesasPendentes,
                 receitasPendentes.subtract(despesasPendentes)
@@ -64,7 +60,6 @@ public class DashboardService {
             long pacientesAtivos,
             long sessoesHoje,
             long solicitacoesPendentes,
-            long mensagensPendentes,
             BigDecimal receitasPendentes,
             BigDecimal despesasPendentes,
             BigDecimal saldoProjetado
