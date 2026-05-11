@@ -16,4 +16,6 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
     Optional<ClienteEntity> findFirstByTelefone(String telefone);
 
     Optional<ClienteEntity> findFirstByEmailIgnoreCase(String email);
+
+    Optional<ClienteEntity> findByPortalToken(UUID portalToken);
 }

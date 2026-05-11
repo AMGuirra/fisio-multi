@@ -186,6 +186,36 @@ public class PacienteService {
     }
 
     @Transactional
+    public ClienteEntity atualizar(UUID id, PacienteForm form) {
+        ClienteEntity cliente = buscarPorId(id);
+        var snapshotAnterior = auditService.snapshotOf(cliente);
+
+        String cpfNormalizado = normalizarCpf(form.getCpf());
+        if (cpfNormalizado != null && !cpfNormalizado.equals(cliente.getCpf())) {
+            clienteRepository.findFirstByCpf(cpfNormalizado)
+                    .filter(outro -> !outro.getId().equals(id))
+                    .ifPresent(outro -> { throw new BusinessException("Já existe outro paciente cadastrado com este CPF."); });
+        }
+
+        cliente.setNomeCompleto(normalizarNome(form.getNomeCompleto()));
+        cliente.setTelefone(normalizarTelefone(form.getTelefone()));
+        cliente.setEmail(normalizarEmail(form.getEmail()));
+        cliente.setCpf(cpfNormalizado);
+        cliente.setDataNascimento(form.getDataNascimento());
+        cliente.setCep(normalizarCep(form.getCep()));
+        cliente.setRua(normalizarTexto(form.getRua()));
+        cliente.setNumero(normalizarTexto(form.getNumero()));
+        cliente.setBairro(normalizarTexto(form.getBairro()));
+        cliente.setCidade(normalizarTexto(form.getCidade()));
+        cliente.setEstado(normalizarEstado(form.getEstado()));
+        cliente.setObservacoes(normalizarTexto(form.getObservacoes()));
+
+        ClienteEntity salvo = clienteRepository.save(cliente);
+        registrarAuditoriaAtualizacaoSemFalhar(salvo, snapshotAnterior, "Edição manual de dados do paciente.", AuditEventOrigin.MANUAL);
+        return salvo;
+    }
+
+    @Transactional
     public void excluir(UUID clienteId) {
         ClienteEntity cliente = buscarPorId(clienteId);
         var snapshotAnterior = auditService.snapshotOf(cliente);

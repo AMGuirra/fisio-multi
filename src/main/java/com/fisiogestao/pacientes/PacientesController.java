@@ -58,6 +58,31 @@ public class PacientesController {
         }
     }
 
+    @PostMapping("/{id}/atualizar")
+    public String atualizarPaciente(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("pacienteForm") PacienteForm form,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            List<ClienteEntity> pacientes = pacienteService.listarAtivos();
+            prepararPagina(model, pacientes, form);
+            model.addAttribute("errorMessage", "Corrija os campos inválidos antes de salvar.");
+            return "pacientes/index";
+        }
+
+        try {
+            pacienteService.atualizar(id, form);
+            redirectAttributes.addFlashAttribute("successMessage", "Paciente atualizado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        return "redirect:/pacientes";
+    }
+
     @PostMapping("/{id}/excluir")
     public String excluirPaciente(
             @PathVariable UUID id,

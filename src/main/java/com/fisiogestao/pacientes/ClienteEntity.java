@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "cliente")
@@ -62,6 +63,14 @@ public class ClienteEntity extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;
+
+    /**
+     * Token UUID único para acesso ao portal de autoatendimento do paciente.
+     * Gerado automaticamente na criação e não deve ser exposto em listagens internas.
+     */
+    @Column(name = "portal_token", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID portalToken = UUID.randomUUID();
 
     public String getEnderecoCompleto() {
         StringBuilder builder = new StringBuilder();

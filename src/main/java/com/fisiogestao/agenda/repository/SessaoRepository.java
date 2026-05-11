@@ -48,4 +48,14 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
     long countByStatus(SessaoStatus status);
 
     Optional<SessaoEntity> findFirstByClienteIdAndDataHoraInicioAndStatus(UUID clienteId, OffsetDateTime dataHoraInicio, SessaoStatus status);
+
+    // --- Métodos para o portal do paciente ---
+
+    List<SessaoEntity> findByClienteIdAndStatusAndDataHoraInicioAfterOrderByDataHoraInicioAsc(
+            UUID clienteId, SessaoStatus status, OffsetDateTime depois);
+
+    List<SessaoEntity> findTop10ByClienteIdAndStatusNotOrderByDataHoraInicioDesc(
+            UUID clienteId, SessaoStatus statusExcluido);
+
+    Optional<SessaoEntity> findByIdAndClienteIdAndStatus(UUID id, UUID clienteId, SessaoStatus status);
 }

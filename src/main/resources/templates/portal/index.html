@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Portal - ' + ${paciente.nomeCompleto}">Portal do Paciente</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #31c9a9;
+            --primary-dark: #1ea387;
+            --text-main: #15303c;
+            --text-soft: #607988;
+            --bg: #f0f7f5;
+            --card: #ffffff;
+            --border: #e2ece9;
+            --radius: 0.75rem;
+            --shadow: 0 2px 12px rgba(34,77,93,0.10);
+            --danger: #e53e3e;
+            --warning: #d97706;
+            --success: #16a34a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+        header.portal-header {
+            background: var(--primary);
+            color: #fff;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        header.portal-header h1 { font-size: 1.1rem; font-weight: 700; }
+        header.portal-header p { font-size: 0.85rem; opacity: 0.85; }
+        .portal-logo { font-size: 1.5rem; }
+        main.portal-main { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+        .flash { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; font-size: 0.9rem; }
+        .flash-success { background: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
+
+        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main); }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .paciente-name { font-size: 1.15rem; font-weight: 700; }
+        .paciente-meta { font-size: 0.85rem; color: var(--text-soft); margin-top: 0.2rem; }
+
+        /* Pacotes */
+        .pacote-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .pacote-row:last-child { border-bottom: none; }
+        .pacote-nome { font-weight: 600; font-size: 0.95rem; }
+        .pacote-saldo { font-size: 0.85rem; color: var(--text-soft); }
+        .progress-bar-wrap { height: 6px; background: var(--border); border-radius: 99px; margin-top: 0.3rem; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 99px; background: var(--primary); }
+        .progress-bar-fill.low { background: var(--warning); }
+        .progress-bar-fill.empty { background: var(--danger); }
+
+        /* Sessões */
+        .sessao-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .sessao-card:last-child { margin-bottom: 0; }
+        .sessao-data { font-weight: 700; font-size: 1rem; }
+        .sessao-horario { font-size: 0.85rem; color: var(--text-soft); }
+        .sessao-tipo { font-size: 0.85rem; }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-agendada { background: #dbeafe; color: #1d4ed8; }
+        .badge-realizada { background: #dcfce7; color: #15803d; }
+        .badge-cancelada { background: #fee2e2; color: #991b1b; }
+        .badge-confirmado { background: #d1fae5; color: #065f46; }
+
+        .btn-confirmar {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-confirmar:hover { background: var(--primary-dark); }
+        .btn-ja-confirmado {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: var(--radius);
+            background: #dcfce7;
+            color: var(--success);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #bbf7d0;
+        }
+
+        .empty { color: var(--text-soft); font-size: 0.9rem; text-align: center; padding: 1.5rem; }
+
+        .historico-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+        .historico-row:last-child { border-bottom: none; }
+        .historico-data { color: var(--text-soft); min-width: 110px; }
+
+        footer.portal-footer {
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+            font-size: 0.8rem;
+            color: var(--text-soft);
+        }
+    </style>
+</head>
+<body>
+
+<header class="portal-header">
+    <div class="portal-logo">🏥</div>
+    <div>
+        <h1>Portal do Paciente</h1>
+        <p th:text="${paciente.nomeCompleto}">Nome do Paciente</p>
+    </div>
+</header>
+
+<main class="portal-main">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="flash flash-success" th:text="${successMessage}">Sucesso</div>
+
+    <!-- Card do paciente -->
+    <div class="card">
+        <p class="paciente-name" th:text="${paciente.nomeCompleto}">Nome</p>
+        <p class="paciente-meta"
+           th:text="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone) ? '📞 ' + paciente.telefone : ''}">
+        </p>
+        <p class="paciente-meta"
+           th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? '✉ ' + paciente.email : ''}">
+        </p>
+    </div>
+
+    <!-- Pacotes de sessões -->
+    <div class="card" th:if="${!pacotes.empty}">
+        <p class="section-title">📦 Seus planos de tratamento</p>
+        <div th:each="pacote : ${pacotes}">
+            <div class="pacote-row">
+                <div style="flex:1;">
+                    <p class="pacote-nome" th:text="${pacote.nomePacote}">Pacote</p>
+                    <p class="pacote-saldo"
+                       th:text="${pacote.sessoesConsumidas + ' de ' + pacote.sessoesContratadas + ' sessões utilizadas'}">
+                    </p>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill"
+                             th:classappend="${(pacote.sessoesContratadas - pacote.sessoesConsumidas) == 0 ? ' empty' : ((pacote.sessoesContratadas - pacote.sessoesConsumidas) <= 2 ? ' low' : '')}"
+                             th:style="'width:' + ${pacote.sessoesContratadas > 0 ? (pacote.sessoesConsumidas * 100 / pacote.sessoesContratadas) : 0} + '%'">
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-left:1rem; text-align:right;">
+                    <span class="badge badge-agendada"
+                          th:text="${pacote.sessoesContratadas - pacote.sessoesConsumidas} + ' restantes'">
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximas sessões -->
+    <div class="card">
+        <p class="section-title">📅 Próximas sessões</p>
+
+        <div th:if="${proximasSessoes.empty}" class="empty">
+            Nenhuma sessão agendada no momento.
+        </div>
+
+        <div th:each="sessao : ${proximasSessoes}" class="sessao-card">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <p class="sessao-data" th:text="${#temporals.format(sessao.dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">
+                    Data
+                </p>
+                <span class="badge badge-agendada">Agendada</span>
+                <span th:if="${sessao.confirmadoPeloPaciente}" class="badge badge-confirmado">✓ Confirmada</span>
+            </div>
+            <p class="sessao-horario"
+               th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm') + ' – ' + #temporals.format(sessao.dataHoraFim, 'HH:mm')}">
+                Horário
+            </p>
+            <p class="sessao-tipo" th:if="${sessao.tipoAtendimento != null and !#strings.isEmpty(sessao.tipoAtendimento)}"
+               th:text="${'Tipo: ' + sessao.tipoAtendimento}">
+            </p>
+
+            <!-- Botão confirmar presença -->
+            <form th:unless="${sessao.confirmadoPeloPaciente}"
+                  th:action="@{/paciente/{token}/sessao/{sid}/confirmar(token=${token},sid=${sessao.id})}"
+                  method="post">
+                <button type="submit" class="btn-confirmar">✔ Confirmar presença</button>
+            </form>
+            <div th:if="${sessao.confirmadoPeloPaciente}" class="btn-ja-confirmado">
+                ✓ Presença já confirmada
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico recente -->
+    <div class="card" th:if="${!historicoSessoes.empty}">
+        <p class="section-title">📋 Histórico recente</p>
+        <div th:each="sessao : ${historicoSessoes}" class="historico-row">
+            <span class="historico-data" th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</span>
+            <span class="badge"
+                  th:classappend="${sessao.status.name() == 'REALIZADA' ? ' badge-realizada' : ' badge-cancelada'}"
+                  th:text="${sessao.status.name() == 'REALIZADA' ? 'Realizada' : 'Cancelada'}">
+            </span>
+        </div>
+    </div>
+
+</main>
+
+<footer class="portal-footer">
+    Este é o seu portal privado de autoatendimento. Não compartilhe este link.
+</footer>
+
+</body>
+</html>

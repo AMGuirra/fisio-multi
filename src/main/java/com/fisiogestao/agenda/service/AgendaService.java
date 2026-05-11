@@ -20,6 +20,7 @@ import com.fisiogestao.agenda.repository.RecorrenciaRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PacoteSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -57,6 +58,7 @@ public class AgendaService {
     private final RecorrenciaRepository recorrenciaRepository;
     private final PacienteService pacienteService;
     private final PacoteSessaoService pacoteSessaoService;
+    private final FinanceiroService financeiroService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
     private final BloqueioAgendaService bloqueioAgendaService;
     private final RecorrenciaService recorrenciaService;
@@ -438,6 +440,10 @@ public class AgendaService {
         if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
             pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
             sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        }
+
+        if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
+            financeiroService.registrarReceitaAvulso(sessao);
         }
 
         sessao.setStatus(SessaoStatus.REALIZADA);

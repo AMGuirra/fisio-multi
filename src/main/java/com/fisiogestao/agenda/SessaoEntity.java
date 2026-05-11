@@ -75,4 +75,9 @@ public class SessaoEntity extends BaseEntity {
     @Column(name = "pacote_consumo_registrado", nullable = false)
     @Builder.Default
     private Boolean pacoteConsumoRegistrado = Boolean.FALSE;
+
+    /** True quando o paciente confirmou presença via portal de autoatendimento (V21). */
+    @Column(name = "confirmado_pelo_paciente", nullable = false)
+    @Builder.Default
+    private Boolean confirmadoPeloPaciente = Boolean.FALSE;
 }

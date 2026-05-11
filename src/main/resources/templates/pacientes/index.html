@@ -164,6 +164,33 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="table-actions">
+                                        <a th:href="@{/paciente/{token}(token=${paciente.portalToken})}"
+                                           target="_blank"
+                                           class="action-button ghost"
+                                           title="Abrir portal do paciente">
+                                            <i data-lucide="external-link"></i>
+                                            Portal
+                                        </a>
+                                        <button type="button"
+                                                class="action-button session-action-edit"
+                                                data-edit-paciente
+                                                th:data-id="${paciente.id}"
+                                                th:data-nome="${paciente.nomeCompleto}"
+                                                th:data-telefone="${paciente.telefone}"
+                                                th:data-email="${paciente.email}"
+                                                th:data-cpf="${paciente.cpf}"
+                                                th:data-nascimento="${paciente.dataNascimento}"
+                                                th:data-cep="${paciente.cep}"
+                                                th:data-rua="${paciente.rua}"
+                                                th:data-numero="${paciente.numero}"
+                                                th:data-bairro="${paciente.bairro}"
+                                                th:data-cidade="${paciente.cidade}"
+                                                th:data-estado="${paciente.estado}"
+                                                th:data-observacoes="${paciente.observacoes}"
+                                                title="Editar paciente">
+                                            <i data-lucide="pencil"></i>
+                                            Editar
+                                        </button>
                                         <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}"
                                               method="post"
                                               class="inline-form"
@@ -193,9 +220,145 @@
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
+    <!-- Modal de edição de paciente -->
+    <div id="editPacienteModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-edit-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editPacienteModalTitle">
+            <div class="app-modal-card" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="editPacienteModalTitle">Editar Paciente</h3>
+                        <p id="editPacienteModalSubtitle">Atualize os dados do paciente.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-edit-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form id="editPacienteForm" method="post" class="modern-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="form-field">
+                            <label for="editNomeCompleto">Nome completo</label>
+                            <input id="editNomeCompleto" name="nomeCompleto" type="text" class="form-control" maxlength="160" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="editTelefone">Telefone</label>
+                            <input id="editTelefone" name="telefone" type="text" class="form-control" maxlength="20" placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="form-field">
+                            <label for="editEmail">E-mail</label>
+                            <input id="editEmail" name="email" type="email" class="form-control" maxlength="120" placeholder="paciente@email.com">
+                        </div>
+                        <div class="form-field">
+                            <label for="editCpf">CPF</label>
+                            <input id="editCpf" name="cpf" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00">
+                        </div>
+                        <div class="form-field">
+                            <label for="editDataNascimento">Data de nascimento</label>
+                            <input id="editDataNascimento" name="dataNascimento" type="date" class="form-control">
+                        </div>
+                        <div class="form-field">
+                            <label for="editCep">CEP</label>
+                            <input id="editCep" name="cep" type="text" class="form-control" maxlength="9" placeholder="00000-000">
+                        </div>
+                        <div class="form-field">
+                            <label for="editRua">Rua</label>
+                            <input id="editRua" name="rua" type="text" class="form-control" maxlength="160">
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-field">
+                                <label for="editNumero">Número</label>
+                                <input id="editNumero" name="numero" type="text" class="form-control" maxlength="20">
+                            </div>
+                            <div class="form-field">
+                                <label for="editEstado">Estado</label>
+                                <select id="editEstado" name="estado" class="form-control">
+                                    <option value="">—</option>
+                                    <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                                    <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                                    <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                                    <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                                    <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                                    <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                                    <option>SP</option><option>SE</option><option>TO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label for="editBairro">Bairro</label>
+                            <input id="editBairro" name="bairro" type="text" class="form-control" maxlength="120">
+                        </div>
+                        <div class="form-field">
+                            <label for="editCidade">Cidade</label>
+                            <input id="editCidade" name="cidade" type="text" class="form-control" maxlength="120">
+                        </div>
+                        <div class="form-field">
+                            <label for="editObservacoes">Observações</label>
+                            <textarea id="editObservacoes" name="observacoes" class="form-control" rows="3" maxlength="2000"></textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-edit-modal-close>Cancelar</button>
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Salvar alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+    (function () {
+        var modal = document.getElementById('editPacienteModal');
+        var form  = document.getElementById('editPacienteForm');
+
+        function openModal() {
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('[data-edit-paciente]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var d = btn.dataset;
+                form.action = '/pacientes/' + d.id + '/atualizar';
+                document.getElementById('editNomeCompleto').value    = d.nome        || '';
+                document.getElementById('editTelefone').value        = d.telefone    || '';
+                document.getElementById('editEmail').value           = d.email       || '';
+                document.getElementById('editCpf').value             = d.cpf         || '';
+                document.getElementById('editDataNascimento').value  = d.nascimento  || '';
+                document.getElementById('editCep').value             = d.cep         || '';
+                document.getElementById('editRua').value             = d.rua         || '';
+                document.getElementById('editNumero').value          = d.numero      || '';
+                document.getElementById('editBairro').value          = d.bairro      || '';
+                document.getElementById('editCidade').value          = d.cidade      || '';
+                document.getElementById('editEstado').value          = d.estado      || '';
+                document.getElementById('editObservacoes').value     = d.observacoes || '';
+                document.getElementById('editPacienteModalSubtitle').textContent = 'Editando: ' + (d.nome || '');
+                openModal();
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            });
+        });
+
+        document.querySelectorAll('[data-edit-modal-close]').forEach(function (el) {
+            el.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) { closeModal(); }
+        });
+    })();
+    </script>
 </body>
 </html>
 

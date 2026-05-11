@@ -252,6 +252,32 @@
                                 <p class="form-error" th:if="${#fields.hasErrors('sessaoId')}" th:errors="*{sessaoId}"></p>
                             </div>
 
+                            <!-- Campos específicos de fisioterapia -->
+                            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                                <div class="form-field">
+                                    <label for="escalaEvaDor">Escala de dor (EVA 0–10)</label>
+                                    <input type="number" id="escalaEvaDor" class="form-control"
+                                           th:field="*{escalaEvaDor}" min="0" max="10" placeholder="0 = sem dor, 10 = máxima">
+                                    <p class="helper-text">Campo opcional. Deixe em branco se não mensurado.</p>
+                                    <p class="form-error" th:if="${#fields.hasErrors('escalaEvaDor')}" th:errors="*{escalaEvaDor}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="regiaoCorporal">Região corporal tratada</label>
+                                    <input type="text" id="regiaoCorporal" class="form-control"
+                                           th:field="*{regiaoCorporal}" maxlength="120"
+                                           placeholder="Ex.: Coluna lombar, Joelho D, Ombro E">
+                                    <p class="form-error" th:if="${#fields.hasErrors('regiaoCorporal')}" th:errors="*{regiaoCorporal}"></p>
+                                </div>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="tecnicasUtilizadas">Técnicas e recursos utilizados</label>
+                                <input type="text" id="tecnicasUtilizadas" class="form-control"
+                                       th:field="*{tecnicasUtilizadas}" maxlength="2000"
+                                       placeholder="Ex.: RPG, TENS 80Hz, mobilização articular, cinesioterapia">
+                                <p class="form-error" th:if="${#fields.hasErrors('tecnicasUtilizadas')}" th:errors="*{tecnicasUtilizadas}"></p>
+                            </div>
+
                             <div class="form-field">
                                 <label for="subjetivo">Subjetivo (S)</label>
                                 <textarea id="subjetivo" class="form-control" rows="4" th:field="*{subjetivo}" maxlength="5000" required></textarea>
@@ -274,6 +300,14 @@
                                 <label for="plano">Plano (P)</label>
                                 <textarea id="plano" class="form-control" rows="4" th:field="*{plano}" maxlength="5000" required></textarea>
                                 <p class="form-error" th:if="${#fields.hasErrors('plano')}" th:errors="*{plano}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="obsEvolucao">Observações de evolução</label>
+                                <textarea id="obsEvolucao" class="form-control" rows="3"
+                                          th:field="*{obsEvolucao}" maxlength="3000"
+                                          placeholder="Compare com sessões anteriores: melhora de amplitude, redução de dor, mudança de conduta..."></textarea>
+                                <p class="form-error" th:if="${#fields.hasErrors('obsEvolucao')}" th:errors="*{obsEvolucao}"></p>
                             </div>
 
                             <button type="submit" class="action-button primary">
@@ -335,7 +369,22 @@
                                               th:text="${#temporals.format(registro.sessao.dataHoraInicio, 'dd/MM HH:mm')}">
                                             Sessão
                                         </span>
+                                        <!-- EVA badge com cor por nível de dor -->
+                                        <span th:if="${registro.escalaEvaDor != null}"
+                                              class="chip"
+                                              th:classappend="${registro.escalaEvaDor <= 3 ? 'status-approved' : (registro.escalaEvaDor <= 6 ? 'status-warning' : 'status-danger')}"
+                                              th:text="'EVA ' + ${registro.escalaEvaDor}">EVA</span>
+                                        <span th:if="${registro.regiaoCorporal != null and !#strings.isEmpty(registro.regiaoCorporal)}"
+                                              class="chip status-info"
+                                              th:text="${registro.regiaoCorporal}">Região</span>
                                     </div>
+                                </div>
+
+                                <!-- Linha de técnicas (se preenchida) -->
+                                <div th:if="${registro.tecnicasUtilizadas != null and !#strings.isEmpty(registro.tecnicasUtilizadas)}"
+                                     style="padding: 0.5rem 1rem; background: var(--surface-2, #f8f9fa); border-radius: 6px; margin-bottom: 0.75rem;">
+                                    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.2rem;">Técnicas utilizadas</p>
+                                    <p style="font-size:0.9rem;" th:text="${registro.tecnicasUtilizadas}">Técnicas</p>
                                 </div>
 
                                 <div class="soap-entry-grid">
@@ -359,6 +408,13 @@
                                         <p class="soap-entry-title">Plano</p>
                                         <p class="soap-entry-text" th:text="${registro.plano}">Plano</p>
                                     </article>
+                                </div>
+
+                                <!-- Observações de evolução (se preenchidas) -->
+                                <div th:if="${registro.obsEvolucao != null and !#strings.isEmpty(registro.obsEvolucao)}"
+                                     style="padding: 0.6rem 1rem; border-left: 3px solid var(--color-primary, #4f8ef7); margin-top: 0.75rem; background: var(--surface-2, #f8f9fa); border-radius: 0 6px 6px 0;">
+                                    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.2rem;">Evolução comparada</p>
+                                    <p style="font-size:0.9rem;" th:text="${registro.obsEvolucao}">Observações</p>
                                 </div>
                             </article>
                         </div>

@@ -52,6 +52,10 @@ public class ProntuarioService {
                 .avaliacao(form.getAvaliacao().trim())
                 .plano(form.getPlano().trim())
                 .criadoPor(usuario)
+                .escalaEvaDor(form.getEscalaEvaDor())
+                .regiaoCorporal(form.getRegiaoCorporal() != null ? form.getRegiaoCorporal().trim() : null)
+                .tecnicasUtilizadas(form.getTecnicasUtilizadas() != null ? form.getTecnicasUtilizadas().trim() : null)
+                .obsEvolucao(form.getObsEvolucao() != null ? form.getObsEvolucao().trim() : null)
                 .build();
         ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(Objects.requireNonNull(prontuario));
         auditService.recordCreate(

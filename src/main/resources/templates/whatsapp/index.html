@@ -47,14 +47,42 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Fila de WhatsApp</h1>
-                    <p class="hero-subtitle">Acompanhe as mensagens operacionais enfileiradas pelo sistema para solicitações, reagendamentos e confirmações.</p>
+                    <p class="hero-subtitle">Acompanhe as mensagens enfileiradas pelo sistema. O processador envia automaticamente a cada 30 segundos.</p>
                 </div>
                 <div class="hero-actions">
                     <span class="hero-pill">WhatsApp</span>
-                    <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="action-button ghost"><i data-lucide="mail-check"></i>Config. E-mail</a>
                     <a href="#filaWhatsApp" class="action-button primary"><i data-lucide="messages-square"></i>Ver Fila</a>
                 </div>
             </section>
+
+            <!-- Banner de aviso quando o gateway está em modo simulado -->
+            <div th:if="${!gatewayOperacional}" class="helper-card helper-card--warning" style="margin: 0 0 1rem 0;">
+                <div class="helper-icon"><i data-lucide="triangle-alert"></i></div>
+                <div class="helper-copy">
+                    <h4>Gateway em modo simulado</h4>
+                    <p>As mensagens estão sendo registradas no log do servidor, mas <strong>não são enviadas de verdade</strong>.
+                       Configure as variáveis <code>APP_WHATSAPP_ENABLED=true</code> e <code>APP_WHATSAPP_URL_ENVIO</code> para ativar o envio real.</p>
+                </div>
+            </div>
+
+            <!-- Banner de sucesso quando o gateway está ativo -->
+            <div th:if="${gatewayOperacional}" class="helper-card helper-card--success" style="margin: 0 0 1rem 0;">
+                <div class="helper-icon"><i data-lucide="circle-check"></i></div>
+                <div class="helper-copy">
+                    <h4>Gateway ativo</h4>
+                    <p>O processador está consumindo a fila e enviando mensagens via API configurada.</p>
+                </div>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" class="flash-message flash-success" role="alert">
+                <i data-lucide="circle-check"></i>
+                <span th:text="${successMessage}">Sucesso</span>
+            </div>
+            <div th:if="${errorMessage}" class="flash-message flash-error" role="alert">
+                <i data-lucide="circle-x"></i>
+                <span th:text="${errorMessage}">Erro</span>
+            </div>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
                 <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
@@ -63,36 +91,7 @@
                 <a th:href="@{/whatsapp}" href="/whatsapp" class="page-tab active"><i data-lucide="messages-square"></i> Fila WhatsApp</a>
             </nav>
 
-            <section class="workflow-strip">
-                <article class="workflow-step is-complete">
-                    <span class="workflow-step-number">1</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Acompanhe a fila</p>
-                        <p class="workflow-step-text">Veja rapidamente o volume de mensagens, pendências e erros operacionais.</p>
-                    </div>
-                </article>
-                <article class="workflow-step is-current">
-                    <span class="workflow-step-number">2</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Filtre o cenário</p>
-                        <p class="workflow-step-text">Refine por status para identificar gargalos sem interferir no disparo automático.</p>
-                    </div>
-                </article>
-                <article class="workflow-step">
-                    <span class="workflow-step-number">3</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Corrija o contexto</p>
-                        <p class="workflow-step-text">Quando necessário, siga para e-mail, auditoria ou operação da agenda com mais contexto.</p>
-                    </div>
-                </article>
-            </section>
-
             <section class="metrics-grid" aria-label="Resumo da fila de WhatsApp">
-                <article class="metric-card metric-mensagens">
-                    <div class="metric-top"><span class="metric-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span></div>
-                    <p class="metric-value skeletonable" th:text="${totalMensagens}">0</p>
-                    <p class="metric-label">Mensagens na fila</p>
-                </article>
                 <article class="metric-card metric-pendencias">
                     <div class="metric-top"><span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span></div>
                     <p class="metric-value skeletonable" th:text="${totalPendentes}">0</p>
@@ -100,7 +99,7 @@
                 </article>
                 <article class="metric-card metric-pacientes">
                     <div class="metric-top"><span class="metric-icon"><i data-lucide="circle-check" aria-hidden="true"></i></span></div>
-                    <p class="metric-value skeletonable" th:text="${totalEnviadas}">0</p>
+                    <p class="metric-value skeletonable" th:text="${totalEnviados}">0</p>
                     <p class="metric-label">Enviadas</p>
                 </article>
                 <article class="metric-card metric-despesa">
@@ -120,8 +119,10 @@
                             <div class="form-field">
                                 <label for="status">Status</label>
                                 <select id="status" name="status" class="form-select">
-                                    <option value="">Todos</option>
-                                    <option th:each="item : ${statusMensagens}" th:value="${item}" th:text="${item}" th:selected="${statusSelecionado == item}">PENDENTE</option>
+                                    <option value="" th:selected="${filtroStatus == null}">Todos</option>
+                                    <option value="PENDENTE" th:selected="${filtroStatus != null and filtroStatus.name() == 'PENDENTE'}">Pendente</option>
+                                    <option value="ENVIADO"  th:selected="${filtroStatus != null and filtroStatus.name() == 'ENVIADO'}">Enviado</option>
+                                    <option value="ERRO"     th:selected="${filtroStatus != null and filtroStatus.name() == 'ERRO'}">Erro</option>
                                 </select>
                             </div>
                             <div class="form-actions">
@@ -129,27 +130,21 @@
                                 <a th:href="@{/whatsapp}" href="/whatsapp" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
                             </div>
                         </form>
-                        <div class="helper-card mt-14">
-                            <div class="helper-copy">
-                                <h4>Painel de acompanhamento</h4>
-                                <p>Esta tela é segura para monitoramento. O envio efetivo continua controlado pelo processo de integração, então aqui mostramos a fila sem forçar ações manuais.</p>
-                            </div>
-                        </div>
                     </div>
                 </article>
 
                 <article class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="message-square-text"></i> Mensagens registradas</h3>
-                        <p class="section-subtitle" th:text="${mensagensWhatsApp != null ? mensagensWhatsApp.size() + ' itens' : '0 itens'}">0 itens</p>
+                        <p class="section-subtitle" th:text="${mensagens != null ? mensagens.size() + ' itens' : '0 itens'}">0 itens</p>
                     </header>
-                    <div class="section-body" th:if="${mensagensWhatsApp == null or mensagensWhatsApp.empty}">
+                    <div class="section-body" th:if="${mensagens == null or mensagens.empty}">
                         <div class="empty-box">
                             <i data-lucide="inbox"></i>
                             <p>Nenhuma mensagem encontrada para o filtro selecionado.</p>
                         </div>
                     </div>
-                    <div class="data-table-wrap" th:unless="${mensagensWhatsApp == null or mensagensWhatsApp.empty}">
+                    <div class="data-table-wrap" th:unless="${mensagens == null or mensagens.empty}">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -157,35 +152,45 @@
                                     <th>Destino</th>
                                     <th>Referência</th>
                                     <th>Conteúdo</th>
-                                    <th>Tentativas</th>
-                                    <th>Agendada</th>
-                                    <th>Enviada</th>
+                                    <th>Tent.</th>
+                                    <th>Agendada em</th>
+                                    <th>Enviada em</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="mensagem : ${mensagensWhatsApp}">
+                                <tr th:each="msg : ${mensagens}">
                                     <td>
                                         <span class="chip"
-                                              th:classappend="${mensagem.status.name() == 'ENVIADO' ? 'status-approved' : (mensagem.status.name() == 'ERRO' ? 'status-danger' : 'status-warning')}"
-                                              th:text="${mensagem.status}">PENDENTE</span>
+                                              th:classappend="${msg.status.name() == 'ENVIADO' ? 'status-approved' : (msg.status.name() == 'ERRO' ? 'status-danger' : 'status-warning')}"
+                                              th:text="${msg.status}">PENDENTE</span>
                                     </td>
                                     <td>
-                                        <p class="entity-name" th:text="${mensagem.destinatario}">5599999999999</p>
-                                        <p class="entity-meta" th:text="${mensagem.erro != null and !#strings.isEmpty(mensagem.erro) ? mensagem.erro : 'Sem erros registrados'}">Sem erros registrados</p>
+                                        <p class="entity-name" th:text="${msg.destinatario}">5599999999999</p>
+                                        <p class="entity-meta" th:if="${msg.erro != null and !#strings.isEmpty(msg.erro)}" th:text="${msg.erro}">Erro</p>
                                     </td>
                                     <td>
-                                        <p class="entity-name" th:text="${mensagem.referencia != null and !#strings.isEmpty(mensagem.referencia) ? mensagem.referencia : 'Sem referência'}">Sem referência</p>
-                                        <p class="entity-meta" th:text="${mensagem.id}">ID</p>
+                                        <p class="entity-name" th:text="${msg.referencia != null and !#strings.isEmpty(msg.referencia) ? msg.referencia : '-'}">-</p>
                                     </td>
                                     <td>
                                         <p class="entity-name"
-                                           th:text="${#strings.length(mensagem.conteudo) > 120 ? #strings.substring(mensagem.conteudo, 0, 120) + '...' : mensagem.conteudo}">
+                                           th:text="${#strings.length(msg.conteudo) > 100 ? #strings.substring(msg.conteudo, 0, 100) + '…' : msg.conteudo}">
                                             Conteúdo
                                         </p>
                                     </td>
-                                    <td th:text="${mensagem.tentativas}">0</td>
-                                    <td th:text="${mensagem.agendadaPara != null ? #temporals.format(mensagem.agendadaPara, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
-                                    <td th:text="${mensagem.enviadaEm != null ? #temporals.format(mensagem.enviadaEm, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                                    <td th:text="${msg.tentativas}">0</td>
+                                    <td th:text="${msg.agendadaPara != null ? #temporals.format(msg.agendadaPara, 'dd/MM HH:mm') : '-'}">-</td>
+                                    <td th:text="${msg.enviadaEm != null ? #temporals.format(msg.enviadaEm, 'dd/MM HH:mm') : '-'}">-</td>
+                                    <td>
+                                        <!-- Botão reenviar só aparece para mensagens com ERRO -->
+                                        <form th:if="${msg.status.name() == 'ERRO'}"
+                                              th:action="@{/whatsapp/{id}/reenviar(id=${msg.id})}"
+                                              method="post" style="display:inline;">
+                                            <button type="submit" class="action-button ghost" style="padding:0.25rem 0.6rem;font-size:0.8rem;" title="Colocar na fila novamente">
+                                                <i data-lucide="refresh-cw"></i> Reenviar
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

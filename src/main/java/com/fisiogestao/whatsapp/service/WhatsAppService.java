@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class WhatsAppService {
 
     private final MensagemWhatsAppRepository mensagemWhatsAppRepository;
@@ -54,5 +54,20 @@ public class WhatsAppService {
                 .tentativas(0)
                 .build();
         return mensagemWhatsAppRepository.save(mensagem);
+    }
+
+    /**
+     * Recoloca uma mensagem com status ERRO de volta na fila (PENDENTE),
+     * zerando tentativas e erro para que o processador tente novamente.
+     */
+    @Transactional
+    public void recolocarNaFila(UUID id) {
+        mensagemWhatsAppRepository.findById(id).ifPresent(msg -> {
+            msg.setStatus(StatusMensagemWhatsApp.PENDENTE);
+            msg.setTentativas(0);
+            msg.setErro(null);
+            msg.setAgendadaPara(OffsetDateTime.now());
+            mensagemWhatsAppRepository.save(msg);
+        });
     }
 }

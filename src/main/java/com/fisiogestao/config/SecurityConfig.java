@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
 @Configuration
 public class SecurityConfig {
@@ -32,6 +34,7 @@ public class SecurityConfig {
                                 "/agendamento-online",
                                 "/agendamento-online/sucesso",
                                 "/api/slots",
+                                "/paciente/**",
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/css/**",
@@ -56,6 +59,15 @@ public class SecurityConfig {
                 .rememberMe(Customizer.withDefaults())
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
+                )
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((request, response, denied) -> {
+                            if (denied instanceof InvalidCsrfTokenException || denied instanceof MissingCsrfTokenException) {
+                                response.sendRedirect(request.getContextPath() + "/login?expired");
+                            } else {
+                                response.sendError(403);
+                            }
+                        })
                 );
 
         return http.build();

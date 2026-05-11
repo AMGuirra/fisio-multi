@@ -1,5 +1,6 @@
 package com.fisiogestao.financeiro.service;
 
+import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
@@ -164,6 +165,38 @@ public class FinanceiroService {
                 AuditEventOrigin.MANUAL
         );
         return salvo;
+    }
+
+    @Transactional
+    public void registrarReceitaAvulso(SessaoEntity sessao) {
+        if (sessao.getValorAvulso() == null || sessao.getValorAvulso().compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        String descricao = "Sessão avulsa: " +
+                (sessao.getTipoAtendimento() != null && !sessao.getTipoAtendimento().isBlank()
+                        ? sessao.getTipoAtendimento()
+                        : "Fisioterapia");
+        LocalDate dataLocal = sessao.getDataHoraInicio()
+                .atZoneSameInstant(ClinicTimezoneHolder.zoneId())
+                .toLocalDate();
+        LancamentoFinanceiroEntity receita = LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PENDENTE)
+                .descricao(descricao)
+                .categoria("Sessões avulsas")
+                .valor(sessao.getValorAvulso())
+                .dataCompetencia(paraInicioDoDia(dataLocal))
+                .cliente(sessao.getCliente())
+                .build();
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(receita);
+        auditService.recordCreate(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo,
+                null,
+                "Receita gerada automaticamente a partir de sessão avulsa.",
+                AuditEventOrigin.SISTEMA
+        );
     }
 
     @Transactional

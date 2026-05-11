@@ -52,3 +52,19 @@ app:
     username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
     email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
     password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}
+  whatsapp:
+    # Defina enabled=true e url-envio para ativar o envio real.
+    # Em modo desativado as mensagens são apenas registradas no log.
+    enabled: ${APP_WHATSAPP_ENABLED:false}
+    # Endpoint de envio da sua API (Evolution API, Z-API, etc.)
+    url-envio: ${APP_WHATSAPP_URL_ENVIO:}
+    # Nome do campo JSON para o número de destino
+    campo-numero: ${APP_WHATSAPP_CAMPO_NUMERO:number}
+    # Nome do campo JSON para o texto da mensagem
+    campo-mensagem: ${APP_WHATSAPP_CAMPO_MENSAGEM:text}
+    # Token/API key enviado como Bearer no header Authorization
+    token: ${APP_WHATSAPP_TOKEN:}
+    # Máximo de tentativas antes de marcar a mensagem como ERRO
+    max-tentativas: ${APP_WHATSAPP_MAX_TENTATIVAS:3}
+    # Intervalo entre ciclos do processador da fila (em milissegundos)
+    intervalo-ms: ${APP_WHATSAPP_INTERVALO_MS:30000}

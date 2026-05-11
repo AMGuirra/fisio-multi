@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link inválido - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f7f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .box {
+            background: #fff;
+            border-radius: 1rem;
+            padding: 2.5rem 2rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(34,77,93,0.12);
+        }
+        .icon { font-size: 3rem; margin-bottom: 1rem; }
+        h1 { font-size: 1.25rem; font-weight: 700; color: #15303c; margin-bottom: 0.5rem; }
+        p { font-size: 0.9rem; color: #607988; line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="icon">🔗</div>
+    <h1>Link inválido ou expirado</h1>
+    <p>O link de acesso ao portal não foi encontrado. Verifique o link enviado pela clínica ou entre em contato para solicitar um novo.</p>
+</div>
+</body>
+</html>
