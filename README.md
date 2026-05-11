@@ -4,7 +4,7 @@ Sistema monolítico em Spring Boot para gestão de clínica de fisioterapia com 
 
 ## Stack
 
-- Java 25
+- Java 26
 - Spring Boot 3.5.12
 - Spring MVC + Spring Security + Spring Data JPA
 - Thymeleaf + Bootstrap 5
@@ -27,7 +27,7 @@ Sistema monolítico em Spring Boot para gestão de clínica de fisioterapia com 
 1. Ajuste a variável `JAVA_HOME` para a raiz do JDK (sem `\bin`):
 
 ```powershell
-$env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
+$env:JAVA_HOME='C:\Program Files\Java\jdk-26.0.1'
 ```
 
 2. Configure o acesso ao PostgreSQL por variáveis de ambiente (ou ajuste `src/main/resources/application.yml`).
@@ -58,7 +58,7 @@ O bootstrap é executado apenas quando não existe nenhum usuário cadastrado.
 ## Testes e validação
 
 ```powershell
-$env:JAVA_HOME='C:\Program Files\Java\jdk-25.0.2'
+$env:JAVA_HOME='C:\Program Files\Java\jdk-26.0.1'
 .\mvnw.cmd test
 .\mvnw.cmd -DskipTests compile
 ```
