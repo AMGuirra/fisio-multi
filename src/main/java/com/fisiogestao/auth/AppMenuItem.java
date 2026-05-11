@@ -183,6 +183,7 @@ public enum AppMenuItem {
                 AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
+                WHATSAPP,
                 PACIENTES,
                 PACOTES_SESSOES,
                 PRONTUARIO,
@@ -191,6 +192,7 @@ public enum AppMenuItem {
                 CONFIG_CLINICA,
                 SYSTEM_STATUS,
                 USUARIOS,
+                FUNCOES_USUARIOS,
                 CONFIG_EMAIL,
                 AUDITORIA
         );
