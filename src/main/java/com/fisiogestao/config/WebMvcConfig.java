@@ -12,7 +12,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private final UserMenuAccessInterceptor userMenuAccessInterceptor;
 
     @Override
-    @SuppressWarnings("null")
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userMenuAccessInterceptor)
                 .excludePathPatterns(

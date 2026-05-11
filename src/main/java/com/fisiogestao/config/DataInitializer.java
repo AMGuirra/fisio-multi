@@ -12,7 +12,6 @@ import java.time.LocalTime;
 
 @Component
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataInitializer.class);

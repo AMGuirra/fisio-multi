@@ -51,7 +51,6 @@ public class SystemEmailService {
     }
 
     @Transactional
-    @SuppressWarnings("null")
     public EmailDispatchResult sendWithConfiguration(EmailConfiguracaoEntity configuracao, EmailRequest request) {
         List<String> destinatarios = sanitizarDestinatarios(request.to());
         if (destinatarios.isEmpty()) {

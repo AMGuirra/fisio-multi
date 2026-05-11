@@ -5,7 +5,10 @@ import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,4 +30,12 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
     @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
     List<LancamentoFinanceiroEntity> findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(
             OffsetDateTime inicio, OffsetDateTime fim);
+
+    /**
+     * Soma os valores no banco diretamente, evitando carregar todos os registros em memória.
+     */
+    @Query("SELECT COALESCE(SUM(l.valor), 0) FROM LancamentoFinanceiroEntity l WHERE l.tipo = :tipo AND l.status = :status")
+    BigDecimal sumValorByTipoAndStatus(
+            @Param("tipo") TipoLancamentoFinanceiro tipo,
+            @Param("status") StatusLancamentoFinanceiro status);
 }

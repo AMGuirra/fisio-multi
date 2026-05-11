@@ -2,7 +2,7 @@ package com.fisiogestao.dashboard;
 
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.financeiro.service.FinanceiroService;
-import com.fisiogestao.pacientes.service.PacienteService;
+import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.shared.web.BusinessException;
@@ -20,13 +20,13 @@ public class DashboardService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DashboardService.class);
 
-    private final PacienteService pacienteService;
+    private final ClienteRepository clienteRepository;
     private final AgendaService agendaService;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final FinanceiroService financeiroService;
 
     public DashboardSummary carregarResumo() {
-        long pacientesAtivos = pacienteService.listarAtivos().size();
+        long pacientesAtivos = clienteRepository.countByAtivoTrue();
         
         long sessoesHoje = 0;
         try {

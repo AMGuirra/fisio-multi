@@ -11,6 +11,8 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
 
     List<ClienteEntity> findByAtivoTrueOrderByNomeCompletoAsc();
 
+    long countByAtivoTrue();
+
     Optional<ClienteEntity> findFirstByCpf(String cpf);
 
     Optional<ClienteEntity> findFirstByTelefone(String telefone);

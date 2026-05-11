@@ -22,7 +22,6 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/auditoria")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class AuditoriaController {
 
     private final AuditService auditService;

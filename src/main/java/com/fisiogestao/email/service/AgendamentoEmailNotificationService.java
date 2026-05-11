@@ -6,6 +6,8 @@ import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -16,6 +18,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class AgendamentoEmailNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AgendamentoEmailNotificationService.class);
 
     private final SystemEmailService systemEmailService;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
@@ -175,7 +179,9 @@ public class AgendamentoEmailNotificationService {
                     ))
                     .build());
         } catch (BusinessException ex) {
-            // A notificação não deve quebrar o fluxo principal do agendamento.
+            log.warn("Notificação de e-mail não enviada (configuração ausente): {}", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Falha inesperada ao enviar notificação de e-mail para {}: {}", destinatario, ex.getMessage(), ex);
         }
     }
 

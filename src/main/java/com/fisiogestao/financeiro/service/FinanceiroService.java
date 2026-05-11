@@ -26,7 +26,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class FinanceiroService {
 
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
@@ -69,10 +68,12 @@ public class FinanceiroService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<LancamentoFinanceiroEntity> listarTodos() {
         return lancamentoFinanceiroRepository.findAllByOrderByDataCompetenciaDescCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
     public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
         ZoneId zone = ClinicTimezoneHolder.zoneId();
         OffsetDateTime dtInicio = inicio.atStartOfDay(zone).toOffsetDateTime();
@@ -81,6 +82,7 @@ public class FinanceiroService {
                 .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(dtInicio, dtFim);
     }
 
+    @Transactional(readOnly = true)
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
         List<LancamentoFinanceiroEntity> lista = listarNoPeriodo(inicio, fim);
         long receitasPagasCount = lista.stream()
@@ -109,6 +111,7 @@ public class FinanceiroService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    @Transactional(readOnly = true)
     public LancamentoFinanceiroEntity buscarPorId(UUID id) {
         return lancamentoFinanceiroRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
@@ -222,14 +225,17 @@ public class FinanceiroService {
         );
     }
 
+    @Transactional(readOnly = true)
     public BigDecimal totalReceitasPendentes() {
         return somarPorFiltro(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE);
     }
 
+    @Transactional(readOnly = true)
     public BigDecimal totalDespesasPendentes() {
         return somarPorFiltro(TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE);
     }
 
+    @Transactional(readOnly = true)
     public BigDecimal saldoProjetado() {
         return totalReceitasPendentes().subtract(totalDespesasPendentes());
     }
@@ -318,10 +324,7 @@ public class FinanceiroService {
     }
 
     private BigDecimal somarPorFiltro(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status) {
-        return listarTodos().stream()
-                .filter(lancamento -> lancamento.getTipo() == tipo && lancamento.getStatus() == status)
-                .map(LancamentoFinanceiroEntity::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return lancamentoFinanceiroRepository.sumValorByTipoAndStatus(tipo, status);
     }
 
     private OffsetDateTime paraInicioDoDia(LocalDate data) {

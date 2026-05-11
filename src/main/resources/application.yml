@@ -14,7 +14,7 @@ spring:
       hibernate:
         dialect: com.fisiogestao.config.PostgreSqlCompatibleDialect
         jdbc:
-          "[time_zone]": America/Campo_Grande
+          "[time_zone]": ${app.timezone}
         timezone:
           "[default_storage]": NORMALIZE
     show-sql: false
@@ -27,14 +27,15 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
   thymeleaf:
-    cache: false
+    # cache: true em produção; DevTools desativa automaticamente em dev (dependência com optional:true)
+    cache: true
   mvc:
     format:
       date: dd/MM/yyyy
       time: HH:mm
       date-time: dd/MM/yyyy HH:mm
   jackson:
-    time-zone: America/Campo_Grande
+    time-zone: ${app.timezone}
 
 server:
   port: ${PORT:${SERVER_PORT:8081}}

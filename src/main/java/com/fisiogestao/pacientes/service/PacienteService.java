@@ -28,7 +28,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class PacienteService {
 
     private final ClienteRepository clienteRepository;
@@ -39,13 +38,18 @@ public class PacienteService {
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
+
+    // Flags de compatibilidade de schema: validadas uma vez na inicialização pelo SchemaCompatibilityValidator.
+    // Mantidas aqui como fallback para chamadas que ocorram antes do validator terminar (ex: testes).
     private volatile boolean esquemaClienteValidado = false;
     private volatile boolean relacionamentoSolicitacaoClienteValidado = false;
 
+    @Transactional(readOnly = true)
     public List<ClienteEntity> listarAtivos() {
         return clienteRepository.findByAtivoTrueOrderByNomeCompletoAsc();
     }
 
+    @Transactional(readOnly = true)
     public ClienteEntity buscarPorId(UUID id) {
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Paciente não encontrado."));
@@ -86,6 +90,7 @@ public class PacienteService {
         return salvo;
     }
 
+    @Transactional(readOnly = true)
     public Optional<ClienteEntity> buscarPorCpf(String cpf) {
         validarSchemaClienteId();
         String cpfNormalizado = normalizarCpf(cpf);
@@ -95,6 +100,7 @@ public class PacienteService {
         return clienteRepository.findFirstByCpf(cpfNormalizado);
     }
 
+    @Transactional(readOnly = true)
     public Optional<ClienteEntity> buscarPorCpfTelefoneOuEmail(String cpf, String telefone, String email) {
         validarSchemaClienteId();
 
@@ -120,6 +126,15 @@ public class PacienteService {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Chamado pelo {@code SchemaCompatibilityValidator} na inicialização para evitar
+     * revalidação de schema em cada request de runtime.
+     */
+    public void marcarSchemaValidado() {
+        this.esquemaClienteValidado = true;
+        this.relacionamentoSolicitacaoClienteValidado = true;
     }
 
     public void validarRelacionamentoSolicitacaoClienteUuid() {

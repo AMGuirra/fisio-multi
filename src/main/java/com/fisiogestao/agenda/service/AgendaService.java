@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class AgendaService {
 
     private static final List<SessaoStatus> STATUS_SESSAO_OCUPADA = List.of(SessaoStatus.AGENDADA, SessaoStatus.REALIZADA);
@@ -67,19 +66,23 @@ public class AgendaService {
     public record IntervaloAgenda(OffsetDateTime inicio, OffsetDateTime fim) {
     }
 
+    @Transactional(readOnly = true)
     public ConfiguracaoClinicaEntity obterConfiguracaoAtiva() {
         return configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()
                 .orElseThrow(() -> new BusinessException("Configure a clínica antes de usar a agenda."));
     }
 
+    @Transactional(readOnly = true)
     public List<SlotDisponivelDto> gerarSlotsDisponiveis(LocalDate data) {
         return gerarSlotsDisponiveis(data, true, 0);
     }
 
+    @Transactional(readOnly = true)
     public List<SlotDisponivelDto> gerarSlotsDisponiveis(LocalDate data, boolean filtrarPassados) {
         return gerarSlotsDisponiveis(data, filtrarPassados, 0);
     }
 
+    @Transactional(readOnly = true)
     public List<SlotDisponivelDto> gerarSlotsDisponiveis(LocalDate data, boolean filtrarPassados, int gapMinutos) {
         ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
         if (!configuracao.diasFuncionamentoSet().contains(data.getDayOfWeek())) {
@@ -224,20 +227,24 @@ public class AgendaService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<SessaoEntity> listarSessoesDoDia(LocalDate data) {
         IntervaloAgenda janela = janelaDoDia(data, obterConfiguracaoAtiva());
         return sessaoRepository.findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(janela.inicio(), janela.fim());
     }
 
+    @Transactional(readOnly = true)
     public List<SessaoEntity> listarSessoesDoPaciente(UUID clienteId) {
         return sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteId);
     }
 
+    @Transactional(readOnly = true)
     public SessaoEntity buscarSessao(UUID sessaoId) {
         return sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
     }
 
+    @Transactional(readOnly = true)
     public List<SessaoEntity> listarSessoesNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
         ConfiguracaoClinicaEntity configuracao = obterConfiguracaoAtiva();
         ZoneId zoneId = zoneId(configuracao);
@@ -246,6 +253,7 @@ public class AgendaService {
         return sessaoRepository.findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(inicio, fim);
     }
 
+    @Transactional(readOnly = true)
     public List<HorarioBloqueadoEntity> listarHorariosBloqueadosDoDia(LocalDate data) {
         IntervaloAgenda janela = janelaDoDia(data, obterConfiguracaoAtiva());
         return horarioBloqueadoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(
@@ -255,10 +263,12 @@ public class AgendaService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<BloqueioAgendaEntity> listarBloqueiosAgendaDoDia(LocalDate data) {
         return bloqueioAgendaService.listarAtivosDoDia(data);
     }
 
+    @Transactional(readOnly = true)
     public List<BloqueioAgendaEntity> listarBloqueiosAgendaNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
         return bloqueioAgendaService.listarAtivosNoPeriodo(inicioInclusive, fimExclusive);
     }

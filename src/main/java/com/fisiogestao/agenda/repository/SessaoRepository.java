@@ -35,7 +35,6 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
     List<SessaoEntity> findByClienteIdOrderByDataHoraInicioDesc(UUID clienteId);
 
     @Override
-    @SuppressWarnings("null")
     @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
     Optional<SessaoEntity> findById(UUID id);
 

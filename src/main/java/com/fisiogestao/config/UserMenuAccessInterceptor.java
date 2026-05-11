@@ -25,7 +25,6 @@ public class UserMenuAccessInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    @SuppressWarnings("null")
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (!(handler instanceof HandlerMethod)) {
             return true;

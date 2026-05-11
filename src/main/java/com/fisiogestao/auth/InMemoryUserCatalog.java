@@ -20,7 +20,6 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class InMemoryUserCatalog {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryUserCatalog.class);

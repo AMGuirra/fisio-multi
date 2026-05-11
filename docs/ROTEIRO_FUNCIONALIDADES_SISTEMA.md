@@ -1,229 +1,214 @@
-# Roteiro Completo de Funcionalidades do Sistema
+# Roteiro Completo de Funcionalidades — FisioGestão
 
-Documento de apoio para apresentacao, treinamento e repasse do escopo funcional do sistema Financeiro Pessoal.
+Documento de apoio para apresentação, treinamento e repasse do escopo funcional do sistema de gestão para clínicas de fisioterapia.
 
-## 1. Roteiro de apresentacao
+---
+
+## 1. Roteiro de apresentação
 
 ### 1.1 Abertura
 
-"Este sistema foi estruturado para concentrar o controle financeiro pessoal em um unico ambiente. Ele cobre o ciclo completo de planejamento, lancamento, baixa, acompanhamento e analise dos resultados por mes e por periodo."
+"O FisioGestão foi estruturado para concentrar toda a gestão operacional da clínica em um único ambiente. Ele cobre o ciclo completo de cadastro de pacientes, agendamento, atendimento, prontuário, financeiro e relatórios."
 
-"O acesso e protegido por login e cada usuario opera dentro do seu escopo. Os cadastros administrativos ficam restritos ao perfil administrador, enquanto os demais usuarios trabalham somente com os dados que podem acessar."
+"O acesso é protegido por login e cada usuário opera dentro do seu perfil. Os cadastros administrativos ficam restritos ao perfil ADMIN, enquanto os demais usuários acessam apenas o que lhes foi liberado."
 
-### 1.2 Acesso e seguranca
+### 1.2 Acesso e segurança
 
-"Na entrada do sistema temos a autenticacao por usuario e senha. Tambem existe fluxo de esqueci minha senha, redefinicao por token, alteracao da propria senha e sugestao de senha forte."
+"Na entrada do sistema temos autenticação por usuário e senha. Também existe fluxo de 'esqueci minha senha', redefinição por token, alteração da própria senha e sugestão de senha forte."
 
-"Depois do login, o usuario pode trocar o tema visual do sistema e seguir navegando sempre a partir do mes de referencia selecionado."
+"Depois do login, o usuário pode trocar o tema visual (claro/escuro) e navegar pelo menu conforme as permissões do seu perfil."
 
-### 1.3 Painel principal
+### 1.3 Painel principal (Dashboard)
 
-"Ao entrar no sistema, o usuario chega no painel. Esse painel entrega uma visao executiva do mes selecionado, com saldo anterior, saldo atual, entradas, despesas, contas pendentes, contas pagas e cobertura das despesas sobre a receita."
+"Ao entrar no sistema, o usuário chega ao painel. Ele entrega uma visão executiva com: pacientes ativos, sessões do dia, solicitações pendentes, receitas pendentes, despesas pendentes e saldo projetado."
 
-"No mesmo painel tambem mostramos a evolucao dos ultimos meses, os principais grupos de entrada, os principais grupos de despesa, as contas com movimentacao no periodo e as pendencias prioritarias. A ideia aqui e abrir o sistema e entender rapidamente como esta a saude financeira do mes."
+### 1.4 Pacientes
 
-### 1.4 Cadastros base
+"Na área de pacientes, é possível cadastrar, editar, inativar e reativar pacientes. O cadastro contempla dados pessoais (nome, telefone, e-mail, CPF, data de nascimento) e endereço completo. O sistema valida CPF duplicado automaticamente."
 
-"Na area de cadastros, o administrador consegue manter os dados estruturais do sistema. Isso inclui usuarios, grupos de categoria, tipos de categoria, contas financeiras e cartoes."
+### 1.5 Agenda
 
-"Nos usuarios, fazemos cadastro, atualizacao, inativacao e reativacao. Nos grupos e tipos de categoria, organizamos a classificacao entre receita, despesa e investimento. Nas contas, definimos por exemplo conta corrente, dinheiro e investimento, sempre vinculando a responsabilidade a um usuario. Nos cartoes, controlamos nome, dia de fechamento, dia de vencimento e usuario responsavel."
+"A agenda é o coração operacional do sistema. O profissional pode visualizar o calendário diário, agendar sessões avulsas ou recorrentes, remarcar, cancelar e marcar como realizada."
 
-### 1.5 Planejamento mensal
+"O sistema verifica automaticamente conflitos de horário, respeita o intervalo de almoço e os dias de funcionamento configurados."
 
-"A area de lancamentos e o coracao do planejamento mensal. Nela conseguimos cadastrar os itens previstos do mes, com descricao, grupo, categoria, usuario responsavel, tipo de vencimento e valor esperado."
+"Também há o módulo de bloqueios de agenda, para reservar períodos sem atendimento (férias, reuniões, feriados)."
 
-"O sistema suporta tres formatos de vencimento: dia fixo do mes, fatura de cartao e vencimento variavel. Alem disso, o planejamento cobre receitas, despesas e investimentos."
+### 1.6 Solicitações de agendamento online
 
-"Tambem temos o recurso de lancamento parcelado, que gera automaticamente todas as parcelas futuras, e o lancamento recorrente, que projeta os proximos meses para despesas ou receitas repetitivas. Isso reduz digitacao manual e padroniza o planejamento."
+"Pacientes podem solicitar agendamento pelo portal público sem precisar de login. O profissional recebe a solicitação, analisa e aprova ou recusa. O paciente recebe notificação por e-mail em cada etapa."
 
-"Dentro desse modulo existe ainda a tabela de lancamentos, o resumo do mes, os totais por grupo e o historico do que ja foi realizado."
+### 1.7 Portal do Paciente
 
-### 1.6 Baixas e movimentacoes
+"O paciente possui acesso a um portal próprio (via token seguro) onde pode confirmar ou cancelar sessões agendadas e consultar seu histórico."
 
-"Depois do planejamento, entramos na operacao do mes. A central de movimentos concentra o que esta pendente, o que foi pago, o que foi recebido e tudo o que ja teve movimentacao financeira."
+### 1.8 Planos de tratamento (Pacotes)
 
-"Nessa central, o usuario pode filtrar por mes, tipo de item, status, conta, usuario e busca textual. O sistema separa receitas de um lado e despesas e investimentos do outro, e ainda mostra os totais filtrados de previsto, realizado e pendente."
+"O sistema suporta planos de tratamento com número de sessões predefinido e valor total. As sessões são consumidas conforme o agendamento, com controle de saldo de sessões e estorno automático em cancelamentos."
 
-"Quando uma conta precisa ser baixada, podemos registrar o valor realizado de forma completa ou parcial, informando conta, data, observacao e o usuario que executou a baixa. Esse mesmo fluxo vale para recebimentos. Tambem existe a baixa rapida para agilizar o fechamento de itens simples."
+### 1.9 Prontuário SOAP
 
-"Se necessario, o movimento pode ser editado ou excluido, e cada item possui seu historico detalhado de lancamentos."
+"Cada sessão realizada pode ter um registro de prontuário no formato SOAP (Subjetivo, Objetivo, Avaliação, Plano), garantindo o histórico clínico do paciente."
 
-### 1.7 Contas a pagar e contas a receber
+### 1.10 Financeiro
 
-"Para facilitar a rotina, o sistema entrega atalhos especificos para contas a pagar, contas pagas, contas a receber e contas recebidas. Esses atalhos ja abrem a central de movimentos com o recorte correto, acelerando a operacao do dia a dia."
+"O módulo financeiro registra lançamentos de receita e despesa. Lançamentos podem ser criados manualmente ou gerados automaticamente a partir de sessões avulsas e planos de tratamento. O profissional faz a baixa quando recebe o pagamento."
 
-### 1.8 Pagamentos de despesas avulsas
+"O dashboard financeiro exibe receitas recebidas, receitas pendentes, despesas pagas e despesas pendentes, com taxa de recebimento e ticket médio."
 
-"O sistema tambem possui um modulo de pagamentos de despesas avulsas. Nesse fluxo e possivel registrar um pagamento direto com descricao, valor pago, data, competencia, categoria de despesa, conta, forma de pagamento, observacao, favorecido e dados do comprovante."
+### 1.11 Relatórios
 
-"Esse pagamento pode ser consultado em detalhe, editado, cancelado e excluido. As formas de pagamento previstas incluem Pix, dinheiro, cartao de credito, cartao de debito, boleto, transferencia e outras."
+"O sistema gera relatórios operacionais (sessões, faturamento) e documentos exportáveis em PDF e Excel. Também é possível enviar lembretes e cobranças por e-mail diretamente pelo sistema."
 
-### 1.9 Relatorios e exportacoes
+### 1.12 Configurações
 
-"Na camada analitica, temos quatro visoes principais. O relatorio mensal resume um unico mes. O relatorio por periodo consolida uma faixa de meses. O relatorio de fluxo destaca entradas, saidas e saldo liquido ao longo do tempo. E o relatorio de categorias mostra a performance por categoria."
+"As configurações da clínica definem nome, dias e horários de funcionamento, intervalo de almoço, duração padrão das sessões e fuso horário. Também é possível configurar o servidor de e-mail (SMTP) para envio das notificações."
 
-"Todos esses relatorios podem ser refinados por usuario, conta, grupo e status. Alem da consulta em tela, o sistema permite exportacao em PDF e Excel, e no relatorio por periodo tambem existe exportacao em CSV."
+### 1.13 Auditoria
 
-### 1.10 Encerramento
+"Toda ação relevante no sistema é registrada no log de auditoria: criações, edições, cancelamentos, exclusões, logins e logouts. O ADMIN pode consultar o histórico completo com detalhes de antes/depois."
 
-"Em resumo, o sistema cobre desde a configuracao inicial, passando pelo planejamento e pela execucao financeira, ate a visao gerencial e a exportacao dos dados. Isso cria um fluxo completo para controlar o mes, acompanhar pendencias e analisar o resultado com mais clareza."
+---
 
-## 2. Inventario completo de funcionalidades
+## 2. Inventário completo de funcionalidades
 
 ### 2.1 Acesso e conta
 
-- Login com autenticacao obrigatoria.
+- Login com autenticação obrigatória.
 - Logout do sistema.
-- Recuperacao de senha por e-mail.
-- Redefinicao de senha com token.
-- Alteracao da propria senha.
-- Sugestao de senha forte.
-- Troca de tema visual pelo usuario.
-- Controle de permissao por perfil e por propriedade dos dados.
+- Recuperação de senha por e-mail.
+- Redefinição de senha com token.
+- Alteração da própria senha.
+- Troca de tema visual (claro/escuro) pelo usuário.
+- Controle de permissão por perfil (ADMIN, PROFISSIONAL, RECEPCIONISTA, VISUALIZADOR).
 
-### 2.2 Painel
+### 2.2 Painel principal
 
-- Selecao do mes de analise.
-- Exibicao de saldo anterior e saldo atual.
-- Exibicao de entradas, despesas e fluxo do mes.
-- Indicadores de contas pendentes e contas pagas.
-- Percentual de cobertura das despesas sobre a receita.
-- Comparativo previsto x realizado.
-- Evolucao mensal em janela historica.
-- Top 5 grupos de entrada.
-- Top 5 grupos de despesa.
-- Destaques de despesas.
-- Contas com movimentacao no periodo.
-- Lista de pendencias prioritarias.
-- Atalhos rapidos de navegacao.
+- Contagem de pacientes ativos (query direta no banco, sem carregar listas).
+- Sessões do dia corrente.
+- Solicitações pendentes de análise.
+- Receitas e despesas pendentes.
+- Saldo financeiro projetado.
 
-### 2.3 Cadastros administrativos
+### 2.3 Pacientes
 
-- Cadastro de usuarios.
-- Atualizacao de usuarios.
-- Inativacao de usuarios.
-- Reativacao de usuarios.
-- Cadastro de grupos de categoria.
-- Atualizacao de grupos de categoria.
-- Exclusao de grupos quando permitido pelas validacoes do sistema.
-- Cadastro de tipos de categoria.
-- Atualizacao de tipos de categoria.
-- Inativacao de tipos de categoria.
-- Reativacao de tipos de categoria.
-- Exclusao de tipos de categoria.
-- Cadastro de contas.
-- Atualizacao de contas.
-- Inativacao de contas.
-- Reativacao de contas.
-- Definicao do tipo da conta: conta corrente, dinheiro ou investimento.
-- Vinculo da conta a um usuario responsavel.
-- Cadastro de cartoes.
-- Atualizacao de cartoes.
-- Inativacao de cartoes.
-- Reativacao de cartoes.
-- Controle de dia de fechamento e dia de vencimento do cartao.
+- Cadastro com dados pessoais e endereço.
+- Validação de CPF único.
+- Edição e inativação de pacientes.
+- Busca por nome, CPF, telefone ou e-mail.
+- Portal do paciente com token de acesso seguro.
 
-### 2.4 Planejamento de lancamentos
+### 2.4 Agenda
 
-- Cadastro de item planejado por mes.
-- Atualizacao de item planejado.
-- Inativacao de item planejado.
-- Classificacao por receita, despesa e investimento.
-- Vinculo do item a grupo e tipo de categoria.
-- Vinculo do item a usuario responsavel.
-- Definicao do vencimento por dia do mes.
-- Definicao do vencimento por fatura de cartao.
-- Definicao do vencimento variavel.
-- Registro do valor previsto.
-- Resumo mensal do planejamento.
-- Tabela completa de lancamentos do mes.
-- Totais por grupo.
-- Historico do realizado no mes.
-- Criacao de modelo parcelado com geracao automatica das parcelas futuras.
-- Criacao de modelo recorrente com projecao automatica para meses futuros.
-- Inativacao de modelo recorrente ou parcelado.
-- Controle de status do item: pendente, parcial e pago.
+- Calendário diário e semanal.
+- Agendamento avulso manual.
+- Agendamento recorrente (diário, semanal, quinzenal, mensal).
+- Edição e reagendamento de sessões.
+- Cancelamento com motivo.
+- Marcação como realizada.
+- Reversão de realização.
+- Reabertura de sessão cancelada.
+- Exclusão física de sessão.
+- Geração automática de slots disponíveis respeitando horários e bloqueios.
+- Bloqueios de agenda por período ou recorrência.
+- Validação de conflito de horário em tempo real.
 
-### 2.5 Movimentos e baixas
+### 2.5 Solicitações de agendamento online
 
-- Central unica de movimentos.
-- Filtro por mes.
-- Filtro por tipo do item.
-- Filtro por status.
-- Filtro por conta.
-- Filtro por usuario.
-- Busca textual por item, conta, observacao, data ou valor.
-- Cards de resumo com totais filtrados.
-- Lista de receitas do mes.
-- Lista de despesas e investimentos do mes.
-- Registro manual de pagamento ou recebimento.
-- Registro parcial de valores.
-- Registro total de valores.
-- Informacao da conta utilizada na baixa.
-- Informacao da data do movimento.
-- Informacao do usuario que realizou a baixa.
-- Campo de observacao no movimento.
-- Edicao de movimento ja registrado.
-- Exclusao de movimento.
-- Baixa rapida de item planejado.
-- Historico detalhado de movimentos por item.
+- Formulário público de solicitação (sem login).
+- Aprovação, reagendamento ou recusa pelo profissional.
+- Notificações automáticas por e-mail ao paciente.
 
-### 2.6 Atalhos operacionais
+### 2.6 Portal do Paciente
 
-- Visao direta de contas a pagar.
-- Visao direta de contas pagas.
-- Visao direta de contas a receber.
-- Visao direta de contas recebidas.
+- Acesso via token seguro enviado por e-mail.
+- Visualização de próximas sessões.
+- Confirmação e cancelamento de sessão pelo próprio paciente.
+- Histórico das últimas sessões.
 
-### 2.7 Pagamentos de despesas avulsas
+### 2.7 Planos de tratamento
 
-- Cadastro de pagamento avulso de despesa.
-- Consulta detalhada do pagamento.
-- Edicao do pagamento.
-- Cancelamento do pagamento.
-- Exclusao do pagamento.
-- Informacao da competencia do pagamento.
-- Escolha da categoria de despesa.
-- Escolha da conta de pagamento.
-- Registro da forma de pagamento.
-- Registro de observacao.
-- Registro do favorecido.
-- Registro de nome do comprovante.
-- Registro de URL do comprovante.
-- Status do pagamento: pago ou cancelado.
-- Formas de pagamento: Pix, dinheiro, cartao de credito, cartao de debito, boleto, transferencia e outro.
+- Cadastro de plano com número de sessões e valor total.
+- Consumo automático de sessões no agendamento.
+- Estorno automático em cancelamentos.
+- Geração automática de lançamento financeiro na venda do plano.
 
-### 2.8 Relatorios
+### 2.8 Prontuário SOAP
 
-- Relatorio mensal.
-- Relatorio por periodo.
-- Relatorio de fluxo de caixa.
-- Relatorio de performance por categorias.
-- Filtro de relatorios por usuario.
-- Filtro de relatorios por conta.
-- Filtro de relatorios por grupo.
-- Filtro de relatorios por status.
-- Exportacao do relatorio mensal em PDF.
-- Exportacao do relatorio mensal em Excel.
-- Exportacao do relatorio por periodo em CSV.
-- Exportacao do relatorio por periodo em PDF.
-- Exportacao do relatorio por periodo em Excel.
-- Exportacao do relatorio de fluxo em PDF.
-- Exportacao do relatorio de fluxo em Excel.
-- Exportacao do relatorio de categorias em PDF.
-- Exportacao do relatorio de categorias em Excel.
+- Registro por sessão realizada.
+- Campos: Subjetivo, Objetivo, Avaliação, Plano.
+- Campos específicos de fisioterapia: anamnese, diagnóstico, hipótese diagnóstica, conduta.
+- Histórico de prontuários por paciente.
 
-## 3. Ordem sugerida para demonstracao ao vivo
+### 2.9 Financeiro
 
-1. Login e acesso inicial.
-2. Painel com leitura dos KPIs do mes.
-3. Cadastros base: usuarios, grupos, tipos, contas e cartoes.
-4. Planejamento: criar um lancamento simples, um parcelado e um recorrente.
-5. Movimentos: baixar um item pendente e mostrar o historico.
-6. Atalhos de contas a pagar e contas a receber.
-7. Pagamento avulso de despesa.
-8. Relatorios com exportacao.
+- Lançamentos manuais de receita e despesa.
+- Geração automática de receita por sessão avulsa realizada.
+- Geração automática de receita por plano de tratamento vendido.
+- Baixa manual de lançamento (marcar como pago).
+- Cancelamento de baixa.
+- Cancelamento de lançamento.
+- Edição de lançamento pendente.
+- Filtro por período.
+- Resumo com receitas recebidas, pendentes, despesas pagas e pendentes.
+- Taxa de recebimento e ticket médio calculados no banco de dados (sem carregamento em memória).
 
-## 4. Observacao
+### 2.10 Relatórios e exportações
 
-Este roteiro foi montado com base nos controllers, services, templates e DTOs atualmente presentes no projeto.
+- Relatório de sessões por período.
+- Relatório financeiro.
+- Exportação em PDF (via OpenPDF).
+- Exportação em Excel (via Apache POI).
+- Envio de lembrete de sessão por e-mail.
+- Envio de cobrança por e-mail.
+
+### 2.11 Configurações da clínica
+
+- Nome da clínica.
+- Dias de funcionamento por dia da semana.
+- Horário de abertura e fechamento.
+- Intervalo de almoço.
+- Duração padrão das sessões.
+- Fuso horário (configura Hibernate, Jackson e toda a aplicação dinamicamente).
+- Telefone/WhatsApp de contato.
+- E-mail de contato.
+
+### 2.12 Configurações de e-mail (SMTP)
+
+- Configuração do servidor de envio.
+- Teste de envio via interface.
+- Log de e-mails enviados com status de entrega.
+
+### 2.13 Usuários e permissões
+
+- Cadastro, edição, inativação e reativação de usuários.
+- Perfis: ADMIN, PROFISSIONAL, RECEPCIONISTA, VISUALIZADOR.
+- Permissões de menu por perfil configuráveis pelo ADMIN.
+
+### 2.14 Auditoria
+
+- Log de criações, edições, cancelamentos, exclusões.
+- Log de login e logout.
+- Detalhamento de campos alterados (antes/depois).
+- Filtros por módulo, ação, usuário e período.
+
+---
+
+## 3. Ordem sugerida para demonstração ao vivo
+
+1. Login e visão do painel.
+2. Configuração da clínica (horários, fuso, duração de sessão).
+3. Cadastro de paciente.
+4. Criação de plano de tratamento.
+5. Agendamento de sessão avulsa e recorrente.
+6. Solicitação de agendamento online + aprovação.
+7. Marcar sessão como realizada + prontuário SOAP.
+8. Módulo financeiro: baixa de lançamento e resumo.
+9. Relatórios com exportação.
+10. Auditoria: histórico de ações.
+
+---
+
+## 4. Observação
+
+Este roteiro foi revisado em maio de 2026 com base nos controllers, services, templates e migrações presentes no projeto FisioGestão.
