@@ -294,6 +294,8 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"openAgendamentoSessaoModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"agendamentoSessaoModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("aria-hidden=\"false\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente em atendimento")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Buscar Paciente"))))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")));
     }
 

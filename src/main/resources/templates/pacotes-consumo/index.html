@@ -48,7 +48,7 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Planos de Tratamentos</h1>
-                    <p class="hero-subtitle">Busque o paciente, selecione-o e então gerencie os planos de tratamento desse paciente.</p>
+                    <p class="hero-subtitle">Gerencie planos, consumo de sessões e agendamentos a partir de um único paciente selecionado.</p>
                 </div>
                 <div class="hero-actions">
                     <span class="hero-pill" th:text="${pacienteSelecionado != null ? 'Paciente Selecionado' : 'Planos'}">Planos</span>
@@ -74,7 +74,7 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <section class="workflow-strip">
+            <section class="workflow-strip" th:if="${pacienteSelecionado == null}">
                 <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-complete' : 'is-current'}">
                     <span class="workflow-step-number">1</span>
                     <div class="workflow-step-copy">
@@ -98,25 +98,7 @@
                 </article>
             </section>
 
-            <section class="summary-grid">
-                <article class="summary-card saldo">
-                    <span class="summary-icon"><i data-lucide="package-open"></i></span>
-                    <p class="summary-label">Planos do Paciente</p>
-                    <p class="summary-value" th:text="${totalPacotes}">0</p>
-                </article>
-                <article class="summary-card receita">
-                    <span class="summary-icon"><i data-lucide="calendar-check-2"></i></span>
-                    <p class="summary-label">Sessões Contratadas</p>
-                    <p class="summary-value" th:text="${totalSessoesContratadas}">0</p>
-                </article>
-                <article class="summary-card despesa">
-                    <span class="summary-icon"><i data-lucide="timer"></i></span>
-                    <p class="summary-label">Sessões Disponíveis</p>
-                    <p class="summary-value" th:text="${totalSessoesDisponiveis}">0</p>
-                </article>
-            </section>
-
-            <section class="section-card">
+            <section class="section-card treatment-search-card" th:if="${pacienteSelecionado == null}">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="search"></i> Buscar Paciente</h3>
@@ -190,7 +172,7 @@
                 </div>
             </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado == null and totalPacientesAtivos > 0}">
+            <section class="section-card" th:if="${pacienteSelecionado == null and totalPacientesAtivos > 0 and (pacientes == null or pacientes.empty)}">
                 <div class="section-body">
                     <div class="empty-box">
                         <i data-lucide="mouse-pointer-click"></i>
@@ -199,11 +181,11 @@
                 </div>
             </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado != null}">
+            <section class="section-card treatment-patient-card" th:if="${pacienteSelecionado != null}">
                 <header class="section-head">
                     <div>
-                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente Selecionado</h3>
-                        <p class="section-subtitle">Ao selecionar um paciente, a agenda abre direto em modal para agilizar o agendamento.</p>
+                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente em atendimento</h3>
+                        <p class="section-subtitle">Contexto fixo para criar planos, acompanhar consumo e agendar sessoes.</p>
                     </div>
                     <div class="table-actions">
                         <button type="button"
@@ -220,44 +202,47 @@
                         </a>
                     </div>
                 </header>
-                <div class="section-body">
-                    <div class="helper-card patient-spotlight">
-                        <div class="helper-copy patient-spotlight-copy">
+                <div class="section-body treatment-patient-body">
+                    <div class="treatment-patient-main">
+                        <span class="entity-avatar treatment-patient-avatar" th:text="${#strings.substring(pacienteSelecionado.nomeCompleto, 0, 1)}">P</span>
+                        <div class="treatment-patient-copy">
                             <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
-                            <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
-                            <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
+                            <div class="treatment-patient-meta">
+                                <span th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</span>
+                                <span th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</span>
+                            </div>
                             <p class="helper-text" th:if="${!agendaConfigurada}">Configure a clínica para liberar novos agendamentos.</p>
-                            <p class="helper-text" th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">Este paciente precisa de um plano ativo com sessões disponíveis para agendar.</p>
+                            <p class="helper-text" th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">Crie ou reative um plano ativo com sessões disponíveis para liberar agendamentos por plano.</p>
                             <p class="helper-text" th:if="${agendaConfigurada and pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
-                                O atalho de agenda fica no topo desta seção e a seleção do paciente já pode abrir o modal automaticamente.
+                                Plano ativo disponivel para agenda. O consumo sera reservado automaticamente ao confirmar a sessao.
                             </p>
                         </div>
-                        <div class="patient-spotlight-stats">
-                            <div class="patient-spotlight-stat">
-                                <span class="patient-spotlight-stat-label">Planos</span>
-                                <strong class="patient-spotlight-stat-value" th:text="${totalPacotes}">0</strong>
-                            </div>
-                            <div class="patient-spotlight-stat">
-                                <span class="patient-spotlight-stat-label">Sessões contratadas</span>
-                                <strong class="patient-spotlight-stat-value" th:text="${totalSessoesContratadas}">0</strong>
-                            </div>
-                            <div class="patient-spotlight-stat">
-                                <span class="patient-spotlight-stat-label">Sessões disponíveis</span>
-                                <strong class="patient-spotlight-stat-value" th:text="${totalSessoesDisponiveis}">0</strong>
-                            </div>
+                    </div>
+                    <div class="treatment-patient-stats" aria-label="Resumo do paciente selecionado">
+                        <div class="treatment-stat">
+                            <span>Planos</span>
+                            <strong th:text="${totalPacotes}">0</strong>
+                        </div>
+                        <div class="treatment-stat">
+                            <span>Contratadas</span>
+                            <strong th:text="${totalSessoesContratadas}">0</strong>
+                        </div>
+                        <div class="treatment-stat">
+                            <span>Disponiveis</span>
+                            <strong th:text="${totalSessoesDisponiveis}">0</strong>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="crud-layout form-table" th:if="${pacienteSelecionado != null}">
+            <section class="crud-layout form-table treatment-workspace" th:if="${pacienteSelecionado != null}">
                 <article class="section-card" id="novoPlanoSection">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Plano</h3>
-                        <p class="section-subtitle" th:text="${pacienteSelecionado.nomeCompleto}">Paciente</p>
+                        <p class="section-subtitle">Cadastro rapido</p>
                     </header>
                     <div class="section-body">
-                        <form th:action="@{/pacotes-consumo}" th:object="${pacoteConsumoForm}" method="post" class="modern-form">
+                        <form th:action="@{/pacotes-consumo}" th:object="${pacoteConsumoForm}" method="post" class="modern-form treatment-plan-form">
                             <input type="hidden" th:field="*{clienteId}">
                             <input type="hidden" name="busca" th:value="${buscaPaciente}">
                             <div class="form-field">
@@ -265,43 +250,51 @@
                                 <input id="novo-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
                                 <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
                             </div>
-                            <div class="form-field">
-                                <label for="novo-contratadas">Sessões contratadas</label>
-                                <input id="novo-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="novo-contratadas">Sessoes contratadas</label>
+                                    <input id="novo-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="novo-valor">Valor total</label>
+                                    <input id="novo-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                                </div>
                             </div>
-                            <div class="form-field">
-                                <label>Sessões consumidas</label>
-                                <input type="hidden" th:field="*{sessoesConsumidas}">
-                                <div class="form-control read-only-field">0 sessões no momento da criação</div>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="novo-data-inicio">Data inicial</label>
+                                    <input id="novo-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
+                                    <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="novo-data-validade">Data de validade</label>
+                                    <input id="novo-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
+                                    <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
+                                </div>
                             </div>
-                            <div class="form-field">
-                                <label for="novo-valor">Valor total</label>
-                                <input id="novo-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label>Sessoes consumidas</label>
+                                    <input type="hidden" th:field="*{sessoesConsumidas}">
+                                    <div class="form-control read-only-field">0 no cadastro</div>
+                                </div>
+                                <div class="form-field">
+                                    <label for="novo-status">Status</label>
+                                    <select id="novo-status" class="form-select" th:field="*{status}" required>
+                                        <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
+                                    </select>
+                                    <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+                                </div>
                             </div>
-                            <div class="form-field">
-                                <label for="novo-data-inicio">Data inicial</label>
-                                <input id="novo-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
+                            <div class="form-actions">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="save"></i>
+                                    Criar Plano
+                                </button>
                             </div>
-                            <div class="form-field">
-                                <label for="novo-data-validade">Data de validade</label>
-                                <input id="novo-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
-                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label for="novo-status">Status</label>
-                                <select id="novo-status" class="form-select" th:field="*{status}" required>
-                                    <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
-                                </select>
-                                <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
-                            </div>
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="save"></i>
-                                Criar Plano
-                            </button>
-                            <p class="helper-text">O consumo será atualizado automaticamente quando a sessão for confirmada e mantido no histórico quando ela for realizada.</p>
+                            <p class="helper-text">O consumo sera atualizado automaticamente quando a sessao for confirmada.</p>
                         </form>
                     </div>
                 </article>
@@ -311,10 +304,14 @@
                         <h3 class="section-title"><i data-lucide="package-open"></i> Planos Cadastrados</h3>
                         <p class="section-subtitle" th:text="${pacotes != null ? pacotes.size() + ' registros' : '0 registros'}">0 registros</p>
                     </header>
-                    <div class="section-body" th:if="${pacotes == null or pacotes.empty}">
+                    <div class="section-body treatment-empty-body" th:if="${pacotes == null or pacotes.empty}">
                         <div class="empty-box">
                             <i data-lucide="archive-x"></i>
                             <p>Nenhum plano de tratamento cadastrado para este paciente.</p>
+                            <a href="#novoPlanoSection" class="action-button primary">
+                                <i data-lucide="package-plus"></i>
+                                Criar primeiro plano
+                            </a>
                         </div>
                     </div>
                     <div class="section-body plan-card-grid" th:unless="${pacotes == null or pacotes.empty}">
