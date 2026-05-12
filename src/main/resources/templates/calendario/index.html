@@ -55,7 +55,6 @@
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
                 <a th:href="@{/calendario}" href="/calendario" class="page-tab active"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
                 <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
             </nav>
 
@@ -154,7 +153,7 @@
                                                         Ver dia
                                                     </a>
                                                     <a class="calendar-link"
-                                                       th:href="@{/bloqueios(data=${dia.data})}">
+                                                       th:href="@{/configuracoes/clinica(data=${dia.data})}">
                                                         Bloquear
                                                     </a>
                                                 </div>
@@ -263,8 +262,8 @@
                                     <p>Use o módulo de bloqueios para cadastrar indisponibilidades por faixa de horário ou dia inteiro, com edição segura, histórico e integração real com agenda e agendamento online.</p>
                                 </div>
                                 <div class="form-actions">
-                                    <a th:href="@{/bloqueios(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
-                                    <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
+                                    <a th:href="@{/configuracoes/clinica(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
+                                    <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
                                 </div>
                             </div>
                         </div>
@@ -296,7 +295,7 @@
                                         <div class="request-actions">
                                             <span class="chip status-warning" th:if="${bloqueio.diaInteiro}">Dia inteiro</span>
                                             <span class="chip status-success" th:text="${bloqueio.status}">ATIVO</span>
-                                            <a th:href="@{/bloqueios(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
+                                            <a th:href="@{/configuracoes/clinica(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
                                         </div>
                                     </div>
                                 </article>

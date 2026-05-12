@@ -38,7 +38,6 @@ class UserMenuAccessServiceTest {
                 EnumSet.of(
                         AppMenuItem.DASHBOARD,
                         AppMenuItem.AGENDA,
-                        AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
                         AppMenuItem.PACOTES_SESSOES,
                         AppMenuItem.PACIENTES,

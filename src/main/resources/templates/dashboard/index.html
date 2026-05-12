@@ -178,11 +178,6 @@
                                 <p class="quick-action-label">Agenda</p>
                                 <p class="quick-action-hint">Visão diária e mensal</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('BLOQUEIOS')}" th:href="@{/bloqueios}" href="/bloqueios" class="quick-action">
-                                <span class="quick-action-icon"><i data-lucide="calendar-x-2" aria-hidden="true"></i></span>
-                                <p class="quick-action-label">Bloqueios</p>
-                                <p class="quick-action-hint">Indisponibilidades</p>
-                            </a>
                             <a th:if="${accessibleMenuKeys.contains('SOLICITACOES')}" th:href="@{/solicitacoes}" href="/solicitacoes" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Solicitações</p>

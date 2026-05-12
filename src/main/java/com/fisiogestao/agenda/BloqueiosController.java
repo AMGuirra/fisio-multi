@@ -2,11 +2,12 @@ package com.fisiogestao.agenda;
 
 import com.fisiogestao.agenda.form.BloqueioAgendaCadastroForm;
 import com.fisiogestao.agenda.form.BloqueioAgendaFiltroForm;
+import com.fisiogestao.agenda.form.ConfiguracaoClinicaForm;
 import com.fisiogestao.agenda.service.BloqueioAgendaService;
+import com.fisiogestao.agenda.service.ConfiguracaoClinicaService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,32 +16,31 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
+/**
+ * Mantém as ações de cadastro, edição e cancelamento dos bloqueios de agenda,
+ * agora servidas como POSTs sob /configuracoes/clinica/bloqueios. O GET legado
+ * em /bloqueios redireciona para a página unificada de Configuração Operacional.
+ */
 @Controller
-@RequestMapping("/bloqueios")
 @RequiredArgsConstructor
 public class BloqueiosController {
 
     private final BloqueioAgendaService bloqueioAgendaService;
+    private final ConfiguracaoClinicaService configuracaoClinicaService;
 
-    @GetMapping
-    public String index(
-            @RequestParam(name = "editar", required = false) UUID editarId,
-            @RequestParam(name = "data", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataSugerida,
-            @ModelAttribute("filtroForm") BloqueioAgendaFiltroForm filtroForm,
-            Model model
-    ) {
-        prepararPagina(model, filtroPadrao(filtroForm), editarId, dataSugerida);
-        return "bloqueios/index";
+    @GetMapping("/bloqueios")
+    public String redirecionarPaginaLegada() {
+        return "redirect:/configuracoes/clinica";
     }
 
-    @PostMapping
+    @PostMapping("/configuracoes/clinica/bloqueios")
     public String criar(
             @Valid @ModelAttribute("bloqueioForm") BloqueioAgendaCadastroForm form,
             BindingResult bindingResult,
@@ -50,21 +50,21 @@ public class BloqueiosController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPaginaComForm(model, filtroPadrao(filtroForm), form, null);
-            return "bloqueios/index";
+            prepararPaginaConfig(model, filtroPadrao(filtroForm), form, null);
+            return "configuracoes/clinica";
         }
         try {
             bloqueioAgendaService.criar(form, usuario(authentication));
             redirectAttributes.addFlashAttribute("successMessage", "Bloqueio cadastrado com sucesso.");
-            return "redirect:/bloqueios";
+            return "redirect:/configuracoes/clinica";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPaginaComForm(model, filtroPadrao(filtroForm), form, null);
-            return "bloqueios/index";
+            prepararPaginaConfig(model, filtroPadrao(filtroForm), form, null);
+            return "configuracoes/clinica";
         }
     }
 
-    @PostMapping("/{id}/editar")
+    @PostMapping("/configuracoes/clinica/bloqueios/{id}/editar")
     public String editar(
             @PathVariable UUID id,
             @Valid @ModelAttribute("bloqueioForm") BloqueioAgendaCadastroForm form,
@@ -75,21 +75,21 @@ public class BloqueiosController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPaginaComForm(model, filtroPadrao(filtroForm), form, id);
-            return "bloqueios/index";
+            prepararPaginaConfig(model, filtroPadrao(filtroForm), form, id);
+            return "configuracoes/clinica";
         }
         try {
             bloqueioAgendaService.atualizar(id, form, usuario(authentication));
             redirectAttributes.addFlashAttribute("successMessage", "Bloqueio atualizado com sucesso.");
-            return "redirect:/bloqueios";
+            return "redirect:/configuracoes/clinica";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPaginaComForm(model, filtroPadrao(filtroForm), form, id);
-            return "bloqueios/index";
+            prepararPaginaConfig(model, filtroPadrao(filtroForm), form, id);
+            return "configuracoes/clinica";
         }
     }
 
-    @PostMapping("/{id}/cancelar")
+    @PostMapping("/configuracoes/clinica/bloqueios/{id}/cancelar")
     public String cancelar(
             @PathVariable UUID id,
             Authentication authentication,
@@ -101,25 +101,23 @@ public class BloqueiosController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/bloqueios";
+        return "redirect:/configuracoes/clinica";
     }
 
-    private void prepararPagina(Model model, BloqueioAgendaFiltroForm filtroForm, UUID editarId, LocalDate dataSugerida) {
-        BloqueioAgendaCadastroForm form = formularioPadrao(dataSugerida);
-        if (editarId != null) {
-            var edicao = bloqueioAgendaService.carregarParaEdicao(editarId);
-            form = edicao.form();
-            model.addAttribute("editMode", true);
-            model.addAttribute("editingId", editarId);
-            model.addAttribute("bloqueiosRelacionados", edicao.grupo());
-        } else {
-            model.addAttribute("editMode", false);
-            model.addAttribute("bloqueiosRelacionados", java.util.List.of());
-        }
-        prepararPaginaComForm(model, filtroForm, form, editarId);
-    }
+    private void prepararPaginaConfig(Model model, BloqueioAgendaFiltroForm filtroForm, BloqueioAgendaCadastroForm form, UUID editarId) {
+        ConfiguracaoClinicaForm configuracaoForm = configuracaoClinicaService.carregarFormulario();
+        model.addAttribute("configuracaoClinicaForm", configuracaoForm);
+        model.addAttribute("diasSemana", List.of(
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.MONDAY, "Segunda-feira"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.TUESDAY, "Terça-feira"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.WEDNESDAY, "Quarta-feira"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.THURSDAY, "Quinta-feira"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.FRIDAY, "Sexta-feira"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.SATURDAY, "Sábado"),
+                new ConfiguracaoClinicaController.DiaSemanaOption(DayOfWeek.SUNDAY, "Domingo")
+        ));
+        model.addAttribute("timezonesClinica", configuracaoClinicaService.listarTimezonesSuportados());
 
-    private void prepararPaginaComForm(Model model, BloqueioAgendaFiltroForm filtroForm, BloqueioAgendaCadastroForm form, UUID editarId) {
         model.addAttribute("filtroForm", filtroForm);
         model.addAttribute("bloqueioForm", form);
         model.addAttribute("bloqueios", bloqueioAgendaService.listarPorFiltro(filtroForm));
@@ -138,6 +136,9 @@ public class BloqueiosController {
     }
 
     private BloqueioAgendaFiltroForm filtroPadrao(BloqueioAgendaFiltroForm filtroForm) {
+        if (filtroForm == null) {
+            filtroForm = new BloqueioAgendaFiltroForm();
+        }
         if (filtroForm.getDataInicial() == null) {
             filtroForm.setDataInicial(LocalDate.now().minusDays(7));
         }
@@ -145,15 +146,6 @@ public class BloqueiosController {
             filtroForm.setDataFinal(LocalDate.now().plusDays(45));
         }
         return filtroForm;
-    }
-
-    private BloqueioAgendaCadastroForm formularioPadrao(LocalDate dataSugerida) {
-        LocalDate base = dataSugerida != null ? dataSugerida : LocalDate.now();
-        BloqueioAgendaCadastroForm form = new BloqueioAgendaCadastroForm();
-        form.setDataInicial(base);
-        form.setDataFinal(base);
-        form.setBloqueioDiaInteiro(true);
-        return form;
     }
 
     private String usuario(Authentication authentication) {
