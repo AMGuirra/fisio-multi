@@ -77,7 +77,8 @@ public class EmailConfiguracaoService {
         entity.setAtivo(ativo);
         entity.setObservacoes(textoOpcional(observacoes));
 
-        if (manterSenhaAtual) {
+        boolean senhaNovaInformada = senhaApp != null && !senhaApp.isBlank();
+        if (manterSenhaAtual && !senhaNovaInformada) {
             if (entity.getSenhaAppCriptografada() == null || entity.getSenhaAppCriptografada().isBlank()) {
                 throw new BusinessException("Informe a senha de app para concluir o cadastro SMTP.");
             }
