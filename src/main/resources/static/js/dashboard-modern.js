@@ -186,6 +186,117 @@
             systemStatusElement.textContent = online ? 'Online' : 'Offline';
         };
 
+        const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            maximumFractionDigits: 0
+        }).format(Number(value || 0));
+
+        const monthLabel = (value) => {
+            const [year, month] = String(value || '').split('-').map(Number);
+            if (!year || !month) {
+                return '--';
+            }
+            return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
+                month: 'short'
+            }).replace('.', '');
+        };
+
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        };
+
+        const renderBars = (container, items, options) => {
+            if (!container) {
+                return;
+            }
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p class="analytics-empty">Sem dados no periodo.</p>';
+                return;
+            }
+
+            const max = Math.max(...items.map(options.value), 1);
+            container.innerHTML = items.map((item) => {
+                const value = options.value(item);
+                const percent = Math.max(4, Math.round((value / max) * 100));
+                return `
+                    <div class="chart-row">
+                        <span class="chart-label">${monthLabel(item.mes)}</span>
+                        <span class="chart-track" title="${options.title(item)}">
+                            <span class="chart-fill ${options.fillClass || ''}" style="width:${percent}%"></span>
+                        </span>
+                        <span class="chart-value">${options.display(item)}</span>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        const carregarMetricasDashboard = async () => {
+            const ocupacaoChart = document.getElementById('ocupacaoChart');
+            const receitaChart = document.getElementById('receitaChart');
+            if (!ocupacaoChart && !receitaChart) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/dashboard/metricas', {
+                    headers: {
+                        Accept: 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const ocupacao = data.ocupacaoMensal || [];
+                const receitas = data.receitaMensal || [];
+                const retencao = data.retencaoPacotes || {};
+
+                const ocupacaoMedia = ocupacao.length
+                    ? ocupacao.reduce((total, item) => total + Number(item.taxaOcupacao || 0), 0) / ocupacao.length
+                    : 0;
+                const receitaTotal = receitas.reduce((total, item) => total + Number(item.totalReceita || 0), 0);
+
+                setText('ocupacaoMedia', `${ocupacaoMedia.toFixed(1)}%`);
+                setText('receitaTotal', formatCurrency(receitaTotal));
+                setText('taxaConversao', `${Number(retencao.taxaConversao || 0).toFixed(1)}%`);
+                setText('taxaRenovacao', `${Number(retencao.taxaRenovacao || 0).toFixed(1)}%`);
+                setText(
+                    'retencaoBase',
+                    `${retencao.pacientesComPacote || 0} de ${retencao.totalPacientesAtivos || 0} pacientes ativos com plano`
+                );
+
+                renderBars(ocupacaoChart, ocupacao, {
+                    value: (item) => Number(item.taxaOcupacao || 0),
+                    display: (item) => `${Number(item.taxaOcupacao || 0).toFixed(1)}%`,
+                    title: (item) => `${item.totalSessoes || 0} sessoes, ${Number(item.horasAgendadas || 0).toFixed(1)}h de ${Number(item.capacidadeHoras || 0).toFixed(1)}h`,
+                    fillClass: 'chart-fill-ocupacao'
+                });
+
+                renderBars(receitaChart, receitas, {
+                    value: (item) => Number(item.totalReceita || 0),
+                    display: (item) => formatCurrency(item.totalReceita),
+                    title: (item) => `Pacotes ${formatCurrency(item.receitaPacote)} / Avulso ${formatCurrency(item.receitaAvulso)}`,
+                    fillClass: 'chart-fill-receita'
+                });
+            } catch (error) {
+                if (ocupacaoChart) {
+                    ocupacaoChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
+                }
+                if (receitaChart) {
+                    receitaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
+                }
+                console.error('Falha ao carregar metricas do dashboard.', error);
+            }
+        };
+
         const closeUserMenu = () => {
             if (userMenu) {
                 userMenu.classList.remove('open');
@@ -318,6 +429,7 @@
         setActiveSidebarLink();
         updateConnectionStatus();
         updateDateTime();
+        carregarMetricasDashboard();
         setInterval(updateDateTime, 1000);
 
         window.toggleSidebar = toggleSidebar;

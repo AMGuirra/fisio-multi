@@ -1,4 +1,4 @@
-# Em serviços existentes no Render, NAO permita que o Blueprint sobrescreva a
+# Em servicos existentes no Render, NAO permita que o Blueprint sobrescreva a
 # conexao de banco a cada sync. As variaveis abaixo ficam com sync: false para
 # preservar o Postgres persistente configurado no painel do servico.
 # Se este arquivo apontar para outro banco, a aplicacao pode subir em uma base

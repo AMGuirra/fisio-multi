@@ -16,26 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongSupplier;
 
 /**
- * Filtro de rate limiting para rotas públicas sensíveis.
+ * Filtro de rate limiting para rotas publicas sensiveis.
  *
- * <p>Estratégia: Bucket4j in-memory com janela deslizante por IP.
- * O IP é extraído do header {@code X-Forwarded-For} (necessário no Render, que opera
- * atrás de reverse proxy), com fallback para {@code getRemoteAddr()}.</p>
- *
- * <p>Limites configurados:
- * <ul>
- *   <li>POST {@code /esqueci-minha-senha}: 5 requisições por minuto por IP</li>
- *   <li>POST {@code /agendamento-online}: 5 requisições por minuto por IP</li>
- * </ul>
- * </p>
- *
- * <p>Quando o limite é excedido, retorna HTTP 429 com header {@code Retry-After: 60}.</p>
- *
- * <p>Nota de escala: esta implementação é in-memory e não sobrevive a múltiplas instâncias.
- * Para scale-out horizontal, substituir o {@code ConcurrentHashMap} por Bucket4j com
- * backend Redis ou Hazelcast.</p>
+ * <p>Estrategia: Bucket4j in-memory por IP, com expiracao por inatividade para
+ * evitar crescimento indefinido do cache em ambientes expostos a trafego publico.</p>
  */
 public class RateLimitingFilter extends OncePerRequestFilter {
 
@@ -45,8 +32,22 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final String HEADER_RETRY_AFTER = "Retry-After";
     private static final String HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
 
-    /** Cache de buckets por IP. Cresce com o tráfego mas se descarta automaticamente ao reiniciar. */
-    private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BucketEntry> buckets = new ConcurrentHashMap<>();
+    private final long bucketTtlNanos;
+    private final long cleanupIntervalNanos;
+    private final LongSupplier ticker;
+    private volatile long ultimaLimpezaNanos;
+
+    public RateLimitingFilter() {
+        this(Duration.ofMinutes(10), Duration.ofMinutes(1), System::nanoTime);
+    }
+
+    RateLimitingFilter(Duration bucketTtl, Duration cleanupInterval, LongSupplier ticker) {
+        this.bucketTtlNanos = bucketTtl.toNanos();
+        this.cleanupIntervalNanos = cleanupInterval.toNanos();
+        this.ticker = ticker;
+        this.ultimaLimpezaNanos = ticker.getAsLong();
+    }
 
     @Override
     protected void doFilterInternal(
@@ -60,8 +61,11 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             return;
         }
 
+        long agora = ticker.getAsLong();
+        limparBucketsExpiradosSeNecessario(agora);
+
         String ip = extrairIp(request);
-        Bucket bucket = buckets.computeIfAbsent(ip, this::criarBucket);
+        Bucket bucket = bucketPara(ip, agora);
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
@@ -76,19 +80,34 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * Cria um Bucket com limite de {@value #LIMITE_POR_MINUTO} tokens por minuto,
-     * reabastecido gradualmente (greedy refill) para evitar burst no início de cada janela.
-     */
-    private Bucket criarBucket(String ip) {
+    private Bucket bucketPara(String ip, long agora) {
+        return buckets.compute(ip, (key, entry) -> {
+            if (entry == null || expirado(entry, agora)) {
+                return new BucketEntry(criarBucket(), agora);
+            }
+            return entry.atualizarUltimoAcesso(agora);
+        }).bucket();
+    }
+
+    private void limparBucketsExpiradosSeNecessario(long agora) {
+        if (agora - ultimaLimpezaNanos < cleanupIntervalNanos) {
+            return;
+        }
+
+        ultimaLimpezaNanos = agora;
+        buckets.entrySet().removeIf(entry -> expirado(entry.getValue(), agora));
+    }
+
+    private boolean expirado(BucketEntry entry, long agora) {
+        return agora - entry.ultimoAcessoNanos() > bucketTtlNanos;
+    }
+
+    private Bucket criarBucket() {
         Refill refill = Refill.greedy(LIMITE_POR_MINUTO, Duration.ofMinutes(1));
         Bandwidth limit = Bandwidth.classic(LIMITE_POR_MINUTO, refill);
         return Bucket.builder().addLimit(limit).build();
     }
 
-    /**
-     * Verifica se a rota e o método HTTP estão sujeitos ao rate limiting.
-     */
     private boolean isRotaProtegida(HttpServletRequest request) {
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             return false;
@@ -97,21 +116,25 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return uri.startsWith("/esqueci-minha-senha") || uri.startsWith("/agendamento-online");
     }
 
-    /**
-     * Extrai o IP real do cliente respeitando o header {@code X-Forwarded-For} do Render.
-     *
-     * <p>Usa apenas o primeiro IP da cadeia para evitar spoofing via múltiplos proxies.
-     * Em produção no Render, o primeiro IP da lista é sempre o do cliente real.</p>
-     */
     private String extrairIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader(HEADER_X_FORWARDED_FOR);
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            // Pega só o primeiro IP da lista (cliente original), ignora os intermediários
             String primeiroIp = xForwardedFor.split(",")[0].strip();
             if (!primeiroIp.isEmpty()) {
                 return primeiroIp;
             }
         }
         return request.getRemoteAddr();
+    }
+
+    int bucketCacheSize() {
+        return buckets.size();
+    }
+
+    private record BucketEntry(Bucket bucket, long ultimoAcessoNanos) {
+
+        private BucketEntry atualizarUltimoAcesso(long agora) {
+            return new BucketEntry(bucket, agora);
+        }
     }
 }

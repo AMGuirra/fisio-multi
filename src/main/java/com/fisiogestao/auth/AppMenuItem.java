@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 public enum AppMenuItem {
-    DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard")),
+    DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard", "/api/dashboard")),
     AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/configuracoes/clinica#secao-bloqueios", "calendar-x-2", false, false, false, false, MenuSection.AGENDA, List.of("/bloqueios")),

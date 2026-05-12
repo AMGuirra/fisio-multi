@@ -46,7 +46,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -144,6 +143,27 @@ class PageSmokeTest {
     void patientLookupApiRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/pacientes/por-cpf").param("cpf", "12345678901"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void swaggerUiRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    void swaggerUiRequiresAdminRole() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void apiPostRequiresCsrfToken() throws Exception {
+        mockMvc.perform(post("/api/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?expired"));
     }
 
     @ParameterizedTest

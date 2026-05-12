@@ -7,6 +7,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -62,6 +64,26 @@ class RateLimitingFilterTest {
         filter.doFilterInternal(request, new MockHttpServletResponse(), chain);
 
         verify(chain).doFilter(eq(request), any());
+    }
+
+    @Test
+    void removeBucketsSemAcessoAposTtl() throws ServletException, IOException {
+        AtomicLong ticker = new AtomicLong();
+        RateLimitingFilter filtroComTtlCurto = new RateLimitingFilter(
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(1),
+                ticker::get
+        );
+
+        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.20"), new MockHttpServletResponse(), mock(FilterChain.class));
+        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.21"), new MockHttpServletResponse(), mock(FilterChain.class));
+        assertEquals(2, filtroComTtlCurto.bucketCacheSize());
+
+        ticker.set(Duration.ofSeconds(12).toNanos());
+
+        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.22"), new MockHttpServletResponse(), mock(FilterChain.class));
+
+        assertEquals(1, filtroComTtlCurto.bucketCacheSize());
     }
 
     private MockHttpServletRequest postPublico(String forwardedFor) {

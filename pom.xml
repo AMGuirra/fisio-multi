@@ -18,7 +18,7 @@
     <description>Sistema SaaS de gestão para clínicas de fisioterapia</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>26</java.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <lombok.version>1.18.44</lombok.version>
     </properties>

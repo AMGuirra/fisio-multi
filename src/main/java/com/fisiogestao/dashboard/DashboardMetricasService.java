@@ -1,45 +1,52 @@
 package com.fisiogestao.dashboard;
 
+import com.fisiogestao.agenda.ConfiguracaoClinicaEntity;
+import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
- * Serviço de inteligência de negócio do dashboard.
+ * Servico de inteligencia de negocio do dashboard.
  *
- * <p>Todas as queries são nativas (SQL direto) sobre o PostgreSQL para:
- * <ul>
- *   <li>evitar o carregamento de entidades JPA completas em memória;</li>
- *   <li>delegar os agregados para o banco, que os executa com índices;</li>
- *   <li>retornar apenas os campos necessários para os gráficos.</li>
- * </ul>
- * </p>
- *
- * <p>Os dados cobrem sempre os últimos 12 meses completos para viabilizar
- * gráficos de tendência com granularidade mensal.</p>
+ * <p>As consultas usam SQL agregado para evitar carregar entidades completas.
+ * A camada Java completa os meses sem movimento e calcula indicadores derivados
+ * como capacidade e taxa de ocupacao.</p>
  */
 @Service
 @RequiredArgsConstructor
 public class DashboardMetricasService {
 
+    private static final int MESES_HISTORICO = 12;
+
     private final JdbcTemplate jdbc;
+    private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
-    // -------------------------------------------------------------------------
-    // Records (DTOs imutáveis, Java 16+)
-    // -------------------------------------------------------------------------
-
-    /** Ocupação mensal: horas efetivamente agendadas por mês. */
     public record OcupacaoMensal(
-            String mes,           // formato "YYYY-MM"
+            String mes,
             double horasAgendadas,
+            double capacidadeHoras,
+            double taxaOcupacao,
             long totalSessoes
     ) {}
 
-    /** Receita mensal segregada por tipo de atendimento. */
     public record ReceitaMensal(
             String mes,
             BigDecimal receitaAvulso,
@@ -47,142 +54,223 @@ public class DashboardMetricasService {
             BigDecimal totalReceita
     ) {}
 
-    /** Índices de conversão e renovação de pacotes. */
     public record RetencaoPacotes(
             long totalPacientesAtivos,
             long pacientesComPacote,
             long pacientesComRenovacao,
-            double taxaConversao,     // % de ativos que têm ao menos 1 pacote
-            double taxaRenovacao      // % dos que têm pacote e fizeram mais de 1
+            double taxaConversao,
+            double taxaRenovacao
     ) {}
 
-    /** Agregado completo retornado para o endpoint de métricas. */
     public record MetricasDashboard(
             List<OcupacaoMensal> ocupacaoMensal,
             List<ReceitaMensal> receitaMensal,
             RetencaoPacotes retencaoPacotes
     ) {}
 
-    // -------------------------------------------------------------------------
-    // API pública
-    // -------------------------------------------------------------------------
-
     @Transactional(readOnly = true)
     public MetricasDashboard carregarMetricas() {
+        List<YearMonth> meses = ultimosDozeMeses();
+        OffsetDateTime inicioJanela = inicioDaJanela(meses.getFirst());
+
         return new MetricasDashboard(
-                consultarOcupacaoMensal(),
-                consultarReceitaMensal(),
+                consultarOcupacaoMensal(meses, inicioJanela),
+                consultarReceitaMensal(meses, inicioJanela),
                 consultarRetencaoPacotes()
         );
     }
 
-    // -------------------------------------------------------------------------
-    // Queries nativas
-    // -------------------------------------------------------------------------
+    private List<OcupacaoMensal> consultarOcupacaoMensal(List<YearMonth> meses, OffsetDateTime inicioJanela) {
+        String duracaoHoras = isH2()
+                ? "DATEDIFF('SECOND', data_hora_inicio, data_hora_fim) / 3600.0"
+                : "EXTRACT(EPOCH FROM (data_hora_fim - data_hora_inicio)) / 3600.0";
 
-    /**
-     * Evolução mensal de horas agendadas nos últimos 12 meses.
-     *
-     * <p>Sessões canceladas são excluídas; apenas AGENDADA, REALIZADA e
-     * AGUARDANDO_CONFIRMACAO entram no cálculo.</p>
-     */
-    private List<OcupacaoMensal> consultarOcupacaoMensal() {
-        String sql = """
+        String sql = ("""
                 SELECT
-                    TO_CHAR(data_hora_inicio, 'YYYY-MM')                          AS mes,
-                    ROUND(
-                        SUM(EXTRACT(EPOCH FROM (data_hora_fim - data_hora_inicio)) / 3600.0)::numeric,
-                        1
-                    )                                                              AS horas_agendadas,
-                    COUNT(*)                                                       AS total_sessoes
+                    EXTRACT(YEAR FROM data_hora_inicio) AS ano,
+                    EXTRACT(MONTH FROM data_hora_inicio) AS mes_num,
+                    SUM(%s) AS horas_agendadas,
+                    COUNT(*) AS total_sessoes
                 FROM sessao
-                WHERE status NOT IN ('CANCELADA')
-                  AND data_hora_inicio >= NOW() - INTERVAL '12 months'
-                GROUP BY mes
-                ORDER BY mes
-                """;
+                WHERE status <> 'CANCELADA'
+                  AND data_hora_inicio >= ?
+                GROUP BY ano, mes_num
+                ORDER BY ano, mes_num
+                """).formatted(duracaoHoras);
 
-        return jdbc.query(sql, (rs, rowNum) -> new OcupacaoMensal(
-                rs.getString("mes"),
-                rs.getDouble("horas_agendadas"),
-                rs.getLong("total_sessoes")
-        ));
+        Map<YearMonth, OcupacaoAgregada> agregados = new LinkedHashMap<>();
+        jdbc.query(sql, (rs) -> {
+            YearMonth mes = YearMonth.of(rs.getInt("ano"), rs.getInt("mes_num"));
+            agregados.put(
+                    mes,
+                    new OcupacaoAgregada(
+                            arredondar(rs.getDouble("horas_agendadas")),
+                            rs.getLong("total_sessoes")
+                    )
+            );
+        }, inicioJanela);
+
+        ConfiguracaoClinicaEntity configuracao = configuracaoClinicaRepository
+                .findFirstByAtivoTrueOrderByCreatedAtAsc()
+                .orElse(null);
+
+        return meses.stream()
+                .map(mes -> {
+                    OcupacaoAgregada agregado = agregados.getOrDefault(mes, new OcupacaoAgregada(0.0, 0L));
+                    double capacidadeHoras = capacidadeHorasNoMes(mes, configuracao);
+                    double taxaOcupacao = capacidadeHoras > 0
+                            ? arredondar(agregado.horasAgendadas() / capacidadeHoras * 100.0)
+                            : 0.0;
+
+                    return new OcupacaoMensal(
+                            mes.toString(),
+                            agregado.horasAgendadas(),
+                            capacidadeHoras,
+                            taxaOcupacao,
+                            agregado.totalSessoes()
+                    );
+                })
+                .toList();
     }
 
-    /**
-     * Receita mensal recebida (status PAGO) segregada entre sessões avulsas
-     * (sem pacote_sessao_id) e receita de pacotes (com pacote_sessao_id).
-     *
-     * <p>O padrão de agendamento avulso vs. pacote é determinado pela presença
-     * do FK {@code pacote_sessao_id} no lançamento financeiro, que reflete
-     * exatamente a origem da receita.</p>
-     */
-    private List<ReceitaMensal> consultarReceitaMensal() {
+    private List<ReceitaMensal> consultarReceitaMensal(List<YearMonth> meses, OffsetDateTime inicioJanela) {
         String sql = """
                 SELECT
-                    TO_CHAR(data_competencia, 'YYYY-MM')                             AS mes,
-                    COALESCE(SUM(valor) FILTER (WHERE pacote_sessao_id IS NULL), 0)  AS receita_avulso,
-                    COALESCE(SUM(valor) FILTER (WHERE pacote_sessao_id IS NOT NULL), 0) AS receita_pacote,
-                    COALESCE(SUM(valor), 0)                                          AS total_receita
+                    EXTRACT(YEAR FROM data_competencia) AS ano,
+                    EXTRACT(MONTH FROM data_competencia) AS mes_num,
+                    COALESCE(SUM(CASE WHEN pacote_sessao_id IS NULL THEN valor ELSE 0 END), 0) AS receita_avulso,
+                    COALESCE(SUM(CASE WHEN pacote_sessao_id IS NOT NULL THEN valor ELSE 0 END), 0) AS receita_pacote,
+                    COALESCE(SUM(valor), 0) AS total_receita
                 FROM lancamento_financeiro
-                WHERE tipo    = 'RECEITA'
-                  AND status  = 'PAGO'
-                  AND data_competencia >= NOW() - INTERVAL '12 months'
-                GROUP BY mes
-                ORDER BY mes
+                WHERE tipo = 'RECEITA'
+                  AND status = 'PAGO'
+                  AND data_competencia >= ?
+                GROUP BY ano, mes_num
+                ORDER BY ano, mes_num
                 """;
 
-        return jdbc.query(sql, (rs, rowNum) -> new ReceitaMensal(
-                rs.getString("mes"),
-                rs.getBigDecimal("receita_avulso"),
-                rs.getBigDecimal("receita_pacote"),
-                rs.getBigDecimal("total_receita")
-        ));
+        Map<YearMonth, ReceitaMensal> agregados = new LinkedHashMap<>();
+        jdbc.query(sql, (rs) -> {
+            YearMonth mes = YearMonth.of(rs.getInt("ano"), rs.getInt("mes_num"));
+            agregados.put(mes, new ReceitaMensal(
+                    mes.toString(),
+                    rs.getBigDecimal("receita_avulso"),
+                    rs.getBigDecimal("receita_pacote"),
+                    rs.getBigDecimal("total_receita")
+            ));
+        }, inicioJanela);
+
+        return meses.stream()
+                .map(mes -> agregados.getOrDefault(
+                        mes,
+                        new ReceitaMensal(mes.toString(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+                ))
+                .toList();
     }
 
-    /**
-     * Índices de conversão e renovação de pacotes.
-     *
-     * <p>Conversão: porcentagem de pacientes ativos que já adquiriram ao menos um pacote.</p>
-     * <p>Renovação: porcentagem dos pacientes com pacote que renovaram (mais de um pacote).</p>
-     */
     private RetencaoPacotes consultarRetencaoPacotes() {
-        long totalAtivos = jdbc.queryForObject(
+        Long totalAtivos = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM cliente WHERE ativo = true",
                 Long.class
         );
 
-        long comPacote = jdbc.queryForObject(
-                "SELECT COUNT(DISTINCT cliente_id) FROM pacote_sessao",
+        Long comPacote = jdbc.queryForObject(
+                """
+                SELECT COUNT(DISTINCT p.cliente_id)
+                FROM pacote_sessao p
+                JOIN cliente c ON c.id = p.cliente_id
+                WHERE c.ativo = true
+                """,
                 Long.class
         );
 
-        long comRenovacao = jdbc.queryForObject(
+        Long comRenovacao = jdbc.queryForObject(
                 """
                 SELECT COUNT(*) FROM (
-                    SELECT cliente_id
-                    FROM pacote_sessao
-                    GROUP BY cliente_id
+                    SELECT p.cliente_id
+                    FROM pacote_sessao p
+                    JOIN cliente c ON c.id = p.cliente_id
+                    WHERE c.ativo = true
+                    GROUP BY p.cliente_id
                     HAVING COUNT(*) > 1
                 ) sub
                 """,
                 Long.class
         );
 
-        double taxaConversao = totalAtivos > 0
-                ? (double) comPacote / totalAtivos * 100
-                : 0.0;
-
-        double taxaRenovacao = comPacote > 0
-                ? (double) comRenovacao / comPacote * 100
-                : 0.0;
+        long ativos = valorOuZero(totalAtivos);
+        long pacote = valorOuZero(comPacote);
+        long renovacao = valorOuZero(comRenovacao);
 
         return new RetencaoPacotes(
-                totalAtivos,
-                comPacote,
-                comRenovacao,
-                Math.round(taxaConversao * 10.0) / 10.0,
-                Math.round(taxaRenovacao * 10.0) / 10.0
+                ativos,
+                pacote,
+                renovacao,
+                ativos > 0 ? arredondar((double) pacote / ativos * 100.0) : 0.0,
+                pacote > 0 ? arredondar((double) renovacao / pacote * 100.0) : 0.0
         );
     }
+
+    private List<YearMonth> ultimosDozeMeses() {
+        YearMonth atual = YearMonth.from(ClinicTimezoneHolder.today());
+        return IntStream.range(0, MESES_HISTORICO)
+                .mapToObj(index -> atual.minusMonths(MESES_HISTORICO - 1L - index))
+                .toList();
+    }
+
+    private OffsetDateTime inicioDaJanela(YearMonth primeiroMes) {
+        return primeiroMes.atDay(1).atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+    }
+
+    private double capacidadeHorasNoMes(YearMonth mes, ConfiguracaoClinicaEntity configuracao) {
+        if (configuracao == null) {
+            return 0.0;
+        }
+
+        double horasPorDia = horasOperacionaisPorDia(configuracao);
+        if (horasPorDia <= 0) {
+            return 0.0;
+        }
+
+        Set<DayOfWeek> diasFuncionamento = configuracao.diasFuncionamentoSet();
+        long diasUteisClinica = mes.atDay(1)
+                .datesUntil(mes.plusMonths(1).atDay(1))
+                .filter(dia -> diasFuncionamento.contains(dia.getDayOfWeek()))
+                .count();
+
+        return arredondar(diasUteisClinica * horasPorDia);
+    }
+
+    private double horasOperacionaisPorDia(ConfiguracaoClinicaEntity configuracao) {
+        Duration expediente = Duration.between(configuracao.getHorarioAbertura(), configuracao.getHorarioFechamento());
+        Duration almoco = Duration.ZERO;
+        if (configuracao.getHorarioInicioAlmoco() != null && configuracao.getHorarioFimAlmoco() != null) {
+            almoco = Duration.between(configuracao.getHorarioInicioAlmoco(), configuracao.getHorarioFimAlmoco());
+        }
+        return Math.max(0.0, (expediente.minus(almoco).toMinutes()) / 60.0);
+    }
+
+    private long valorOuZero(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    private double arredondar(double value) {
+        return BigDecimal.valueOf(value)
+                .setScale(1, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    private boolean isH2() {
+        if (jdbc.getDataSource() == null) {
+            return false;
+        }
+
+        try (Connection connection = jdbc.getDataSource().getConnection()) {
+            return connection.getMetaData().getDatabaseProductName().equalsIgnoreCase("H2");
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    private record OcupacaoAgregada(double horasAgendadas, long totalSessoes) {}
 }

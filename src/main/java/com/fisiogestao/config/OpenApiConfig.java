@@ -9,15 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuração global da documentação OpenAPI 3 (Swagger UI).
+ * Configuracao global da documentacao OpenAPI 3 (Swagger UI).
  *
- * <p>Acessível em {@code /swagger-ui.html} sem autenticação (rota liberada no SecurityConfig).
- * As operações que exigem autenticação estão marcadas com {@code @SecurityRequirement(name = "basicAuth")}
- * e utilizam HTTP Basic como mecanismo de autenticação para facilitar testes diretos pela UI.</p>
- *
- * <p>Em produção, os endpoints de API também aceitam autenticação via sessão (form login).
- * Para adicionar suporte a HTTP Basic como alternativa de autenticação nas rotas de API,
- * ative {@code httpBasic()} no {@link SecurityConfig}.</p>
+ * <p>Acessivel em {@code /swagger-ui.html} apenas para usuarios administradores.
+ * As operacoes que exigem autenticacao estao marcadas com {@code @SecurityRequirement(name = "basicAuth")}
+ * e utilizam HTTP Basic como mecanismo de autenticacao para facilitar testes diretos pela UI.</p>
  */
 @Configuration
 public class OpenApiConfig {
@@ -26,27 +22,27 @@ public class OpenApiConfig {
     public OpenAPI fisioGestaoOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("FisioGestão API")
+                        .title("FisioGestao API")
                         .description("""
-                                API REST do **FisioGestão** — sistema de gestão para clínicas de fisioterapia.
+                                API REST do **FisioGestao** - sistema de gestao para clinicas de fisioterapia.
 
-                                ## Autenticação
+                                ## Autenticacao
 
-                                Endpoints protegidos requerem autenticação. Na Swagger UI, utilize o botão
-                                **Authorize** e informe as credenciais de acesso (usuário e senha da plataforma).
+                                Endpoints protegidos requerem autenticacao. Na Swagger UI, utilize o botao
+                                **Authorize** e informe as credenciais de acesso (usuario e senha da plataforma).
 
-                                ## Rotas públicas
+                                ## Rotas publicas
 
-                                - `GET /api/slots` — consulta de horários disponíveis (agendamento online, sem auth)
+                                - `GET /api/slots` - consulta de horarios disponiveis (agendamento online, sem auth)
                                 """)
                         .version("1.0")
                         .contact(new Contact()
-                                .name("FisioGestão")
+                                .name("FisioGestao")
                                 .email("contato@fisiogestao.com")))
                 .components(new Components()
                         .addSecuritySchemes("basicAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("basic")
-                                .description("Credenciais de acesso ao sistema (usuário e senha)")));
+                                .description("Credenciais de acesso ao sistema (usuario e senha)")));
     }
 }

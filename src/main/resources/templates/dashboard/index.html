@@ -163,6 +163,60 @@
                 </a>
             </section>
 
+            <section class="analytics-grid" aria-label="Indicadores historicos">
+                <article class="panel analytics-panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="bar-chart-3" aria-hidden="true"></i>
+                            Ocupacao da agenda
+                        </h3>
+                        <span class="panel-kpi" id="ocupacaoMedia">--%</span>
+                    </header>
+                    <div class="panel-body">
+                        <div class="chart-bars" id="ocupacaoChart" aria-live="polite">
+                            <p class="analytics-empty">Carregando indicadores...</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel analytics-panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="line-chart" aria-hidden="true"></i>
+                            Receita recebida
+                        </h3>
+                        <span class="panel-kpi" id="receitaTotal">R$ --</span>
+                    </header>
+                    <div class="panel-body">
+                        <div class="chart-bars" id="receitaChart" aria-live="polite">
+                            <p class="analytics-empty">Carregando indicadores...</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel analytics-panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="repeat-2" aria-hidden="true"></i>
+                            Retencao de planos
+                        </h3>
+                    </header>
+                    <div class="panel-body">
+                        <div class="retention-grid">
+                            <div class="retention-metric">
+                                <span class="retention-value" id="taxaConversao">--%</span>
+                                <span class="retention-label">Conversao para planos</span>
+                            </div>
+                            <div class="retention-metric">
+                                <span class="retention-value" id="taxaRenovacao">--%</span>
+                                <span class="retention-label">Renovacao de planos</span>
+                            </div>
+                            <div class="retention-footnote" id="retencaoBase">Base indisponivel</div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
             <section class="panels-grid panels-grid-single">
                 <article class="panel">
                     <header class="panel-head">
@@ -238,7 +292,6 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
-
 
 
 

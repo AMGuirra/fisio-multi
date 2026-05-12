@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
@@ -41,12 +40,9 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/css/**",
-                                "/js/**",
-                                // OpenAPI / Swagger UI — acesso sem autenticação para facilitar integrações
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/js/**"
                         ).permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
                         .requestMatchers("/configuracoes/clinica", "/configuracao/clinica").hasRole("ADMIN")
                         .requestMatchers("/admin/system-status").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
@@ -59,9 +55,6 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
-                )
                 .logout(logout -> logout
                         .addLogoutHandler(auditLogoutHandler)
                         .logoutSuccessUrl("/login?logout")
@@ -92,7 +85,7 @@ public class SecurityConfig {
                         .roles(user.role().name())
                         .build())
                 .map(UserDetails.class::cast)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado."));
     }
 
     @Bean
@@ -101,7 +94,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Registra o filtro de rate limiting com prioridade máxima para garantir
+     * Registra o filtro de rate limiting com prioridade maxima para garantir
      * que ele atue antes dos filtros do Spring Security.
      */
     @Bean
