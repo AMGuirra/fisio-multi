@@ -358,6 +358,12 @@
                             </div>
 
                             <div class="plan-card-actions">
+                                <a th:if="${agendaConfigurada and pacote.status.name() == 'ATIVO' and pacote.sessoesConsumidas < pacote.sessoesContratadas}"
+                                   th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},pacote=${pacote.id},busca=${buscaPaciente},agendar=true)}"
+                                   class="action-button ghost">
+                                    <i data-lucide="calendar-plus"></i>
+                                    Agendar
+                                </a>
                                 <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id},busca=${buscaPaciente})}" class="action-button ghost">
                                     <i data-lucide="pencil"></i>
                                     Editar
@@ -376,9 +382,9 @@
                                       class="inline-form"
                                       data-confirm-modal
                                       data-confirm-title="Excluir plano de tratamento?"
-                                      data-confirm-message="Deseja excluir este plano de tratamento? Isso removerá também lançamentos financeiros pendentes vinculados a ele."
-                                      data-confirm-helper-title="Os dados pendentes serão removidos"
-                                      data-confirm-helper-message="Use essa opção apenas quando o plano não precisar mais existir no cadastro."
+                                      data-confirm-message="Deseja excluir este plano de tratamento? As sessões vinculadas serão mantidas no histórico sem o vínculo com o plano."
+                                      data-confirm-helper-title="Exclusão definitiva do plano"
+                                      data-confirm-helper-message="Lançamentos financeiros pendentes vinculados ao plano serão removidos; lançamentos pagos serão preservados no histórico financeiro."
                                       data-confirm-action-label="Excluir plano">
                                     <input type="hidden" name="busca" th:value="${buscaPaciente}">
                                     <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
@@ -510,50 +516,77 @@
                             </div>
                         </div>
 
-                        <div class="form-field">
-                            <label>Tipo de consulta</label>
-                            <div class="segmented-control appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
-                                <label class="appointment-type-option">
+                        <div class="appointment-mode-shell" th:attr="data-plan-locked=${agendamentoPlanoTravado}">
+                            <div class="field-label-row">
+                                <label>Tipo de consulta</label>
+                                <span class="helper-text" th:if="${agendamentoPlanoTravado}">Plano fixado pelo card selecionado.</span>
+                            </div>
+                            <div class="appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
+                                <label class="appointment-type-option package-option">
                                     <input type="radio" th:field="*{tipoAgendamento}" value="PACOTE">
-                                    <span>📦 Pacote</span>
+                                    <span><i data-lucide="package-open"></i> Pacote</span>
                                 </label>
-                                <label class="appointment-type-option">
-                                    <input type="radio" th:field="*{tipoAgendamento}" value="AVULSO">
-                                    <span>⚡ Avulso</span>
+                                <label class="appointment-type-option single-option">
+                                    <input type="radio" th:field="*{tipoAgendamento}" value="AVULSO" th:disabled="${agendamentoPlanoTravado}">
+                                    <span><i data-lucide="zap"></i> Avulso</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="form-field">
+                        <div class="form-field compact-patient-field">
                             <label>Paciente</label>
                             <div class="form-control read-only-field" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</div>
                             <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
                         </div>
 
-                        <div class="form-field js-pacote-field">
-                            <label for="agendamento-pacote">Plano de tratamento</label>
-                            <select id="agendamento-pacote" class="form-select" th:field="*{pacoteSessaoId}">
-                                <option value="">Selecionar automaticamente o plano ativo</option>
-                                <option th:each="pacote : ${pacotesDisponiveisAgenda}"
-                                        th:value="${pacote.id}"
-                                        th:attr="data-restantes=${pacote.sessoesContratadas - pacote.sessoesConsumidas}"
-                                        th:text="${pacote.nomePacote + ' • ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponíveis'}">
-                                    Pacote
-                                </option>
-                            </select>
-                            <p class="helper-text">Sessões restantes: <strong id="agendamento-sessoes-restantes">auto</strong>. Se você não escolher um plano, o sistema usa automaticamente o primeiro plano ativo disponível desse paciente.</p>
-                        </div>
+                        <section class="appointment-flow-panel js-pacote-field" data-flow-panel="PACOTE">
+                            <div class="flow-panel-head">
+                                <div>
+                                    <h4><i data-lucide="package-check"></i> Atendimento por plano</h4>
+                                    <p>Reserva uma sessao do pacote selecionado ao confirmar.</p>
+                                </div>
+                                <strong class="flow-balance"><span id="agendamento-sessoes-restantes">auto</span> disponiveis</strong>
+                            </div>
+                            <div class="form-field" th:if="${pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
+                                <label for="agendamento-pacote">Plano de tratamento</label>
+                                <input th:if="${agendamentoPlanoTravado}" type="hidden" th:field="*{pacoteSessaoId}">
+                                <select id="agendamento-pacote" class="form-select" th:field="*{pacoteSessaoId}" th:disabled="${agendamentoPlanoTravado}" th:attr="data-locked=${agendamentoPlanoTravado}">
+                                    <option value="">Selecionar automaticamente o plano ativo</option>
+                                    <option th:each="pacote : ${pacotesDisponiveisAgenda}"
+                                            th:value="${pacote.id}"
+                                            th:attr="data-restantes=${pacote.sessoesContratadas - pacote.sessoesConsumidas},data-contratadas=${pacote.sessoesContratadas},data-consumidas=${pacote.sessoesConsumidas}"
+                                            th:text="${pacote.nomePacote + ' - ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponiveis'}">
+                                        Pacote
+                                    </option>
+                                </select>
+                                <p class="helper-text">Se nenhum plano for alterado, o sistema usa o primeiro plano ativo disponivel.</p>
+                            </div>
+                            <div class="flash-message warning compact-banner" th:if="${pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty}">
+                                <i data-lucide="triangle-alert"></i>
+                                <span>Este paciente nao possui plano ativo com sessoes disponiveis.</span>
+                                <a href="#novoPlanoSection" class="action-button ghost" data-modal-close>Criar Novo Plano</a>
+                            </div>
+                            <p class="form-error" id="agendamento-pacote-error" aria-live="polite"></p>
+                        </section>
 
-                        <div class="form-field js-avulso-field initially-hidden">
+                        <section class="appointment-flow-panel avulso-panel js-avulso-field is-hidden" data-flow-panel="AVULSO">
+                            <div class="flow-panel-head">
+                                <div>
+                                    <h4><i data-lucide="badge-dollar-sign"></i> Atendimento avulso</h4>
+                                    <p>Esta sessao nao consumira creditos de pacotes existentes.</p>
+                                </div>
+                            </div>
                             <div class="flash-message success compact-banner">
                                 <i data-lucide="circle-check"></i>
-                                <span>Será contabilizada como consulta avulsa — sem vínculo com pacote.</span>
+                                <span>Valor editavel antes da confirmacao do atendimento.</span>
                             </div>
-                            <label for="agendamento-valor-avulso">Valor da consulta</label>
-                            <input id="agendamento-valor-avulso" type="number" class="form-control" th:field="*{valorAvulso}" min="0" step="0.01" placeholder="Ex: 180,00">
-                        </div>
+                            <div class="form-field">
+                                <label for="agendamento-valor-avulso">Valor da consulta</label>
+                                <input id="agendamento-valor-avulso" type="number" class="form-control" th:field="*{valorAvulso}" min="0" step="0.01" placeholder="Preco padrao da clinica">
+                            </div>
+                        </section>
 
-                        <div class="calendar-inline-grid">
+                        <div class="calendar-inline-grid appointment-time-grid">
                             <div class="form-field">
                                 <label for="agendamento-data">Data</label>
                                 <input id="agendamento-data" type="date" class="form-control" th:field="*{data}" required>
@@ -564,21 +597,20 @@
                                 <input id="agendamento-horario" type="time" class="form-control" th:field="*{horario}" step="60" required>
                                 <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
                             </div>
+                            <div class="form-field">
+                                <label for="agendamento-duracao">Duracao (minutos)</label>
+                                <input id="agendamento-duracao" type="number" class="form-control" th:field="*{duracaoMinutos}" min="5" step="5" placeholder="Padrao">
+                            </div>
                         </div>
 
-                        <div class="form-field">
-                            <label for="agendamento-duracao">Duração (minutos)</label>
-                            <input id="agendamento-duracao" type="number" class="form-control" th:field="*{duracaoMinutos}" min="5" step="5" placeholder="Padrão da clínica">
-                        </div>
-
-                        <div class="form-field recurrence-toggle-row">
+                        <div class="recurrence-toggle-row">
                             <label class="toggle-row">
                                 <input id="agendamento-recorrente" type="checkbox" th:field="*{recorrente}">
                                 <span>Repetir agendamento</span>
                             </label>
                         </div>
 
-                        <div id="agendamento-recorrencia-fields" class="recurrence-panel initially-hidden">
+                        <div id="agendamento-recorrencia-fields" class="recurrence-panel is-collapsed">
                             <div class="form-field">
                                 <label for="agendamento-frequencia">Frequência</label>
                                 <select id="agendamento-frequencia" class="form-select" th:field="*{recorrencia.frequencia}">
@@ -618,6 +650,7 @@
                                 </div>
                             </div>
                             <p class="helper-text" id="agendamento-recorrencia-preview">Toda semana.</p>
+                            <p class="form-error" id="agendamento-recorrencia-alert" aria-live="polite"></p>
                         </div>
 
                         <div class="form-field">
@@ -689,12 +722,14 @@
             const avulsoFields = Array.from(modal.querySelectorAll('.js-avulso-field'));
             const pacoteSelect = modal.querySelector('#agendamento-pacote');
             const restantesLabel = modal.querySelector('#agendamento-sessoes-restantes');
+            const pacoteError = modal.querySelector('#agendamento-pacote-error');
             const recorrenteInput = modal.querySelector('#agendamento-recorrente');
             const recorrenciaFields = modal.querySelector('#agendamento-recorrencia-fields');
             const frequenciaInput = modal.querySelector('#agendamento-frequencia');
             const dataFimInput = modal.querySelector('#agendamento-data-fim');
             const submitButton = modal.querySelector('#agendamento-submit');
             const preview = modal.querySelector('#agendamento-recorrencia-preview');
+            const recorrenciaAlert = modal.querySelector('#agendamento-recorrencia-alert');
             const weekdayInputs = Array.from(modal.querySelectorAll('#agendamento-dias-semana input[type="checkbox"]'));
             const dayLabels = {
                 SEG: 'seg',
@@ -707,25 +742,49 @@
             };
 
             const isAvulso = () => modal.querySelector('input[name="tipoAgendamento"][value="AVULSO"]')?.checked;
+            const selectedPackageOption = () => {
+                if (!pacoteSelect) {
+                    return null;
+                }
+                if (pacoteSelect.value) {
+                    return pacoteSelect.selectedOptions[0];
+                }
+                return Array.from(pacoteSelect.options).find((option) => option.value);
+            };
+            const selectedPackageBalance = () => Number.parseInt(selectedPackageOption()?.dataset?.restantes || '0', 10);
 
             const syncTipo = () => {
                 const avulso = isAvulso();
-                pacoteFields.forEach((field) => field.classList.toggle('initially-hidden', avulso));
-                avulsoFields.forEach((field) => field.classList.toggle('initially-hidden', !avulso));
+                modal.classList.toggle('appointment-mode-avulso', avulso);
+                modal.classList.toggle('appointment-mode-pacote', !avulso);
+                pacoteFields.forEach((field) => {
+                    field.classList.toggle('is-hidden', avulso);
+                    field.setAttribute('aria-hidden', avulso ? 'true' : 'false');
+                    field.inert = avulso;
+                });
+                avulsoFields.forEach((field) => {
+                    field.classList.toggle('is-hidden', !avulso);
+                    field.setAttribute('aria-hidden', avulso ? 'false' : 'true');
+                    field.inert = !avulso;
+                });
                 if (pacoteSelect) {
-                    pacoteSelect.disabled = avulso;
+                    pacoteSelect.disabled = avulso || pacoteSelect.dataset.locked === 'true';
                     if (avulso) {
                         pacoteSelect.value = '';
                     }
                 }
+                syncRestantes();
+                syncRecorrencia();
             };
 
             const syncRestantes = () => {
                 if (!restantesLabel || !pacoteSelect) {
                     return;
                 }
-                const selected = pacoteSelect.selectedOptions[0];
-                restantesLabel.textContent = selected?.dataset?.restantes || 'auto';
+                const selected = selectedPackageOption();
+                const restantes = selected?.dataset?.restantes;
+                const contratadas = selected?.dataset?.contratadas;
+                restantesLabel.textContent = restantes && contratadas ? `${restantes} de ${contratadas}` : (restantes || 'auto');
             };
 
             const selectedDays = () => weekdayInputs
@@ -760,20 +819,31 @@
 
             const syncRecorrencia = () => {
                 const active = Boolean(recorrenteInput?.checked);
-                recorrenciaFields?.classList.toggle('initially-hidden', !active);
+                recorrenciaFields?.classList.toggle('is-collapsed', !active);
+                recorrenciaFields?.setAttribute('aria-hidden', active ? 'false' : 'true');
+                if (recorrenciaFields) {
+                    recorrenciaFields.inert = !active;
+                }
                 const freq = frequenciaInput?.value || 'SEMANAL';
                 modal.querySelector('#agendamento-dias-semana')?.classList.toggle('initially-hidden', freq !== 'SEMANAL');
                 const days = selectedDays();
                 const freqText = freq === 'SEMANAL' ? 'Toda semana' : (freq === 'MENSAL' ? 'Todo mês' : 'Todo ano');
                 const until = dataFimInput?.value ? ` · até ${dataFimInput.value.split('-').reverse().join('/')}` : '';
+                const occurrences = estimateOccurrences();
+                const balance = selectedPackageBalance();
                 if (preview) {
                     preview.textContent = active
-                            ? `${freqText}${days.length ? ' — ' + days.join(', ') : ''}${until}`
+                            ? `${freqText}${days.length ? ' — ' + days.join(', ') : ''}${until} · ${occurrences} ocorrência(s)`
+                            : '';
+                }
+                if (recorrenciaAlert) {
+                    recorrenciaAlert.textContent = active && !isAvulso() && occurrences > balance
+                            ? `A recorrencia gera ${occurrences} sessoes, mas o plano selecionado possui ${balance} disponivel(is).`
                             : '';
                 }
                 if (submitButton) {
                     submitButton.innerHTML = active
-                            ? `<i data-lucide="calendar-plus"></i> Agendar ${estimateOccurrences()} sessões`
+                            ? `<i data-lucide="calendar-plus"></i> Agendar ${occurrences} sessões`
                             : '<i data-lucide="calendar-plus"></i> Confirmar agendamento';
                     if (window.lucide) {
                         lucide.createIcons();
@@ -782,7 +852,10 @@
             };
 
             tipoInputs.forEach((input) => input.addEventListener('change', syncTipo));
-            pacoteSelect?.addEventListener('change', syncRestantes);
+            pacoteSelect?.addEventListener('change', () => {
+                syncRestantes();
+                syncRecorrencia();
+            });
             recorrenteInput?.addEventListener('change', syncRecorrencia);
             frequenciaInput?.addEventListener('change', syncRecorrencia);
             dataFimInput?.addEventListener('change', syncRecorrencia);
@@ -796,6 +869,26 @@
                     });
                     syncRecorrencia();
                 });
+            });
+
+            modal.querySelector('#agendamentoSessaoForm')?.addEventListener('submit', (event) => {
+                if (isAvulso()) {
+                    if (pacoteError) {
+                        pacoteError.textContent = '';
+                    }
+                    return;
+                }
+                const balance = selectedPackageBalance();
+                const occurrences = estimateOccurrences();
+                if (balance < 1 || occurrences > balance) {
+                    event.preventDefault();
+                    if (pacoteError) {
+                        pacoteError.textContent = balance < 1
+                                ? 'Selecione um plano com sessoes disponiveis antes de confirmar.'
+                                : `A recorrencia gera ${occurrences} sessoes, mas o plano possui apenas ${balance} disponivel(is).`;
+                    }
+                    syncRecorrencia();
+                }
             });
 
             syncTipo();

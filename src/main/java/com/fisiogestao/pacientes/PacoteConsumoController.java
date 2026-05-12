@@ -39,10 +39,11 @@ public class PacoteConsumoController {
             @RequestParam(name = "busca", required = false) String buscaPaciente,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             @RequestParam(name = "editar", required = false) UUID pacoteEdicaoId,
+            @RequestParam(name = "pacote", required = false) UUID pacoteAgendamentoId,
             @RequestParam(name = "agendar", defaultValue = "false") boolean abrirAgendamento,
             Model model
     ) {
-        prepararPagina(model, pacienteId, pacoteEdicaoId, buscaPaciente, null, null, null, abrirAgendamento && pacienteId != null);
+        prepararPagina(model, pacienteId, pacoteEdicaoId, pacoteAgendamentoId, buscaPaciente, null, null, null, abrirAgendamento && pacienteId != null);
         return "pacotes-consumo/index";
     }
 
@@ -55,7 +56,7 @@ public class PacoteConsumoController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form.getClienteId(), null, buscaPaciente, form, null, null, false);
+            prepararPagina(model, form.getClienteId(), null, null, buscaPaciente, form, null, null, false);
             return "pacotes-consumo/index";
         }
 
@@ -65,7 +66,7 @@ public class PacoteConsumoController {
             return construirDestino(salvo.getCliente().getId(), null, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form.getClienteId(), null, buscaPaciente, form, null, null, false);
+            prepararPagina(model, form.getClienteId(), null, null, buscaPaciente, form, null, null, false);
             return "pacotes-consumo/index";
         }
     }
@@ -80,7 +81,7 @@ public class PacoteConsumoController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form.getClienteId(), id, buscaPaciente, null, form, null, false);
+            prepararPagina(model, form.getClienteId(), id, null, buscaPaciente, null, form, null, false);
             return "pacotes-consumo/index";
         }
 
@@ -90,7 +91,7 @@ public class PacoteConsumoController {
             return construirDestino(salvo.getCliente().getId(), id, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form.getClienteId(), id, buscaPaciente, null, form, null, false);
+            prepararPagina(model, form.getClienteId(), id, null, buscaPaciente, null, form, null, false);
             return "pacotes-consumo/index";
         }
     }
@@ -105,7 +106,7 @@ public class PacoteConsumoController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, form.getClienteId(), null, buscaPaciente, null, null, form, true);
+            prepararPagina(model, form.getClienteId(), null, form.getPacoteSessaoId(), buscaPaciente, null, null, form, true);
             return "pacotes-consumo/index";
         }
 
@@ -115,7 +116,7 @@ public class PacoteConsumoController {
             return construirDestino(form.getClienteId(), null, buscaPaciente);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, form.getClienteId(), null, buscaPaciente, null, null, form, true);
+            prepararPagina(model, form.getClienteId(), null, form.getPacoteSessaoId(), buscaPaciente, null, null, form, true);
             return "pacotes-consumo/index";
         }
     }
@@ -158,6 +159,7 @@ public class PacoteConsumoController {
             Model model,
             UUID pacienteId,
             UUID pacoteEdicaoId,
+            UUID pacoteAgendamentoId,
             String buscaPaciente,
             PacoteConsumoForm pacoteConsumoForm,
             PacoteConsumoForm pacoteEdicaoForm,
@@ -196,13 +198,16 @@ public class PacoteConsumoController {
 
         AgendaManualForm agendaForm = agendamentoSessaoForm != null
                 ? agendamentoSessaoForm
-                : criarAgendamentoPadrao(pacienteSelecionadoId, pacotesDisponiveisAgenda);
+                : criarAgendamentoPadrao(pacienteSelecionadoId, pacotesDisponiveisAgenda, pacoteAgendamentoId);
         if (agendaForm.getClienteId() == null) {
             agendaForm.setClienteId(pacienteSelecionadoId);
         }
         if (agendaForm.getPacoteSessaoId() == null && !pacotesDisponiveisAgenda.isEmpty()) {
             agendaForm.setPacoteSessaoId(pacotesDisponiveisAgenda.get(0).getId());
         }
+        boolean agendamentoPlanoTravado = pacoteAgendamentoId != null
+                && agendaForm.getPacoteSessaoId() != null
+                && pacoteAgendamentoId.equals(agendaForm.getPacoteSessaoId());
 
         int totalContratadas = pacotes.stream().mapToInt(PacoteSessaoEntity::getSessoesContratadas).sum();
         int totalConsumidas = pacotes.stream().mapToInt(PacoteSessaoEntity::getSessoesConsumidas).sum();
@@ -220,6 +225,7 @@ public class PacoteConsumoController {
         model.addAttribute("pacoteEdicaoForm", editarForm);
         model.addAttribute("agendamentoSessaoForm", agendaForm);
         model.addAttribute("agendamentoSessaoModalOpen", agendamentoSessaoModalOpen);
+        model.addAttribute("agendamentoPlanoTravado", agendamentoPlanoTravado);
         model.addAttribute("agendaConfigurada", agendaConfigurada());
         model.addAttribute("statusPacoteDisponiveis", PacoteSessaoStatus.values());
         model.addAttribute("totalPacotes", pacotes.size());
@@ -300,10 +306,14 @@ public class PacoteConsumoController {
         return form;
     }
 
-    private AgendaManualForm criarAgendamentoPadrao(UUID pacienteId, List<PacoteSessaoEntity> pacotesDisponiveisAgenda) {
+    private AgendaManualForm criarAgendamentoPadrao(UUID pacienteId, List<PacoteSessaoEntity> pacotesDisponiveisAgenda, UUID pacoteAgendamentoId) {
         AgendaManualForm form = new AgendaManualForm();
         form.setClienteId(pacienteId);
         form.setData(LocalDate.now());
+        if (pacoteAgendamentoId != null && pacotesDisponiveisAgenda.stream().anyMatch(pacote -> pacote.getId().equals(pacoteAgendamentoId))) {
+            form.setPacoteSessaoId(pacoteAgendamentoId);
+            return form;
+        }
         if (!pacotesDisponiveisAgenda.isEmpty()) {
             form.setPacoteSessaoId(pacotesDisponiveisAgenda.get(0).getId());
         }

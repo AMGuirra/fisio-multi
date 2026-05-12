@@ -3,6 +3,7 @@ package com.fisiogestao.web;
 import com.fisiogestao.agenda.ConfiguracaoClinicaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.TipoAgendamento;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.AuditActionType;
@@ -352,6 +353,29 @@ class PageSmokeTest {
                 .count();
 
         org.junit.jupiter.api.Assertions.assertEquals(1L, sessoesAgendadas);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void pacotesConsumoExcluiPlanoComSessaoVinculada() throws Exception {
+        PacoteSessaoEntity pacote = pacoteSessaoRepository.findAll().stream()
+                .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para exclusão."));
+
+        mockMvc.perform(post("/pacotes-consumo/{id}/excluir", pacote.getId())
+                        .with(csrf())
+                        .param("paciente", clienteAgenda.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pacotes-consumo?paciente=" + clienteAgenda.getId()));
+
+        org.junit.jupiter.api.Assertions.assertFalse(pacoteSessaoRepository.existsById(pacote.getId()));
+
+        SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
+                .orElseThrow(() -> new IllegalStateException("Sessão de teste não encontrada após excluir o plano."));
+        org.junit.jupiter.api.Assertions.assertNull(sessao.getPacoteSessao());
+        org.junit.jupiter.api.Assertions.assertEquals(TipoAgendamento.AVULSO, sessao.getTipoAgendamento());
+        org.junit.jupiter.api.Assertions.assertFalse(sessao.getPacoteConsumoRegistrado());
     }
 
     @Test

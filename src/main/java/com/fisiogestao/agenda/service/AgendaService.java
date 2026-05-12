@@ -326,6 +326,15 @@ public class AgendaService {
             throw new BusinessException("A regra de recorrência não gerou nenhuma ocorrência.");
         }
 
+        if (tipoAgendamento == TipoAgendamento.PACOTE) {
+            int sessoesDisponiveis = pacoteSessaoService.calcularSessoesDisponiveis(pacote);
+            if (inicios.size() > sessoesDisponiveis) {
+                throw new BusinessException("A recorrencia gera " + inicios.size()
+                        + " sessoes, mas o plano selecionado possui apenas "
+                        + sessoesDisponiveis + " sessoes disponiveis.");
+            }
+        }
+
         for (OffsetDateTime inicio : inicios) {
             OffsetDateTime fim = inicio.plusMinutes(duracaoDaSessao(form));
             validarHorarioDisponivel(inicio, fim, null, null, true);

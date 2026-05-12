@@ -42,6 +42,9 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     boolean existsByPacoteSessaoId(UUID pacoteSessaoId);
 
+    @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
+    List<SessaoEntity> findByPacoteSessaoIdOrderByDataHoraInicioDesc(UUID pacoteSessaoId);
+
     boolean existsByPacoteSessaoIdAndStatusIn(UUID pacoteSessaoId, Collection<SessaoStatus> statuses);
 
     long countByStatus(SessaoStatus status);

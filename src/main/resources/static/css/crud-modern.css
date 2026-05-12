@@ -2302,12 +2302,26 @@ body.modal-open {
     margin-top: 10px;
 }
 
+.appointment-mode-shell {
+    display: grid;
+    gap: 10px;
+}
+
 .appointment-type-control,
 .weekday-grid,
 .quick-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.appointment-type-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 5px;
+    border: 1px solid #d9e7e3;
+    border-radius: 10px;
+    background: #f4f8f7;
 }
 
 .appointment-type-option input,
@@ -2322,6 +2336,7 @@ body.modal-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     min-height: 40px;
     padding: 0 14px;
     border: 1px solid var(--border-color);
@@ -2332,7 +2347,33 @@ body.modal-open {
     cursor: pointer;
 }
 
-.appointment-type-option input:checked + span,
+.appointment-type-option span {
+    width: 100%;
+    min-height: 44px;
+    border-color: transparent;
+    background: transparent;
+    transition: background var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard), border-color var(--ease-standard);
+}
+
+.appointment-type-option input:disabled + span {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.package-option input:checked + span {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+}
+
+.single-option input:checked + span {
+    border-color: #86efac;
+    background: #ecfdf5;
+    color: #15803d;
+    box-shadow: 0 8px 18px rgba(22, 163, 74, 0.12);
+}
+
 .weekday-grid input:checked + span {
     border-color: var(--accent-color);
     background: rgba(14, 165, 233, 0.12);
@@ -2344,6 +2385,71 @@ body.modal-open {
     padding: 0;
 }
 
+.appointment-flow-panel {
+    display: grid;
+    gap: 12px;
+    max-height: 420px;
+    overflow: hidden;
+    padding: 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #f8fbff;
+    opacity: 1;
+    transform: translateY(0);
+    transition: max-height 0.24s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
+}
+
+.appointment-flow-panel.is-hidden {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+}
+
+.appointment-flow-panel.avulso-panel {
+    border-color: #bbf7d0;
+    background: #f7fef9;
+}
+
+.flow-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.flow-panel-head h4 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.96rem;
+}
+
+.flow-panel-head p {
+    margin: 5px 0 0;
+    color: var(--text-soft);
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.flow-balance {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 0.84rem;
+}
+
+.appointment-time-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(120px, 0.75fr);
+}
+
 .recurrence-panel {
     display: grid;
     gap: 14px;
@@ -2351,6 +2457,19 @@ body.modal-open {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.03);
+    max-height: 520px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.24s ease, opacity 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
+}
+
+.recurrence-panel.is-collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .toggle-row {

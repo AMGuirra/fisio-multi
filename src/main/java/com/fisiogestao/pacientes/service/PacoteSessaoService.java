@@ -1,11 +1,14 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.TipoAgendamento;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
@@ -189,20 +192,9 @@ public class PacoteSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(pacote);
 
-        if (pacote.getSessoesConsumidas() > 0) {
-            throw new BusinessException("Este plano de tratamento já possui consumo registrado e não pode ser excluído.");
-        }
-        if (sessaoRepository.existsByPacoteSessaoId(pacote.getId())) {
-            throw new BusinessException("Este plano de tratamento possui histórico de sessões vinculado e não pode ser excluído.");
-        }
-        if (lancamentoFinanceiroRepository.existsByPacoteSessaoIdAndStatus(pacote.getId(), StatusLancamentoFinanceiro.PAGO)) {
-            throw new BusinessException("Este plano de tratamento possui movimentação financeira paga e não pode ser excluído.");
-        }
+        desvincularSessoesDoPlano(pacote.getId());
+        limparLancamentosDoPlano(pacote.getId());
 
-        var lancamentosVinculados = lancamentoFinanceiroRepository.findByPacoteSessaoId(pacote.getId());
-        if (!lancamentosVinculados.isEmpty()) {
-            lancamentoFinanceiroRepository.deleteAll(lancamentosVinculados);
-        }
         auditService.recordManual(
                 AuditModule.PACOTES,
                 "pacote_sessao",
@@ -216,6 +208,70 @@ public class PacoteSessaoService {
                 AuditEventOrigin.MANUAL
         );
         pacoteSessaoRepository.delete(pacote);
+    }
+
+    private void desvincularSessoesDoPlano(UUID pacoteId) {
+        List<SessaoEntity> sessoesVinculadas = sessaoRepository.findByPacoteSessaoIdOrderByDataHoraInicioDesc(pacoteId);
+        if (sessoesVinculadas.isEmpty()) {
+            return;
+        }
+
+        for (SessaoEntity sessao : sessoesVinculadas) {
+            var snapshotAnterior = auditService.snapshotOf(sessao);
+            sessao.setPacoteSessao(null);
+            sessao.setTipoAgendamento(TipoAgendamento.AVULSO);
+            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+            SessaoEntity salvo = sessaoRepository.save(sessao);
+            auditService.recordManual(
+                    AuditModule.AGENDA,
+                    "sessao",
+                    salvo.getId().toString(),
+                    auditService.describeOf(salvo),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(salvo),
+                    null,
+                    "Desvinculação de plano antes da exclusão.",
+                    AuditEventOrigin.MANUAL
+            );
+        }
+        sessaoRepository.flush();
+    }
+
+    private void limparLancamentosDoPlano(UUID pacoteId) {
+        List<LancamentoFinanceiroEntity> lancamentosVinculados = lancamentoFinanceiroRepository.findByPacoteSessaoId(pacoteId);
+        if (lancamentosVinculados.isEmpty()) {
+            return;
+        }
+
+        List<LancamentoFinanceiroEntity> lancamentosRemoviveis = lancamentosVinculados.stream()
+                .filter(lancamento -> lancamento.getStatus() != StatusLancamentoFinanceiro.PAGO)
+                .toList();
+        if (!lancamentosRemoviveis.isEmpty()) {
+            lancamentoFinanceiroRepository.deleteAll(lancamentosRemoviveis);
+        }
+
+        List<LancamentoFinanceiroEntity> lancamentosPagos = lancamentosVinculados.stream()
+                .filter(lancamento -> lancamento.getStatus() == StatusLancamentoFinanceiro.PAGO)
+                .toList();
+        for (LancamentoFinanceiroEntity lancamento : lancamentosPagos) {
+            var snapshotAnterior = auditService.snapshotOf(lancamento);
+            lancamento.setPacoteSessao(null);
+            LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+            auditService.recordManual(
+                    AuditModule.FINANCEIRO,
+                    "lancamento_financeiro",
+                    salvo.getId().toString(),
+                    salvo.getDescricao(),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(salvo),
+                    null,
+                    "Desvinculação de plano antes da exclusão.",
+                    AuditEventOrigin.MANUAL
+            );
+        }
+        lancamentoFinanceiroRepository.flush();
     }
 
     @Transactional
