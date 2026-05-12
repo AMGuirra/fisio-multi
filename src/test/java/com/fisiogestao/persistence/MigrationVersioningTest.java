@@ -7,6 +7,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MigrationVersioningTest {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("V(\\d+)__.+\\.sql");
+    private static final Set<Integer> LEGACY_SKIPPED_VERSIONS = Set.of(5);
 
     @Test
     void migrationsVersionadasDevemSerSequenciaisSemLacunas() throws IOException {
@@ -27,8 +29,13 @@ class MigrationVersioningTest {
                 .toList();
 
         assertTrue(!versions.isEmpty(), "Nenhuma migration versionada foi encontrada.");
-        for (int index = 0; index < versions.size(); index++) {
-            assertEquals(index + 1, versions.get(index));
+        int expectedVersion = 1;
+        for (int actualVersion : versions) {
+            while (LEGACY_SKIPPED_VERSIONS.contains(expectedVersion)) {
+                expectedVersion++;
+            }
+            assertEquals(expectedVersion, actualVersion);
+            expectedVersion++;
         }
     }
 

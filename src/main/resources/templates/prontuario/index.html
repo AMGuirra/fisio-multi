@@ -421,6 +421,142 @@
                     </div>
                 </article>
             </section>
+
+            <!-- ============================================================
+                 SEÇÃO DE ANEXOS — Documentos clínicos do paciente
+                 ============================================================ -->
+            <section class="section-card" th:if="${pacienteSelecionado != null}" id="documentosAnexos">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="paperclip"></i> Documentos e Anexos</h3>
+                        <p class="section-subtitle">Laudos, radiografias, avaliações e outros arquivos clínicos do paciente.</p>
+                    </div>
+                    <span class="chip status-approved"
+                          th:text="${(anexos != null ? anexos.size() : 0) + ' arquivo(s)'}">0 arquivo(s)</span>
+                </header>
+
+                <!-- Formulário de upload -->
+                <div class="section-body" style="border-bottom: 1px solid var(--border, #e5e7eb); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                    <form th:action="@{/prontuario/anexo}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="modern-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+
+                        <div class="form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-field">
+                                <label for="arquivo">Arquivo <span style="color:var(--color-danger,#e53e3e)">*</span></label>
+                                <input type="file"
+                                       id="arquivo"
+                                       name="arquivo"
+                                       class="form-control"
+                                       accept=".pdf,.jpg,.jpeg,.png,.webp,.docx"
+                                       required>
+                                <p class="helper-text">PDF, JPG, PNG, WebP ou DOCX — máx. 15 MB por arquivo.</p>
+                            </div>
+                            <div class="form-field">
+                                <label for="descricaoAnexo">Descrição (opcional)</label>
+                                <input type="text"
+                                       id="descricaoAnexo"
+                                       name="descricao"
+                                       class="form-control"
+                                       maxlength="500"
+                                       placeholder="Ex.: Raio-X coluna lombar, Laudo fisioterapêutico inicial">
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="prontuarioSoapIdAnexo">Vincular a um registro SOAP (opcional)</label>
+                            <select id="prontuarioSoapIdAnexo" name="prontuarioSoapId" class="form-select">
+                                <option value="">Sem vínculo — documento geral do paciente</option>
+                                <option th:each="registro : ${prontuarios}"
+                                        th:value="${registro.id}"
+                                        th:text="${'SOAP de ' + #temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm') + ' — ' + registro.criadoPor}">
+                                    Registro SOAP
+                                </option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="action-button primary">
+                            <i data-lucide="upload"></i>
+                            Enviar Arquivo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de anexos -->
+                <div class="section-body">
+                    <div th:if="${anexos == null or anexos.empty}" class="empty-box">
+                        <i data-lucide="file-search"></i>
+                        <p>Nenhum documento anexado para este paciente ainda.</p>
+                    </div>
+
+                    <div th:unless="${anexos == null or anexos.empty}" class="soap-history-stack">
+                        <article class="request-card" th:each="anexo : ${anexos}"
+                                 style="display:flex; align-items:flex-start; gap:1rem; flex-wrap:wrap;">
+
+                            <!-- Ícone do tipo de arquivo -->
+                            <span class="entity-avatar" style="flex-shrink:0;">
+                                <i th:attr="data-lucide=${anexo.icone}"></i>
+                            </span>
+
+                            <!-- Metadados -->
+                            <div style="flex:1; min-width:0;">
+                                <p class="request-title"
+                                   th:text="${anexo.nomeOriginal}"
+                                   style="word-break:break-all;">nome-arquivo.pdf</p>
+                                <p class="request-text"
+                                   th:text="${anexo.tamanhoFormatado + ' · ' + #temporals.format(anexo.createdAt, 'dd/MM/yyyy HH:mm') + ' · ' + anexo.criadoPor}">
+                                    Tamanho · Data · Usuário
+                                </p>
+                                <p class="request-text"
+                                   th:if="${anexo.descricao != null and !#strings.isEmpty(anexo.descricao)}"
+                                   th:text="${anexo.descricao}"
+                                   style="font-style:italic; margin-top:0.2rem;">Descrição</p>
+                                <div style="margin-top:0.4rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                    <span class="chip status-approved" th:if="${anexo.pdf}">PDF</span>
+                                    <span class="chip status-info" th:if="${anexo.imagem}">Imagem</span>
+                                    <span class="chip status-warning" th:if="${anexo.prontuarioSoapId != null}">SOAP vinculado</span>
+                                </div>
+                            </div>
+
+                            <!-- Ações -->
+                            <div style="display:flex; gap:0.5rem; flex-shrink:0; flex-wrap:wrap; align-items:center;">
+                                <a th:href="@{/prontuario/anexo/{id}(id=${anexo.id})}"
+                                   target="_blank"
+                                   class="action-button ghost"
+                                   style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                                    <i data-lucide="eye"></i>
+                                    Visualizar
+                                </a>
+                                <a th:href="@{/prontuario/anexo/{id}(id=${anexo.id}, download=true)}"
+                                   class="action-button ghost"
+                                   style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                                    <i data-lucide="download"></i>
+                                    Baixar
+                                </a>
+                                <form th:action="@{/prontuario/anexo/{id}/excluir(id=${anexo.id})}"
+                                      method="post"
+                                      style="display:inline;"
+                                      th:attr="data-nome=${anexo.nomeOriginal}"
+                                      onsubmit="return confirm('Excluir o arquivo \'' + this.dataset.nome + '\'? Esta ação não pode ser desfeita.');">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+                                    <button type="submit"
+                                            class="action-button ghost"
+                                            style="padding:0.4rem 0.75rem; font-size:0.85rem; color:var(--color-danger,#e53e3e);">
+                                        <i data-lucide="trash-2"></i>
+                                        Excluir
+                                    </button>
+                                </form>
+                            </div>
+
+                        </article>
+                    </div>
+                </div>
+            </section>
+
         </main>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>

@@ -143,8 +143,7 @@ class PageSmokeTest {
     @Test
     void patientLookupApiRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/pacientes/por-cpf").param("cpf", "12345678901"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(status().isUnauthorized());
     }
 
     @ParameterizedTest

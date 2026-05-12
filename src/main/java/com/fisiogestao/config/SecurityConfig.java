@@ -1,8 +1,10 @@
 package com.fisiogestao.config;
 
 import com.fisiogestao.auth.InMemoryUserCatalog;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
@@ -38,7 +41,11 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/css/**",
-                                "/js/**"
+                                "/js/**",
+                                // OpenAPI / Swagger UI — acesso sem autenticação para facilitar integrações
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers("/configuracoes/clinica", "/configuracao/clinica").hasRole("ADMIN")
                         .requestMatchers("/admin/system-status").hasRole("ADMIN")
@@ -50,6 +57,10 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .successHandler(auditAuthenticationSuccessHandler)
                         .permitAll()
+                )
+                .httpBasic(Customizer.withDefaults())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
                 )
                 .logout(logout -> logout
                         .addLogoutHandler(auditLogoutHandler)
@@ -87,5 +98,19 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Registra o filtro de rate limiting com prioridade máxima para garantir
+     * que ele atue antes dos filtros do Spring Security.
+     */
+    @Bean
+    public FilterRegistrationBean<RateLimitingFilter> rateLimitingFilterRegistration() {
+        FilterRegistrationBean<RateLimitingFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new RateLimitingFilter());
+        registration.addUrlPatterns("/esqueci-minha-senha", "/agendamento-online");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setName("rateLimitingFilter");
+        return registration;
     }
 }

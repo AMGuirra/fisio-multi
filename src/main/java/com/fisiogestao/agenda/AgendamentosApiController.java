@@ -5,6 +5,12 @@ import com.fisiogestao.agenda.dto.AgendamentoRequestDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.shared.web.BusinessException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +26,30 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/agendamentos")
 @RequiredArgsConstructor
+@Tag(name = "Agendamentos", description = "Criação de sessões avulsas e séries recorrentes na agenda")
+@SecurityRequirement(name = "basicAuth")
 public class AgendamentosApiController {
 
     private final AgendaService agendaService;
 
     @PostMapping
+    @Operation(
+            summary = "Criar agendamento avulso",
+            description = """
+                    Cria uma sessão única na agenda para o paciente indicado.
+                    O campo `tipo` deve ser `AVULSO` ou `PACOTE`.
+                    Quando `tipo = PACOTE`, o campo `pacoteId` é obrigatório.
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Agendamento criado com sucesso",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(example = "{\"success\":true,\"id\":\"uuid\",\"message\":\"Agendamento criado.\"}"))),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos ou conflito de horário",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(example = "{\"success\":false,\"error\":\"Mensagem de erro.\"}"))),
+                    @ApiResponse(responseCode = "401", description = "Não autenticado")
+            }
+    )
     public ResponseEntity<?> criar(
             @Valid @RequestBody AgendamentoRequestDto request,
             Authentication authentication
@@ -33,6 +58,21 @@ public class AgendamentosApiController {
     }
 
     @PostMapping("/recorrentes")
+    @Operation(
+            summary = "Criar série de agendamentos recorrentes",
+            description = """
+                    Cria múltiplas sessões com base nas configurações de recorrência informadas
+                    (semanal, quinzenal ou mensal, com data de término).
+                    Retorna o número de sessões criadas.
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Série recorrente criada com sucesso",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(example = "{\"success\":true,\"id\":\"uuid\",\"message\":\"Agendamentos recorrentes criados.\"}"))),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos ou recorrência sem sessões geradas"),
+                    @ApiResponse(responseCode = "401", description = "Não autenticado")
+            }
+    )
     public ResponseEntity<?> criarRecorrente(
             @Valid @RequestBody AgendamentoRecorrenteRequestDto request,
             Authentication authentication

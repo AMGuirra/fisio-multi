@@ -34,11 +34,26 @@ spring:
       date: dd/MM/yyyy
       time: HH:mm
       date-time: dd/MM/yyyy HH:mm
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 15MB      # limite por arquivo — validado também no ProntuarioAnexoService
+      max-request-size: 20MB   # limite por requisição (arquivo + metadados)
   jackson:
     time-zone: ${app.timezone}
 
 server:
   port: ${PORT:${SERVER_PORT:8081}}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+  packages-to-scan: com.fisiogestao
 
 app:
   timezone: America/Campo_Grande

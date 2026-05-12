@@ -8,6 +8,7 @@ import com.fisiogestao.email.EmailConfiguracaoEntity;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.prontuario.ProntuarioAnexoEntity;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import org.springframework.stereotype.Component;
@@ -50,6 +51,9 @@ public class AuditSnapshotFactory {
         }
         if (source instanceof ProntuarioSoapEntity prontuario) {
             return snapshotProntuario(prontuario);
+        }
+        if (source instanceof ProntuarioAnexoEntity anexo) {
+            return snapshotProntuarioAnexo(anexo);
         }
         if (source instanceof SolicitacaoAgendamentoEntity solicitacao) {
             return snapshotSolicitacao(solicitacao);
@@ -206,6 +210,21 @@ public class AuditSnapshotFactory {
         map.put("avaliacao", prontuario.getAvaliacao());
         map.put("plano", prontuario.getPlano());
         map.put("criadoPor", prontuario.getCriadoPor());
+        return map;
+    }
+
+    private Map<String, Object> snapshotProntuarioAnexo(ProntuarioAnexoEntity anexo) {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("id", anexo.getId());
+        map.put("clienteId", anexo.getCliente() != null ? anexo.getCliente().getId() : null);
+        map.put("clienteNome", anexo.getCliente() != null ? anexo.getCliente().getNomeCompleto() : null);
+        map.put("prontuarioSoapId", anexo.getProntuarioSoapId());
+        map.put("nomeOriginal", anexo.getNomeOriginal());
+        map.put("tipoMime", anexo.getTipoMime());
+        map.put("tamanhoBytes", anexo.getTamanhoBytes());
+        map.put("descricao", anexo.getDescricao());
+        map.put("criadoPor", anexo.getCriadoPor());
+        // campo "dados" (BYTEA) intencionalmente omitido do snapshot de auditoria
         return map;
     }
 

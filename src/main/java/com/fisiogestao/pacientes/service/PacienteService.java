@@ -21,6 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,9 +48,48 @@ public class PacienteService {
     private volatile boolean esquemaClienteValidado = false;
     private volatile boolean relacionamentoSolicitacaoClienteValidado = false;
 
+    private static final int TAMANHO_PAGINA = 20;
+
     @Transactional(readOnly = true)
     public List<ClienteEntity> listarAtivos() {
         return clienteRepository.findByAtivoTrueOrderByNomeCompletoAsc();
+    }
+
+    /**
+     * Lista paginada de pacientes ativos com busca opcional por nome, CPF, telefone ou e-mail.
+     *
+     * @param page  índice da página (0-based)
+     * @param busca termo de busca case-insensitive; nulo ou vazio retorna todos os ativos
+     */
+    @Transactional(readOnly = true)
+    public Page<ClienteEntity> listarAtivosPaginado(int page, String busca) {
+        Pageable pageable = PageRequest.of(Math.max(page, 0), TAMANHO_PAGINA);
+        String buscaNormalizada = (busca == null || busca.isBlank()) ? null : busca.strip();
+        return clienteRepository.findAtivosPaginado(buscaNormalizada, pageable);
+    }
+
+    /** Conta pacientes ativos. Usa índice do banco para evitar full scan. */
+    @Transactional(readOnly = true)
+    public long contarAtivos() {
+        return clienteRepository.countByAtivoTrue();
+    }
+
+    /** Conta pacientes ativos que possuem telefone preenchido. */
+    @Transactional(readOnly = true)
+    public long contarAtivosComTelefone() {
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM cliente WHERE ativo = true AND telefone IS NOT NULL AND telefone <> ''",
+                Long.class);
+        return count != null ? count : 0L;
+    }
+
+    /** Conta pacientes ativos que possuem e-mail preenchido. */
+    @Transactional(readOnly = true)
+    public long contarAtivosComEmail() {
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM cliente WHERE ativo = true AND email IS NOT NULL AND email <> ''",
+                Long.class);
+        return count != null ? count : 0L;
     }
 
     @Transactional(readOnly = true)

@@ -6,6 +6,7 @@ import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,9 +17,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -34,9 +35,13 @@ public class PacientesController {
     }
 
     @GetMapping
-    public String index(Model model) {
-        List<ClienteEntity> pacientes = pacienteService.listarAtivos();
-        prepararPagina(model, pacientes, new PacienteForm());
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String busca,
+            Model model
+    ) {
+        Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(page, busca);
+        prepararPagina(model, pacientesPage, new PacienteForm(), busca);
         return "pacientes/index";
     }
 
@@ -47,10 +52,9 @@ public class PacientesController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
-        List<ClienteEntity> pacientes = pacienteService.listarAtivos();
-
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, pacientes, form);
+            Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
+            prepararPagina(model, pacientesPage, form, null);
             return "pacientes/index";
         }
 
@@ -58,10 +62,10 @@ public class PacientesController {
             pacienteService.cadastrar(form);
             redirectAttributes.addFlashAttribute("successMessage", "Paciente cadastrado com sucesso.");
             return "redirect:/pacientes";
-        }
-        catch (BusinessException ex) {
+        } catch (BusinessException ex) {
+            Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, pacientes, form);
+            prepararPagina(model, pacientesPage, form, null);
             return "pacientes/index";
         }
     }
@@ -75,8 +79,8 @@ public class PacientesController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            List<ClienteEntity> pacientes = pacienteService.listarAtivos();
-            prepararPagina(model, pacientes, form);
+            Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
+            prepararPagina(model, pacientesPage, form, null);
             model.addAttribute("errorMessage", "Corrija os campos inválidos antes de salvar.");
             return "pacientes/index";
         }
@@ -106,18 +110,19 @@ public class PacientesController {
         return "redirect:/pacientes";
     }
 
-    private void prepararPagina(Model model, List<ClienteEntity> pacientes, PacienteForm pacienteForm) {
-        long pacientesComTelefone = pacientes.stream()
-                .filter(paciente -> paciente.getTelefone() != null && !paciente.getTelefone().isBlank())
-                .count();
-        long pacientesComEmail = pacientes.stream()
-                .filter(paciente -> paciente.getEmail() != null && !paciente.getEmail().isBlank())
-                .count();
-
-        model.addAttribute("pacientes", pacientes);
+    private void prepararPagina(
+            Model model,
+            Page<ClienteEntity> pacientesPage,
+            PacienteForm pacienteForm,
+            String busca
+    ) {
+        model.addAttribute("pacientes", pacientesPage.getContent());
+        model.addAttribute("pacientesPage", pacientesPage);
+        model.addAttribute("busca", busca != null ? busca : "");
         model.addAttribute("pacienteForm", pacienteForm);
-        model.addAttribute("totalPacientesAtivos", pacientes.size());
-        model.addAttribute("totalPacientesComTelefone", pacientesComTelefone);
-        model.addAttribute("totalPacientesComEmail", pacientesComEmail);
+        // Contagens globais (independentes da página/busca)
+        model.addAttribute("totalPacientesAtivos", pacienteService.contarAtivos());
+        model.addAttribute("totalPacientesComTelefone", pacienteService.contarAtivosComTelefone());
+        model.addAttribute("totalPacientesComEmail", pacienteService.contarAtivosComEmail());
     }
 }

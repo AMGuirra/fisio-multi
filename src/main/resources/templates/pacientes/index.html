@@ -128,17 +128,42 @@
                 <article class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="list"></i> Pacientes Cadastrados</h3>
-                        <p class="section-subtitle" th:text="${pacientes != null ? pacientes.size() + ' registros' : '0 registros'}">0 registros</p>
+                        <p class="section-subtitle" th:text="${pacientesPage.totalElements + ' registros'}">0 registros</p>
                     </header>
 
-                    <div class="section-body" th:if="${pacientes == null or pacientes.empty}">
+                    <!-- Barra de busca -->
+                    <div class="section-body" style="padding-bottom:0;">
+                        <form method="get" th:action="@{/pacientes}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="text"
+                                   name="busca"
+                                   th:value="${busca}"
+                                   placeholder="Buscar por nome, CPF, telefone ou e-mail…"
+                                   class="form-control"
+                                   style="flex:1;min-width:200px;">
+                            <button type="submit" class="action-button ghost" style="white-space:nowrap;">
+                                <i data-lucide="search"></i> Buscar
+                            </button>
+                            <a th:if="${busca != null and !#strings.isEmpty(busca)}"
+                               th:href="@{/pacientes}"
+                               class="action-button ghost"
+                               title="Limpar busca">
+                                <i data-lucide="x"></i>
+                            </a>
+                        </form>
+                    </div>
+
+                    <div class="section-body" th:if="${pacientesPage.numberOfElements == 0}">
                         <div class="empty-box">
                             <i data-lucide="user-x"></i>
-                            <p>Nenhum paciente cadastrado no momento.</p>
+                            <p th:text="${busca != null and !#strings.isEmpty(busca)}
+                                ? 'Nenhum paciente encontrado para &quot;' + ${busca} + '&quot;.'
+                                : 'Nenhum paciente cadastrado no momento.'">
+                                Nenhum paciente cadastrado no momento.
+                            </p>
                         </div>
                     </div>
 
-                    <div class="data-table-wrap" th:unless="${pacientes == null or pacientes.empty}">
+                    <div class="data-table-wrap" th:unless="${pacientesPage.numberOfElements == 0}">
                         <table class="data-table compact">
                             <thead>
                                 <tr>
@@ -210,6 +235,49 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- Navegação de páginas -->
+                        <nav th:if="${pacientesPage.totalPages > 1}"
+                             aria-label="Paginação de pacientes"
+                             style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 0 4px;">
+
+                            <!-- Primeira página -->
+                            <a th:if="${pacientesPage.number > 0}"
+                               th:href="@{/pacientes(page=0, busca=${busca})}"
+                               class="action-button ghost" title="Primeira página" style="padding:6px 10px;">
+                                <i data-lucide="chevrons-left"></i>
+                            </a>
+
+                            <!-- Página anterior -->
+                            <a th:if="${pacientesPage.hasPrevious()}"
+                               th:href="@{/pacientes(page=${pacientesPage.number - 1}, busca=${busca})}"
+                               class="action-button ghost" title="Página anterior" style="padding:6px 10px;">
+                                <i data-lucide="chevron-left"></i>
+                            </a>
+
+                            <span style="font-size:.85rem;color:var(--text-secondary,#6b7280);padding:0 4px;">
+                                Página
+                                <strong th:text="${pacientesPage.number + 1}">1</strong>
+                                de
+                                <strong th:text="${pacientesPage.totalPages}">1</strong>
+                                &nbsp;·&nbsp;
+                                <span th:text="${pacientesPage.totalElements}">0</span> registros
+                            </span>
+
+                            <!-- Próxima página -->
+                            <a th:if="${pacientesPage.hasNext()}"
+                               th:href="@{/pacientes(page=${pacientesPage.number + 1}, busca=${busca})}"
+                               class="action-button ghost" title="Próxima página" style="padding:6px 10px;">
+                                <i data-lucide="chevron-right"></i>
+                            </a>
+
+                            <!-- Última página -->
+                            <a th:if="${pacientesPage.number < pacientesPage.totalPages - 1}"
+                               th:href="@{/pacientes(page=${pacientesPage.totalPages - 1}, busca=${busca})}"
+                               class="action-button ghost" title="Última página" style="padding:6px 10px;">
+                                <i data-lucide="chevrons-right"></i>
+                            </a>
+                        </nav>
                     </div>
                 </article>
             </section>
