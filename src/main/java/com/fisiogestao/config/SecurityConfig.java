@@ -6,6 +6,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
+@EnableMethodSecurity   // habilita @PreAuthorize / @PostAuthorize para proteção em profundidade nos services/controllers
 public class SecurityConfig {
 
     /**
@@ -57,6 +59,12 @@ public class SecurityConfig {
                         .requestMatchers("/admin/system-status").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/funcoes-usuarios/**").hasRole("ADMIN")
+                        // Métricas do dashboard contêm dados financeiros sensíveis (receita 12 meses, ocupação).
+                        // Restritas a ADMIN e FINANCEIRO; demais roles operacionais não requerem visibilidade agregada.
+                        .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "FINANCEIRO")
+                        // Endpoints internos de agenda, pacientes e solicitações: qualquer usuário autenticado.
+                        // Explicitado aqui para blindar contra mudança futura no anyRequest().
+                        .requestMatchers("/api/agendamentos/**", "/api/pacientes/**", "/api/solicitacoes/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

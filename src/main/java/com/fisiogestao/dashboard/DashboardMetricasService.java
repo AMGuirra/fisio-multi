@@ -4,14 +4,14 @@ import com.fisiogestao.agenda.ConfiguracaoClinicaEntity;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.config.ClinicTimezoneHolder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -38,6 +38,14 @@ public class DashboardMetricasService {
 
     private final JdbcTemplate jdbc;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
+
+    /**
+     * {@code true} quando o datasource ativo é H2 (ambiente de testes).
+     * Detectado uma única vez na inicialização via URL do datasource —
+     * evita abrir uma conexão do pool a cada chamada de métricas.
+     */
+    @Value("#{T(org.springframework.util.StringUtils).startsWithIgnoreCase('${spring.datasource.url:}', 'jdbc:h2')}")
+    private boolean h2Dialect;
 
     public record OcupacaoMensal(
             String mes,
@@ -68,6 +76,16 @@ public class DashboardMetricasService {
             RetencaoPacotes retencaoPacotes
     ) {}
 
+    /**
+     * Carrega métricas históricas dos últimos 12 meses.
+     *
+     * <p>A anotação {@code @PreAuthorize} é a segunda linha de defesa:
+     * garante que, mesmo que este método seja chamado fora do contexto HTTP
+     * (ex.: via injeção direta por outro serviço), a verificação de role
+     * ainda é enforced pelo Spring Security AOP.
+     * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.</p>
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional(readOnly = true)
     public MetricasDashboard carregarMetricas() {
         List<YearMonth> meses = ultimosDozeMeses();
@@ -81,7 +99,7 @@ public class DashboardMetricasService {
     }
 
     private List<OcupacaoMensal> consultarOcupacaoMensal(List<YearMonth> meses, OffsetDateTime inicioJanela) {
-        String duracaoHoras = isH2()
+        String duracaoHoras = h2Dialect
                 ? "DATEDIFF('SECOND', data_hora_inicio, data_hora_fim) / 3600.0"
                 : "EXTRACT(EPOCH FROM (data_hora_fim - data_hora_inicio)) / 3600.0";
 
@@ -258,18 +276,6 @@ public class DashboardMetricasService {
         return BigDecimal.valueOf(value)
                 .setScale(1, RoundingMode.HALF_UP)
                 .doubleValue();
-    }
-
-    private boolean isH2() {
-        if (jdbc.getDataSource() == null) {
-            return false;
-        }
-
-        try (Connection connection = jdbc.getDataSource().getConnection()) {
-            return connection.getMetaData().getDatabaseProductName().equalsIgnoreCase("H2");
-        } catch (SQLException e) {
-            return false;
-        }
     }
 
     private record OcupacaoAgregada(double horasAgendadas, long totalSessoes) {}
