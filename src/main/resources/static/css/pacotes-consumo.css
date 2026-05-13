@@ -43,6 +43,7 @@
   --g-btn-avulso: #a05010;
   --g-sel-row: #e4f4ec;
   --g-online: #00c48c;
+  --g-primary-shadow: rgba(13, 107, 80, .22);
   --g-alert-bg: var(--color-background-danger);
   --g-alert-b: var(--color-border-danger);
   --g-alert-txt: var(--color-text-danger);
@@ -316,13 +317,34 @@ body[data-theme="dark"] {
   align-items: center;
   gap: 7px;
   padding: 8px 6px;
+  border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.prow:hover,
+.prow:hover {
+  background: var(--g-primary-lt);
+  border-color: var(--g-ctx-b);
+}
+
 .prow.sel {
-  background: var(--g-sel-row);
+  background: var(--g-primary);
+  border-color: var(--g-primary-dark);
+  box-shadow: 0 8px 18px var(--g-primary-shadow);
+}
+
+.prow.sel .pname,
+.prow.sel .pdob {
+  color: var(--g-dot-done-txt);
+}
+
+.prow.sel .pbadge {
+  background: var(--color-background);
+  color: var(--g-primary);
+}
+
+.prow.sel .sel-mark {
+  color: var(--g-dot-done-txt);
 }
 
 .av {
@@ -415,10 +437,21 @@ body[data-theme="dark"] {
   grid-template-columns: 40px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--g-ctx-b);
+  padding: 13px;
+  border: 1px solid var(--g-primary-dark);
   border-radius: 8px;
-  background: var(--g-ctx-bg);
+  background: var(--g-primary);
+  box-shadow: 0 10px 24px var(--g-primary-shadow);
+}
+
+.patient-ctx .ctx-name,
+.patient-ctx .ctx-sub {
+  color: var(--g-dot-done-txt);
+}
+
+.patient-ctx .mode-badge {
+  background: var(--color-background);
+  color: var(--g-primary);
 }
 
 .ctx-av {
