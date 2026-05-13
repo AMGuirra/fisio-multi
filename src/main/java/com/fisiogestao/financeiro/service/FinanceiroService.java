@@ -70,40 +70,41 @@ public class FinanceiroService {
 
     @Transactional(readOnly = true)
     public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
+        PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
+        return lancamentoFinanceiroRepository
+                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(periodo.inicio(), periodo.fim());
+    }
+
+    private PeriodoFinanceiro periodoFinanceiro(LocalDate inicio, LocalDate fim) {
         ZoneId zone = ClinicTimezoneHolder.zoneId();
         OffsetDateTime dtInicio = inicio.atStartOfDay(zone).toOffsetDateTime();
         OffsetDateTime dtFim = fim.plusDays(1).atStartOfDay(zone).toOffsetDateTime().minusNanos(1);
-        return lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(dtInicio, dtFim);
+        return new PeriodoFinanceiro(dtInicio, dtFim);
     }
 
     @Transactional(readOnly = true)
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
-        List<LancamentoFinanceiroEntity> lista = listarNoPeriodo(inicio, fim);
-        long receitasPagasCount = lista.stream()
-                .filter(l -> l.getTipo() == TipoLancamentoFinanceiro.RECEITA
-                        && l.getStatus() == StatusLancamentoFinanceiro.PAGO)
-                .count();
-        long lancamentosAtivosCount = lista.stream()
-                .filter(l -> l.getStatus() != StatusLancamentoFinanceiro.CANCELADO)
-                .count();
+        PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
+        long receitasPagasCount = lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndTipoAndStatus(
+                periodo.inicio(), periodo.fim(), TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO);
+        long lancamentosAtivosCount = lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndStatusNot(
+                periodo.inicio(), periodo.fim(), StatusLancamentoFinanceiro.CANCELADO);
         return new ResumoFinanceiro(
-                somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO),
-                somarFiltrado(lista, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE),
-                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PAGO),
-                somarFiltrado(lista, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE),
+                somarNoPeriodo(periodo, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO),
+                somarNoPeriodo(periodo, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE),
+                somarNoPeriodo(periodo, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PAGO),
+                somarNoPeriodo(periodo, TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.PENDENTE),
                 receitasPagasCount,
                 lancamentosAtivosCount
         );
     }
 
-    private BigDecimal somarFiltrado(List<LancamentoFinanceiroEntity> lista,
-                                     TipoLancamentoFinanceiro tipo,
-                                     StatusLancamentoFinanceiro status) {
-        return lista.stream()
-                .filter(l -> l.getTipo() == tipo && l.getStatus() == status)
-                .map(LancamentoFinanceiroEntity::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal somarNoPeriodo(PeriodoFinanceiro periodo,
+                                      TipoLancamentoFinanceiro tipo,
+                                      StatusLancamentoFinanceiro status) {
+        BigDecimal total = lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
+                periodo.inicio(), periodo.fim(), tipo, status);
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     @Transactional(readOnly = true)
@@ -324,5 +325,8 @@ public class FinanceiroService {
 
     private OffsetDateTime paraInicioDoDia(LocalDate data) {
         return data.atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+    }
+
+    private record PeriodoFinanceiro(OffsetDateTime inicio, OffsetDateTime fim) {
     }
 }

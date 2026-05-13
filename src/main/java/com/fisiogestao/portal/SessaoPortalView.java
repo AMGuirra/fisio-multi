@@ -3,12 +3,14 @@ package com.fisiogestao.portal;
 import com.fisiogestao.agenda.SessaoEntity;
 
 /**
- * Visão de uma sessão agendada no portal do paciente.
- * Agrega a entidade com dados pré-computados para o template,
- * evitando lógica complexa no Thymeleaf.
- *
- * @param sessao      entidade da sessão
- * @param calendarUrl URL pronta para adicionar ao Google Calendar
+ * Visao de uma sessao agendada no portal do paciente.
+ * Agrega a entidade com dados pre-computados para o template,
+ * evitando logica complexa no Thymeleaf.
  */
-public record SessaoPortalView(SessaoEntity sessao, String calendarUrl) {
+public record SessaoPortalView(
+        SessaoEntity sessao,
+        String calendarUrl,
+        boolean cancelavel,
+        int horasAntecedencia
+) {
 }

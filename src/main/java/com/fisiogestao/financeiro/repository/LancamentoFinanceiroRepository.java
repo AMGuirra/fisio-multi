@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LancamentoFinanceiroRepository extends JpaRepository<LancamentoFinanceiroEntity, UUID> {
@@ -19,6 +20,14 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
 
     @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
     List<LancamentoFinanceiroEntity> findByPacoteSessaoId(UUID pacoteSessaoId);
+
+    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
+    List<LancamentoFinanceiroEntity> findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataCompetenciaDescCreatedAtDesc(
+            UUID clienteId, TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
+
+    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
+    Optional<LancamentoFinanceiroEntity> findByIdAndClienteIdAndTipoAndStatus(
+            UUID id, UUID clienteId, TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
     boolean existsByPacoteSessaoIdAndStatus(UUID pacoteSessaoId, StatusLancamentoFinanceiro status);
 
@@ -35,4 +44,28 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
     BigDecimal sumValorByTipoAndStatus(
             @Param("tipo") TipoLancamentoFinanceiro tipo,
             @Param("status") StatusLancamentoFinanceiro status);
+
+    @Query("""
+            SELECT COALESCE(SUM(l.valor), 0)
+            FROM LancamentoFinanceiroEntity l
+            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+              AND l.tipo = :tipo
+              AND l.status = :status
+            """)
+    BigDecimal sumValorByPeriodoAndTipoAndStatus(
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim,
+            @Param("tipo") TipoLancamentoFinanceiro tipo,
+            @Param("status") StatusLancamentoFinanceiro status);
+
+    long countByDataCompetenciaBetweenAndTipoAndStatus(
+            OffsetDateTime inicio,
+            OffsetDateTime fim,
+            TipoLancamentoFinanceiro tipo,
+            StatusLancamentoFinanceiro status);
+
+    long countByDataCompetenciaBetweenAndStatusNot(
+            OffsetDateTime inicio,
+            OffsetDateTime fim,
+            StatusLancamentoFinanceiro status);
 }

@@ -33,6 +33,7 @@
 
         .flash { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; font-size: 0.9rem; }
         .flash-success { background: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
+        .flash-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
         .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main); }
 
@@ -57,6 +58,10 @@
         .pacote-encerrado { opacity: 0.65; }
         .pacotes-encerrados-toggle { font-size: 0.85rem; color: var(--text-soft); cursor: pointer; display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; user-select: none; }
         .pacotes-encerrados-toggle:hover { color: var(--text-main); }
+        .saldo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.9rem; }
+        .saldo-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: #f8fcfb; }
+        .saldo-label { font-size: 0.78rem; color: var(--text-soft); }
+        .saldo-value { margin-top: 0.2rem; font-size: 1.35rem; font-weight: 800; color: var(--text-main); }
 
         .sessao-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
         .sessao-card:last-child { margin-bottom: 0; }
@@ -76,15 +81,24 @@
 
         .btn-confirmar { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius); background: var(--primary); color: #fff; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; }
         .btn-confirmar:hover { background: var(--primary-dark); }
+        .btn-cancelar { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius); background: #fff; color: var(--danger); border: 1px solid #fecaca; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn-cancelar:hover { background: #fff5f5; }
         .btn-ja-confirmado { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.45rem 0.9rem; border-radius: var(--radius); background: #dcfce7; color: var(--success); font-size: 0.85rem; font-weight: 600; border: 1px solid #bbf7d0; }
         .btn-calendar { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; padding: 0.4rem 0.8rem; border-radius: var(--radius); background: #f0f9ff; color: #0369a1; font-size: 0.8rem; font-weight: 600; border: 1px solid #bae6fd; text-decoration: none; }
         .btn-calendar:hover { background: #e0f2fe; }
+        .cancel-info { width: 100%; font-size: 0.78rem; color: var(--text-soft); margin-top: 0.1rem; }
 
         .historico-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; gap: 0.5rem; }
         .historico-row:last-child { border-bottom: none; }
         .historico-esq { display: flex; flex-direction: column; gap: 0.1rem; }
         .historico-data { color: var(--text-soft); font-size: 0.82rem; }
         .historico-tipo { font-size: 0.85rem; }
+        .recibo-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem; }
+        .recibo-row:last-child { border-bottom: none; }
+        .recibo-desc { font-weight: 600; font-size: 0.9rem; }
+        .recibo-meta { font-size: 0.8rem; color: var(--text-soft); margin-top: 0.15rem; }
+        .btn-recibo { display: inline-flex; align-items: center; padding: 0.42rem 0.75rem; border-radius: var(--radius); background: #f8fafc; color: var(--text-main); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .btn-recibo:hover { background: #eef6f4; }
 
         .empty { color: var(--text-soft); font-size: 0.9rem; text-align: center; padding: 1.5rem; }
 
@@ -109,6 +123,7 @@
 
     <!-- Flash -->
     <div th:if="${successMessage}" class="flash flash-success" th:text="${successMessage}">Sucesso</div>
+    <div th:if="${errorMessage}" class="flash flash-error" th:text="${errorMessage}">Erro</div>
 
     <!-- Card do paciente -->
     <div class="card">
@@ -119,6 +134,16 @@
         <p class="paciente-meta"
            th:if="${paciente.email != null and !#strings.isEmpty(paciente.email)}"
            th:text="'&#x2709; ' + ${paciente.email}"></p>
+        <div class="saldo-grid">
+            <div class="saldo-item">
+                <p class="saldo-label">Sessoes disponiveis</p>
+                <p class="saldo-value" th:text="${saldoSessoesAtivas}">0</p>
+            </div>
+            <div class="saldo-item">
+                <p class="saldo-label">Planos ativos</p>
+                <p class="saldo-value" th:text="${pacotesAtivos.size()}">0</p>
+            </div>
+        </div>
     </div>
 
     <!-- Proxima sessao em destaque -->
@@ -201,7 +226,35 @@
                 <a th:href="${sv.calendarUrl()}" target="_blank" rel="noopener" class="btn-calendar">
                     Google Agenda
                 </a>
+                <form th:if="${sv.cancelavel()}"
+                      th:action="@{/paciente/{token}/sessao/{sid}/cancelar(token=${token},sid=${sv.sessao().id})}"
+                      method="post" style="display:inline;"
+                      onsubmit="return confirm('Deseja cancelar esta sessao?');">
+                    <button type="submit" class="btn-cancelar">Cancelar sessao</button>
+                </form>
+                <p th:unless="${sv.cancelavel()}" class="cancel-info"
+                   th:text="'Cancelamento pelo portal disponivel ate ' + ${sv.horasAntecedencia()} + ' horas antes do atendimento.'">
+                    Cancelamento indisponivel.
+                </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Recibos -->
+    <div class="card" th:if="${!recibos.empty}">
+        <p class="section-title">Recibos disponiveis</p>
+        <div th:each="recibo : ${recibos}" class="recibo-row">
+            <div>
+                <p class="recibo-desc" th:text="${recibo.descricao}">Descricao</p>
+                <p class="recibo-meta"
+                   th:text="${#temporals.format(recibo.dataPagamento != null ? recibo.dataPagamento : recibo.dataCompetencia, 'dd/MM/yyyy') + ' - R$ ' + #numbers.formatDecimal(recibo.valor, 1, 'COMMA', 2, 'POINT')}">
+                    01/01/2026 - R$ 0,00
+                </p>
+            </div>
+            <a class="btn-recibo"
+               th:href="@{/paciente/{token}/recibos/{rid}(token=${token},rid=${recibo.id})}">
+                Baixar recibo
+            </a>
         </div>
     </div>
 

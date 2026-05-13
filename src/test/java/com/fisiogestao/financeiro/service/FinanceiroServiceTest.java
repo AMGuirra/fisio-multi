@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -318,16 +319,7 @@ class FinanceiroServiceTest {
 
     @Test
     void deveCalcularSaldoRealizadoESaldoProjetado() {
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA,  StatusLancamentoFinanceiro.PAGO,     "200.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA,  StatusLancamentoFinanceiro.PAGO,     "150.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA,  StatusLancamentoFinanceiro.PENDENTE, "100.00"),
-                lancamento(TipoLancamentoFinanceiro.DESPESA,  StatusLancamentoFinanceiro.PAGO,      "80.00"),
-                lancamento(TipoLancamentoFinanceiro.DESPESA,  StatusLancamentoFinanceiro.PENDENTE,  "50.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("350.00", "100.00", "80.00", "50.00", 2, 5);
 
         FinanceiroService.ResumoFinanceiro resumo =
                 financeiroService.calcularResumo(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
@@ -345,32 +337,18 @@ class FinanceiroServiceTest {
 
     @Test
     void canceladosNaoDevemEntrarNoCalculo() {
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,      "300.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.CANCELADO, "999.00"),
-                lancamento(TipoLancamentoFinanceiro.DESPESA, StatusLancamentoFinanceiro.CANCELADO, "999.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("300.00", "0.00", "0.00", "0.00", 1, 1);
 
         FinanceiroService.ResumoFinanceiro resumo =
                 financeiroService.calcularResumo(LocalDate.now(), LocalDate.now());
 
         assertEquals(new BigDecimal("300.00"), resumo.receitasRecebidas());
-        assertEquals(BigDecimal.ZERO,          resumo.despesasPagas());
+        assertEquals(0, BigDecimal.ZERO.compareTo(resumo.despesasPagas()));
     }
 
     @Test
     void deveCalcularTicketMedio() {
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO, "100.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO, "200.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO, "300.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("600.00", "0.00", "0.00", "0.00", 3, 3);
 
         FinanceiroService.ResumoFinanceiro resumo =
                 financeiroService.calcularResumo(LocalDate.now(), LocalDate.now());
@@ -381,9 +359,7 @@ class FinanceiroServiceTest {
 
     @Test
     void ticketMedioDeveSerZeroSemReceitas() {
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(List.of());
+        mockResumo("0.00", "0.00", "0.00", "0.00", 0, 0);
 
         FinanceiroService.ResumoFinanceiro resumo =
                 financeiroService.calcularResumo(LocalDate.now(), LocalDate.now());
@@ -394,23 +370,14 @@ class FinanceiroServiceTest {
     @Test
     void deveCalcularTaxaRecebimento() {
         // 350 recebido de 450 total → 350*100/450 = 77.7... → arredonda para 77.8 → "77,8%"
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,     "200.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,     "150.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "100.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("350.00", "100.00", "0.00", "0.00", 2, 3);
 
         assertEquals("77,8%", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaRecebimento());
     }
 
     @Test
     void taxaRecebimentoDeveSerZeroQuandoNaoHaReceitas() {
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(List.of());
+        mockResumo("0.00", "0.00", "0.00", "0.00", 0, 0);
 
         assertEquals("0,0%", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaRecebimento());
     }
@@ -418,13 +385,7 @@ class FinanceiroServiceTest {
     @Test
     void taxaToneDeveSerSuccessQuandoAcimaDe80Porcento() {
         // 800/1000 = 80% exato → success
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,     "800.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "200.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("800.00", "200.00", "0.00", "0.00", 1, 2);
 
         assertEquals("success", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaTone());
     }
@@ -432,13 +393,7 @@ class FinanceiroServiceTest {
     @Test
     void taxaToneDeveSerWarningEntre50E80Porcento() {
         // 600/1000 = 60% → warning
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,     "600.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "400.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("600.00", "400.00", "0.00", "0.00", 1, 2);
 
         assertEquals("warning", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaTone());
     }
@@ -446,22 +401,14 @@ class FinanceiroServiceTest {
     @Test
     void taxaToneDeveSerDangerAbaixoDe50Porcento() {
         // 300/1000 = 30% → danger
-        List<LancamentoFinanceiroEntity> lancamentos = List.of(
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO,     "300.00"),
-                lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "700.00")
-        );
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(lancamentos);
+        mockResumo("300.00", "700.00", "0.00", "0.00", 1, 2);
 
         assertEquals("danger", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaTone());
     }
 
     @Test
     void taxaToneDeveSerNeutralSemReceitas() {
-        when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(any(), any()))
-                .thenReturn(List.of());
+        mockResumo("0.00", "0.00", "0.00", "0.00", 0, 0);
 
         assertEquals("neutral", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaTone());
     }
@@ -469,6 +416,32 @@ class FinanceiroServiceTest {
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
+
+    private void mockResumo(String receitasRecebidas,
+                            String receitasPendentes,
+                            String despesasPagas,
+                            String despesasPendentes,
+                            long receitasPagasCount,
+                            long lancamentosAtivosCount) {
+        when(lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
+                any(), any(), eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PAGO)))
+                .thenReturn(new BigDecimal(receitasRecebidas));
+        when(lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
+                any(), any(), eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE)))
+                .thenReturn(new BigDecimal(receitasPendentes));
+        when(lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
+                any(), any(), eq(TipoLancamentoFinanceiro.DESPESA), eq(StatusLancamentoFinanceiro.PAGO)))
+                .thenReturn(new BigDecimal(despesasPagas));
+        when(lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
+                any(), any(), eq(TipoLancamentoFinanceiro.DESPESA), eq(StatusLancamentoFinanceiro.PENDENTE)))
+                .thenReturn(new BigDecimal(despesasPendentes));
+        when(lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndTipoAndStatus(
+                any(), any(), eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PAGO)))
+                .thenReturn(receitasPagasCount);
+        when(lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndStatusNot(
+                any(), any(), eq(StatusLancamentoFinanceiro.CANCELADO)))
+                .thenReturn(lancamentosAtivosCount);
+    }
 
     private LancamentoFinanceiroEntity lancamento(TipoLancamentoFinanceiro tipo,
                                                    StatusLancamentoFinanceiro status,
