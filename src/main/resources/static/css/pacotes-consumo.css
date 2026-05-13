@@ -368,7 +368,7 @@ body[data-theme="dark"] {
 .pname,
 .ctx-name {
   color: var(--pc-text);
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .pname {
@@ -389,7 +389,7 @@ body[data-theme="dark"] {
   border-radius: 999px;
   padding: 3px 6px;
   font-size: .64rem;
-  font-weight: 800;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -432,7 +432,7 @@ body[data-theme="dark"] {
   gap: 10px;
   color: var(--pc-muted);
   text-align: center;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .placeholder.compact {
