@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="configuracao-e-consumo">
+    <div th:replace="~{pacotes-consumo/fragmentos :: card-configuracao}"></div>
+    <div th:replace="~{pacotes-consumo/fragmentos :: card-consumo}"></div>
+</div>
+
+<div th:fragment="lista-pacientes" id="lista-pacientes" class="plist">
+    <div th:each="p : ${pacientes}"
+         class="prow"
+         th:classappend="${p.id == pacienteSelecionadoId} ? ' sel' : ''"
+         th:attr="data-id=${p.id},data-plan=${p.tipoPlano},data-name=${p.nomeCompleto},data-phone=${p.telefone},data-email=${p.email}"
+         onclick="selecionarPaciente(this)">
+        <div class="av" th:style="'background:' + ${p.corAvatar} + ';color:' + ${p.corTextoAvatar}">
+            <span th:text="${p.iniciais}">A</span>
+        </div>
+        <div class="pinfo">
+            <div class="pname" th:text="${p.nomeCompleto}">Antonio</div>
+            <div class="pdob" th:text="${p.dataNascimentoFormatada}">04/07/1995</div>
+        </div>
+        <span th:if="${p.possuiPlanoAtivo}"
+              class="pbadge"
+              th:classappend="${p.sessoesRestantes <= 2} ? ' pb-crit' : ' pb-act'"
+              th:text="${p.sessoesUsadas + '/' + p.sessoesTotal}">8/10</span>
+        <span th:unless="${p.possuiPlanoAtivo}" class="pbadge pb-none">Sem plano</span>
+        <i data-lucide="check" class="sel-mark" aria-hidden="true"></i>
+    </div>
+</div>
+
+<div th:fragment="card-configuracao" id="card-configuracao">
+    <div class="patient-ctx">
+        <div class="av ctx-av" th:style="'background:' + ${paciente.corAvatar} + ';color:' + ${paciente.corTextoAvatar}">
+            <span th:text="${paciente.iniciais}">A</span>
+        </div>
+        <div>
+            <div class="ctx-name" th:text="${paciente.nomeCompleto}">Antonio</div>
+            <div class="ctx-sub" th:text="${paciente.dataNascimentoFormatada}">04/07/1995</div>
+        </div>
+        <span class="mode-badge"
+              th:classappend="${modo == 'PACOTE'} ? ' mb-p' : ' mb-a'"
+              th:text="${modo == 'PACOTE'} ? 'Pacote' : 'Avulso'">Pacote</span>
+    </div>
+
+    <div class="divider">Tipo de atendimento</div>
+    <div class="toggle-wrap">
+        <button type="button" class="tgl" th:classappend="${modo == 'PACOTE'} ? ' on-p'" onclick="setModo('PACOTE')" th:disabled="${plano == null}">
+            <i data-lucide="package" aria-hidden="true"></i>
+            <span class="tgl-lbl">Usar pacote</span>
+            <span class="tgl-sub">Debita do saldo</span>
+        </button>
+        <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
+            <i data-lucide="coins" aria-hidden="true"></i>
+            <span class="tgl-lbl">Avulso</span>
+            <span class="tgl-sub">Cobranca unica</span>
+        </button>
+    </div>
+
+    <div th:if="${modo == 'PACOTE'}">
+        <div class="divider">Dados do plano</div>
+        <form th:action="@{/pacotes-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="fld">
+                <label>Tipo de plano</label>
+                <select name="tipoPlano">
+                    <option value="PACOTE_10" th:selected="${plano == null or plano.totalSessoes == 10}">Pacote de 10 Sessoes</option>
+                    <option value="PACOTE_5" th:selected="${plano != null and plano.totalSessoes == 5}">Pacote de 5 Sessoes</option>
+                    <option value="PACOTE_20" th:selected="${plano != null and plano.totalSessoes == 20}">Pacote de 20 Sessoes</option>
+                </select>
+            </div>
+            <div class="two">
+                <div class="fld">
+                    <label>No. de sessoes</label>
+                    <input type="number" name="totalSessoes" min="1" th:value="${plano?.totalSessoes ?: 10}">
+                </div>
+                <div class="fld">
+                    <label>Sessoes restantes</label>
+                    <input class="ro" readonly th:value="${plano?.sessoesRestantes ?: 0}">
+                </div>
+            </div>
+            <div class="fld">
+                <label>Valor total (R$)</label>
+                <input type="number" name="valorTotal" min="0" step="0.01" th:value="${plano != null ? #strings.replace(#strings.replace(#strings.replace(plano.valorFormatado, 'R$', ''), '.', ''), ',', '.') : '0.00'}">
+            </div>
+            <div class="two">
+                <div class="fld">
+                    <label>Inicio vigencia</label>
+                    <input type="date" name="inicioVigencia" th:value="${plano?.inicioVigencia}">
+                </div>
+                <div class="fld">
+                    <label>Fim vigencia</label>
+                    <input type="date" name="fimVigencia" th:value="${plano?.fimVigencia}">
+                </div>
+            </div>
+            <div class="fld">
+                <label>Status</label>
+                <select name="status">
+                    <option value="ATIVO" th:selected="${plano == null or plano.status == 'ATIVO'}">Ativo</option>
+                    <option value="EXPIRADO" th:selected="${plano != null and plano.status == 'EXPIRADO'}">Suspenso</option>
+                    <option value="CANCELADO" th:selected="${plano != null and plano.status == 'CANCELADO'}">Encerrado</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-save"><i data-lucide="save" aria-hidden="true"></i>Salvar Plano</button>
+        </form>
+    </div>
+
+    <div th:if="${modo == 'AVULSO'}">
+        <div class="divider">Dados do atendimento</div>
+        <form th:action="@{/pacotes-consumo/{id}/avulso(id=${paciente.id})}" method="post" class="pc-form">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="fld">
+                <label>Procedimento</label>
+                <select name="procedimento">
+                    <option value="Fisioterapia geral">Fisioterapia geral</option>
+                    <option value="RPG">RPG</option>
+                    <option value="Pilates clinico">Pilates clinico</option>
+                    <option value="Acupuntura">Acupuntura</option>
+                </select>
+            </div>
+            <div class="two">
+                <div class="fld">
+                    <label>Data do atendimento</label>
+                    <input type="date" name="dataAtendimento" th:value="${hoje}">
+                </div>
+                <div class="fld">
+                    <label>Horario</label>
+                    <select name="horario">
+                        <option value="08:00">08:00</option><option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option><option value="14:00">14:00</option>
+                    </select>
+                </div>
+            </div>
+            <div class="two">
+                <div class="fld">
+                    <label>Valor cobrado (R$)</label>
+                    <input type="number" name="valorCobrado" min="0" step="0.01" value="0.00">
+                </div>
+                <div class="fld">
+                    <label>Pagamento</label>
+                    <select name="formaPagamento">
+                        <option value="PIX">PIX</option>
+                        <option value="CARTAO">Cartao</option>
+                        <option value="DINHEIRO">Dinheiro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fld">
+                <label>Observacoes (opcional)</label>
+                <input type="text" name="observacoes" placeholder="Ex: pagou na chegada">
+            </div>
+            <button type="submit" class="btn-av"><i data-lucide="calendar-plus" aria-hidden="true"></i>Registrar Atendimento Avulso</button>
+        </form>
+    </div>
+</div>
+
+<div th:fragment="card-consumo" id="card-consumo">
+    <div th:if="${modo == 'PACOTE' and plano != null}">
+        <div th:if="${plano.sessoesRestantes <= 1}" class="alert-box alert-danger">
+            <i data-lucide="triangle-alert" aria-hidden="true"></i>
+            Última sessão do pacote! Renove antes de agendar.
+        </div>
+        <div th:if="${plano.sessoesRestantes > 1 and plano.sessoesRestantes <= 3}" class="alert-box alert-warn">
+            <i data-lucide="triangle-alert" aria-hidden="true"></i>
+            <span th:text="${plano.sessoesRestantes}">2</span> sessoes restantes. Considere renovar o pacote.
+        </div>
+
+        <div class="saldo-hdr">
+            <span class="saldo-lbl">Saldo de sessoes</span>
+            <span class="saldo-num" th:text="${plano.sessoesUsadas + ' / ' + plano.totalSessoes}">8 / 10</span>
+        </div>
+        <div class="pbar-bg">
+            <div class="pbar-fill" th:style="'width:' + ${plano.percentualUso} + '%;background:' + ${plano.corBarra}"></div>
+        </div>
+        <div class="pbar-meta" th:text="${plano.sessoesRestantes + ' sessao(oes) restante(s) · ' + plano.percentualUso + '% consumido'}">2 sessoes restantes</div>
+
+        <div class="dots-grid">
+            <div th:each="i : ${#numbers.sequence(1, plano.totalSessoes)}"
+                 class="dot-s"
+                 th:classappend="${i <= plano.sessoesUsadas} ? ' ds-done' : (${plano.sessoesRestantes <= 2} ? ' ds-warn' : ' ds-rem')"
+                 th:text="${i <= plano.sessoesUsadas} ? '✓' : ${i}">1</div>
+        </div>
+
+        <div class="divider">Historico de sessoes</div>
+        <div th:if="${#lists.isEmpty(historico)}" class="empty-mini">Nenhuma sessao registrada.</div>
+        <div th:each="sess : ${historico}" class="sess-item">
+            <div class="sds" th:classappend="${sess.realizada} ? ' sd-ok' : ' sd-pend'"></div>
+            <div>
+                <div class="sess-name" th:text="${sess.descricao}">Sessao realizada</div>
+                <div class="sess-time" th:text="${sess.dataHoraFormatada}">03/05/2026 · 09h00</div>
+            </div>
+            <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
+        </div>
+
+        <button class="btn-ag" th:onclick="|window.location.href='@{/calendario(pacienteId=${paciente.id})}'|">
+            <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessao
+        </button>
+    </div>
+
+    <div th:if="${modo == 'AVULSO'}">
+        <div class="divider top-zero">Resumo do atendimento</div>
+        <div class="acb-box">
+            <div class="acb-row"><span class="acb-lbl">Paciente</span><span class="acb-val" th:text="${paciente.nomeCompleto}">Antonio</span></div>
+            <div class="acb-row"><span class="acb-lbl">Procedimento</span><span class="acb-val" th:text="${resumoAvulso?.procedimento ?: '-'}">Fisioterapia geral</span></div>
+            <div class="acb-row"><span class="acb-lbl">Data / hora</span><span class="acb-val" th:text="${resumoAvulso?.dataHora ?: '-'}">14/05 · 09h00</span></div>
+            <div class="acb-row"><span class="acb-lbl">Pagamento</span><span class="acb-val" th:text="${resumoAvulso?.formaPagamento ?: '-'}">PIX</span></div>
+            <div class="acb-total"><span class="acb-tl">Total</span><span class="acb-tv" th:text="${resumoAvulso?.valorFormatado ?: 'R$ 0,00'}">R$ 80,00</span></div>
+        </div>
+
+        <div class="divider">Historico avulso</div>
+        <div th:if="${#lists.isEmpty(historicoAvulso)}" class="empty-mini">Nenhum atendimento avulso registrado.</div>
+        <div th:each="av : ${historicoAvulso}" class="sess-item">
+            <div class="sds sd-ok"></div>
+            <div>
+                <div class="sess-name" th:text="${av.procedimento}">Atendimento avulso</div>
+                <div class="sess-time" th:text="${av.dataFormatada + ' · ' + av.valorFormatado}">28/04/2026 · R$ 80,00</div>
+            </div>
+            <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
+        </div>
+
+        <p class="tip">Paciente sem pacote ativo. Registros avulsos sao exibidos acima.</p>
+    </div>
+</div>
+</body>
+</html>

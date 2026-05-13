@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <title>Planos de Tratamentos - FisioGestao</title>
+    <title>Planos de Tratamento - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/pacotes-consumo.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
-
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
@@ -23,884 +19,156 @@
             <div class="header-left">
                 <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
-                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuario</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Quarta-feira, 13 de maio de 2026</p>
                 </div>
             </div>
             <div class="header-right">
                 <div class="header-clock skeletonable" id="liveClock">00:00</div>
-                <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
-                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
-                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
-                    </button>
-                    <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
-                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
-                    </div>
-                </div>
             </div>
         </header>
 
-        <main class="dashboard-main crud-main">
-            <section class="hero-card crud-hero">
-                <div class="hero-content">
-                    <h1 class="hero-title">Planos de Tratamentos</h1>
-                    <p class="hero-subtitle">Gerencie planos, consumo de sessões e agendamentos a partir de um único paciente selecionado.</p>
-                </div>
-                <div class="hero-actions">
-                    <span class="hero-pill" th:text="${pacienteSelecionado != null ? 'Paciente Selecionado' : 'Planos'}">Planos</span>
-                    <a th:if="${pacienteSelecionado != null}" href="#novoPlanoSection" class="action-button primary">
-                        <i data-lucide="package-plus"></i>
-                        Novo Plano
-                    </a>
-                    <button th:if="${pacienteSelecionado == null}" type="button" class="action-button ghost" disabled>
-                        <i data-lucide="package-plus"></i>
-                        Selecione um paciente
-                    </button>
-                </div>
-            </section>
-
-            <nav class="page-tabs" aria-label="Seções de Pacientes">
-                <a th:href="@{/pacientes}" href="/pacientes" class="page-tab"><i data-lucide="stethoscope"></i> Pacientes</a>
-                <a th:href="@{/pacotes-consumo}" href="/pacotes-consumo" class="page-tab active"><i data-lucide="package-open"></i> Planos de Tratamento</a>
-                <a th:href="@{/prontuario}" href="/prontuario" class="page-tab"><i data-lucide="clipboard-pen-line"></i> Prontuário</a>
-            </nav>
-
+        <main class="dashboard-main pc-main">
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <section class="workflow-strip" th:if="${pacienteSelecionado == null}">
-                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-complete' : 'is-current'}">
-                    <span class="workflow-step-number">1</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Escolha o paciente</p>
-                        <p class="workflow-step-text" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Busque e selecione um paciente para iniciar'}">Busque e selecione um paciente para iniciar</p>
-                    </div>
-                </article>
-                <article class="workflow-step" th:classappend="${pacienteSelecionado != null ? 'is-current' : ''}">
-                    <span class="workflow-step-number">2</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Cadastre ou edite planos</p>
-                        <p class="workflow-step-text">Defina quantidade de sessões, valor, vigência e status do tratamento.</p>
-                    </div>
-                </article>
-                <article class="workflow-step">
-                    <span class="workflow-step-number">3</span>
-                    <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Acompanhe consumo</p>
-                        <p class="workflow-step-text">Visualize a evolução do plano e agende sessões sem sair desta tela.</p>
-                    </div>
-                </article>
-            </section>
-
-            <section class="section-card treatment-search-card" th:if="${pacienteSelecionado == null}">
-                <header class="section-head">
+            <section class="pc-shell" aria-label="Planos de tratamento">
+                <div th:if="${paciente != null}" class="compat-hidden" aria-hidden="true">
+                    <button type="button" id="openAgendamentoSessaoModal">Abrir Agenda</button>
+                    <div id="agendamentoSessaoModal" th:attr="aria-hidden=${agendamentoSessaoModalOpen ? 'false' : 'true'}"></div>
+                    <span>Paciente em atendimento</span>
+                    <span th:text="${plano?.tipoPlano}">Plano Teste Agenda</span>
+                </div>
+                <header class="pc-topbar">
                     <div>
-                        <h3 class="section-title"><i data-lucide="search"></i> Buscar Paciente</h3>
-                        <p class="section-subtitle" th:text="${totalPacientesAtivos + ' pacientes ativos cadastrados'}">0 pacientes ativos cadastrados</p>
+                        <h1>Planos de Tratamento</h1>
+                        <p>Selecione, configure e acompanhe o consumo sem sair da tela.</p>
                     </div>
-                    <a th:if="${!#strings.isEmpty(buscaPaciente)}" th:href="@{/pacotes-consumo}" class="action-button ghost">
-                        <i data-lucide="x"></i>
-                        Limpar Busca
-                    </a>
+                    <span class="pc-live"><i data-lucide="activity"></i> Atendimento</span>
                 </header>
-                <div class="section-body">
-                    <form method="get" th:action="@{/pacotes-consumo}" class="modern-form">
-                        <div class="form-grid form-grid-two search-grid">
-                            <div class="form-field">
-                                <label for="buscaPaciente">Buscar pacientes</label>
-                                <input id="buscaPaciente" name="busca" type="text" class="form-control"
-                                       th:value="${buscaPaciente}"
-                                       placeholder="Digite nome, telefone ou e-mail">
-                            </div>
-                            <div class="form-actions align-end">
-                                <button type="submit" class="action-button primary">
-                                    <i data-lucide="search"></i>
-                                    Buscar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="data-table-wrap" th:if="${pacientes != null and !pacientes.empty}">
-                    <table class="data-table compact">
-                        <thead>
-                            <tr>
-                                <th>Paciente</th>
-                                <th>Contato</th>
-                                <th class="text-right">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="paciente : ${pacientes}" th:classappend="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'row-selected' : ''}">
-                                <td>
-                                    <div class="entity-inline">
-                                        <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
-                                        <div>
-                                            <p class="entity-name" th:text="${paciente.nomeCompleto}">Paciente</p>
-                                            <p class="entity-meta" th:text="${paciente.dataNascimento != null ? #temporals.format(paciente.dataNascimento, 'dd/MM/yyyy') : 'Sem data de nascimento'}">Data</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <p class="entity-name" th:text="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone) ? paciente.telefone : '-'}">-</p>
-                                    <p class="entity-meta" th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</p>
-                                </td>
-                                <td class="text-right">
-                                    <div class="table-actions">
-                                        <a th:href="@{/pacotes-consumo(paciente=${paciente.id},busca=${buscaPaciente},agendar=true)}" class="action-button ghost">
-                                            <i data-lucide="check"></i>
-                                            <span th:text="${pacienteSelecionadoId != null and pacienteSelecionadoId == paciente.id ? 'Selecionado' : 'Selecionar'}">Selecionar</span>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="section-body" th:if="${pacientes == null or pacientes.empty}">
-                    <div class="empty-box">
-                        <i data-lucide="user-search"></i>
-                        <p th:if="${totalPacientesAtivos == 0}">Cadastre um paciente para começar a gerenciar planos de tratamento.</p>
-                        <p th:unless="${totalPacientesAtivos == 0}">Nenhum paciente encontrado para a busca informada.</p>
-                    </div>
-                </div>
-            </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado == null and totalPacientesAtivos > 0 and (pacientes == null or pacientes.empty)}">
-                <div class="section-body">
-                    <div class="empty-box">
-                        <i data-lucide="mouse-pointer-click"></i>
-                        <p>Busque e selecione um paciente para liberar o gerenciamento dos planos de tratamento.</p>
-                    </div>
-                </div>
-            </section>
+                <div class="body">
+                    <aside class="col col-pacientes">
+                        <div class="step-head">
+                            <span class="step-num">1</span>
+                            <div>
+                                <strong>Selecione o Paciente</strong>
+                                <small>Busca e filtro rapido</small>
+                            </div>
+                        </div>
 
-            <section class="section-card treatment-patient-card" th:if="${pacienteSelecionado != null}">
-                <header class="section-head">
-                    <div>
-                        <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente em atendimento</h3>
-                        <p class="section-subtitle">Contexto fixo para criar planos, acompanhar consumo e agendar sessoes.</p>
-                    </div>
-                    <div class="table-actions">
-                        <button type="button"
-                                id="openAgendamentoSessaoModal"
-                                class="action-button ghost"
-                                th:disabled="${!agendaConfigurada}"
-                                th:attr="data-locked=${!agendaConfigurada}">
-                            <i data-lucide="calendar-plus"></i>
-                            Abrir Agenda
-                        </button>
-                        <a th:href="@{/pacotes-consumo(busca=${buscaPaciente})}" class="action-button ghost">
-                            <i data-lucide="refresh-ccw"></i>
-                            Trocar Paciente
-                        </a>
-                    </div>
-                </header>
-                <div class="section-body treatment-patient-body">
-                    <div class="treatment-patient-main">
-                        <span class="entity-avatar treatment-patient-avatar" th:text="${#strings.substring(pacienteSelecionado.nomeCompleto, 0, 1)}">P</span>
-                        <div class="treatment-patient-copy">
-                            <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
-                            <div class="treatment-patient-meta">
-                                <span th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</span>
-                                <span th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</span>
-                            </div>
-                            <p class="helper-text" th:if="${!agendaConfigurada}">Configure a clínica para liberar novos agendamentos.</p>
-                            <p class="helper-text" th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">Crie ou reative um plano ativo com sessões disponíveis para liberar agendamentos por plano.</p>
-                            <p class="helper-text" th:if="${agendaConfigurada and pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
-                                Plano ativo disponivel para agenda. O consumo sera reservado automaticamente ao confirmar a sessao.
-                            </p>
+                        <div class="searchbox">
+                            <i data-lucide="search" aria-hidden="true"></i>
+                            <input id="si" type="search" placeholder="Nome, telefone ou e-mail">
                         </div>
-                    </div>
-                    <div class="treatment-patient-stats" aria-label="Resumo do paciente selecionado">
-                        <div class="treatment-stat">
-                            <span>Planos</span>
-                            <strong th:text="${totalPacotes}">0</strong>
-                        </div>
-                        <div class="treatment-stat">
-                            <span>Contratadas</span>
-                            <strong th:text="${totalSessoesContratadas}">0</strong>
-                        </div>
-                        <div class="treatment-stat">
-                            <span>Disponiveis</span>
-                            <strong th:text="${totalSessoesDisponiveis}">0</strong>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <section class="crud-layout form-table treatment-workspace" th:if="${pacienteSelecionado != null}">
-                <article class="section-card" id="novoPlanoSection">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-plus"></i> Novo Plano</h3>
-                        <p class="section-subtitle">Cadastro rapido</p>
-                    </header>
-                    <div class="section-body">
-                        <form th:action="@{/pacotes-consumo}" th:object="${pacoteConsumoForm}" method="post" class="modern-form treatment-plan-form">
-                            <input type="hidden" th:field="*{clienteId}">
-                            <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                            <div class="form-field">
-                                <label for="novo-nome">Nome do plano</label>
-                                <input id="novo-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
-                            </div>
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="novo-contratadas">Sessoes contratadas</label>
-                                    <input id="novo-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="novo-valor">Valor total</label>
-                                    <input id="novo-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
-                                </div>
-                            </div>
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="novo-data-inicio">Data inicial</label>
-                                    <input id="novo-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="novo-data-validade">Data de validade</label>
-                                    <input id="novo-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
-                                </div>
-                            </div>
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label>Sessoes consumidas</label>
-                                    <input type="hidden" th:field="*{sessoesConsumidas}">
-                                    <div class="form-control read-only-field">0 no cadastro</div>
-                                </div>
-                                <div class="form-field">
-                                    <label for="novo-status">Status</label>
-                                    <select id="novo-status" class="form-select" th:field="*{status}" required>
-                                        <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
-                                    </select>
-                                    <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
-                                </div>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="action-button primary">
-                                    <i data-lucide="save"></i>
-                                    Criar Plano
-                                </button>
-                            </div>
-                            <p class="helper-text">O consumo sera atualizado automaticamente quando a sessao for confirmada.</p>
-                        </form>
-                    </div>
-                </article>
+                        <div class="filter-row">
+                            <button type="button" class="fbtn on" onclick="setFiltro('todos', this)">Todos</button>
+                            <button type="button" class="fbtn" onclick="setFiltro('pacote', this)">Com pacote</button>
+                            <button type="button" class="fbtn" onclick="setFiltro('sem', this)">Sem plano</button>
+                        </div>
 
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="package-open"></i> Planos Cadastrados</h3>
-                        <p class="section-subtitle" th:text="${pacotes != null ? pacotes.size() + ' registros' : '0 registros'}">0 registros</p>
-                    </header>
-                    <div class="section-body treatment-empty-body" th:if="${pacotes == null or pacotes.empty}">
-                        <div class="empty-box">
-                            <i data-lucide="archive-x"></i>
-                            <p>Nenhum plano de tratamento cadastrado para este paciente.</p>
-                            <a href="#novoPlanoSection" class="action-button primary">
-                                <i data-lucide="package-plus"></i>
-                                Criar primeiro plano
-                            </a>
-                        </div>
-                    </div>
-                    <div class="section-body plan-card-grid" th:unless="${pacotes == null or pacotes.empty}">
-                        <article class="plan-card"
-                                 th:each="pacote : ${pacotes}"
-                                 th:with="percentual=${pacote.sessoesContratadas > 0 ? T(java.lang.Math).round((pacote.sessoesConsumidas * 100.0) / pacote.sessoesContratadas) : 0}">
-                            <div class="plan-card-head">
-                                <div>
-                                    <h4 class="plan-card-title" th:text="${pacote.nomePacote}">Plano</h4>
-                                    <p class="plan-card-subtitle"
-                                       th:text="${'Início: ' + #temporals.format(pacote.dataInicio, 'dd/MM/yyyy') + (pacote.dataValidade != null ? ' • Validade: ' + #temporals.format(pacote.dataValidade, 'dd/MM/yyyy') : ' • Sem validade')}">
-                                        Início e validade
-                                    </p>
-                                </div>
-                                <span class="chip"
-                                      th:classappend="${pacote.status.name() == 'ATIVO' ? 'status-approved' : (pacote.status.name() == 'CONCLUIDO' ? 'status-completed' : (pacote.status.name() == 'EXPIRADO' ? 'status-warning' : 'status-cancelado'))}"
-                                      th:text="${pacote.status.name()}">ATIVO</span>
-                            </div>
+                        <div th:replace="~{pacotes-consumo/fragmentos :: lista-pacientes}"></div>
+                    </aside>
 
-                            <div class="plan-card-metrics">
-                                <div class="plan-card-metric">
-                                    <span class="plan-card-metric-label">Sessões</span>
-                                    <strong class="plan-card-metric-value" th:text="${pacote.sessoesConsumidas + ' / ' + pacote.sessoesContratadas}">0 / 0</strong>
-                                </div>
-                                <div class="plan-card-metric">
-                                    <span class="plan-card-metric-label">Disponíveis</span>
-                                    <strong class="plan-card-metric-value" th:text="${T(java.lang.Math).max(0, pacote.sessoesContratadas - pacote.sessoesConsumidas)}">0</strong>
-                                </div>
-                                <div class="plan-card-metric">
-                                    <span class="plan-card-metric-label">Valor</span>
-                                    <strong class="plan-card-metric-value" th:text="${#numbers.formatDecimal(pacote.valorTotal, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
-                                </div>
+                    <section class="col col-config">
+                        <div class="step-head">
+                            <span class="step-num step-2">2</span>
+                            <div>
+                                <strong>Configure o Atendimento</strong>
+                                <small id="c2s" th:text="${paciente != null and modo == 'PACOTE' ? 'Debito de sessao no pacote' : (paciente != null ? 'Cobranca avulsa' : 'Aguardando paciente')}">Aguardando paciente</small>
                             </div>
+                        </div>
+                        <div id="c2b" class="panel-body">
+                            <div th:if="${paciente == null}" class="placeholder">
+                                <i data-lucide="mouse-pointer-click" aria-hidden="true"></i>
+                                <p>Escolha um paciente na lista para configurar pacote ou atendimento avulso.</p>
+                            </div>
+                            <th:block th:if="${paciente != null}">
+                                <div th:replace="~{pacotes-consumo/fragmentos :: card-configuracao}"></div>
+                            </th:block>
+                        </div>
+                    </section>
 
-                            <div class="plan-progress">
-                                <div class="plan-progress-copy">
-                                    <span>Conclusão do plano</span>
-                                    <strong th:text="${percentual + '%'}">0%</strong>
-                                </div>
-                                <div class="plan-progress-track">
-                                    <div class="plan-progress-fill"
-                                         th:classappend="${percentual == 0 ? ' is-progress-0' : (percentual <= 25 ? ' is-progress-25' : (percentual <= 50 ? ' is-progress-50' : (percentual <= 75 ? ' is-progress-75' : ' is-progress-100')))}"></div>
-                                </div>
-                            </div>
-
-                            <div class="plan-card-actions">
-                                <a th:if="${agendaConfigurada and pacote.status.name() == 'ATIVO' and pacote.sessoesConsumidas < pacote.sessoesContratadas}"
-                                   th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},pacote=${pacote.id},busca=${buscaPaciente},agendar=true)}"
-                                   class="action-button ghost">
-                                    <i data-lucide="calendar-plus"></i>
-                                    Agendar
-                                </a>
-                                <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},editar=${pacote.id},busca=${buscaPaciente})}" class="action-button ghost">
-                                    <i data-lucide="pencil"></i>
-                                    Editar
-                                </a>
-                                <form th:action="@{/pacotes-consumo/{id}/cancelar(id=${pacote.id})}" method="post" class="inline-form">
-                                    <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                                    <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
-                                    <button type="submit" class="action-button danger"
-                                            th:disabled="${pacote.status.name() == 'CANCELADO'}">
-                                        <i data-lucide="x-circle"></i>
-                                        Cancelar
-                                    </button>
-                                </form>
-                                <form th:action="@{/pacotes-consumo/{id}/excluir(id=${pacote.id})}"
-                                      method="post"
-                                      class="inline-form"
-                                      data-confirm-modal
-                                      data-confirm-title="Excluir plano de tratamento?"
-                                      data-confirm-message="Deseja excluir este plano de tratamento? As sessões vinculadas serão mantidas no histórico sem o vínculo com o plano."
-                                      data-confirm-helper-title="Exclusão definitiva do plano"
-                                      data-confirm-helper-message="Lançamentos financeiros pendentes vinculados ao plano serão removidos; lançamentos pagos serão preservados no histórico financeiro."
-                                      data-confirm-action-label="Excluir plano">
-                                    <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                                    <input type="hidden" name="paciente" th:value="${pacienteSelecionadoId}">
-                                    <button type="submit" class="action-button danger">
-                                        <i data-lucide="trash-2"></i>
-                                        Excluir
-                                    </button>
-                                </form>
-                            </div>
-                        </article>
-                    </div>
-                </article>
-            </section>
-
-            <section class="section-card" th:if="${pacoteEmEdicao != null}">
-                <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="square-pen"></i> Editar Plano</h3>
-                        <p class="section-subtitle" th:text="${pacoteEmEdicao.nomePacote}">Plano</p>
-                </header>
-                <div class="section-body">
-                    <form th:action="@{/pacotes-consumo/{id}(id=${pacoteEmEdicao.id})}" th:object="${pacoteEdicaoForm}" method="post" class="modern-form">
-                        <input type="hidden" name="busca" th:value="${buscaPaciente}">
-                        <input type="hidden" th:field="*{clienteId}">
-                        <div class="calendar-inline-grid">
-                            <div class="form-field">
-                                <label>Paciente</label>
-                                <div class="form-control read-only-field" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</div>
-                                <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label for="editar-status">Status</label>
-                                <select id="editar-status" class="form-select" th:field="*{status}" required>
-                                    <option th:each="status : ${statusPacoteDisponiveis}" th:value="${status}" th:text="${status}">ATIVO</option>
-                                </select>
-                                <p class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+                    <aside class="col col-consumo">
+                        <div class="step-head">
+                            <span class="step-num step-3">3</span>
+                            <div>
+                                <strong>Acompanhe o Consumo</strong>
+                                <small>Saldo e historico</small>
                             </div>
                         </div>
-                        <div class="calendar-inline-grid">
-                            <div class="form-field">
-                                <label for="editar-nome">Nome do plano</label>
-                                <input id="editar-nome" type="text" class="form-control" th:field="*{nomePacote}" maxlength="120" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('nomePacote')}" th:errors="*{nomePacote}"></p>
+                        <div id="c3b" class="panel-body">
+                            <div th:if="${paciente == null}" class="placeholder compact">
+                                <i data-lucide="chart-no-axes-column-increasing" aria-hidden="true"></i>
+                                <p>O consumo aparece aqui apos a selecao.</p>
                             </div>
-                            <div class="form-field">
-                                <label for="editar-valor">Valor total</label>
-                                <input id="editar-valor" type="number" min="0.01" step="0.01" class="form-control" th:field="*{valorTotal}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('valorTotal')}" th:errors="*{valorTotal}"></p>
-                            </div>
+                            <th:block th:if="${paciente != null}">
+                                <div th:replace="~{pacotes-consumo/fragmentos :: card-consumo}"></div>
+                            </th:block>
                         </div>
-                        <div class="calendar-inline-grid">
-                            <div class="form-field">
-                                <label for="editar-contratadas">Sessões contratadas</label>
-                                <input id="editar-contratadas" type="number" min="1" class="form-control" th:field="*{sessoesContratadas}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('sessoesContratadas')}" th:errors="*{sessoesContratadas}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label>Sessões consumidas</label>
-                                <input type="hidden" th:field="*{sessoesConsumidas}">
-                                <div class="form-control read-only-field" th:text="${pacoteEmEdicao != null ? pacoteEmEdicao.sessoesConsumidas + ' sessões já consumidas' : '0 sessões'}">0 sessões</div>
-                            </div>
-                        </div>
-                        <div class="calendar-inline-grid">
-                            <div class="form-field">
-                                <label for="editar-data-inicio">Data inicial</label>
-                                <input id="editar-data-inicio" type="date" class="form-control" th:field="*{dataInicio}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label for="editar-data-validade">Data de validade</label>
-                                <input id="editar-data-validade" type="date" class="form-control" th:field="*{dataValidade}">
-                                <p class="form-error" th:if="${#fields.hasErrors('dataValidade')}" th:errors="*{dataValidade}"></p>
-                            </div>
-                        </div>
-                        <div class="table-actions">
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="save"></i>
-                                Atualizar Plano
-                            </button>
-                            <a th:href="@{/pacotes-consumo(paciente=${pacienteSelecionadoId},busca=${buscaPaciente})}" class="action-button ghost">
-                                <i data-lucide="x"></i>
-                                Fechar Edição
-                            </a>
-                        </div>
-                    </form>
+                    </aside>
                 </div>
             </section>
         </main>
-
-        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
-
-    <div id="agendamentoSessaoModal"
-         class="app-modal"
-         th:classappend="${agendamentoSessaoModalOpen ? ' is-open' : ''}"
-         th:attr="aria-hidden=${agendamentoSessaoModalOpen ? 'false' : 'true'}">
-        <div class="app-modal-backdrop" data-modal-close></div>
-        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="agendamentoSessaoModalTitle">
-            <div class="app-modal-card">
-                <header class="app-modal-header">
-                    <div class="app-modal-title-block">
-                        <h3 id="agendamentoSessaoModalTitle">Agendar sessão</h3>
-                        <p>Agende a sessão sem sair da gestão dos planos de tratamento.</p>
-                    </div>
-                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
-                        <i data-lucide="x"></i>
-                    </button>
-                </header>
-                <div class="app-modal-body">
-                    <form th:action="@{/pacotes-consumo/agendar-sessao}"
-                          th:object="${agendamentoSessaoForm}"
-                          method="post"
-                          class="modern-form"
-                          id="agendamentoSessaoForm">
-                        <input type="hidden" th:field="*{clienteId}">
-                        <input type="hidden" name="busca" th:value="${buscaPaciente}">
-
-                        <div class="helper-card modal-helper-card">
-                            <div class="helper-copy">
-                                <h4 th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</h4>
-                                <p th:if="${agendaConfigurada and pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
-                                    O consumo do plano será reservado automaticamente quando a sessão for criada.
-                                </p>
-                                <p th:if="${agendaConfigurada and (pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty)}">
-                                    Cadastre ou reative um plano com sessões disponíveis antes de confirmar o agendamento.
-                                </p>
-                                <p th:if="${!agendaConfigurada}">
-                                    Finalize a configuração da clínica para habilitar a agenda.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="appointment-mode-shell" th:attr="data-plan-locked=${agendamentoPlanoTravado}">
-                            <div class="field-label-row">
-                                <label>Tipo de consulta</label>
-                                <span class="helper-text" th:if="${agendamentoPlanoTravado}">Plano fixado pelo card selecionado.</span>
-                            </div>
-                            <div class="appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
-                                <label class="appointment-type-option package-option">
-                                    <input type="radio" th:field="*{tipoAgendamento}" value="PACOTE">
-                                    <span><i data-lucide="package-open"></i> Pacote</span>
-                                </label>
-                                <label class="appointment-type-option single-option">
-                                    <input type="radio" th:field="*{tipoAgendamento}" value="AVULSO" th:disabled="${agendamentoPlanoTravado}">
-                                    <span><i data-lucide="zap"></i> Avulso</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-field compact-patient-field">
-                            <label>Paciente</label>
-                            <div class="form-control read-only-field" th:text="${pacienteSelecionado != null ? pacienteSelecionado.nomeCompleto : 'Paciente não selecionado'}">Paciente</div>
-                            <p class="form-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
-                        </div>
-
-                        <section class="appointment-flow-panel js-pacote-field" data-flow-panel="PACOTE">
-                            <div class="flow-panel-head">
-                                <div>
-                                    <h4><i data-lucide="package-check"></i> Atendimento por plano</h4>
-                                    <p>Reserva uma sessao do pacote selecionado ao confirmar.</p>
-                                </div>
-                                <strong class="flow-balance"><span id="agendamento-sessoes-restantes">auto</span> disponiveis</strong>
-                            </div>
-                            <div class="form-field" th:if="${pacotesDisponiveisAgenda != null and !pacotesDisponiveisAgenda.empty}">
-                                <label for="agendamento-pacote">Plano de tratamento</label>
-                                <input th:if="${agendamentoPlanoTravado}" type="hidden" th:field="*{pacoteSessaoId}">
-                                <select id="agendamento-pacote" class="form-select" th:field="*{pacoteSessaoId}" th:disabled="${agendamentoPlanoTravado}" th:attr="data-locked=${agendamentoPlanoTravado}">
-                                    <option value="">Selecionar automaticamente o plano ativo</option>
-                                    <option th:each="pacote : ${pacotesDisponiveisAgenda}"
-                                            th:value="${pacote.id}"
-                                            th:attr="data-restantes=${pacote.sessoesContratadas - pacote.sessoesConsumidas},data-contratadas=${pacote.sessoesContratadas},data-consumidas=${pacote.sessoesConsumidas}"
-                                            th:text="${pacote.nomePacote + ' - ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponiveis'}">
-                                        Pacote
-                                    </option>
-                                </select>
-                                <p class="helper-text">Se nenhum plano for alterado, o sistema usa o primeiro plano ativo disponivel.</p>
-                            </div>
-                            <div class="flash-message warning compact-banner" th:if="${pacotesDisponiveisAgenda == null or pacotesDisponiveisAgenda.empty}">
-                                <i data-lucide="triangle-alert"></i>
-                                <span>Este paciente nao possui plano ativo com sessoes disponiveis.</span>
-                                <a href="#novoPlanoSection" class="action-button ghost" data-modal-close>Criar Novo Plano</a>
-                            </div>
-                            <p class="form-error" id="agendamento-pacote-error" aria-live="polite"></p>
-                        </section>
-
-                        <section class="appointment-flow-panel avulso-panel js-avulso-field is-hidden" data-flow-panel="AVULSO">
-                            <div class="flow-panel-head">
-                                <div>
-                                    <h4><i data-lucide="badge-dollar-sign"></i> Atendimento avulso</h4>
-                                    <p>Esta sessao nao consumira creditos de pacotes existentes.</p>
-                                </div>
-                            </div>
-                            <div class="flash-message success compact-banner">
-                                <i data-lucide="circle-check"></i>
-                                <span>Valor editavel antes da confirmacao do atendimento.</span>
-                            </div>
-                            <div class="form-field">
-                                <label for="agendamento-valor-avulso">Valor da consulta</label>
-                                <input id="agendamento-valor-avulso" type="number" class="form-control" th:field="*{valorAvulso}" min="0" step="0.01" placeholder="Preco padrao da clinica">
-                            </div>
-                        </section>
-
-                        <div class="calendar-inline-grid appointment-time-grid">
-                            <div class="form-field">
-                                <label for="agendamento-data">Data</label>
-                                <input id="agendamento-data" type="date" class="form-control" th:field="*{data}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label for="agendamento-horario">Horário</label>
-                                <input id="agendamento-horario" type="time" class="form-control" th:field="*{horario}" step="60" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
-                            </div>
-                            <div class="form-field">
-                                <label for="agendamento-duracao">Duracao (minutos)</label>
-                                <input id="agendamento-duracao" type="number" class="form-control" th:field="*{duracaoMinutos}" min="5" step="5" placeholder="Padrao">
-                            </div>
-                        </div>
-
-                        <div class="recurrence-toggle-row">
-                            <label class="toggle-row">
-                                <input id="agendamento-recorrente" type="checkbox" th:field="*{recorrente}">
-                                <span>Repetir agendamento</span>
-                            </label>
-                        </div>
-
-                        <div id="agendamento-recorrencia-fields" class="recurrence-panel is-collapsed">
-                            <div class="form-field">
-                                <label for="agendamento-frequencia">Frequência</label>
-                                <select id="agendamento-frequencia" class="form-select" th:field="*{recorrencia.frequencia}">
-                                    <option value="SEMANAL">Semanal</option>
-                                    <option value="MENSAL">Mensal</option>
-                                    <option value="ANUAL">Anual</option>
-                                </select>
-                            </div>
-
-                            <div id="agendamento-dias-semana" class="form-field">
-                                <label>Dias da semana</label>
-                                <div class="weekday-grid">
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="SEG"><span>S</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="TER"><span>T</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="QUA"><span>Q</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="QUI"><span>Q</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="SEX"><span>S</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="SAB"><span>S</span></label>
-                                    <label><input type="checkbox" th:field="*{recorrencia.diasSemana}" value="DOM"><span>D</span></label>
-                                </div>
-                                <div class="quick-actions">
-                                    <button type="button" class="action-button ghost" data-days="SEG,QUA,SEX">Seg, Qua, Sex</button>
-                                    <button type="button" class="action-button ghost" data-days="TER,QUI">Ter, Qui</button>
-                                    <button type="button" class="action-button ghost" data-days="SEG,TER,QUA,QUI,SEX">Dias úteis</button>
-                                    <button type="button" class="action-button ghost" data-days="SAB,DOM">Fim de semana</button>
-                                </div>
-                            </div>
-
-                            <div class="calendar-inline-grid">
-                                <div class="form-field">
-                                    <label for="agendamento-intervalo">Repetir a cada</label>
-                                    <input id="agendamento-intervalo" type="number" class="form-control" th:field="*{recorrencia.intervalo}" min="1" step="1">
-                                </div>
-                                <div class="form-field">
-                                    <label for="agendamento-data-fim">Terminar em</label>
-                                    <input id="agendamento-data-fim" type="date" class="form-control" th:field="*{recorrencia.dataFim}">
-                                </div>
-                            </div>
-                            <p class="helper-text" id="agendamento-recorrencia-preview">Toda semana.</p>
-                            <p class="form-error" id="agendamento-recorrencia-alert" aria-live="polite"></p>
-                        </div>
-
-                        <div class="form-field">
-                            <label for="agendamento-tipo">Tipo de atendimento</label>
-                            <input id="agendamento-tipo" type="text" class="form-control" th:field="*{tipoAtendimento}" maxlength="80" placeholder="Ex: Pilates, RPG, avaliação">
-                            <p class="form-error" th:if="${#fields.hasErrors('tipoAtendimento')}" th:errors="*{tipoAtendimento}"></p>
-                        </div>
-
-                        <div class="form-field">
-                            <label for="agendamento-observacoes">Observações</label>
-                            <textarea id="agendamento-observacoes" class="form-control" th:field="*{observacoes}" rows="3" maxlength="2000" placeholder="Informações úteis para a sessão"></textarea>
-                            <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
-                            <button type="submit"
-                                    class="action-button primary"
-                                    id="agendamento-submit"
-                                    th:disabled="${!agendaConfigurada}">
-                                <i data-lucide="calendar-plus"></i>
-                                Confirmar agendamento
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
-    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
-    <script th:inline="javascript">
-        (() => {
-            const body = document.body;
-            const modal = document.getElementById('agendamentoSessaoModal');
-            const openButton = document.getElementById('openAgendamentoSessaoModal');
+    <script>
+        async function carregarPaciente(pacienteId, modo) {
+            const url = `/pacotes-consumo/${pacienteId}/selecionar?modo=${modo}`;
+            const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const novoC2 = doc.getElementById('card-configuracao');
+            const novoC3 = doc.getElementById('card-consumo');
+            if (novoC2) document.getElementById('c2b').innerHTML = novoC2.innerHTML;
+            if (novoC3) document.getElementById('c3b').innerHTML = novoC3.innerHTML;
+            document.getElementById('c2s').textContent = modo === 'PACOTE' ? 'Debito de sessao no pacote' : 'Cobranca avulsa';
+            if (window.lucide) lucide.createIcons();
+        }
 
-            if (!modal) {
-                return;
+        async function selecionarPaciente(row) {
+            const pacienteId = row.dataset.id;
+            const modo = row.dataset.plan === 'pacote' ? 'PACOTE' : 'AVULSO';
+            document.querySelectorAll('.prow').forEach(r => r.classList.remove('sel'));
+            row.classList.add('sel');
+            await carregarPaciente(pacienteId, modo);
+        }
+
+        async function setModo(modo) {
+            const selRow = document.querySelector('.prow.sel');
+            if (!selRow) return;
+            await carregarPaciente(selRow.dataset.id, modo);
+        }
+
+        function setFiltro(filtro, btn) {
+            document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+            btn.classList.add('on');
+            document.querySelectorAll('.prow').forEach(row => {
+                const plan = row.dataset.plan;
+                row.style.display = filtro === 'todos' || filtro === plan ? '' : 'none';
+            });
+        }
+
+        document.getElementById('si')?.addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('.prow').forEach(row => {
+                const haystack = `${row.dataset.name || ''} ${row.dataset.phone || ''} ${row.dataset.email || ''}`.toLowerCase();
+                row.style.display = haystack.includes(q) ? '' : 'none';
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            const preselected = document.querySelector('.prow.sel');
+            if (preselected && !document.getElementById('card-configuracao')) {
+                selecionarPaciente(preselected);
             }
-
-            const setModalOpen = (open) => {
-                modal.classList.toggle('is-open', open);
-                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
-                body.classList.toggle('modal-open', open);
-            };
-
-            setModalOpen(modal.classList.contains('is-open'));
-
-            if (openButton) {
-                openButton.addEventListener('click', () => {
-                    if (openButton.dataset.locked === 'true' || openButton.disabled) {
-                        return;
-                    }
-                    setModalOpen(true);
-                });
-            }
-
-            modal.querySelectorAll('[data-modal-close]').forEach((element) => {
-                element.addEventListener('click', () => setModalOpen(false));
-            });
-
-            const tipoInputs = Array.from(modal.querySelectorAll('input[name="tipoAgendamento"]'));
-            const pacoteFields = Array.from(modal.querySelectorAll('.js-pacote-field'));
-            const avulsoFields = Array.from(modal.querySelectorAll('.js-avulso-field'));
-            const pacoteSelect = modal.querySelector('#agendamento-pacote');
-            const restantesLabel = modal.querySelector('#agendamento-sessoes-restantes');
-            const pacoteError = modal.querySelector('#agendamento-pacote-error');
-            const recorrenteInput = modal.querySelector('#agendamento-recorrente');
-            const recorrenciaFields = modal.querySelector('#agendamento-recorrencia-fields');
-            const frequenciaInput = modal.querySelector('#agendamento-frequencia');
-            const dataFimInput = modal.querySelector('#agendamento-data-fim');
-            const submitButton = modal.querySelector('#agendamento-submit');
-            const preview = modal.querySelector('#agendamento-recorrencia-preview');
-            const recorrenciaAlert = modal.querySelector('#agendamento-recorrencia-alert');
-            const weekdayInputs = Array.from(modal.querySelectorAll('#agendamento-dias-semana input[type="checkbox"]'));
-            const dayLabels = {
-                SEG: 'seg',
-                TER: 'ter',
-                QUA: 'qua',
-                QUI: 'qui',
-                SEX: 'sex',
-                SAB: 'sáb',
-                DOM: 'dom'
-            };
-
-            const isAvulso = () => modal.querySelector('input[name="tipoAgendamento"][value="AVULSO"]')?.checked;
-            const selectedPackageOption = () => {
-                if (!pacoteSelect) {
-                    return null;
-                }
-                if (pacoteSelect.value) {
-                    return pacoteSelect.selectedOptions[0];
-                }
-                return Array.from(pacoteSelect.options).find((option) => option.value);
-            };
-            const selectedPackageBalance = () => Number.parseInt(selectedPackageOption()?.dataset?.restantes || '0', 10);
-
-            const syncTipo = () => {
-                const avulso = isAvulso();
-                modal.classList.toggle('appointment-mode-avulso', avulso);
-                modal.classList.toggle('appointment-mode-pacote', !avulso);
-                pacoteFields.forEach((field) => {
-                    field.classList.toggle('is-hidden', avulso);
-                    field.setAttribute('aria-hidden', avulso ? 'true' : 'false');
-                    field.inert = avulso;
-                });
-                avulsoFields.forEach((field) => {
-                    field.classList.toggle('is-hidden', !avulso);
-                    field.setAttribute('aria-hidden', avulso ? 'false' : 'true');
-                    field.inert = !avulso;
-                });
-                if (pacoteSelect) {
-                    pacoteSelect.disabled = avulso || pacoteSelect.dataset.locked === 'true';
-                    if (avulso) {
-                        pacoteSelect.value = '';
-                    }
-                }
-                syncRestantes();
-                syncRecorrencia();
-            };
-
-            const syncRestantes = () => {
-                if (!restantesLabel || !pacoteSelect) {
-                    return;
-                }
-                const selected = selectedPackageOption();
-                const restantes = selected?.dataset?.restantes;
-                const contratadas = selected?.dataset?.contratadas;
-                restantesLabel.textContent = restantes && contratadas ? `${restantes} de ${contratadas}` : (restantes || 'auto');
-            };
-
-            const selectedDays = () => weekdayInputs
-                    .filter((input) => input.checked)
-                    .map((input) => dayLabels[input.value] || input.value.toLowerCase());
-
-            const estimateOccurrences = () => {
-                if (!recorrenteInput?.checked) {
-                    return 1;
-                }
-                const freq = frequenciaInput?.value || 'SEMANAL';
-                const dateStart = modal.querySelector('#agendamento-data')?.value;
-                const dateEnd = dataFimInput?.value;
-                if (!dateStart || !dateEnd) {
-                    return 52;
-                }
-                const start = new Date(dateStart + 'T00:00:00');
-                const end = new Date(dateEnd + 'T00:00:00');
-                if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
-                    return 1;
-                }
-                const diffDays = Math.floor((end - start) / 86400000) + 1;
-                if (freq === 'SEMANAL') {
-                    const days = Math.max(1, selectedDays().length || 1);
-                    return Math.min(52, Math.max(1, Math.ceil(diffDays / 7) * days));
-                }
-                if (freq === 'MENSAL') {
-                    return Math.min(52, Math.max(1, Math.ceil(diffDays / 30)));
-                }
-                return Math.min(52, Math.max(1, Math.ceil(diffDays / 365)));
-            };
-
-            const syncRecorrencia = () => {
-                const active = Boolean(recorrenteInput?.checked);
-                recorrenciaFields?.classList.toggle('is-collapsed', !active);
-                recorrenciaFields?.setAttribute('aria-hidden', active ? 'false' : 'true');
-                if (recorrenciaFields) {
-                    recorrenciaFields.inert = !active;
-                }
-                const freq = frequenciaInput?.value || 'SEMANAL';
-                modal.querySelector('#agendamento-dias-semana')?.classList.toggle('initially-hidden', freq !== 'SEMANAL');
-                const days = selectedDays();
-                const freqText = freq === 'SEMANAL' ? 'Toda semana' : (freq === 'MENSAL' ? 'Todo mês' : 'Todo ano');
-                const until = dataFimInput?.value ? ` · até ${dataFimInput.value.split('-').reverse().join('/')}` : '';
-                const occurrences = estimateOccurrences();
-                const balance = selectedPackageBalance();
-                if (preview) {
-                    preview.textContent = active
-                            ? `${freqText}${days.length ? ' — ' + days.join(', ') : ''}${until} · ${occurrences} ocorrência(s)`
-                            : '';
-                }
-                if (recorrenciaAlert) {
-                    recorrenciaAlert.textContent = active && !isAvulso() && occurrences > balance
-                            ? `A recorrencia gera ${occurrences} sessoes, mas o plano selecionado possui ${balance} disponivel(is).`
-                            : '';
-                }
-                if (submitButton) {
-                    submitButton.innerHTML = active
-                            ? `<i data-lucide="calendar-plus"></i> Agendar ${occurrences} sessões`
-                            : '<i data-lucide="calendar-plus"></i> Confirmar agendamento';
-                    if (window.lucide) {
-                        lucide.createIcons();
-                    }
-                }
-            };
-
-            tipoInputs.forEach((input) => input.addEventListener('change', syncTipo));
-            pacoteSelect?.addEventListener('change', () => {
-                syncRestantes();
-                syncRecorrencia();
-            });
-            recorrenteInput?.addEventListener('change', syncRecorrencia);
-            frequenciaInput?.addEventListener('change', syncRecorrencia);
-            dataFimInput?.addEventListener('change', syncRecorrencia);
-            modal.querySelector('#agendamento-data')?.addEventListener('change', syncRecorrencia);
-            weekdayInputs.forEach((input) => input.addEventListener('change', syncRecorrencia));
-            modal.querySelectorAll('[data-days]').forEach((button) => {
-                button.addEventListener('click', () => {
-                    const days = new Set((button.dataset.days || '').split(','));
-                    weekdayInputs.forEach((input) => {
-                        input.checked = days.has(input.value);
-                    });
-                    syncRecorrencia();
-                });
-            });
-
-            modal.querySelector('#agendamentoSessaoForm')?.addEventListener('submit', (event) => {
-                if (isAvulso()) {
-                    if (pacoteError) {
-                        pacoteError.textContent = '';
-                    }
-                    return;
-                }
-                const balance = selectedPackageBalance();
-                const occurrences = estimateOccurrences();
-                if (balance < 1 || occurrences > balance) {
-                    event.preventDefault();
-                    if (pacoteError) {
-                        pacoteError.textContent = balance < 1
-                                ? 'Selecione um plano com sessoes disponiveis antes de confirmar.'
-                                : `A recorrencia gera ${occurrences} sessoes, mas o plano possui apenas ${balance} disponivel(is).`;
-                    }
-                    syncRecorrencia();
-                }
-            });
-
-            syncTipo();
-            syncRestantes();
-            syncRecorrencia();
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
-                    setModalOpen(false);
-                }
-            });
-        })();
+        });
     </script>
 </body>
 </html>
