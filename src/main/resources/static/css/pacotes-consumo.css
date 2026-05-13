@@ -55,6 +55,7 @@
   --pc-muted: var(--color-text-muted);
   --pc-border: var(--color-border);
   --pc-input: var(--color-background-input, var(--color-surface));
+  --pc-panel-shadow: rgba(15, 23, 42, .05);
   --g-dark-sidebar: #0a1e18;
   --g-dark-sidebar-b: #1a3028;
   --g-dark-sidebar-txt: #6a9e8a;
@@ -193,8 +194,9 @@ body[data-theme="dark"] {
 
 .body {
   display: flex;
-  gap: 10px;
-  padding: 12px 14px;
+  align-items: stretch;
+  gap: 18px;
+  padding: 18px 22px 22px;
   min-height: calc(100vh - 210px);
 }
 
@@ -204,19 +206,20 @@ body[data-theme="dark"] {
   background: var(--color-background);
   min-height: 100%;
   overflow: hidden;
+  box-shadow: 0 12px 28px var(--pc-panel-shadow);
 }
 
 .col-pacientes {
-  flex: 0 0 220px;
+  flex: 0 0 248px;
 }
 
 .col-config {
   flex: 1 1 auto;
-  min-width: 380px;
+  min-width: 520px;
 }
 
 .col-consumo {
-  flex: 0 0 210px;
+  flex: 0 0 270px;
 }
 
 .step-head {
@@ -413,7 +416,7 @@ body[data-theme="dark"] {
 }
 
 .panel-body {
-  padding: 12px;
+  padding: 16px;
 }
 
 .placeholder {
@@ -764,6 +767,8 @@ body[data-theme="dark"] {
 @media (max-width: 1100px) {
   .body {
     flex-wrap: wrap;
+    gap: 14px;
+    padding: 14px;
   }
 
   .col-pacientes,
@@ -785,6 +790,11 @@ body[data-theme="dark"] {
   .pc-topbar,
   .body {
     display: grid;
+  }
+
+  .body {
+    gap: 12px;
+    padding: 12px;
   }
 
   .col,
