@@ -93,8 +93,6 @@ class PacoteSessaoServiceTest {
         PacoteSessaoForm form = formPacote("Plano", 5, "200.00",
                 LocalDate.now(), LocalDate.now().minusDays(1));
 
-        when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente("João"));
-
         assertThrows(BusinessException.class, () -> pacoteSessaoService.criar(clienteId, form));
         verify(pacoteSessaoRepository, never()).save(any());
     }

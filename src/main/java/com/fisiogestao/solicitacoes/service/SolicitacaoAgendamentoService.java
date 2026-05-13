@@ -39,7 +39,6 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -79,20 +78,21 @@ public class SolicitacaoAgendamentoService {
             SolicitacaoStatus status,
             LocalDate inicioInclusive,
             LocalDate fimInclusive,
-            String buscaPaciente
-    ) {
+            String buscaPaciente) {
         String buscaTexto = texto(buscaPaciente);
         String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
         ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
 
-        // Quando há filtro de datas, usamos uma query delimitada por updatedAt para evitar
+        // Quando há filtro de datas, usamos uma query delimitada por updatedAt para
+        // evitar
         // full table scan. Sem datas, carrega somente os não-PENDENTE ordenados.
         List<SolicitacaoAgendamentoEntity> candidatos;
         if (inicioInclusive != null && fimInclusive != null) {
             OffsetDateTime dtInicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
             OffsetDateTime dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
             candidatos = solicitacaoAgendamentoRepository
-                    .findByStatusNotAndUpdatedAtBetweenOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE, dtInicio, dtFim);
+                    .findByStatusNotAndUpdatedAtBetweenOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE, dtInicio,
+                            dtFim);
         } else {
             candidatos = solicitacaoAgendamentoRepository
                     .findByStatusNotOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE);
@@ -134,21 +134,20 @@ public class SolicitacaoAgendamentoService {
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
     }
 
-    public List<SolicitacaoAgendamentoEntity> listarPendentesNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
+    public List<SolicitacaoAgendamentoEntity> listarPendentesNoPeriodo(LocalDate inicioInclusive,
+            LocalDate fimExclusive) {
         IntervaloPeriodo periodo = periodo(inicioInclusive, fimExclusive);
         return solicitacaoAgendamentoRepository.findByStatusAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
                 SolicitacaoStatus.PENDENTE,
                 periodo.inicio(),
-                periodo.fim()
-        );
+                periodo.fim());
     }
 
     public List<SolicitacaoAgendamentoEntity> listarNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusive) {
         IntervaloPeriodo periodo = periodo(inicioInclusive, fimExclusive);
         return solicitacaoAgendamentoRepository.findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(
                 periodo.inicio(),
-                periodo.fim()
-        );
+                periodo.fim());
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -160,17 +159,17 @@ public class SolicitacaoAgendamentoService {
         agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
         ClienteEntity clienteExistente = pacienteService.buscarPorCpfTelefoneOuEmail(
-                        form.getCpf(),
-                        form.getTelefone(),
-                        form.getEmail()
-                )
+                form.getCpf(),
+                form.getTelefone(),
+                form.getEmail())
                 .orElse(null);
 
         DadosEndereco endereco = resolverEnderecoSolicitacao(form, clienteExistente);
         String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
 
         SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
-                .nomePaciente(resolverTexto(form.getNomePaciente(), clienteExistente != null ? clienteExistente.getNomeCompleto() : null))
+                .nomePaciente(resolverTexto(form.getNomePaciente(),
+                        clienteExistente != null ? clienteExistente.getNomeCompleto() : null))
                 .telefone(form.getTelefone().replaceAll("\\D", ""))
                 .email(texto(form.getEmail()))
                 .cpf(normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos."))
@@ -194,8 +193,7 @@ public class SolicitacaoAgendamentoService {
                 salva,
                 null,
                 "Solicitação pública de agendamento criada.",
-                AuditEventOrigin.ONLINE
-        );
+                AuditEventOrigin.ONLINE);
 
         HorarioBloqueadoEntity bloqueio = HorarioBloqueadoEntity.builder()
                 .dataHoraInicio(intervalo.inicio())
@@ -229,8 +227,7 @@ public class SolicitacaoAgendamentoService {
                 pacienteForm,
                 AuditEventOrigin.MANUAL,
                 "Cadastro atualizado a partir da solicitação online.",
-                "Paciente criado a partir da solicitação online."
-        );
+                "Paciente criado a partir da solicitação online.");
 
         solicitacao.setCliente(cliente);
         SolicitacaoAgendamentoEntity solicitacaoSalva = solicitacaoAgendamentoRepository.save(solicitacao);
@@ -245,8 +242,7 @@ public class SolicitacaoAgendamentoService {
                     auditService.snapshotOf(solicitacaoSalva),
                     null,
                     "Paciente cadastrado e vinculado à solicitação online.",
-                    AuditEventOrigin.MANUAL
-            );
+                    AuditEventOrigin.MANUAL);
         } catch (Exception ex) {
             log.warn("Falha ao registrar auditoria de cadastro para a solicitacao {}.", solicitacaoSalva.getId(), ex);
         }
@@ -276,16 +272,14 @@ public class SolicitacaoAgendamentoService {
                 solicitacao.getDataHoraFim(),
                 bloqueio.getId(),
                 null,
-                true
-        );
+                true);
 
         ClienteEntity cliente = solicitacao.getCliente();
 
         PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(
                 cliente.getId(),
                 form != null ? form.getPacoteSessaoId() : null,
-                null
-        );
+                null);
         pacoteSessaoService.reservarSessao(pacote.getId());
 
         SessaoEntity sessao = SessaoEntity.builder()
@@ -305,8 +299,7 @@ public class SolicitacaoAgendamentoService {
                 salva,
                 null,
                 "Sessão criada a partir da aprovação de solicitação online.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         solicitacao.setCliente(cliente);
         solicitacao.setStatus(SolicitacaoStatus.APROVADA);
@@ -321,8 +314,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(solicitacaoSalva),
                 null,
                 "Solicitação aprovada e convertida em sessão.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         bloqueio.setStatus(HorarioBloqueadoStatus.CONFIRMADO);
         horarioBloqueadoRepository.save(bloqueio);
@@ -357,15 +349,15 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 null,
                 "Solicitação rejeitada pela clínica.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         agendamentoEmailNotificationService.notificarRecusado(solicitacao);
     }
 
     @Transactional
     public SolicitacaoAgendamentoEntity editarSolicitacao(UUID solicitacaoId, EditarSolicitacaoForm form) {
-        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository
+                .findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Apenas solicitações pendentes podem ser editadas."));
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
@@ -379,9 +371,11 @@ public class SolicitacaoAgendamentoService {
         }
 
         String novoNome = texto(form.getNomePaciente());
-        if (novoNome == null) throw new BusinessException("Informe o nome do paciente.");
+        if (novoNome == null)
+            throw new BusinessException("Informe o nome do paciente.");
         String novoTelefone = form.getTelefone() == null ? null : form.getTelefone().replaceAll("\\D", "");
-        if (novoTelefone == null || novoTelefone.isBlank()) throw new BusinessException("Informe o telefone.");
+        if (novoTelefone == null || novoTelefone.isBlank())
+            throw new BusinessException("Informe o telefone.");
 
         solicitacao.setNomePaciente(novoNome);
         solicitacao.setTelefone(novoTelefone);
@@ -407,8 +401,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 texto(form.getMotivo()),
                 "Solicitação editada manualmente.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         if (horarioAlterado) {
             bloqueio.setDataHoraInicio(novoIntervalo.inicio());
@@ -423,7 +416,8 @@ public class SolicitacaoAgendamentoService {
 
     @Transactional
     public SolicitacaoAgendamentoEntity reagendarSolicitacao(UUID solicitacaoId, ReagendarSolicitacaoForm form) {
-        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository
+                .findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser reagendadas."));
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
@@ -450,8 +444,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 texto(form.getMotivo()),
                 "Solicitação online reagendada.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         bloqueio.setDataHoraInicio(novoIntervalo.inicio());
         bloqueio.setDataHoraFim(novoIntervalo.fim());
@@ -475,14 +468,14 @@ public class SolicitacaoAgendamentoService {
             sessaoRepository.findFirstByClienteIdAndDataHoraInicioAndStatus(
                     solicitacao.getCliente().getId(),
                     solicitacao.getDataHoraInicio(),
-                    com.fisiogestao.agenda.SessaoStatus.AGENDADA
-            ).ifPresent(sessao -> {
-                if (Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado()) && sessao.getPacoteSessao() != null) {
-                    pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
-                }
-                sessao.setStatus(com.fisiogestao.agenda.SessaoStatus.CANCELADA);
-                sessaoRepository.save(sessao);
-            });
+                    com.fisiogestao.agenda.SessaoStatus.AGENDADA).ifPresent(sessao -> {
+                        if (Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())
+                                && sessao.getPacoteSessao() != null) {
+                            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
+                        }
+                        sessao.setStatus(com.fisiogestao.agenda.SessaoStatus.CANCELADA);
+                        sessaoRepository.save(sessao);
+                    });
         }
 
         horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId).ifPresent(bloqueio -> {
@@ -502,8 +495,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 null,
                 "Solicitação aprovada cancelada manualmente.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         agendamentoEmailNotificationService.notificarCancelado(solicitacao);
     }
@@ -512,12 +504,14 @@ public class SolicitacaoAgendamentoService {
     public void restaurarSolicitacao(UUID solicitacaoId) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
-        if (solicitacao.getStatus() != SolicitacaoStatus.REJEITADA && solicitacao.getStatus() != SolicitacaoStatus.CANCELADA) {
+        if (solicitacao.getStatus() != SolicitacaoStatus.REJEITADA
+                && solicitacao.getStatus() != SolicitacaoStatus.CANCELADA) {
             throw new BusinessException("Apenas solicitações rejeitadas ou canceladas podem ser restauradas.");
         }
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
-        agendaService.validarHorarioDisponivel(solicitacao.getDataHoraInicio(), solicitacao.getDataHoraFim(), null, null);
+        agendaService.validarHorarioDisponivel(solicitacao.getDataHoraInicio(), solicitacao.getDataHoraFim(), null,
+                null);
 
         horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId).ifPresentOrElse(bloqueio -> {
             bloqueio.setDataHoraInicio(solicitacao.getDataHoraInicio());
@@ -549,8 +543,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 null,
                 "Solicitação restaurada para pendente.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
     }
 
@@ -578,15 +571,15 @@ public class SolicitacaoAgendamentoService {
                 null,
                 null,
                 "Solicitação excluída permanentemente.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
         solicitacaoAgendamentoRepository.delete(solicitacao);
     }
 
     @Transactional
     public void bloquearPeriodoDaSolicitacao(UUID solicitacaoId, String motivo, String usuario) {
-        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository
+                .findByIdAndStatus(solicitacaoId, SolicitacaoStatus.PENDENTE)
                 .orElseThrow(() -> new BusinessException("Somente solicitações pendentes podem ser bloqueadas."));
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
 
@@ -622,8 +615,7 @@ public class SolicitacaoAgendamentoService {
                 auditService.snapshotOf(salva),
                 motivoBloqueio,
                 "Solicitação cancelada por indisponibilidade do horário.",
-                AuditEventOrigin.MANUAL
-        );
+                AuditEventOrigin.MANUAL);
 
     }
 
@@ -658,8 +650,7 @@ public class SolicitacaoAgendamentoService {
             SolicitacaoAgendamentoEntity solicitacao,
             LocalDate inicioInclusive,
             LocalDate fimInclusive,
-            ZoneId zoneId
-    ) {
+            ZoneId zoneId) {
         if (inicioInclusive == null && fimInclusive == null) {
             return true;
         }
@@ -681,8 +672,7 @@ public class SolicitacaoAgendamentoService {
     private boolean correspondeBuscaHistorico(
             SolicitacaoAgendamentoEntity solicitacao,
             String buscaTexto,
-            String buscaTelefone
-    ) {
+            String buscaTelefone) {
         if (buscaTexto == null) {
             return true;
         }
@@ -693,12 +683,6 @@ public class SolicitacaoAgendamentoService {
                 && solicitacao.getTelefone() != null
                 && solicitacao.getTelefone().contains(buscaTelefone);
         return nomeCorresponde || telefoneCorresponde;
-    }
-
-    private boolean estaNoPeriodo(OffsetDateTime valor, OffsetDateTime inicioInclusive, OffsetDateTime fimExclusive) {
-        return valor != null
-                && !valor.isBefore(inicioInclusive)
-                && valor.isBefore(fimExclusive);
     }
 
     private void validarFormularioPublico(AgendamentoOnlineForm form) {
@@ -717,9 +701,11 @@ public class SolicitacaoAgendamentoService {
         }
     }
 
-    private PacienteForm montarFormularioPaciente(SolicitacaoAgendamentoEntity solicitacao, AprovacaoSolicitacaoForm form) {
+    private PacienteForm montarFormularioPaciente(SolicitacaoAgendamentoEntity solicitacao,
+            AprovacaoSolicitacaoForm form) {
         PacienteForm pacienteForm = new PacienteForm();
-        pacienteForm.setNomeCompleto(resolverTexto(form != null ? form.getNomeCompleto() : null, solicitacao.getNomePaciente()));
+        pacienteForm.setNomeCompleto(
+                resolverTexto(form != null ? form.getNomeCompleto() : null, solicitacao.getNomePaciente()));
         pacienteForm.setTelefone(resolverTexto(form != null ? form.getTelefone() : null, solicitacao.getTelefone()));
         pacienteForm.setEmail(resolverTexto(form != null ? form.getEmail() : null, solicitacao.getEmail()));
         pacienteForm.setCpf(resolverTexto(form != null ? form.getCpf() : null, solicitacao.getCpf()));
@@ -746,8 +732,7 @@ public class SolicitacaoAgendamentoService {
         String cidade = resolverTexto(form.getCidade(), clienteExistente != null ? clienteExistente.getCidade() : null);
         String estado = resolverTexto(
                 normalizarEstado(form.getEstado()),
-                clienteExistente != null ? clienteExistente.getEstado() : null
-        );
+                clienteExistente != null ? clienteExistente.getEstado() : null);
 
         if (rua == null || numero == null || bairro == null || cidade == null || estado == null) {
             throw new BusinessException("Informe o endereço completo para atendimento em domicílio.");
@@ -844,15 +829,17 @@ public class SolicitacaoAgendamentoService {
         return observacoes + "\nEndereço do atendimento: " + endereco;
     }
 
-    private record IntervaloPeriodo(OffsetDateTime inicio, OffsetDateTime fim) {}
+    private record IntervaloPeriodo(OffsetDateTime inicio, OffsetDateTime fim) {
+    }
 
-    private record DadosEndereco(String cep, String rua, String numero, String bairro, String cidade, String estado) {}
+    private record DadosEndereco(String cep, String rua, String numero, String bairro, String cidade, String estado) {
+    }
 
     public record ResumoSolicitacoes(
             long totalPendentes,
             long totalAprovadas,
             long totalNegadas,
             long totalGeral,
-            int taxaAprovacao
-    ) {}
+            int taxaAprovacao) {
+    }
 }

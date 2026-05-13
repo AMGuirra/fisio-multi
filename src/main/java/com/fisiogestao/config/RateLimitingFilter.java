@@ -2,7 +2,6 @@ package com.fisiogestao.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -145,8 +144,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private Bucket criarBucket(RotaProtegida rota) {
-        Refill refill = Refill.greedy(rota.limite, rota.janela);
-        Bandwidth limit = Bandwidth.classic(rota.limite, refill);
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(rota.limite)
+                .refillGreedy(rota.limite, rota.janela)
+                .build();
         return Bucket.builder().addLimit(limit).build();
     }
 
