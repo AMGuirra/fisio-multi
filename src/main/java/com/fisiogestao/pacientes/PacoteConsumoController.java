@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -64,16 +65,38 @@ public class PacoteConsumoController {
         return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
     }
 
+    @PostMapping("/pacotes/iniciar-fluxo")
+    public String iniciarFluxo(
+            @RequestParam UUID pacienteId,
+            @RequestParam String fluxo,
+            Model model
+    ) {
+        adicionarContextoPaciente(pacienteId, fluxo, model);
+        return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+    }
+
     @PostMapping("/{pacienteId}/plano")
     public String salvarPlano(
             @PathVariable UUID pacienteId,
             @ModelAttribute PlanoFormDTO form,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
     ) {
         try {
             planoService.salvarOuAtualizar(pacienteId, form);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", "Plano salvo com sucesso.");
+                adicionarContextoPaciente(pacienteId, "PACOTE", model);
+                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+            }
             redirectAttributes.addFlashAttribute("successMessage", "Plano salvo com sucesso.");
         } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "CRIAR_PACOTE", model);
+                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+            }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/pacotes-consumo?pacienteId=" + pacienteId;
@@ -132,13 +155,25 @@ public class PacoteConsumoController {
             @PathVariable UUID pacienteId,
             @ModelAttribute AtendimentoAvulsoFormDTO form,
             Authentication authentication,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
     ) {
         try {
             String usuario = authentication == null ? "Equipe da clínica" : authentication.getName();
             sessaoConsumoService.registrarAvulso(pacienteId, form, usuario);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", "Atendimento avulso registrado.");
+                adicionarContextoPaciente(pacienteId, "AVULSO", model);
+                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+            }
             redirectAttributes.addFlashAttribute("successMessage", "Atendimento avulso registrado.");
         } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "AVULSO", model);
+                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+            }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/pacotes-consumo?pacienteId=" + pacienteId;
@@ -147,10 +182,7 @@ public class PacoteConsumoController {
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
         PacienteListaDTO paciente = planoService.buscarResumoDTO(pacienteId);
         PlanoResumoDTO plano = planoService.buscarPlanoPorPaciente(pacienteId);
-        String modo = plano == null ? "AVULSO" : modoSolicitado;
-        if (!"AVULSO".equals(modo)) {
-            modo = "PACOTE";
-        }
+        String modo = normalizarModo(modoSolicitado, plano != null);
 
         model.addAttribute("paciente", paciente);
         model.addAttribute("plano", plano);
@@ -159,6 +191,23 @@ public class PacoteConsumoController {
         model.addAttribute("historicoAvulso", sessaoConsumoService.historicoAvulsoPorPaciente(pacienteId));
         model.addAttribute("resumoAvulso", sessaoConsumoService.resumoAvulso(pacienteId));
         model.addAttribute("hoje", LocalDate.now());
+    }
+
+    private String normalizarModo(String modoSolicitado, boolean possuiPlano) {
+        if ("AVULSO".equals(modoSolicitado)) {
+            return "AVULSO";
+        }
+        if ("CRIAR_PACOTE".equals(modoSolicitado)) {
+            return "CRIAR_PACOTE";
+        }
+        if (!possuiPlano) {
+            return "ESCOLHA";
+        }
+        return "PACOTE";
+    }
+
+    private boolean isAjax(String requestedWith) {
+        return "XMLHttpRequest".equalsIgnoreCase(requestedWith);
     }
 
     private String construirDestinoLegado(UUID pacienteId) {

@@ -1,6 +1,7 @@
 package com.fisiogestao.agenda.dto;
 
 import com.fisiogestao.agenda.TipoAgendamento;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,5 +34,10 @@ public class AgendamentoRequestDto {
 
     public boolean recorrente() {
         return false;
+    }
+
+    @AssertTrue(message = "Quando tipo = PACOTE, informe o pacoteId do plano de tratamento.")
+    public boolean isPacoteObrigatorioQuandoUsarPlano() {
+        return tipo != TipoAgendamento.PACOTE || pacoteId != null;
     }
 }

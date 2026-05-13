@@ -39,25 +39,45 @@
         </div>
         <span class="mode-badge"
               th:classappend="${modo == 'PACOTE'} ? ' mb-p' : ' mb-a'"
-              th:text="${modo == 'PACOTE'} ? 'Pacote' : 'Avulso'">Pacote</span>
+              th:text="${modo == 'PACOTE'} ? 'Pacote' : (${modo == 'CRIAR_PACOTE'} ? 'Criar pacote' : (${modo == 'ESCOLHA'} ? 'Escolha' : 'Avulso'))">Pacote</span>
+    </div>
+    <div th:if="${successMessage}" class="inline-feedback ok" th:text="${successMessage}">Sucesso</div>
+    <div th:if="${errorMessage}" class="inline-feedback err" th:text="${errorMessage}">Erro</div>
+
+    <div th:if="${modo == 'ESCOLHA'}" class="flow-choice">
+        <div class="divider">Escolha de modalidade</div>
+        <div class="choice-grid">
+            <button type="button" class="choice-card choice-primary" onclick="iniciarFluxo('CRIAR_PACOTE')">
+                <i data-lucide="package-plus" aria-hidden="true"></i>
+                <span class="choice-title">Criar Pacote</span>
+                <span class="choice-sub">Cadastre sessoes, valor e validade antes de usar saldo.</span>
+            </button>
+            <button type="button" class="choice-card choice-outline" onclick="iniciarFluxo('AVULSO')">
+                <i data-lucide="coins" aria-hidden="true"></i>
+                <span class="choice-title">Atendimento Avulso</span>
+                <span class="choice-sub">Registre uma cobranca pontual sem pacote ativo.</span>
+            </button>
+        </div>
     </div>
 
-    <div class="divider">Tipo de atendimento</div>
-    <div class="toggle-wrap">
-        <button type="button" class="tgl" th:classappend="${modo == 'PACOTE'} ? ' on-p'" onclick="setModo('PACOTE')" th:disabled="${plano == null}">
-            <i data-lucide="package" aria-hidden="true"></i>
-            <span class="tgl-lbl">Usar pacote</span>
-            <span class="tgl-sub">Debita do saldo</span>
-        </button>
-        <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
-            <i data-lucide="coins" aria-hidden="true"></i>
-            <span class="tgl-lbl">Avulso</span>
-            <span class="tgl-sub">Cobranca unica</span>
-        </button>
+    <div th:if="${modo != 'ESCOLHA' and modo != 'CRIAR_PACOTE'}">
+        <div class="divider">Tipo de atendimento</div>
+        <div class="toggle-wrap">
+            <button type="button" class="tgl" th:classappend="${modo == 'PACOTE'} ? ' on-p'" onclick="setModo('PACOTE')">
+                <i data-lucide="package" aria-hidden="true"></i>
+                <span class="tgl-lbl">Usar pacote</span>
+                <span class="tgl-sub">Debita do saldo</span>
+            </button>
+            <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
+                <i data-lucide="coins" aria-hidden="true"></i>
+                <span class="tgl-lbl">Avulso</span>
+                <span class="tgl-sub">Cobranca unica</span>
+            </button>
+        </div>
     </div>
 
-    <div th:if="${modo == 'PACOTE'}">
-        <div class="divider">Dados do plano</div>
+    <div th:if="${modo == 'PACOTE' or modo == 'CRIAR_PACOTE'}">
+        <div class="divider" th:text="${modo == 'CRIAR_PACOTE'} ? 'Dados do novo pacote' : 'Dados do plano'">Dados do plano</div>
         <form th:action="@{/pacotes-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="fld">
@@ -100,7 +120,10 @@
                     <option value="CANCELADO" th:selected="${plano != null and plano.status == 'CANCELADO'}">Encerrado</option>
                 </select>
             </div>
-            <button type="submit" class="btn-save"><i data-lucide="save" aria-hidden="true"></i>Salvar Plano</button>
+            <button type="submit" class="btn-save">
+                <i data-lucide="save" aria-hidden="true"></i>
+                <span th:text="${modo == 'CRIAR_PACOTE'} ? 'Criar Pacote' : 'Salvar Plano'">Salvar Plano</span>
+            </button>
         </form>
     </div>
 
@@ -154,6 +177,16 @@
 </div>
 
 <div th:fragment="card-consumo" id="card-consumo">
+    <div th:if="${modo == 'ESCOLHA'}" class="placeholder compact">
+        <i data-lucide="list-checks" aria-hidden="true"></i>
+        <p>Escolha criar um pacote ou registrar um atendimento avulso para acompanhar o historico aqui.</p>
+    </div>
+
+    <div th:if="${modo == 'CRIAR_PACOTE'}" class="placeholder compact">
+        <i data-lucide="package-plus" aria-hidden="true"></i>
+        <p>Depois de salvar o pacote, o saldo de sessoes fica disponivel nesta coluna.</p>
+    </div>
+
     <div th:if="${modo == 'PACOTE' and plano != null}">
         <div th:if="${plano.sessoesRestantes <= 1}" class="alert-box alert-danger">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
