@@ -15,9 +15,6 @@ import java.util.UUID;
 
 public interface LancamentoFinanceiroRepository extends JpaRepository<LancamentoFinanceiroEntity, UUID> {
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
-    List<LancamentoFinanceiroEntity> findAllByOrderByDataCompetenciaDescCreatedAtDesc();
-
     boolean existsByClienteId(UUID clienteId);
 
     @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})

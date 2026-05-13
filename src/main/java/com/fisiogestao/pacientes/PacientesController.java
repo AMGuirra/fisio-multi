@@ -110,6 +110,25 @@ public class PacientesController {
         return "redirect:/pacientes";
     }
 
+    /**
+     * Gera novo token para o portal do paciente, invalidando o link anterior.
+     * Útil quando o paciente reportar que o link foi comprometido.
+     */
+    @PostMapping("/{id}/rotacionar-token-portal")
+    public String rotacionarTokenPortal(
+            @PathVariable UUID id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            pacienteService.rotacionarPortalToken(id);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Link do portal regenerado. O link anterior foi invalidado.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/pacientes";
+    }
+
     private void prepararPagina(
             Model model,
             Page<ClienteEntity> pacientesPage,

@@ -1725,3 +1725,139 @@ body[data-theme='dark'] .flash-message.warning {
         display: none;
     }
 }
+
+/* ===================================================
+   Shared polish pass - keeps every authenticated page
+   on the same visual language.
+   =================================================== */
+
+:root {
+    --app-page-gap: 18px;
+    --app-card-radius: 14px;
+    --app-control-radius: 11px;
+    --app-card-border: var(--stroke-soft);
+    --app-muted-surface: rgba(255, 255, 255, 0.72);
+}
+
+body {
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+body[data-theme='dark'] {
+    --app-muted-surface: rgba(12, 22, 28, 0.78);
+}
+
+.dashboard-main,
+.crud-main {
+    gap: var(--app-page-gap);
+}
+
+.hero-card,
+.metric-card,
+.panel,
+.section-card,
+.summary-card,
+.quick-action,
+.header-info-chip,
+.user-menu-button,
+.empty-box,
+.helper-card,
+.request-card,
+.session-card,
+.date-control,
+.date-control-nav {
+    border-color: var(--app-card-border);
+}
+
+.hero-card,
+.section-card,
+.panel,
+.summary-card,
+.metric-card {
+    border-radius: var(--app-card-radius);
+}
+
+.hero-card {
+    min-height: 106px;
+    margin-bottom: 0;
+}
+
+.hero-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    white-space: nowrap;
+}
+
+.hero-pill svg,
+.hero-pill [data-lucide] {
+    width: 17px;
+    height: 17px;
+}
+
+.section-head,
+.panel-head {
+    min-height: 54px;
+}
+
+.page-tabs {
+    margin: 0;
+}
+
+.page-tab {
+    min-height: 34px;
+    font-weight: 650;
+    color: var(--text-body);
+}
+
+.page-tab.active {
+    box-shadow: 0 8px 18px rgba(12, 122, 104, 0.16);
+}
+
+.action-button,
+.modern-form .form-control,
+.modern-form .form-select,
+.modern-form textarea,
+.modern-form input,
+.modern-form select,
+.period-quick-btn,
+.chip {
+    border-radius: var(--app-control-radius);
+}
+
+.action-button {
+    font-weight: 700;
+}
+
+.action-button svg,
+.action-button [data-lucide] {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.summary-label,
+.metric-label,
+.report-kpi-title,
+.period-label {
+    letter-spacing: 0.07em;
+}
+
+.data-table thead th,
+.summary-label,
+.metric-label,
+.panel-kpi,
+.chip {
+    text-transform: uppercase;
+}
+
+body[data-theme='dark'] .page-tabs,
+body[data-theme='dark'] .section-card,
+body[data-theme='dark'] .summary-card,
+body[data-theme='dark'] .panel,
+body[data-theme='dark'] .metric-card {
+    background: rgba(12, 22, 28, 0.94);
+}

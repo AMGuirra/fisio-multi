@@ -66,9 +66,10 @@ public class ClienteEntity extends BaseEntity {
 
     /**
      * Token UUID único para acesso ao portal de autoatendimento do paciente.
-     * Gerado automaticamente na criação e não deve ser exposto em listagens internas.
+     * Gerado automaticamente na criação. Pode ser rotacionado via
+     * {@code PacienteService#rotacionarPortalToken} caso o link seja comprometido.
      */
-    @Column(name = "portal_token", nullable = false, unique = true, updatable = false)
+    @Column(name = "portal_token", nullable = false, unique = true)
     @Builder.Default
     private UUID portalToken = UUID.randomUUID();
 

@@ -303,6 +303,16 @@
             Usuário ou senha inválidos
         </div>
 
+        <div th:if="${param.bloqueado}" class="alert alert-danger">
+            <i data-lucide="shield-ban"></i>
+            Muitas tentativas de login. Aguarde 15 minutos antes de tentar novamente.
+        </div>
+
+        <div th:if="${param.expirado}" class="alert alert-danger">
+            <i data-lucide="clock"></i>
+            Sua sessão expirou porque outro acesso foi iniciado. Faça login novamente.
+        </div>
+
         <div th:if="${param.logout}" class="alert" style="background: #d1fae5; color: #065f46;">
             <i data-lucide="circle-check"></i>
             Você foi desconectado com sucesso

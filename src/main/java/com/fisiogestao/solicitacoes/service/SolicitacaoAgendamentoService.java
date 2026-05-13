@@ -62,6 +62,11 @@ public class SolicitacaoAgendamentoService {
         return solicitacaoAgendamentoRepository.findByStatusOrderByCreatedAtAsc(SolicitacaoStatus.PENDENTE);
     }
 
+    /**
+     * Retorna todas as solicitações sem filtro de data.
+     * Prefira {@link #listarNoPeriodo} ou {@link #filtrarHistorico} com datas
+     * quando o volume histórico for grande — este método faz full table scan.
+     */
     public List<SolicitacaoAgendamentoEntity> listarTodas() {
         return solicitacaoAgendamentoRepository.findAllByOrderByCreatedAtDesc();
     }
@@ -80,16 +85,24 @@ public class SolicitacaoAgendamentoService {
         String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
         ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
 
-        return listarTodas().stream()
-                .filter(sol -> sol.getStatus() != SolicitacaoStatus.PENDENTE)
+        // Quando há filtro de datas, usamos uma query delimitada por updatedAt para evitar
+        // full table scan. Sem datas, carrega somente os não-PENDENTE ordenados.
+        List<SolicitacaoAgendamentoEntity> candidatos;
+        if (inicioInclusive != null && fimInclusive != null) {
+            OffsetDateTime dtInicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
+            OffsetDateTime dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
+            candidatos = solicitacaoAgendamentoRepository
+                    .findByStatusNotAndUpdatedAtBetweenOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE, dtInicio, dtFim);
+        } else {
+            candidatos = solicitacaoAgendamentoRepository
+                    .findByStatusNotOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE);
+        }
+
+        return candidatos.stream()
                 .filter(sol -> status == null || sol.getStatus() == status)
                 .filter(sol -> correspondeDataHistorico(sol, inicioInclusive, fimInclusive, zoneId))
                 .filter(sol -> correspondeBuscaHistorico(sol, buscaTexto, buscaTelefone))
-                .sorted(Comparator.comparing(
-                        SolicitacaoAgendamentoEntity::getUpdatedAt,
-                        Comparator.nullsLast(Comparator.reverseOrder())
-                ))
-                .toList();
+                .toList(); // já ordenado pelo banco; sem sorted() redundante
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
@@ -98,26 +111,15 @@ public class SolicitacaoAgendamentoService {
         OffsetDateTime inicioMes = hoje.withDayOfMonth(1).atStartOfDay(zoneId).toOffsetDateTime();
         OffsetDateTime inicioProximoMes = hoje.withDayOfMonth(1).plusMonths(1).atStartOfDay(zoneId).toOffsetDateTime();
 
-        List<SolicitacaoAgendamentoEntity> solicitacoes = listarTodas();
-
-        long totalPendentes = solicitacoes.stream()
-                .filter(sol -> sol.getStatus() == SolicitacaoStatus.PENDENTE)
-                .filter(sol -> estaNoPeriodo(sol.getCreatedAt(), inicioMes, inicioProximoMes))
-                .count();
-
-        long totalAprovadas = solicitacoes.stream()
-                .filter(sol -> sol.getStatus() == SolicitacaoStatus.APROVADA)
-                .filter(sol -> estaNoPeriodo(sol.getUpdatedAt(), inicioMes, inicioProximoMes))
-                .count();
-
-        long totalNegadas = solicitacoes.stream()
-                .filter(sol -> sol.getStatus() == SolicitacaoStatus.REJEITADA)
-                .filter(sol -> estaNoPeriodo(sol.getUpdatedAt(), inicioMes, inicioProximoMes))
-                .count();
-
-        long totalGeral = solicitacoes.stream()
-                .filter(sol -> estaNoPeriodo(sol.getCreatedAt(), inicioMes, inicioProximoMes))
-                .count();
+        // Contagens diretas no banco — evita carregar todas as solicitações em memória.
+        long totalPendentes = solicitacaoAgendamentoRepository
+                .countByStatusAndCreatedAtBetween(SolicitacaoStatus.PENDENTE, inicioMes, inicioProximoMes);
+        long totalAprovadas = solicitacaoAgendamentoRepository
+                .countByStatusAndUpdatedAtBetween(SolicitacaoStatus.APROVADA, inicioMes, inicioProximoMes);
+        long totalNegadas = solicitacaoAgendamentoRepository
+                .countByStatusAndUpdatedAtBetween(SolicitacaoStatus.REJEITADA, inicioMes, inicioProximoMes);
+        long totalGeral = solicitacaoAgendamentoRepository
+                .countByCreatedAtBetween(inicioMes, inicioProximoMes);
 
         long totalProcessadas = totalAprovadas + totalNegadas;
         int taxaAprovacao = totalProcessadas > 0

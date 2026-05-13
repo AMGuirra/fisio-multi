@@ -273,6 +273,36 @@ public class PacienteService {
         return salvo;
     }
 
+    /**
+     * Gera um novo portalToken para o paciente, invalidando o link anterior.
+     * Deve ser chamado quando o paciente reportar que seu link foi comprometido,
+     * ou como ação preventiva periódica.
+     *
+     * @param clienteId ID do paciente
+     * @return novo token gerado
+     */
+    @Transactional
+    public UUID rotacionarPortalToken(UUID clienteId) {
+        ClienteEntity cliente = buscarPorId(clienteId);
+        var snapshotAnterior = auditService.snapshotOf(cliente);
+        UUID novoToken = UUID.randomUUID();
+        cliente.setPortalToken(novoToken);
+        clienteRepository.save(cliente);
+        auditService.recordManual(
+                AuditModule.PACIENTES,
+                "cliente",
+                cliente.getId().toString(),
+                cliente.getNomeCompleto(),
+                AuditActionType.UPDATE,
+                snapshotAnterior,
+                auditService.snapshotOf(cliente),
+                null,
+                "Token do portal do paciente rotacionado por segurança.",
+                AuditEventOrigin.MANUAL
+        );
+        return novoToken;
+    }
+
     @Transactional
     public void excluir(UUID clienteId) {
         ClienteEntity cliente = buscarPorId(clienteId);

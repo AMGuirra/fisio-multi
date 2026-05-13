@@ -16,6 +16,15 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
 
     long countByStatus(SolicitacaoStatus status);
 
+    /** Conta solicitações de um status cujo createdAt está no intervalo (ex.: pendentes abertas no mês). */
+    long countByStatusAndCreatedAtBetween(SolicitacaoStatus status, OffsetDateTime inicio, OffsetDateTime fim);
+
+    /** Conta solicitações de um status cujo updatedAt está no intervalo (ex.: aprovadas/rejeitadas no mês). */
+    long countByStatusAndUpdatedAtBetween(SolicitacaoStatus status, OffsetDateTime inicio, OffsetDateTime fim);
+
+    /** Conta todas as solicitações cujo createdAt está no intervalo, independente de status. */
+    long countByCreatedAtBetween(OffsetDateTime inicio, OffsetDateTime fim);
+
     List<SolicitacaoAgendamentoEntity> findByStatusAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
             SolicitacaoStatus status,
             OffsetDateTime inicio,
@@ -26,6 +35,19 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
             OffsetDateTime inicio,
             OffsetDateTime fim
     );
+
+    /**
+     * Solicitações processadas (status ≠ PENDENTE) ordenadas por updatedAt desc.
+     * Usado pelo histórico quando não há filtro de data.
+     */
+    List<SolicitacaoAgendamentoEntity> findByStatusNotOrderByUpdatedAtDesc(SolicitacaoStatus statusExcluido);
+
+    /**
+     * Solicitações processadas (status ≠ PENDENTE) cujo updatedAt está no intervalo, ordenadas por updatedAt desc.
+     * Usado pelo histórico quando o usuário filtra por período — evita full table scan.
+     */
+    List<SolicitacaoAgendamentoEntity> findByStatusNotAndUpdatedAtBetweenOrderByUpdatedAtDesc(
+            SolicitacaoStatus statusExcluido, OffsetDateTime inicio, OffsetDateTime fim);
 
     Optional<SolicitacaoAgendamentoEntity> findByIdAndStatus(UUID id, SolicitacaoStatus status);
 

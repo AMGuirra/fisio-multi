@@ -4,7 +4,6 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
-import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.relatorios.form.CobrancaEmailForm;
 import com.fisiogestao.relatorios.form.EnvioRelatorioForm;
@@ -44,7 +43,6 @@ public class RelatoriosController {
 
     private final RelatoriosService relatoriosService;
     private final PacienteService pacienteService;
-    private final FinanceiroService financeiroService;
     private final AuditService auditService;
 
     @GetMapping
@@ -183,7 +181,6 @@ public class RelatoriosController {
         model.addAttribute("tiposLembrete", TipoLembrete.values());
         model.addAttribute("relatorio", relatorio);
         model.addAttribute("pacientes", pacienteService.listarAtivos());
-        model.addAttribute("lancamentosPendentes", financeiroService.listarTodos());
     }
 
     private FiltroRelatorioForm filtroPadrao() {

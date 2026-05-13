@@ -84,8 +84,10 @@ public class RelatoriosService {
                 ? agendaService.listarSessoesNoPeriodo(periodo.anteriorInicio(), periodo.anteriorFimExclusivo())
                 : List.of();
 
+        // Carrega apenas o intervalo que cobre o período atual + período de comparação anterior,
+        // evitando um full table scan sobre todo o histórico financeiro.
         List<LancamentoFinanceiroEntity> todosLancamentos = filtro.isIncluirFinanceiro()
-                ? financeiroService.listarTodos()
+                ? financeiroService.listarNoPeriodo(periodo.anteriorInicio(), periodo.atualFimInclusive())
                 : List.of();
         List<LancamentoFinanceiroEntity> lancamentos = filtrarLancamentos(todosLancamentos, periodo.atualInicio(), periodo.atualFimInclusive());
         List<LancamentoFinanceiroEntity> lancamentosAnterior = filtrarLancamentos(todosLancamentos, periodo.anteriorInicio(), periodo.anteriorFimInclusive());

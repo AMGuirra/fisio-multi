@@ -19,18 +19,51 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.LongSupplier;
 
 /**
- * Filtro de rate limiting para rotas publicas sensiveis.
+ * Filtro de rate limiting para rotas publicas e de autenticacao sensiveis.
  *
- * <p>Estrategia: Bucket4j in-memory por IP, com expiracao por inatividade para
- * evitar crescimento indefinido do cache em ambientes expostos a trafego publico.</p>
+ * <p>Estrategia: Bucket4j in-memory por (IP + rota), com limites e janelas
+ * distintos por rota e expiracao por inatividade para evitar crescimento
+ * indefinido do cache.</p>
+ *
+ * <ul>
+ *   <li>/login — 10 tentativas em 15 minutos; resposta: redirect com parametro de erro</li>
+ *   <li>/esqueci-minha-senha — 5 tentativas por minuto; resposta: JSON 429</li>
+ *   <li>/agendamento-online — 5 tentativas por minuto; resposta: JSON 429</li>
+ * </ul>
  */
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitingFilter.class);
 
-    private static final int LIMITE_POR_MINUTO = 5;
     private static final String HEADER_RETRY_AFTER = "Retry-After";
     private static final String HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
+
+    /**
+     * Configuracao de limite por rota.
+     *
+     * @param prefixo           prefixo da URI (POST only)
+     * @param limite            numero maximo de requisicoes na janela
+     * @param janela            duracao da janela de contagem
+     * @param redirecionarLogin true = redireciona para /login?bloqueado (formularios web);
+     *                          false = retorna JSON 429 (endpoints publicos de API/form)
+     */
+    enum RotaProtegida {
+        LOGIN("/login", 10, Duration.ofMinutes(15), true),
+        ESQUECI_SENHA("/esqueci-minha-senha", 5, Duration.ofMinutes(1), false),
+        AGENDAMENTO_ONLINE("/agendamento-online", 5, Duration.ofMinutes(1), false);
+
+        final String prefixo;
+        final int limite;
+        final Duration janela;
+        final boolean redirecionarLogin;
+
+        RotaProtegida(String prefixo, int limite, Duration janela, boolean redirecionarLogin) {
+            this.prefixo = prefixo;
+            this.limite = limite;
+            this.janela = janela;
+            this.redirecionarLogin = redirecionarLogin;
+        }
+    }
 
     private final ConcurrentHashMap<String, BucketEntry> buckets = new ConcurrentHashMap<>();
     private final long bucketTtlNanos;
@@ -39,7 +72,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private volatile long ultimaLimpezaNanos;
 
     public RateLimitingFilter() {
-        this(Duration.ofMinutes(10), Duration.ofMinutes(1), System::nanoTime);
+        this(Duration.ofMinutes(20), Duration.ofMinutes(1), System::nanoTime);
     }
 
     RateLimitingFilter(Duration bucketTtl, Duration cleanupInterval, LongSupplier ticker) {
@@ -56,7 +89,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        if (!isRotaProtegida(request)) {
+        RotaProtegida rota = resolverRota(request);
+        if (rota == null) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,25 +99,33 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         limparBucketsExpiradosSeNecessario(agora);
 
         String ip = extrairIp(request);
-        Bucket bucket = bucketPara(ip, agora);
+        // chave composta: evita que o limite de uma rota consuma o bucket de outra
+        String bucketKey = ip + ":" + rota.name();
+        Bucket bucket = bucketPara(bucketKey, rota, agora);
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
         } else {
+            long retryAfterSeconds = rota.janela.toSeconds();
             LOGGER.warn("Rate limit excedido: ip={} rota={}", ip, request.getRequestURI());
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setHeader(HEADER_RETRY_AFTER, "60");
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write(
-                    "{\"erro\":\"Muitas tentativas. Aguarde um minuto antes de tentar novamente.\"}"
-            );
+
+            if (rota.redirecionarLogin) {
+                response.sendRedirect("/login?bloqueado");
+            } else {
+                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                response.setHeader(HEADER_RETRY_AFTER, String.valueOf(retryAfterSeconds));
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write(
+                        "{\"erro\":\"Muitas tentativas. Aguarde antes de tentar novamente.\"}"
+                );
+            }
         }
     }
 
-    private Bucket bucketPara(String ip, long agora) {
-        return buckets.compute(ip, (key, entry) -> {
+    private Bucket bucketPara(String key, RotaProtegida rota, long agora) {
+        return buckets.compute(key, (k, entry) -> {
             if (entry == null || expirado(entry, agora)) {
-                return new BucketEntry(criarBucket(), agora);
+                return new BucketEntry(criarBucket(rota), agora);
             }
             return entry.atualizarUltimoAcesso(agora);
         }).bucket();
@@ -102,18 +144,24 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return agora - entry.ultimoAcessoNanos() > bucketTtlNanos;
     }
 
-    private Bucket criarBucket() {
-        Refill refill = Refill.greedy(LIMITE_POR_MINUTO, Duration.ofMinutes(1));
-        Bandwidth limit = Bandwidth.classic(LIMITE_POR_MINUTO, refill);
+    private Bucket criarBucket(RotaProtegida rota) {
+        Refill refill = Refill.greedy(rota.limite, rota.janela);
+        Bandwidth limit = Bandwidth.classic(rota.limite, refill);
         return Bucket.builder().addLimit(limit).build();
     }
 
-    private boolean isRotaProtegida(HttpServletRequest request) {
+    /** Retorna a configuracao de rota se a requisicao deve ser limitada, ou null caso contrario. */
+    RotaProtegida resolverRota(HttpServletRequest request) {
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
-            return false;
+            return null;
         }
         String uri = request.getRequestURI();
-        return uri.startsWith("/esqueci-minha-senha") || uri.startsWith("/agendamento-online");
+        for (RotaProtegida rota : RotaProtegida.values()) {
+            if (uri.startsWith(rota.prefixo)) {
+                return rota;
+            }
+        }
+        return null;
     }
 
     private String extrairIp(HttpServletRequest request) {

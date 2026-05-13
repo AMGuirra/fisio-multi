@@ -69,11 +69,6 @@ public class FinanceiroService {
     }
 
     @Transactional(readOnly = true)
-    public List<LancamentoFinanceiroEntity> listarTodos() {
-        return lancamentoFinanceiroRepository.findAllByOrderByDataCompetenciaDescCreatedAtDesc();
-    }
-
-    @Transactional(readOnly = true)
     public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
         ZoneId zone = ClinicTimezoneHolder.zoneId();
         OffsetDateTime dtInicio = inicio.atStartOfDay(zone).toOffsetDateTime();

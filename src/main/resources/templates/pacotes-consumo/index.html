@@ -28,8 +28,16 @@
             </div>
         </header>
 
-        <main class="dashboard-main pc-main">
-            <div class="flash-stack">
+        <main class="dashboard-main crud-main pc-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Planos de Tratamento</h1>
+                    <p class="hero-subtitle">Selecione, configure e acompanhe o consumo sem sair da tela.</p>
+                </div>
+                <span class="hero-pill"><i data-lucide="activity" aria-hidden="true"></i> Atendimento</span>
+            </section>
+
+            <div th:if="${successMessage != null or errorMessage != null}" class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
@@ -41,14 +49,6 @@
                     <span>Paciente em atendimento</span>
                     <span th:text="${plano?.tipoPlano}">Plano Teste Agenda</span>
                 </div>
-                <header class="pc-topbar">
-                    <div>
-                        <h1>Planos de Tratamento</h1>
-                        <p>Selecione, configure e acompanhe o consumo sem sair da tela.</p>
-                    </div>
-                    <span class="pc-live"><i data-lucide="activity"></i> Atendimento</span>
-                </header>
-
                 <div class="body">
                     <aside class="col col-pacientes">
                         <div class="step-head">

@@ -21,15 +21,19 @@ class RateLimitingFilterTest {
 
     private final RateLimitingFilter filter = new RateLimitingFilter();
 
-    @Test
-    void deveBloquearSextaTentativaNaMesmaRotaEIp() throws ServletException, IOException {
-        FilterChain chain = mock(FilterChain.class);
-        MockHttpServletRequest request = postPublico("203.0.113.10");
+    // -----------------------------------------------------------------------
+    // /agendamento-online — 5 tentativas/min, JSON 429
+    // -----------------------------------------------------------------------
 
-        for (int tentativa = 0; tentativa < 5; tentativa++) {
+    @Test
+    void deveBloquearSextaTentativaEmAgendamentoOnline() throws ServletException, IOException {
+        FilterChain chain = mock(FilterChain.class);
+        MockHttpServletRequest request = postAgendamento("203.0.113.10");
+
+        for (int i = 0; i < 5; i++) {
             MockHttpServletResponse response = new MockHttpServletResponse();
             filter.doFilterInternal(request, response, chain);
-            assertEquals(200, response.getStatus());
+            assertEquals(200, response.getStatus(), "tentativa " + (i + 1) + " deve passar");
         }
 
         MockHttpServletResponse bloqueada = new MockHttpServletResponse();
@@ -40,16 +44,81 @@ class RateLimitingFilterTest {
         verify(chain, times(5)).doFilter(eq(request), any());
     }
 
-    @Test
-    void deveUsarPrimeiroIpDoXForwardedFor() throws ServletException, IOException {
-        FilterChain chain = mock(FilterChain.class);
-        MockHttpServletRequest request = postPublico("198.51.100.8, 10.0.0.1");
+    // -----------------------------------------------------------------------
+    // /login — 10 tentativas em 15 min, redirect para /login?bloqueado
+    // -----------------------------------------------------------------------
 
-        for (int tentativa = 0; tentativa < 5; tentativa++) {
+    @Test
+    void devePermitirDezTentativasDeLoginEBloquearDecima() throws ServletException, IOException {
+        FilterChain chain = mock(FilterChain.class);
+        MockHttpServletRequest request = postLogin("203.0.113.50");
+
+        for (int i = 0; i < 10; i++) {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filter.doFilterInternal(request, response, chain);
+            assertEquals(200, response.getStatus(), "tentativa " + (i + 1) + " deve passar");
+        }
+
+        MockHttpServletResponse bloqueada = new MockHttpServletResponse();
+        filter.doFilterInternal(request, bloqueada, chain);
+
+        // Login bloqueado deve redirecionar, nao retornar JSON 429
+        assertEquals(302, bloqueada.getStatus());
+        assertEquals("/login?bloqueado", bloqueada.getRedirectedUrl());
+        verify(chain, times(10)).doFilter(eq(request), any());
+    }
+
+    @Test
+    void limiteDeLoginNaoContaminaLimiteDeAgendamento() throws ServletException, IOException {
+        // Esgota o limite do /login para um IP
+        FilterChain chain = mock(FilterChain.class);
+        String ip = "203.0.113.60";
+
+        MockHttpServletRequest loginRequest = postLogin(ip);
+        for (int i = 0; i < 10; i++) {
+            filter.doFilterInternal(loginRequest, new MockHttpServletResponse(), chain);
+        }
+
+        // O mesmo IP ainda deve conseguir acessar /agendamento-online (bucket independente)
+        MockHttpServletRequest agendamentoRequest = postAgendamento(ip);
+        MockHttpServletResponse agendamentoResponse = new MockHttpServletResponse();
+        filter.doFilterInternal(agendamentoRequest, agendamentoResponse, chain);
+
+        assertEquals(200, agendamentoResponse.getStatus(),
+                "bucket do /agendamento-online deve ser independente do /login");
+    }
+
+    @Test
+    void retryAfterDoLoginDeveRefletirJanelaDe15Minutos() throws ServletException, IOException {
+        FilterChain chain = mock(FilterChain.class);
+        MockHttpServletRequest request = postLogin("203.0.113.70");
+
+        for (int i = 0; i < 10; i++) {
             filter.doFilterInternal(request, new MockHttpServletResponse(), chain);
         }
 
-        MockHttpServletRequest mesmoClienteComProxyDiferente = postPublico("198.51.100.8, 10.0.0.2");
+        MockHttpServletResponse bloqueada = new MockHttpServletResponse();
+        filter.doFilterInternal(request, bloqueada, chain);
+
+        // Para o login o Retry-After nao e enviado (redireciona), mas o status deve ser 302
+        assertEquals(302, bloqueada.getStatus());
+    }
+
+    // -----------------------------------------------------------------------
+    // Comportamento geral
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deveUsarPrimeiroIpDoXForwardedFor() throws ServletException, IOException {
+        FilterChain chain = mock(FilterChain.class);
+        MockHttpServletRequest request = postAgendamento("198.51.100.8, 10.0.0.1");
+
+        for (int i = 0; i < 5; i++) {
+            filter.doFilterInternal(request, new MockHttpServletResponse(), chain);
+        }
+
+        // Mesmo IP real, proxy diferente — deve estar no mesmo bucket
+        MockHttpServletRequest mesmoClienteComProxyDiferente = postAgendamento("198.51.100.8, 10.0.0.2");
         MockHttpServletResponse bloqueada = new MockHttpServletResponse();
         filter.doFilterInternal(mesmoClienteComProxyDiferente, bloqueada, chain);
 
@@ -67,6 +136,20 @@ class RateLimitingFilterTest {
     }
 
     @Test
+    void resolverRotaRetornaCorretoParaCadaRota() {
+        assertEquals(RateLimitingFilter.RotaProtegida.LOGIN,
+                filter.resolverRota(postLogin("1.2.3.4")));
+        assertEquals(RateLimitingFilter.RotaProtegida.ESQUECI_SENHA,
+                filter.resolverRota(post("/esqueci-minha-senha", "1.2.3.4")));
+        assertEquals(RateLimitingFilter.RotaProtegida.AGENDAMENTO_ONLINE,
+                filter.resolverRota(postAgendamento("1.2.3.4")));
+        assertEquals(null,
+                filter.resolverRota(new MockHttpServletRequest("GET", "/login")));
+        assertEquals(null,
+                filter.resolverRota(new MockHttpServletRequest("POST", "/dashboard")));
+    }
+
+    @Test
     void removeBucketsSemAcessoAposTtl() throws ServletException, IOException {
         AtomicLong ticker = new AtomicLong();
         RateLimitingFilter filtroComTtlCurto = new RateLimitingFilter(
@@ -75,19 +158,31 @@ class RateLimitingFilterTest {
                 ticker::get
         );
 
-        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.20"), new MockHttpServletResponse(), mock(FilterChain.class));
-        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.21"), new MockHttpServletResponse(), mock(FilterChain.class));
+        filtroComTtlCurto.doFilterInternal(postAgendamento("203.0.113.20"), new MockHttpServletResponse(), mock(FilterChain.class));
+        filtroComTtlCurto.doFilterInternal(postAgendamento("203.0.113.21"), new MockHttpServletResponse(), mock(FilterChain.class));
         assertEquals(2, filtroComTtlCurto.bucketCacheSize());
 
         ticker.set(Duration.ofSeconds(12).toNanos());
 
-        filtroComTtlCurto.doFilterInternal(postPublico("203.0.113.22"), new MockHttpServletResponse(), mock(FilterChain.class));
+        filtroComTtlCurto.doFilterInternal(postAgendamento("203.0.113.22"), new MockHttpServletResponse(), mock(FilterChain.class));
 
         assertEquals(1, filtroComTtlCurto.bucketCacheSize());
     }
 
-    private MockHttpServletRequest postPublico(String forwardedFor) {
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/agendamento-online");
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    private MockHttpServletRequest postAgendamento(String forwardedFor) {
+        return post("/agendamento-online", forwardedFor);
+    }
+
+    private MockHttpServletRequest postLogin(String forwardedFor) {
+        return post("/login", forwardedFor);
+    }
+
+    private MockHttpServletRequest post(String uri, String forwardedFor) {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", uri);
         request.addHeader("X-Forwarded-For", forwardedFor);
         request.setRemoteAddr("10.0.0.10");
         return request;
