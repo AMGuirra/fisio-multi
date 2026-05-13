@@ -818,6 +818,126 @@ body[data-theme="dark"] {
   margin-top: 12px;
 }
 
+.pc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.pc-modal.is-open {
+  display: flex;
+}
+
+.pc-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(7, 19, 24, 0.58);
+  cursor: pointer;
+}
+
+.pc-modal-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  max-height: min(720px, calc(100vh - 36px));
+  overflow: auto;
+  border: 1px solid var(--stroke-soft);
+  border-radius: var(--app-card-radius, 14px);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg, 0 28px 70px rgba(15, 23, 42, 0.22));
+  padding: 18px;
+}
+
+.pc-modal-head,
+.pc-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pc-modal-head {
+  margin-bottom: 14px;
+}
+
+.pc-modal-kicker {
+  margin: 0 0 3px;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pc-modal-head h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1.15rem;
+}
+
+.pc-modal-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--stroke-soft);
+  border-radius: var(--app-control-radius, 11px);
+  background: var(--bg-soft);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.pc-modal-patient {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid var(--stroke-soft);
+  border-radius: var(--app-control-radius, 11px);
+  background: var(--green-100);
+}
+
+.pc-modal-patient strong,
+.pc-modal-patient span {
+  display: block;
+}
+
+.pc-modal-patient strong {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.pc-modal-patient span {
+  color: var(--text-body);
+  font-size: 0.78rem;
+}
+
+.pc-agendamento-form .btn-ag {
+  width: auto;
+  margin-top: 0;
+}
+
+.btn-ghost {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--stroke-soft);
+  border-radius: var(--app-control-radius, 11px);
+  background: var(--bg-soft);
+  color: var(--text-strong);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
 .acb-box {
   display: grid;
   gap: 9px;

@@ -318,6 +318,10 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"agendamentoSessaoModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("aria-hidden=\"false\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente em atendimento")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"clienteId\" value=\"" + clienteAgenda.getId())))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"pacoteSessaoId\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"data\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"horario\" value=\"08:00\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Buscar Paciente"))))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Plano Teste Agenda")));
     }

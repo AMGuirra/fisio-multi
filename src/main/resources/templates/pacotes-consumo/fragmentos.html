@@ -224,9 +224,77 @@
             <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
         </div>
 
-        <button class="btn-ag" th:onclick="|window.location.href='@{/calendario(pacienteId=${paciente.id})}'|">
+        <button type="button" class="btn-ag" id="openAgendamentoSessaoModal">
             <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessao
         </button>
+
+        <div id="agendamentoSessaoModal"
+             class="pc-modal"
+             th:classappend="${agendamentoSessaoModalOpen} ? ' is-open' : ''"
+             th:attr="aria-hidden=${agendamentoSessaoModalOpen ? 'false' : 'true'}">
+            <button type="button" class="pc-modal-backdrop" data-agendamento-modal-close aria-label="Fechar agendamento"></button>
+            <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="agendamentoSessaoModalTitle">
+                <div class="pc-modal-head">
+                    <div>
+                        <p class="pc-modal-kicker">Nova sessao</p>
+                        <h2 id="agendamentoSessaoModalTitle">Agendar pelo plano</h2>
+                    </div>
+                    <button type="button" class="pc-modal-close" data-agendamento-modal-close aria-label="Fechar">
+                        <i data-lucide="x" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="pc-modal-patient">
+                    <div class="av" th:style="'background:' + ${paciente.corAvatar} + ';color:' + ${paciente.corTextoAvatar}">
+                        <span th:text="${paciente.iniciais}">A</span>
+                    </div>
+                    <div>
+                        <strong th:text="${paciente.nomeCompleto}">Paciente</strong>
+                        <span th:text="${plano.tipoPlano + ' - ' + plano.sessoesRestantes + ' sessoes restantes'}">Plano</span>
+                    </div>
+                </div>
+
+                <form th:action="@{/pacotes-consumo/agendar-sessao}" method="post" class="pc-form pc-agendamento-form">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <input type="hidden" name="clienteId" th:value="${paciente.id}">
+                    <input type="hidden" name="pacoteSessaoId" th:value="${plano.id}">
+                    <input type="hidden" name="tipoAgendamento" value="PACOTE">
+
+                    <div class="two">
+                        <div class="fld">
+                            <label>Data</label>
+                            <input type="date" name="data" th:value="${hoje}" required>
+                        </div>
+                        <div class="fld">
+                            <label>Horario</label>
+                            <input type="time" name="horario" value="08:00" step="900" required>
+                        </div>
+                    </div>
+
+                    <div class="fld">
+                        <label>Tipo de atendimento</label>
+                        <select name="tipoAtendimento">
+                            <option value="Fisioterapia geral">Fisioterapia geral</option>
+                            <option value="RPG">RPG</option>
+                            <option value="Pilates clinico">Pilates clinico</option>
+                            <option value="Acupuntura">Acupuntura</option>
+                        </select>
+                    </div>
+
+                    <div class="fld">
+                        <label>Observacoes</label>
+                        <input type="text" name="observacoes" maxlength="2000" placeholder="Opcional">
+                    </div>
+
+                    <div class="pc-modal-actions">
+                        <button type="button" class="btn-ghost" data-agendamento-modal-close>Cancelar</button>
+                        <button type="submit" class="btn-ag">
+                            <i data-lucide="calendar-check" aria-hidden="true"></i>Confirmar agendamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div th:if="${modo == 'AVULSO'}">
