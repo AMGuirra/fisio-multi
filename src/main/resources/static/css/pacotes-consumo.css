@@ -214,12 +214,14 @@ body[data-theme="dark"] {
 }
 
 .col-config {
-  flex: 1 1 auto;
+  flex: 0 1 960px;
   min-width: 520px;
+  max-width: 980px;
 }
 
 .col-consumo {
-  flex: 0 0 270px;
+  flex: 1 1 300px;
+  max-width: 340px;
 }
 
 .step-head {
