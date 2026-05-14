@@ -40,6 +40,7 @@ public class SecurityConfig {
     ) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        // ── Recursos públicos estáticos e páginas sem autenticação ──────
                         .requestMatchers(
                                 "/login",
                                 "/esqueci-minha-senha",
@@ -47,24 +48,40 @@ public class SecurityConfig {
                                 "/error",
                                 "/agendamento-online",
                                 "/agendamento-online/sucesso",
-                                "/api/slots",
                                 "/paciente/**",
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/css/**",
-                                "/js/**"
+                                "/js/**",
+                                "/favicon.svg"
                         ).permitAll()
+                        // ── API pública: slots de horário para o formulário de agendamento ──
+                        // Não requer login — serve a visitantes anônimos.
+                        .requestMatchers("/api/slots").permitAll()
+                        // ── Swagger — apenas ADMIN tem visibilidade da documentação ─────────
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
-                        .requestMatchers("/configuracoes/clinica", "/configuracao/clinica").hasRole("ADMIN")
-                        .requestMatchers("/admin/system-status").hasRole("ADMIN")
-                        .requestMatchers("/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers("/funcoes-usuarios/**").hasRole("ADMIN")
-                        // Métricas do dashboard contêm dados financeiros sensíveis (receita 12 meses, ocupação).
-                        // Restritas a ADMIN e FINANCEIRO; demais roles operacionais não requerem visibilidade agregada.
-                        .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "FINANCEIRO")
-                        // Endpoints internos de agenda, pacientes e solicitações: qualquer usuário autenticado.
-                        // Explicitado aqui para blindar contra mudança futura no anyRequest().
-                        .requestMatchers("/api/agendamentos/**", "/api/pacientes/**", "/api/solicitacoes/**").authenticated()
+                        // ── Administração do sistema ─────────────────────────────────────────
+                        .requestMatchers(
+                                "/configuracoes/**",
+                                "/configuracao/**",
+                                "/admin/**",
+                                "/usuarios/**",
+                                "/funcoes-usuarios/**"
+                        ).hasRole("ADMIN")
+                        // ── APIs de dados financeiros: restritas a ADMIN e FINANCEIRO ────────
+                        // Contêm receita agregada, ocupação e projeções — dados sensíveis.
+                        .requestMatchers("/api/dashboard/**", "/api/financeiro/**").hasAnyRole("ADMIN", "FINANCEIRO")
+                        // ── APIs internas autenticadas ────────────────────────────────────────
+                        // Qualquer role válida pode acessar. Explicitado para blindar contra
+                        // mudanças acidentais no anyRequest() mais abaixo.
+                        .requestMatchers(
+                                "/api/agendamentos/**",
+                                "/api/pacientes/**",
+                                "/api/solicitacoes/**",
+                                "/api/calendario/**",
+                                "/api/relatorios/**"
+                        ).authenticated()
+                        // ── Tudo o mais exige autenticação ────────────────────────────────────
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -103,14 +120,25 @@ public class SecurityConfig {
                         .referrerPolicy(rp -> rp
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                         )
-                        // Content-Security-Policy: restringe fontes de scripts, estilos e frames
+                        // ── Content-Security-Policy ──────────────────────────────────────
+                        // connect-src: permite fetch para IBGE (cidades) e ViaCEP (CEP)
+                        //   usados na página pública de agendamento online.
+                        // font-src: Google Fonts é carregado via fonts.gstatic.com.
+                        // style-src: Google Fonts stylesheet vem de fonts.googleapis.com;
+                        //   'unsafe-inline' é necessário enquanto houver inline styles residuais.
+                        //   Remover 'unsafe-inline' de style-src quando todo CSS estiver externalizado.
+                        // script-src: 'unsafe-inline' cobre scripts <script> inline no Thymeleaf
+                        //   (ex: lucide.createIcons()). Migrar para nonce quando possível.
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives(
                                         "default-src 'self'; " +
                                         "script-src 'self' 'unsafe-inline'; " +
-                                        "style-src 'self' 'unsafe-inline'; " +
+                                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                                        "font-src 'self' https://fonts.gstatic.com; " +
                                         "img-src 'self' data:; " +
-                                        "font-src 'self'; " +
+                                        "connect-src 'self' " +
+                                            "https://servicodados.ibge.gov.br " +
+                                            "https://viacep.com.br; " +
                                         "frame-ancestors 'self'; " +
                                         "form-action 'self'"
                                 )

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
@@ -132,15 +133,14 @@
                     </header>
 
                     <!-- Barra de busca -->
-                    <div class="section-body" style="padding-bottom:0;">
-                        <form method="get" th:action="@{/pacientes}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <div class="section-body" style="padding-bottom:0">
+                        <form method="get" th:action="@{/pacientes}" class="search-bar">
                             <input type="text"
                                    name="busca"
                                    th:value="${busca}"
                                    placeholder="Buscar por nome, CPF, telefone ou e-mail…"
-                                   class="form-control"
-                                   style="flex:1;min-width:200px;">
-                            <button type="submit" class="action-button ghost" style="white-space:nowrap;">
+                                   class="form-control">
+                            <button type="submit" class="action-button ghost">
                                 <i data-lucide="search"></i> Buscar
                             </button>
                             <a th:if="${busca != null and !#strings.isEmpty(busca)}"
@@ -239,23 +239,21 @@
                         <!-- Navegação de páginas -->
                         <nav th:if="${pacientesPage.totalPages > 1}"
                              aria-label="Paginação de pacientes"
-                             style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 0 4px;">
+                             class="pagination-bar">
 
-                            <!-- Primeira página -->
                             <a th:if="${pacientesPage.number > 0}"
                                th:href="@{/pacientes(page=0, busca=${busca})}"
-                               class="action-button ghost" title="Primeira página" style="padding:6px 10px;">
+                               class="action-button ghost pagination-btn" title="Primeira página">
                                 <i data-lucide="chevrons-left"></i>
                             </a>
 
-                            <!-- Página anterior -->
                             <a th:if="${pacientesPage.hasPrevious()}"
                                th:href="@{/pacientes(page=${pacientesPage.number - 1}, busca=${busca})}"
-                               class="action-button ghost" title="Página anterior" style="padding:6px 10px;">
+                               class="action-button ghost pagination-btn" title="Página anterior">
                                 <i data-lucide="chevron-left"></i>
                             </a>
 
-                            <span style="font-size:.85rem;color:var(--text-secondary,#6b7280);padding:0 4px;">
+                            <span class="pagination-info">
                                 Página
                                 <strong th:text="${pacientesPage.number + 1}">1</strong>
                                 de
@@ -264,17 +262,15 @@
                                 <span th:text="${pacientesPage.totalElements}">0</span> registros
                             </span>
 
-                            <!-- Próxima página -->
                             <a th:if="${pacientesPage.hasNext()}"
                                th:href="@{/pacientes(page=${pacientesPage.number + 1}, busca=${busca})}"
-                               class="action-button ghost" title="Próxima página" style="padding:6px 10px;">
+                               class="action-button ghost pagination-btn" title="Próxima página">
                                 <i data-lucide="chevron-right"></i>
                             </a>
 
-                            <!-- Última página -->
                             <a th:if="${pacientesPage.number < pacientesPage.totalPages - 1}"
                                th:href="@{/pacientes(page=${pacientesPage.totalPages - 1}, busca=${busca})}"
-                               class="action-button ghost" title="Última página" style="padding:6px 10px;">
+                               class="action-button ghost pagination-btn" title="Última página">
                                 <i data-lucide="chevrons-right"></i>
                             </a>
                         </nav>
@@ -292,7 +288,7 @@
     <div id="editPacienteModal" class="app-modal" aria-hidden="true">
         <div class="app-modal-backdrop" data-edit-modal-close></div>
         <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editPacienteModalTitle">
-            <div class="app-modal-card" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div class="app-modal-card app-modal-card-lg">
                 <header class="app-modal-header">
                     <div class="app-modal-title-block">
                         <h3 id="editPacienteModalTitle">Editar Paciente</h3>
@@ -333,7 +329,7 @@
                             <label for="editRua">Rua</label>
                             <input id="editRua" name="rua" type="text" class="form-control" maxlength="160">
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-row-2col">
                             <div class="form-field">
                                 <label for="editNumero">Número</label>
                                 <input id="editNumero" name="numero" type="text" class="form-control" maxlength="20">

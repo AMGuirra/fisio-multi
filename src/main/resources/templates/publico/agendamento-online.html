@@ -6,387 +6,108 @@
     <title>Agendamento Online - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #31c9a9;
-            --primary-dark: #1ea387;
-            --primary-light: #7af0d7;
-            --text-main: #15303c;
-            --text-soft: #607988;
-            --text-label: #27414d;
-            --border-soft: rgba(49, 95, 111, 0.18);
-            --surface-soft: #f7fbfc;
-            --surface-strong: #ffffff;
-            --danger: #d26060;
-            --shadow-lg: 0 24px 50px rgba(34, 77, 93, 0.14);
-            --radius: 0.65rem;
-            --radius-lg: 0.9rem;
-            --radius-xl: 1.2rem;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background:
-                radial-gradient(900px 450px at 14% -12%, rgba(49, 201, 169, 0.16), transparent 65%),
-                radial-gradient(850px 420px at 100% 0%, rgba(86, 149, 255, 0.14), transparent 70%),
-                linear-gradient(145deg, #eef7fb 0%, #e8f5f3 42%, #f7fbfd 100%);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-            color: var(--text-main);
-        }
-
-        .container {
-            max-width: 640px;
-            margin: 0 auto;
-        }
-
-        .public-card {
-            background: rgba(255, 255, 255, 0.94);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
-            padding: 2.25rem;
-            border: 1px solid rgba(102, 183, 164, 0.22);
-            backdrop-filter: blur(10px);
-        }
-
-        .public-header {
-            text-align: center;
-            margin-bottom: 1.8rem;
-        }
-
-        .public-header-icon {
-            width: 74px;
-            height: 74px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            margin: 0 auto 1.25rem;
-            font-size: 2rem;
-            color: #fff;
-            box-shadow: 0 10px 24px rgba(15, 143, 122, 0.32);
-        }
-
-        .public-header h1 {
-            font-size: 1.72rem;
-            margin-bottom: 0.55rem;
-            font-weight: 750;
-        }
-
-        .public-header p {
-            color: var(--text-soft);
-            margin-bottom: 0;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            font-weight: 630;
-            color: var(--text-label);
-            margin-bottom: 0.45rem;
-            display: block;
-            font-size: 0.93rem;
-        }
-
-        .form-control,
-        .form-select {
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius);
-            padding: 0.78rem 0.95rem;
-            font-size: 0.95rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            width: 100%;
-            color: var(--text-main);
-            background: var(--surface-strong);
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: rgba(49, 201, 169, 0.52);
-            box-shadow: 0 0 0 3px rgba(49, 201, 169, 0.16);
-            outline: none;
-        }
-
-        .form-control::placeholder {
-            color: rgba(96, 121, 136, 0.72);
-        }
-
-        .form-error {
-            margin-top: 0.35rem;
-            font-size: 0.8rem;
-            color: var(--danger);
-            font-weight: 600;
-        }
-
-        .form-help {
-            margin-top: 0.35rem;
-            font-size: 0.79rem;
-            color: var(--text-soft);
-        }
-
-        .input-with-button {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 0.65rem;
-            align-items: start;
-        }
-
-        .secondary-button {
-            border: 1px solid rgba(49, 201, 169, 0.24);
-            background: #f2fbf8;
-            color: #1b5148;
-            border-radius: var(--radius);
-            padding: 0.78rem 1rem;
-            font-weight: 650;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .secondary-button:hover {
-            border-color: rgba(49, 201, 169, 0.5);
-            background: #e6f8f2;
-        }
-
-        .lookup-feedback {
-            margin-top: 0.55rem;
-            font-size: 0.82rem;
-            color: var(--text-soft);
-        }
-
-        .lookup-feedback.is-success {
-            color: var(--primary-light);
-        }
-
-        .lookup-feedback.is-warning {
-            color: #b98324;
-        }
-
-        .address-card {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(49, 201, 169, 0.18);
-            background: var(--surface-soft);
-        }
-
-        .address-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem;
-        }
-
-        .address-grid .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            padding: 0.9rem 1.5rem;
-            border-radius: var(--radius);
-            font-weight: 650;
-            width: 100%;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            color: #fff;
-            cursor: pointer;
-            font-size: 0.97rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 24px rgba(49, 201, 169, 0.24);
-        }
-
-        .alert {
-            padding: 0.9rem 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 1rem;
-            font-size: 0.88rem;
-            border: 1px solid transparent;
-        }
-
-        .alert-danger {
-            background: #fff0f0;
-            color: #a94545;
-            border-color: #f2cccc;
-        }
-
-        .alert-info {
-            background: #eef7ff;
-            color: #375c7f;
-            border-color: #cfe1f5;
-        }
-
-        .alert i {
-            width: 18px;
-            height: 18px;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 1.8rem;
-            color: var(--text-soft);
-            font-size: 0.82rem;
-        }
-
-        .d-none {
-            display: none !important;
-        }
-
-        @media (max-width: 640px) {
-            body {
-                padding: 1.4rem 0.9rem;
-            }
-
-            .public-card {
-                padding: 1.5rem 1.2rem;
-            }
-
-            .input-with-button,
-            .address-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .input-with-button .secondary-button {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 1rem 0.75rem;
-            }
-
-            .public-card {
-                padding: 1.2rem 1rem;
-            }
-
-            .public-header {
-                margin-bottom: 1.4rem;
-            }
-
-            .public-header-icon {
-                width: 62px;
-                height: 62px;
-                margin-bottom: 1rem;
-            }
-
-            .public-header h1 {
-                font-size: 1.45rem;
-            }
-
-            .form-control,
-            .form-select,
-            .secondary-button,
-            .btn-primary {
-                min-height: 46px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
-<body>
-    <div class="container">
-        <div class="public-card">
-            <div class="public-header">
-                <div class="public-header-icon">
+<body class="pub-body">
+    <div class="pub-container">
+        <div class="pub-card">
+            <div class="pub-header">
+                <div class="pub-header-icon">
                     <i data-lucide="calendar-plus"></i>
                 </div>
                 <h1>Agendamento Online</h1>
                 <p>Escolha o melhor horário para seu atendimento</p>
             </div>
 
-            <div th:if="${errorMessage}" class="alert alert-danger">
+            <div th:if="${errorMessage}" class="pub-alert pub-alert-danger">
                 <i data-lucide="triangle-alert"></i>
                 <span th:text="${errorMessage}"></span>
             </div>
 
-            <div id="noSlotsAlert" class="alert alert-info" th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
+            <div id="noSlotsAlert" class="pub-alert pub-alert-info"
+                 th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
                 <i data-lucide="info"></i>
-                Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.
+                <span>Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.</span>
             </div>
 
             <form th:action="@{/agendamento-online}" th:object="${form}" method="post" novalidate>
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
-                <div class="form-group">
-                    <label class="form-label" for="nomePaciente">Nome completo</label>
-                    <input type="text" id="nomePaciente" class="form-control" th:field="*{nomePaciente}" placeholder="Seu nome completo" required>
-                    <p class="form-error" th:if="${#fields.hasErrors('nomePaciente')}" th:errors="*{nomePaciente}"></p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="nomePaciente">Nome completo</label>
+                    <input type="text" id="nomePaciente" class="pub-control" th:field="*{nomePaciente}"
+                           placeholder="Seu nome completo" required autocomplete="name">
+                    <p class="pub-error" th:if="${#fields.hasErrors('nomePaciente')}" th:errors="*{nomePaciente}"></p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="telefone">Telefone (WhatsApp)</label>
-                    <input type="tel" id="telefone" class="form-control" th:field="*{telefone}" placeholder="(00) 00000-0000" required>
-                    <p class="form-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="telefone">Telefone (WhatsApp)</label>
+                    <input type="tel" id="telefone" class="pub-control" th:field="*{telefone}"
+                           placeholder="(00) 00000-0000" required autocomplete="tel">
+                    <p class="pub-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="cpf">CPF</label>
-                    <input type="text" id="cpf" class="form-control" th:field="*{cpf}" placeholder="000.000.000-00" maxlength="14" required>
-                    <p class="lookup-feedback">Se você já é paciente, informe o mesmo CPF usado no cadastro. A equipe confirmará seus dados antes da aprovação.</p>
-                    <p class="form-error" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="cpf">CPF</label>
+                    <input type="text" id="cpf" class="pub-control" th:field="*{cpf}"
+                           placeholder="000.000.000-00" maxlength="14" required inputmode="numeric">
+                    <p class="pub-help">Se você já é paciente, informe o mesmo CPF do cadastro. A equipe confirmará os dados antes da aprovação.</p>
+                    <p class="pub-error" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="email">E-mail</label>
-                    <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="seu@email.com">
-                    <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="email">E-mail</label>
+                    <input type="email" id="email" class="pub-control" th:field="*{email}"
+                           placeholder="seu@email.com" autocomplete="email">
+                    <p class="pub-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="localAtendimento">Deseja atendimento em</label>
-                    <select id="localAtendimento" class="form-select" th:field="*{localAtendimento}" required>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="localAtendimento">Deseja atendimento em</label>
+                    <select id="localAtendimento" class="pub-select" th:field="*{localAtendimento}" required>
                         <option value="">Selecione o local</option>
                         <option value="CLINICA">Clínica</option>
                         <option value="DOMICILIO">Em domicílio</option>
                     </select>
-                    <p class="form-error" th:if="${#fields.hasErrors('localAtendimento')}" th:errors="*{localAtendimento}"></p>
+                    <p class="pub-error" th:if="${#fields.hasErrors('localAtendimento')}" th:errors="*{localAtendimento}"></p>
                 </div>
 
-                <section class="address-card d-none" id="enderecoCard">
-                    <div class="address-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="cep">CEP (opcional)</label>
-                            <div class="input-with-button">
-                                <input type="text" id="cep" class="form-control" th:field="*{cep}" placeholder="00000-000" maxlength="9">
-                                <button type="button" class="secondary-button" id="buscarCep">Buscar CEP</button>
+                <section class="pub-address-card d-none" id="enderecoCard" aria-label="Endereço para atendimento domiciliar">
+                    <div class="pub-address-grid">
+                        <div class="pub-form-group">
+                            <label class="pub-label" for="cep">CEP (opcional)</label>
+                            <div class="pub-input-row">
+                                <input type="text" id="cep" class="pub-control" th:field="*{cep}"
+                                       placeholder="00000-000" maxlength="9" inputmode="numeric">
+                                <button type="button" class="pub-secondary-btn" id="buscarCep">Buscar CEP</button>
                             </div>
-                            <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
+                            <p class="pub-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="numero">Número</label>
-                            <input type="text" id="numero" class="form-control" th:field="*{numero}" maxlength="20" placeholder="Número">
-                            <p class="form-error" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></p>
+                        <div class="pub-form-group">
+                            <label class="pub-label" for="numero">Número</label>
+                            <input type="text" id="numero" class="pub-control" th:field="*{numero}"
+                                   maxlength="20" placeholder="Número">
+                            <p class="pub-error" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></p>
                         </div>
 
-                        <div class="form-group full-width">
-                            <label class="form-label" for="rua">Rua</label>
-                            <input type="text" id="rua" class="form-control" th:field="*{rua}" maxlength="160" placeholder="Rua / logradouro">
-                            <p class="form-error" th:if="${#fields.hasErrors('rua')}" th:errors="*{rua}"></p>
+                        <div class="pub-form-group pub-full">
+                            <label class="pub-label" for="rua">Rua</label>
+                            <input type="text" id="rua" class="pub-control" th:field="*{rua}"
+                                   maxlength="160" placeholder="Rua / logradouro">
+                            <p class="pub-error" th:if="${#fields.hasErrors('rua')}" th:errors="*{rua}"></p>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="bairro">Bairro</label>
-                            <input type="text" id="bairro" class="form-control" th:field="*{bairro}" maxlength="120" placeholder="Bairro">
-                            <p class="form-error" th:if="${#fields.hasErrors('bairro')}" th:errors="*{bairro}"></p>
+                        <div class="pub-form-group">
+                            <label class="pub-label" for="bairro">Bairro</label>
+                            <input type="text" id="bairro" class="pub-control" th:field="*{bairro}"
+                                   maxlength="120" placeholder="Bairro">
+                            <p class="pub-error" th:if="${#fields.hasErrors('bairro')}" th:errors="*{bairro}"></p>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="estado">Estado</label>
-                            <select id="estado" class="form-select" th:field="*{estado}">
+                        <div class="pub-form-group">
+                            <label class="pub-label" for="estado">Estado</label>
+                            <select id="estado" class="pub-select" th:field="*{estado}">
                                 <option value="">Selecione o estado</option>
                                 <option value="AC">Acre</option>
                                 <option value="AL">Alagoas</option>
@@ -416,48 +137,52 @@
                                 <option value="SE">Sergipe</option>
                                 <option value="TO">Tocantins</option>
                             </select>
-                            <p class="form-error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></p>
+                            <p class="pub-error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></p>
                         </div>
 
-                        <div class="form-group full-width">
-                            <label class="form-label" for="cidade">Cidade</label>
-                            <select id="cidade" class="form-select" th:field="*{cidade}" th:attr="data-current-city=*{cidade}">
+                        <div class="pub-form-group pub-full">
+                            <label class="pub-label" for="cidade">Cidade</label>
+                            <select id="cidade" class="pub-select" th:field="*{cidade}"
+                                    th:attr="data-current-city=*{cidade}">
                                 <option value="">Selecione o estado primeiro</option>
-                                <option th:if="${form.cidade != null and !#strings.isEmpty(form.cidade)}" th:value="${form.cidade}" th:text="${form.cidade}"></option>
+                                <option th:if="${form.cidade != null and !#strings.isEmpty(form.cidade)}"
+                                        th:value="${form.cidade}" th:text="${form.cidade}"></option>
                             </select>
-                            <p class="form-error" th:if="${#fields.hasErrors('cidade')}" th:errors="*{cidade}"></p>
+                            <p class="pub-error" th:if="${#fields.hasErrors('cidade')}" th:errors="*{cidade}"></p>
                         </div>
                     </div>
                 </section>
 
-                <div class="form-group">
-                    <label class="form-label" for="data">Data desejada</label>
-                    <input type="date" id="data" class="form-control" th:field="*{data}" required>
-                    <p class="form-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
-                    <p class="form-help">Ao alterar a data, os horários são atualizados automaticamente.</p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="data">Data desejada</label>
+                    <input type="date" id="data" class="pub-control" th:field="*{data}" required>
+                    <p class="pub-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+                    <p class="pub-help">Ao alterar a data, os horários são atualizados automaticamente.</p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="horario">Horário preferencial</label>
-                    <select id="horario" class="form-select" th:field="*{horario}" required>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="horario">Horário preferencial</label>
+                    <select id="horario" class="pub-select" th:field="*{horario}" required>
                         <option value="">Selecione um horário</option>
                         <option th:each="slot : ${slots}" th:value="${slot.inicio()}" th:text="${slot.label()}">09:00</option>
                     </select>
-                    <p class="form-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
+                    <p class="pub-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}"></p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="observacoes">Observações</label>
-                    <textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}" placeholder="Alguma informação adicional?"></textarea>
-                    <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
+                <div class="pub-form-group">
+                    <label class="pub-label" for="observacoes">Observações</label>
+                    <textarea id="observacoes" class="pub-control" rows="3" th:field="*{observacoes}"
+                              placeholder="Alguma informação adicional?"></textarea>
+                    <p class="pub-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <i data-lucide="send"></i>Solicitar Agendamento
+                <button type="submit" class="pub-btn-primary">
+                    <i data-lucide="send"></i>
+                    Solicitar Agendamento
                 </button>
             </form>
 
-            <div class="footer">
+            <div class="pub-footer">
                 <p>© 2026 FisioGestao - Sistema de Gestão para Clínicas</p>
             </div>
         </div>

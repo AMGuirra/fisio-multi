@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -160,6 +161,23 @@ public class AgendaController {
         try {
             agendaService.reabrirSessaoCancelada(id);
             redirectAttributes.addFlashAttribute("successMessage", "Sessão voltou para pendente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return construirDestinoCalendario(retorno);
+    }
+
+    @PostMapping("/sessoes/{id}/falta-faturada")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    public String registrarFaltaFaturada(
+            @PathVariable UUID id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = dataOuHoje(data);
+        try {
+            agendaService.registrarFaltaFaturada(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Sessão registrada como falta faturada.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

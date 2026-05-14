@@ -3,5 +3,6 @@ package com.fisiogestao.agenda;
 public enum SessaoStatus {
     AGENDADA,
     REALIZADA,
-    CANCELADA
+    CANCELADA,
+    FALTA_FATURADA
 }

@@ -486,6 +486,43 @@ public class AgendaService {
     }
 
     @Transactional
+    public SessaoEntity registrarFaltaFaturada(UUID sessaoId) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
+
+        if (sessao.getStatus() == SessaoStatus.FALTA_FATURADA) {
+            return sessao;
+        }
+        if (sessao.getStatus() != SessaoStatus.AGENDADA) {
+            throw new BusinessException("Somente sessões pendentes podem ser registradas como falta faturada.");
+        }
+
+        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
+            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
+            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        }
+        if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
+            financeiroService.registrarReceitaAvulso(sessao);
+        }
+
+        sessao.setStatus(SessaoStatus.FALTA_FATURADA);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.NO_SHOW,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Sessão registrada como falta faturada — crédito consumido e receita reconhecida.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
+    }
+
+    @Transactional
     public SessaoEntity reverterRealizacao(UUID sessaoId) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));

@@ -6,110 +6,9 @@
     <title th:text="'Portal – ' + ${paciente.nomeCompleto}">Portal do Paciente</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #31c9a9;
-            --primary-dark: #1ea387;
-            --text-main: #15303c;
-            --text-soft: #607988;
-            --bg: #f0f7f5;
-            --card: #ffffff;
-            --border: #e2ece9;
-            --radius: 0.75rem;
-            --shadow: 0 2px 12px rgba(34,77,93,0.10);
-            --danger: #e53e3e;
-            --warning: #d97706;
-            --success: #16a34a;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; }
-
-        header.portal-header { background: var(--primary); color: #fff; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
-        header.portal-header h1 { font-size: 1.1rem; font-weight: 700; }
-        header.portal-header p { font-size: 0.85rem; opacity: 0.85; }
-        .portal-logo { font-size: 1.5rem; }
-
-        main.portal-main { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-
-        .flash { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; font-size: 0.9rem; }
-        .flash-success { background: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
-        .flash-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main); }
-
-        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem; margin-bottom: 1.25rem; }
-
-        .paciente-name { font-size: 1.15rem; font-weight: 700; }
-        .paciente-meta { font-size: 0.85rem; color: var(--text-soft); margin-top: 0.2rem; }
-
-        .proxima-destaque { background: linear-gradient(135deg,#e6faf5 0%,#d0f4ec 100%); border: 1.5px solid var(--primary); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
-        .proxima-destaque-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); margin-bottom: 0.4rem; }
-        .proxima-destaque-data { font-size: 1.1rem; font-weight: 700; }
-        .proxima-destaque-hora { font-size: 0.9rem; color: var(--text-soft); margin-top: 0.1rem; }
-
-        .pacote-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem; }
-        .pacote-row:last-child { border-bottom: none; }
-        .pacote-nome { font-weight: 600; font-size: 0.95rem; }
-        .pacote-meta { font-size: 0.82rem; color: var(--text-soft); margin-top: 0.15rem; }
-        .progress-bar-wrap { height: 6px; background: var(--border); border-radius: 99px; margin-top: 0.4rem; overflow: hidden; }
-        .progress-bar-fill { height: 100%; border-radius: 99px; background: var(--primary); }
-        .progress-bar-fill.low { background: var(--warning); }
-        .progress-bar-fill.empty { background: var(--danger); }
-        .pacote-encerrado { opacity: 0.65; }
-        .pacotes-encerrados-toggle { font-size: 0.85rem; color: var(--text-soft); cursor: pointer; display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; user-select: none; }
-        .pacotes-encerrados-toggle:hover { color: var(--text-main); }
-        .saldo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.9rem; }
-        .saldo-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: #f8fcfb; }
-        .saldo-label { font-size: 0.78rem; color: var(--text-soft); }
-        .saldo-value { margin-top: 0.2rem; font-size: 1.35rem; font-weight: 800; color: var(--text-main); }
-
-        .sessao-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
-        .sessao-card:last-child { margin-bottom: 0; }
-        .sessao-data { font-weight: 700; font-size: 1rem; }
-        .sessao-horario { font-size: 0.85rem; color: var(--text-soft); }
-        .sessao-tipo { font-size: 0.85rem; color: var(--text-soft); }
-
-        .badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
-        .badge-agendada   { background: #dbeafe; color: #1d4ed8; }
-        .badge-realizada  { background: #dcfce7; color: #15803d; }
-        .badge-cancelada  { background: #fee2e2; color: #991b1b; }
-        .badge-confirmado { background: #d1fae5; color: #065f46; }
-        .badge-ativo      { background: #d1fae5; color: #065f46; }
-        .badge-concluido  { background: #e0e7ff; color: #3730a3; }
-        .badge-expirado   { background: #fef3c7; color: #92400e; }
-        .badge-cancelado-pkg { background: #fee2e2; color: #991b1b; }
-
-        .btn-confirmar { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius); background: var(--primary); color: #fff; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; }
-        .btn-confirmar:hover { background: var(--primary-dark); }
-        .btn-cancelar { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius); background: #fff; color: var(--danger); border: 1px solid #fecaca; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; }
-        .btn-cancelar:hover { background: #fff5f5; }
-        .btn-ja-confirmado { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.45rem 0.9rem; border-radius: var(--radius); background: #dcfce7; color: var(--success); font-size: 0.85rem; font-weight: 600; border: 1px solid #bbf7d0; }
-        .btn-calendar { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; padding: 0.4rem 0.8rem; border-radius: var(--radius); background: #f0f9ff; color: #0369a1; font-size: 0.8rem; font-weight: 600; border: 1px solid #bae6fd; text-decoration: none; }
-        .btn-calendar:hover { background: #e0f2fe; }
-        .cancel-info { width: 100%; font-size: 0.78rem; color: var(--text-soft); margin-top: 0.1rem; }
-
-        .historico-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; gap: 0.5rem; }
-        .historico-row:last-child { border-bottom: none; }
-        .historico-esq { display: flex; flex-direction: column; gap: 0.1rem; }
-        .historico-data { color: var(--text-soft); font-size: 0.82rem; }
-        .historico-tipo { font-size: 0.85rem; }
-        .recibo-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem; }
-        .recibo-row:last-child { border-bottom: none; }
-        .recibo-desc { font-weight: 600; font-size: 0.9rem; }
-        .recibo-meta { font-size: 0.8rem; color: var(--text-soft); margin-top: 0.15rem; }
-        .btn-recibo { display: inline-flex; align-items: center; padding: 0.42rem 0.75rem; border-radius: var(--radius); background: #f8fafc; color: var(--text-main); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-        .btn-recibo:hover { background: #eef6f4; }
-
-        .empty { color: var(--text-soft); font-size: 0.9rem; text-align: center; padding: 1.5rem; }
-
-        footer.portal-footer { text-align: center; padding: 2rem 1rem 1.5rem; font-size: 0.8rem; color: var(--text-soft); line-height: 1.8; }
-        .footer-clinica { font-weight: 600; color: var(--text-main); font-size: 0.85rem; margin-bottom: 0.3rem; }
-        .footer-contato { display: flex; justify-content: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-        .footer-contato a { color: var(--primary-dark); text-decoration: none; font-weight: 500; }
-        .footer-contato a:hover { text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
-<body>
+<body class="portal-body">
 
 <header class="portal-header">
     <div class="portal-logo">&#x1F3E5;</div>
@@ -165,11 +64,11 @@
     </div>
 
     <!-- Pacotes ativos -->
-    <div class="card" th:if="${!pacotesAtivos.empty}">
-        <p class="section-title">Planos de tratamento ativos</p>
+    <div class="portal-card" th:if="${!pacotesAtivos.empty}">
+        <p class="portal-section-title">Planos de tratamento ativos</p>
         <div th:each="pacote : ${pacotesAtivos}">
             <div class="pacote-row">
-                <div style="flex:1;">
+                <div class="flex-1">
                     <p class="pacote-nome" th:text="${pacote.nomePacote}">Pacote</p>
                     <p class="pacote-meta"
                        th:text="${pacote.sessoesConsumidas + ' de ' + pacote.sessoesContratadas + ' sessoes realizadas'}"></p>
@@ -183,10 +82,9 @@
                         </div>
                     </div>
                 </div>
-                <div style="text-align:right;flex-shrink:0;">
+                <div class="pacote-info-right">
                     <span class="badge badge-ativo">Ativo</span>
-                    <br>
-                    <span style="font-size:0.82rem;color:var(--text-soft);margin-top:0.25rem;display:block;"
+                    <span class="pacote-restantes"
                           th:text="${(pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' restantes'}"></span>
                 </div>
             </div>
@@ -194,15 +92,15 @@
     </div>
 
     <!-- Sessoes agendadas -->
-    <div class="card">
-        <p class="section-title">Sessoes agendadas</p>
+    <div class="portal-card">
+        <p class="portal-section-title">Sessoes agendadas</p>
 
-        <div th:if="${proximasSessoes.empty}" class="empty">
+        <div th:if="${proximasSessoes.empty}" class="portal-empty">
             Nenhuma sessao agendada no momento.
         </div>
 
         <div th:each="sv : ${proximasSessoes}" class="sessao-card">
-            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <div class="portal-pacote-actions">
                 <p class="sessao-data"
                    th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">Data</p>
                 <span class="badge badge-agendada">Agendada</span>
@@ -214,10 +112,10 @@
                th:if="${sv.sessao().tipoAtendimento != null and !#strings.isEmpty(sv.sessao().tipoAtendimento)}"
                th:text="${sv.sessao().tipoAtendimento}"></p>
 
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+            <div class="portal-pacote-actions">
                 <form th:unless="${sv.sessao().confirmadoPeloPaciente}"
                       th:action="@{/paciente/{token}/sessao/{sid}/confirmar(token=${token},sid=${sv.sessao().id})}"
-                      method="post" style="display:inline;">
+                      method="post" class="d-inline">
                     <button type="submit" class="btn-confirmar">Confirmar presenca</button>
                 </form>
                 <div th:if="${sv.sessao().confirmadoPeloPaciente}" class="btn-ja-confirmado">
@@ -228,7 +126,7 @@
                 </a>
                 <form th:if="${sv.cancelavel()}"
                       th:action="@{/paciente/{token}/sessao/{sid}/cancelar(token=${token},sid=${sv.sessao().id})}"
-                      method="post" style="display:inline;"
+                      method="post" class="d-inline"
                       onsubmit="return confirm('Deseja cancelar esta sessao?');">
                     <button type="submit" class="btn-cancelar">Cancelar sessao</button>
                 </form>
@@ -241,8 +139,8 @@
     </div>
 
     <!-- Recibos -->
-    <div class="card" th:if="${!recibos.empty}">
-        <p class="section-title">Recibos disponiveis</p>
+    <div class="portal-card" th:if="${!recibos.empty}">
+        <p class="portal-section-title">Recibos disponiveis</p>
         <div th:each="recibo : ${recibos}" class="recibo-row">
             <div>
                 <p class="recibo-desc" th:text="${recibo.descricao}">Descricao</p>
@@ -259,8 +157,8 @@
     </div>
 
     <!-- Historico recente -->
-    <div class="card" th:if="${!historicoSessoes.empty}">
-        <p class="section-title">Historico recente</p>
+    <div class="portal-card" th:if="${!historicoSessoes.empty}">
+        <p class="portal-section-title">Historico recente</p>
         <div th:each="sessao : ${historicoSessoes}" class="historico-row">
             <div class="historico-esq">
                 <span class="historico-data"
@@ -282,9 +180,9 @@
             <span>&#x25B6;</span> Ver planos encerrados
             (<span th:text="${pacotesEncerrados.size()}">0</span>)
         </p>
-        <div id="pacotesEncerradosBox" style="display:none;margin-top:0.5rem;" class="card">
+        <div id="pacotesEncerradosBox" class="portal-card pacotes-encerrados-box">
             <div th:each="pacote : ${pacotesEncerrados}" class="pacote-row pacote-encerrado">
-                <div style="flex:1;">
+                <div class="flex-1">
                     <p class="pacote-nome" th:text="${pacote.nomePacote}">Pacote</p>
                     <p class="pacote-meta"
                        th:text="${pacote.sessoesConsumidas + ' de ' + pacote.sessoesContratadas + ' sessoes realizadas'}"></p>
@@ -292,7 +190,7 @@
                        th:if="${pacote.dataValidade != null}"
                        th:text="'Valido ate ' + ${#temporals.format(pacote.dataValidade, 'dd/MM/yyyy')}"></p>
                 </div>
-                <div style="text-align:right;flex-shrink:0;">
+                <div class="pacote-info-right">
                     <span class="badge"
                           th:classappend="${pacote.status.name() == 'CONCLUIDO' ? ' badge-concluido' : (pacote.status.name() == 'EXPIRADO' ? ' badge-expirado' : ' badge-cancelado-pkg')}"
                           th:text="${pacote.status.name() == 'CONCLUIDO' ? 'Concluido' : (pacote.status.name() == 'EXPIRADO' ? 'Expirado' : 'Cancelado')}">

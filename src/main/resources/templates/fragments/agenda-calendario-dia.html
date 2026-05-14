@@ -37,8 +37,8 @@
                                 <div class="session-actions">
                                     <div class="session-actions-top">
                                         <span class="chip"
-                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : 'status-danger')}"
-                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : sessao.status.name()}">STATUS</span>
+                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : (sessao.status.name() == 'FALTA_FATURADA' ? 'status-warning' : 'status-danger'))}"
+                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : (sessao.status.name() == 'FALTA_FATURADA' ? 'FALTA FATURADA' : sessao.status.name())}">STATUS</span>
                                         <span class="chip status-success" th:if="${sessao.recorrencia != null or sessao.recorrenciaPai != null}">RECORRENTE</span>
                                         <a th:if="${sessao.status.name() != 'CANCELADA'}"
                                            href="javascript:void(0)"
@@ -60,6 +60,19 @@
                                               data-confirm-action-label="Confirmar realização">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
+                                        </form>
+                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                              th:action="@{/agenda/sessoes/{id}/falta-faturada(id=${sessao.id})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Registrar falta faturada?"
+                                              data-confirm-message="O paciente faltou, mas a sessão será cobrada normalmente."
+                                              data-confirm-helper-title="Crédito consumido, receita reconhecida"
+                                              data-confirm-helper-message="O plano de tratamento terá uma sessão descontada e o valor permanecerá vinculado ao faturamento da clínica."
+                                              data-confirm-action-label="Confirmar falta faturada">
+                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <button type="submit" class="action-button warning"><i data-lucide="user-x"></i>Falta faturada</button>
                                         </form>
                                         <form th:if="${sessao.status.name() == 'REALIZADA'}"
                                               th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
