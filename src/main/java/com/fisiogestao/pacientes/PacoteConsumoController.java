@@ -191,6 +191,7 @@ public class PacoteConsumoController {
         model.addAttribute("historicoAvulso", sessaoConsumoService.historicoAvulsoPorPaciente(pacienteId));
         model.addAttribute("resumoAvulso", sessaoConsumoService.resumoAvulso(pacienteId));
         model.addAttribute("hoje", LocalDate.now());
+        model.addAttribute("agendamentoSessaoModalOpen", false);
     }
 
     private String normalizarModo(String modoSolicitado, boolean possuiPlano) {

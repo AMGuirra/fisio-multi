@@ -137,8 +137,16 @@
 
         async function carregarPaciente(pacienteId, modo) {
             const url = `/pacotes-consumo/${pacienteId}/selecionar?modo=${modo}`;
-            const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-            atualizarPaineis(await res.text(), modo);
+            try {
+                const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                if (!res.ok) {
+                    document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Erro ao carregar paciente (' + res.status + '). Tente novamente.</p></div>';
+                    return;
+                }
+                atualizarPaineis(await res.text(), modo);
+            } catch (err) {
+                document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Falha de conexao. Recarregue a pagina.</p></div>';
+            }
         }
 
         async function selecionarPaciente(row) {
