@@ -2,6 +2,8 @@ package com.fisiogestao.auditoria;
 
 import com.fisiogestao.auditoria.form.AuditFilterForm;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.auth.InMemoryUserCatalog;
+import com.fisiogestao.auth.service.UserLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,8 @@ import java.util.UUID;
 public class AuditoriaController {
 
     private final AuditService auditService;
+    private final UserLinkService userLinkService;
+    private final InMemoryUserCatalog userCatalog;
 
     @GetMapping
     public String index(@ModelAttribute("filtroForm") AuditFilterForm filtroForm, Model model) {
@@ -40,7 +44,27 @@ public class AuditoriaController {
         model.addAttribute("origensAuditoria", AuditEventOrigin.values());
         model.addAttribute("entidadesAuditoria", auditService.availableEntities());
         model.addAttribute("usuariosAuditoria", auditService.availableUsers());
+        model.addAttribute("activeTab", "auditoria");
         return "auditoria/index";
+    }
+
+    @GetMapping("/vinculos")
+    public String vinculos(
+            @RequestParam(name = "usuarioId", required = false) UUID usuarioId,
+            Model model
+    ) {
+        model.addAttribute("pageTitle", "Vínculos de Usuários");
+        model.addAttribute("activeTab", "vinculos");
+        model.addAttribute("usuarios", userCatalog.listar());
+        
+        if (usuarioId != null) {
+            userCatalog.buscarPorId(usuarioId).ifPresent(user -> {
+                model.addAttribute("usuarioSelecionado", user);
+                model.addAttribute("vinculos", userLinkService.findLinks(usuarioId));
+            });
+        }
+        
+        return "auditoria/vinculos";
     }
 
     @GetMapping("/{id}")

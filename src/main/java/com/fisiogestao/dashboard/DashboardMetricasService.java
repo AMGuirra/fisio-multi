@@ -70,18 +70,17 @@ public class DashboardMetricasService {
             double taxaRenovacao
     ) {}
 
-    public record AbsenteismoPaciente(
+    public record FrequenciaPaciente(
             String nomePaciente,
-            long faltasFaturadas,
-            long totalSessoesComputadas,
-            double taxaAbsenteismo
+            long totalPresencas,
+            long totalSessoes
     ) {}
 
     public record MetricasDashboard(
             List<OcupacaoMensal> ocupacaoMensal,
             List<ReceitaMensal> receitaMensal,
             RetencaoPacotes retencaoPacotes,
-            List<AbsenteismoPaciente> rankingAbsenteismo
+            List<FrequenciaPaciente> rankingFrequencia
     ) {}
 
     /**
@@ -103,7 +102,7 @@ public class DashboardMetricasService {
                 consultarOcupacaoMensal(meses, inicioJanela),
                 consultarReceitaMensal(meses, inicioJanela),
                 consultarRetencaoPacotes(),
-                consultarRankingAbsenteismo(inicioJanela)
+                consultarRankingFrequencia(inicioJanela)
         );
     }
 
@@ -241,34 +240,28 @@ public class DashboardMetricasService {
         );
     }
 
-    private List<AbsenteismoPaciente> consultarRankingAbsenteismo(OffsetDateTime inicioJanela) {
+    private List<FrequenciaPaciente> consultarRankingFrequencia(OffsetDateTime inicioJanela) {
         String sql = """
                 SELECT
                     c.nome_completo,
-                    COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA')                             AS faltas_faturadas,
-                    COUNT(*) FILTER (WHERE s.status IN ('REALIZADA', 'FALTA_FATURADA'))             AS total_computadas,
-                    ROUND(
-                        1.0 * COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA') * 100 /
-                        NULLIF(COUNT(*) FILTER (WHERE s.status IN ('REALIZADA', 'FALTA_FATURADA')), 0),
-                        1
-                    )                                                                               AS taxa_absenteismo
+                    COUNT(*) FILTER (WHERE s.status = 'REALIZADA') AS total_presencas,
+                    COUNT(*) AS total_sessoes
                 FROM sessao s
                 JOIN cliente c ON c.id = s.cliente_id
                 WHERE s.data_hora_inicio >= ?
                   AND s.status <> 'CANCELADA'
                 GROUP BY c.id, c.nome_completo
-                HAVING COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA') > 0
-                ORDER BY faltas_faturadas DESC, taxa_absenteismo DESC
+                HAVING COUNT(*) FILTER (WHERE s.status = 'REALIZADA') > 0
+                ORDER BY total_presencas DESC, total_sessoes DESC
                 LIMIT 10
                 """;
 
-        List<AbsenteismoPaciente> resultado = new java.util.ArrayList<>();
+        List<FrequenciaPaciente> resultado = new java.util.ArrayList<>();
         jdbc.query(sql, (rs) -> {
-            resultado.add(new AbsenteismoPaciente(
+            resultado.add(new FrequenciaPaciente(
                     rs.getString("nome_completo"),
-                    rs.getLong("faltas_faturadas"),
-                    rs.getLong("total_computadas"),
-                    rs.getDouble("taxa_absenteismo")
+                    rs.getLong("total_presencas"),
+                    rs.getLong("total_sessoes")
             ));
         }, inicioJanela);
         return resultado;

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vínculos de Usuários - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/auditoria.css}">
+    <style>
+        .vinculos-search-card {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        .vinculos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .vinculo-card {
+            background: var(--surface-card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+        }
+        .vinculo-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .vinculo-icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .vinculo-content {
+            flex-grow: 1;
+        }
+        .vinculo-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .vinculo-count {
+            font-size: 0.875rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            background: var(--primary-light);
+            padding: 0.125rem 0.5rem;
+            border-radius: 2rem;
+            margin-left: 0.5rem;
+        }
+        .vinculo-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .user-header-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--primary-light);
+            border-radius: 1rem;
+            color: var(--primary-dark);
+        }
+        .user-header-avatar {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .user-header-details h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .user-header-details p {
+            font-size: 0.875rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body class="dashboard-app">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title" th:text="${pageTitle}">Vínculos de Usuários</h2>
+                    <p class="header-date" id="headerFullDate"></p>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Vínculos de Usuários</h1>
+                    <p class="hero-subtitle">Consulte quais registros e dependências impedem a exclusão de um usuário ou rastreie sua atividade.</p>
+                </div>
+                <span class="hero-pill">Segurança e Integridade</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab" th:classappend="${activeTab == 'auditoria' ? 'active' : ''}"><i data-lucide="shield-check"></i> Auditoria</a>
+                <a th:href="@{/auditoria/vinculos}" href="/auditoria/vinculos" class="page-tab" th:classappend="${activeTab == 'vinculos' ? 'active' : ''}"><i data-lucide="link"></i> Vínculos</a>
+            </nav>
+
+            <section class="section-card vinculos-search-card">
+                <header class="section-head">
+                    <h3 class="section-title"><i data-lucide="search"></i> Buscar Usuário</h3>
+                </header>
+                <div class="section-body">
+                    <form th:action="@{/auditoria/vinculos}" method="get" class="modern-form">
+                        <div class="form-field">
+                            <label for="usuarioId">Selecione o usuário para verificar vínculos</label>
+                            <select id="usuarioId" name="usuarioId" class="form-select" onchange="this.form.submit()">
+                                <option value="">Selecione um usuário...</option>
+                                <option th:each="user : ${usuarios}" th:value="${user.id()}" th:text="${user.nome() + ' (' + user.username() + ')'}" th:selected="${usuarioSelecionado != null && usuarioSelecionado.id() == user.id()}">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="section-card" th:if="${usuarioSelecionado != null}">
+                <div class="section-body">
+                    <div class="user-header-info">
+                        <div class="user-header-avatar" th:text="${#strings.substring(usuarioSelecionado.nome(),0,1)}">A</div>
+                        <div class="user-header-details">
+                            <h2 th:text="${usuarioSelecionado.nome()}">Nome do Usuário</h2>
+                            <p th:text="${usuarioSelecionado.email() + ' • ' + usuarioSelecionado.label()}">email@clinica.com • Administrador</p>
+                        </div>
+                    </div>
+
+                    <div class="vinculos-empty" th:if="${vinculos.empty}">
+                        <div class="alert alert-success">
+                            <i data-lucide="check-circle"></i>
+                            <div>
+                                <strong>Nenhum vínculo impeditivo encontrado.</strong>
+                                <p>Este usuário não possui registros de auditoria ou outras dependências que impeçam sua exclusão física.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:unless="${vinculos.empty}">
+                        <div class="alert alert-warning" style="margin-bottom: 2rem;">
+                            <i data-lucide="alert-triangle"></i>
+                            <div>
+                                <strong>Vínculos ativos detectados.</strong>
+                                <p>Os itens abaixo representam registros vinculados a este usuário. A exclusão física do usuário falhará enquanto houver registros que exijam sua integridade referencial.</p>
+                            </div>
+                        </div>
+
+                        <div class="vinculos-grid">
+                            <div class="vinculo-card" th:each="v : ${vinculos}">
+                                <div class="vinculo-icon">
+                                    <i th:attr="data-lucide=${v.icone()}"></i>
+                                </div>
+                                <div class="vinculo-content">
+                                    <div class="vinculo-title">
+                                        <span th:text="${v.tipo()}">Tipo</span>
+                                        <span class="vinculo-count" th:text="${v.quantidade()}">0</span>
+                                    </div>
+                                    <p class="vinculo-desc" th:text="${v.descricao()}">Descrição do vínculo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>

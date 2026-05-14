@@ -239,8 +239,8 @@
         const carregarMetricasDashboard = async () => {
             const ocupacaoChart = document.getElementById('ocupacaoChart');
             const receitaChart = document.getElementById('receitaChart');
-            const absenteismoChart = document.getElementById('absenteismoChart');
-            if (!ocupacaoChart && !receitaChart && !absenteismoChart) {
+            const frequenciaChart = document.getElementById('frequenciaChart');
+            if (!ocupacaoChart && !receitaChart && !frequenciaChart) {
                 return;
             }
 
@@ -260,7 +260,7 @@
                 const ocupacao = data.ocupacaoMensal || [];
                 const receitas = data.receitaMensal || [];
                 const retencao = data.retencaoPacotes || {};
-                const absenteismo = data.rankingAbsenteismo || [];
+                const frequencia = data.rankingFrequencia || [];
 
                 const ocupacaoMedia = ocupacao.length
                     ? ocupacao.reduce((total, item) => total + Number(item.taxaOcupacao || 0), 0) / ocupacao.length
@@ -290,16 +290,16 @@
                     fillClass: 'chart-fill-receita'
                 });
 
-                renderBars(absenteismoChart, absenteismo, {
-                    value: (item) => Number(item.faltasFaturadas || 0),
-                    display: (item) => `${item.faltasFaturadas}x · ${Number(item.taxaAbsenteismo || 0).toFixed(1)}%`,
-                    title: (item) => `${item.faltasFaturadas} falta(s) de ${item.totalSessoesComputadas} sessoes (${Number(item.taxaAbsenteismo || 0).toFixed(1)}% de absenteismo)`,
+                renderBars(frequenciaChart, frequencia, {
+                    value: (item) => Number(item.totalPresencas || 0),
+                    display: (item) => `${item.totalPresencas} sessões`,
+                    title: (item) => `${item.totalPresencas} sessões realizadas de ${item.totalSessoes} sessões totais`,
                     labelFn: (item) => item.nomePaciente,
-                    fillClass: 'chart-fill-absenteismo'
+                    fillClass: 'chart-fill-frequencia'
                 });
 
-                if (absenteismo.length === 0 && absenteismoChart) {
-                    absenteismoChart.innerHTML = '<p class="analytics-empty">Nenhuma falta faturada no periodo. Otimo sinal!</p>';
+                if (frequencia.length === 0 && frequenciaChart) {
+                    frequenciaChart.innerHTML = '<p class="analytics-empty">Nenhuma atividade registrada no período.</p>';
                 }
             } catch (error) {
                 if (ocupacaoChart) {
@@ -308,8 +308,8 @@
                 if (receitaChart) {
                     receitaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
                 }
-                if (absenteismoChart) {
-                    absenteismoChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
+                if (frequenciaChart) {
+                    frequenciaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
                 }
                 console.error('Falha ao carregar metricas do dashboard.', error);
             }

@@ -967,8 +967,8 @@ body.sidebar-open .sidebar-toggle-btn svg {
     background: linear-gradient(90deg, #147d3f, #d19a10);
 }
 
-.chart-fill-absenteismo {
-    background: linear-gradient(90deg, #c0392b, #e67e22);
+.chart-fill-frequencia {
+    background: linear-gradient(90deg, #2ecc71, #3498db);
 }
 
 .chart-bars--names .chart-row {

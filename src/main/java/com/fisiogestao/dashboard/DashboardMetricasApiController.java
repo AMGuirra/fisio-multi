@@ -34,11 +34,12 @@ public class DashboardMetricasApiController {
     @Operation(
             summary = "Métricas históricas dos últimos 12 meses",
             description = """
-                    Retorna três conjuntos de dados para renderização de gráficos:
+                    Retorna quatro conjuntos de dados para renderização de gráficos:
 
                     - **Ocupação mensal**: total de horas agendadas por mês (sessões não canceladas).
                     - **Receita mensal**: receita recebida segregada entre sessões avulsas e pacotes de tratamento.
                     - **Retenção de pacotes**: taxa de conversão de pacientes para planos e taxa de renovação.
+                    - **Frequência de pacientes**: ranking dos pacientes que mais realizaram sessões.
 
                     Todas as queries operam diretamente no PostgreSQL via agregados nativos.
                     """,
