@@ -223,9 +223,10 @@
             container.innerHTML = items.map((item) => {
                 const value = options.value(item);
                 const percent = Math.max(4, Math.round((value / max) * 100));
+                const label = options.labelFn ? options.labelFn(item) : monthLabel(item.mes);
                 return `
                     <div class="chart-row">
-                        <span class="chart-label">${monthLabel(item.mes)}</span>
+                        <span class="chart-label" title="${label}">${label}</span>
                         <span class="chart-track" title="${options.title(item)}">
                             <span class="chart-fill ${options.fillClass || ''}" style="width:${percent}%"></span>
                         </span>
@@ -238,7 +239,8 @@
         const carregarMetricasDashboard = async () => {
             const ocupacaoChart = document.getElementById('ocupacaoChart');
             const receitaChart = document.getElementById('receitaChart');
-            if (!ocupacaoChart && !receitaChart) {
+            const absenteismoChart = document.getElementById('absenteismoChart');
+            if (!ocupacaoChart && !receitaChart && !absenteismoChart) {
                 return;
             }
 
@@ -258,6 +260,7 @@
                 const ocupacao = data.ocupacaoMensal || [];
                 const receitas = data.receitaMensal || [];
                 const retencao = data.retencaoPacotes || {};
+                const absenteismo = data.rankingAbsenteismo || [];
 
                 const ocupacaoMedia = ocupacao.length
                     ? ocupacao.reduce((total, item) => total + Number(item.taxaOcupacao || 0), 0) / ocupacao.length
@@ -286,12 +289,27 @@
                     title: (item) => `Pacotes ${formatCurrency(item.receitaPacote)} / Avulso ${formatCurrency(item.receitaAvulso)}`,
                     fillClass: 'chart-fill-receita'
                 });
+
+                renderBars(absenteismoChart, absenteismo, {
+                    value: (item) => Number(item.faltasFaturadas || 0),
+                    display: (item) => `${item.faltasFaturadas}x · ${Number(item.taxaAbsenteismo || 0).toFixed(1)}%`,
+                    title: (item) => `${item.faltasFaturadas} falta(s) de ${item.totalSessoesComputadas} sessoes (${Number(item.taxaAbsenteismo || 0).toFixed(1)}% de absenteismo)`,
+                    labelFn: (item) => item.nomePaciente,
+                    fillClass: 'chart-fill-absenteismo'
+                });
+
+                if (absenteismo.length === 0 && absenteismoChart) {
+                    absenteismoChart.innerHTML = '<p class="analytics-empty">Nenhuma falta faturada no periodo. Otimo sinal!</p>';
+                }
             } catch (error) {
                 if (ocupacaoChart) {
                     ocupacaoChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
                 }
                 if (receitaChart) {
                     receitaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
+                }
+                if (absenteismoChart) {
+                    absenteismoChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
                 }
                 console.error('Falha ao carregar metricas do dashboard.', error);
             }

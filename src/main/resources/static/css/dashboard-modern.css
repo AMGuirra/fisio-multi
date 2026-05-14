@@ -967,6 +967,14 @@ body.sidebar-open .sidebar-toggle-btn svg {
     background: linear-gradient(90deg, #147d3f, #d19a10);
 }
 
+.chart-fill-absenteismo {
+    background: linear-gradient(90deg, #c0392b, #e67e22);
+}
+
+.chart-bars--names .chart-row {
+    grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) 96px;
+}
+
 .analytics-empty {
     margin: 0;
     color: var(--text-soft);

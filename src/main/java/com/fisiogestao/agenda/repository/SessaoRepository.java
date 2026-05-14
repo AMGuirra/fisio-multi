@@ -4,6 +4,9 @@ import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -60,4 +63,11 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             UUID clienteId, SessaoStatus statusExcluido);
 
     Optional<SessaoEntity> findByIdAndClienteIdAndStatus(UUID id, UUID clienteId, SessaoStatus status);
+
+    @Modifying
+    @Query("DELETE FROM SessaoEntity s WHERE s.pacoteSessao.id = :pacoteId AND s.status = :status AND s.dataHoraInicio > :agora")
+    int deletarFuturasPorPacoteEStatus(
+            @Param("pacoteId") UUID pacoteId,
+            @Param("status") SessaoStatus status,
+            @Param("agora") OffsetDateTime agora);
 }

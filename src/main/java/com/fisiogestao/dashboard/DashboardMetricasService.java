@@ -51,7 +51,8 @@ public class DashboardMetricasService {
             double horasAgendadas,
             double capacidadeHoras,
             double taxaOcupacao,
-            long totalSessoes
+            long totalSessoes,
+            long faltasFaturadas
     ) {}
 
     public record ReceitaMensal(
@@ -69,10 +70,18 @@ public class DashboardMetricasService {
             double taxaRenovacao
     ) {}
 
+    public record AbsenteismoPaciente(
+            String nomePaciente,
+            long faltasFaturadas,
+            long totalSessoesComputadas,
+            double taxaAbsenteismo
+    ) {}
+
     public record MetricasDashboard(
             List<OcupacaoMensal> ocupacaoMensal,
             List<ReceitaMensal> receitaMensal,
-            RetencaoPacotes retencaoPacotes
+            RetencaoPacotes retencaoPacotes,
+            List<AbsenteismoPaciente> rankingAbsenteismo
     ) {}
 
     /**
@@ -93,7 +102,8 @@ public class DashboardMetricasService {
         return new MetricasDashboard(
                 consultarOcupacaoMensal(meses, inicioJanela),
                 consultarReceitaMensal(meses, inicioJanela),
-                consultarRetencaoPacotes()
+                consultarRetencaoPacotes(),
+                consultarRankingAbsenteismo(inicioJanela)
         );
     }
 
@@ -107,7 +117,8 @@ public class DashboardMetricasService {
                     EXTRACT(YEAR FROM data_hora_inicio) AS ano,
                     EXTRACT(MONTH FROM data_hora_inicio) AS mes_num,
                     SUM(%s) AS horas_agendadas,
-                    COUNT(*) AS total_sessoes
+                    COUNT(*) AS total_sessoes,
+                    COUNT(*) FILTER (WHERE status = 'FALTA_FATURADA') AS total_faltas_faturadas
                 FROM sessao
                 WHERE status <> 'CANCELADA'
                   AND data_hora_inicio >= ?
@@ -122,7 +133,8 @@ public class DashboardMetricasService {
                     mes,
                     new OcupacaoAgregada(
                             arredondar(rs.getDouble("horas_agendadas")),
-                            rs.getLong("total_sessoes")
+                            rs.getLong("total_sessoes"),
+                            rs.getLong("total_faltas_faturadas")
                     )
             );
         }, inicioJanela);
@@ -133,7 +145,7 @@ public class DashboardMetricasService {
 
         return meses.stream()
                 .map(mes -> {
-                    OcupacaoAgregada agregado = agregados.getOrDefault(mes, new OcupacaoAgregada(0.0, 0L));
+                    OcupacaoAgregada agregado = agregados.getOrDefault(mes, new OcupacaoAgregada(0.0, 0L, 0L));
                     double capacidadeHoras = capacidadeHorasNoMes(mes, configuracao);
                     double taxaOcupacao = capacidadeHoras > 0
                             ? arredondar(agregado.horasAgendadas() / capacidadeHoras * 100.0)
@@ -144,7 +156,8 @@ public class DashboardMetricasService {
                             agregado.horasAgendadas(),
                             capacidadeHoras,
                             taxaOcupacao,
-                            agregado.totalSessoes()
+                            agregado.totalSessoes(),
+                            agregado.faltasFaturadas()
                     );
                 })
                 .toList();
@@ -228,6 +241,39 @@ public class DashboardMetricasService {
         );
     }
 
+    private List<AbsenteismoPaciente> consultarRankingAbsenteismo(OffsetDateTime inicioJanela) {
+        String sql = """
+                SELECT
+                    c.nome_completo,
+                    COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA')                             AS faltas_faturadas,
+                    COUNT(*) FILTER (WHERE s.status IN ('REALIZADA', 'FALTA_FATURADA'))             AS total_computadas,
+                    ROUND(
+                        1.0 * COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA') * 100 /
+                        NULLIF(COUNT(*) FILTER (WHERE s.status IN ('REALIZADA', 'FALTA_FATURADA')), 0),
+                        1
+                    )                                                                               AS taxa_absenteismo
+                FROM sessao s
+                JOIN cliente c ON c.id = s.cliente_id
+                WHERE s.data_hora_inicio >= ?
+                  AND s.status <> 'CANCELADA'
+                GROUP BY c.id, c.nome_completo
+                HAVING COUNT(*) FILTER (WHERE s.status = 'FALTA_FATURADA') > 0
+                ORDER BY faltas_faturadas DESC, taxa_absenteismo DESC
+                LIMIT 10
+                """;
+
+        List<AbsenteismoPaciente> resultado = new java.util.ArrayList<>();
+        jdbc.query(sql, (rs) -> {
+            resultado.add(new AbsenteismoPaciente(
+                    rs.getString("nome_completo"),
+                    rs.getLong("faltas_faturadas"),
+                    rs.getLong("total_computadas"),
+                    rs.getDouble("taxa_absenteismo")
+            ));
+        }, inicioJanela);
+        return resultado;
+    }
+
     private List<YearMonth> ultimosDozeMeses() {
         YearMonth atual = YearMonth.from(ClinicTimezoneHolder.today());
         return IntStream.range(0, MESES_HISTORICO)
@@ -277,5 +323,5 @@ public class DashboardMetricasService {
                 .doubleValue();
     }
 
-    private record OcupacaoAgregada(double horasAgendadas, long totalSessoes) {}
+    private record OcupacaoAgregada(double horasAgendadas, long totalSessoes, long faltasFaturadas) {}
 }

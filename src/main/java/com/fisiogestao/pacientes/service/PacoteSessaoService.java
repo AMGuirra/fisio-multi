@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +32,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PacoteSessaoService {
-
-    private static final List<SessaoStatus> STATUS_SESSAO_COM_PACOTE_ATIVO = List.of(
-            SessaoStatus.AGENDADA,
-            SessaoStatus.REALIZADA
-    );
 
     private final PacoteSessaoRepository pacoteSessaoRepository;
     private final PacienteService pacienteService;
@@ -134,7 +130,9 @@ public class PacoteSessaoService {
 
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
         validarConsumo(pacote.getSessoesConsumidas(), form.getSessoesContratadas());
-        validarCancelamentoPorStatus(pacote, form.getStatus());
+        if (form.getStatus() == PacoteSessaoStatus.CANCELADO) {
+            sessaoRepository.deletarFuturasPorPacoteEStatus(pacoteId, SessaoStatus.AGENDADA, OffsetDateTime.now());
+        }
 
         pacote.setCliente(pacienteService.buscarPorId(form.getClienteId()));
         pacote.setNomePacote(form.getNomePacote().trim());
@@ -169,9 +167,18 @@ public class PacoteSessaoService {
         PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(pacote);
-        validarCancelamento(pacote);
+
+        int sessoesCanceladas = sessaoRepository.deletarFuturasPorPacoteEStatus(
+                pacoteId, SessaoStatus.AGENDADA, OffsetDateTime.now()
+        );
+
         pacote.setStatus(PacoteSessaoStatus.CANCELADO);
         PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+
+        String detalhes = sessoesCanceladas > 0
+                ? String.format("Cancelamento de plano de tratamento. %d sessão(ões) agendada(s) futura(s) removida(s) da agenda.", sessoesCanceladas)
+                : "Cancelamento de plano de tratamento.";
+
         auditService.recordManual(
                 AuditModule.PACOTES,
                 "pacote_sessao",
@@ -181,7 +188,7 @@ public class PacoteSessaoService {
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
                 null,
-                "Cancelamento de plano de tratamento.",
+                detalhes,
                 AuditEventOrigin.MANUAL
         );
     }
@@ -381,18 +388,6 @@ public class PacoteSessaoService {
     private void validarConsumo(Integer sessoesConsumidas, Integer sessoesContratadas) {
         if (sessoesConsumidas > sessoesContratadas) {
             throw new BusinessException("As sessões consumidas não podem ser maiores do que as sessões contratadas.");
-        }
-    }
-
-    private void validarCancelamento(PacoteSessaoEntity pacote) {
-        if (sessaoRepository.existsByPacoteSessaoIdAndStatusIn(pacote.getId(), STATUS_SESSAO_COM_PACOTE_ATIVO)) {
-            throw new BusinessException("Este plano de tratamento possui sessões confirmadas ou realizadas vinculadas e não pode ser cancelado.");
-        }
-    }
-
-    private void validarCancelamentoPorStatus(PacoteSessaoEntity pacote, PacoteSessaoStatus statusSolicitado) {
-        if (statusSolicitado == PacoteSessaoStatus.CANCELADO) {
-            validarCancelamento(pacote);
         }
     }
 
