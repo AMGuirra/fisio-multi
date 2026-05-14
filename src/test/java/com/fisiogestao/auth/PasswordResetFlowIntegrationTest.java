@@ -37,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @org.junit.jupiter.api.extension.ExtendWith(OutputCaptureExtension.class)
-@SuppressWarnings("null")
 class PasswordResetFlowIntegrationTest {
 
     private static final String TEST_EMAIL = "reset-flow@example.com";
