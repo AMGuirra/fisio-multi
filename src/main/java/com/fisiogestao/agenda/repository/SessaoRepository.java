@@ -34,6 +34,8 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             OffsetDateTime fim
     );
 
+    long countByDataHoraInicioBetween(OffsetDateTime inicio, OffsetDateTime fim);
+
     @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     List<SessaoEntity> findByClienteIdOrderByDataHoraInicioDesc(UUID clienteId);
 

@@ -93,6 +93,20 @@ public class InMemoryUserCatalog {
                 .filter(nome -> !nome.isBlank());
     }
 
+    public Optional<SystemUserSessionView> buscarSessao(String username) {
+        String normalized = normalizeUsernameForLookup(username);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        return repository.findByUsername(normalized)
+                .map(user -> new SystemUserSessionView(
+                        user.getUsername(),
+                        user.getNome(),
+                        user.getRole(),
+                        UserThemePreference.fallback(user.getTemaInterface())
+                ));
+    }
+
     @Transactional
     public SystemUserView criar(String nome, String username, String email, String password, UserRole role) {
         String normalizedNome = normalizeNome(nome);
@@ -334,5 +348,8 @@ public class InMemoryUserCatalog {
     }
 
     public record SystemUserView(UUID id, String nome, String username, String email, UserRole role, String label) {
+    }
+
+    public record SystemUserSessionView(String username, String nome, UserRole role, UserThemePreference temaInterface) {
     }
 }

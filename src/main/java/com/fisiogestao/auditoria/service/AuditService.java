@@ -237,19 +237,11 @@ public class AuditService {
     }
 
     public List<String> availableEntities() {
-        return auditEventRepository.findAll(Sort.by("entidade")).stream()
-                .map(AuditEventEntity::getEntidade)
-                .filter(value -> value != null && !value.isBlank())
-                .distinct()
-                .toList();
+        return auditEventRepository.findDistinctEntidades();
     }
 
     public List<String> availableUsers() {
-        return auditEventRepository.findAll(Sort.by("usuarioNome")).stream()
-                .map(AuditEventEntity::getUsuarioNome)
-                .filter(value -> value != null && !value.isBlank())
-                .distinct()
-                .toList();
+        return auditEventRepository.findDistinctUsuarios();
     }
 
     public AuditDocument export(List<AuditEventEntity> events, AuditExportFormat format) {

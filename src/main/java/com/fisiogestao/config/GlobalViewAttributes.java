@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 @ControllerAdvice
@@ -48,13 +49,13 @@ public class GlobalViewAttributes {
     }
 
     @ModelAttribute("loggedUserDisplayName")
-    public String loggedUserDisplayName(Authentication authentication) {
-        return resolveDisplayName(authentication);
+    public String loggedUserDisplayName(Authentication authentication, HttpServletRequest request) {
+        return resolveDisplayName(authentication, request);
     }
 
     @ModelAttribute("loggedUserInitial")
-    public String loggedUserInitial(Authentication authentication) {
-        String displayName = resolveDisplayName(authentication);
+    public String loggedUserInitial(Authentication authentication, HttpServletRequest request) {
+        String displayName = resolveDisplayName(authentication, request);
         if (displayName == null || displayName.isBlank()) {
             return "U";
         }
@@ -74,11 +75,9 @@ public class GlobalViewAttributes {
     }
 
     @ModelAttribute("loggedUserTheme")
-    public UserThemePreference loggedUserTheme(Authentication authentication) {
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            return UserThemePreference.LIGHT;
-        }
-        return userCatalog.buscarTema(authentication.getName())
+    public UserThemePreference loggedUserTheme(Authentication authentication, HttpServletRequest request) {
+        return resolveSessionUser(authentication, request)
+                .map(InMemoryUserCatalog.SystemUserSessionView::temaInterface)
                 .orElse(UserThemePreference.LIGHT);
     }
 
@@ -108,7 +107,7 @@ public class GlobalViewAttributes {
         return userMenuAccessService.listarChavesMenuLiberadas(resolveRole(authentication, request));
     }
 
-    private String resolveDisplayName(Authentication authentication) {
+    private String resolveDisplayName(Authentication authentication, HttpServletRequest request) {
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
             return "Usuário";
         }
@@ -118,7 +117,8 @@ public class GlobalViewAttributes {
             return "Usuário";
         }
 
-        return userCatalog.buscarNomeExibicao(username)
+        return resolveSessionUser(authentication, request)
+                .map(user -> user.nome() != null && !user.nome().isBlank() ? user.nome().trim() : user.username())
                 .orElse(username);
     }
 
@@ -130,11 +130,37 @@ public class GlobalViewAttributes {
         if (cached instanceof UserRole role) {
             return role;
         }
-        UserRole role = userCatalog.buscarRole(authentication.getName()).orElse(null);
+        UserRole role = resolveSessionUser(authentication, request)
+                .map(InMemoryUserCatalog.SystemUserSessionView::role)
+                .orElse(null);
         if (request != null && role != null) {
             request.setAttribute("loggedUserRoleResolved", role);
         }
         return role;
+    }
+
+    private Optional<InMemoryUserCatalog.SystemUserSessionView> resolveSessionUser(
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
+        String username = authentication.getName();
+        if (username == null || username.isBlank()) {
+            return Optional.empty();
+        }
+
+        Object cached = request != null ? request.getAttribute("loggedUserSessionResolved") : null;
+        if (cached instanceof InMemoryUserCatalog.SystemUserSessionView user) {
+            return Optional.of(user);
+        }
+
+        Optional<InMemoryUserCatalog.SystemUserSessionView> resolved = userCatalog.buscarSessao(username);
+        if (request != null) {
+            resolved.ifPresent(user -> request.setAttribute("loggedUserSessionResolved", user));
+        }
+        return resolved;
     }
 
     @ModelAttribute("systemStatusAtual")

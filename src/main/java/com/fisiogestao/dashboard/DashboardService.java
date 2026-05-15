@@ -30,7 +30,7 @@ public class DashboardService {
         
         long sessoesHoje = 0;
         try {
-            sessoesHoje = agendaService.listarSessoesDoDia(LocalDate.now()).size();
+            sessoesHoje = agendaService.contarSessoesDoDia(LocalDate.now());
         } catch (BusinessException e) {
             LOGGER.warn("Nao foi possivel carregar a agenda do dia no dashboard: {}", e.getMessage());
         }

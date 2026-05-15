@@ -234,6 +234,12 @@ public class AgendaService {
     }
 
     @Transactional(readOnly = true)
+    public long contarSessoesDoDia(LocalDate data) {
+        IntervaloAgenda janela = janelaDoDia(data, obterConfiguracaoAtiva());
+        return sessaoRepository.countByDataHoraInicioBetween(janela.inicio(), janela.fim());
+    }
+
+    @Transactional(readOnly = true)
     public List<SessaoEntity> listarSessoesDoPaciente(UUID clienteId) {
         return sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteId);
     }
