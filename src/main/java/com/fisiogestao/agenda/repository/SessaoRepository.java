@@ -47,6 +47,8 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     boolean existsByPlanoSessaoId(UUID planoSessaoId);
 
+    long countByClienteIdAndStatus(UUID clienteId, SessaoStatus status);
+
     @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     List<SessaoEntity> findByPlanoSessaoIdOrderByDataHoraInicioDesc(UUID planoSessaoId);
 

@@ -3,227 +3,1232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Portal – ' + ${paciente.nomeCompleto}">Portal do Paciente</title>
+    <title th:text="'Portal - ' + ${paciente.nomeCompleto}">Portal do Paciente</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+    <style>
+        .portal-premium {
+            --portal-ink: #15303c;
+            --portal-muted: #607988;
+            --portal-line: rgba(21, 48, 60, 0.12);
+            --portal-soft: rgba(255, 255, 255, 0.76);
+            background: linear-gradient(145deg, #edf8f5 0%, #f7fbfd 58%, #eef6fb 100%);
+            color: var(--portal-ink);
+        }
+
+        .portal-shell {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+            padding: clamp(1rem, 3vw, 2rem);
+        }
+
+        .portal-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .portal-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            min-width: 0;
+        }
+
+        .portal-brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--brand-500), #31c9a9);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(15, 143, 122, 0.24);
+        }
+
+        .portal-brand h1 {
+            margin: 0;
+            font-size: var(--text-lg);
+            font-weight: 800;
+        }
+
+        .portal-brand p {
+            margin: 0.1rem 0 0;
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+        }
+
+        .portal-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+            gap: var(--space-lg);
+            align-items: stretch;
+            margin-bottom: var(--space-lg);
+        }
+
+        .portal-hero-main,
+        .portal-next-card,
+        .portal-kpi-card,
+        .portal-panel {
+            background: var(--portal-soft);
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            box-shadow: 0 18px 42px rgba(34, 77, 93, 0.12);
+            backdrop-filter: blur(16px);
+        }
+
+        .portal-hero-main {
+            border-radius: var(--radius-lg);
+            padding: clamp(1.25rem, 4vw, 2rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: var(--space-xl);
+        }
+
+        .portal-eyebrow {
+            margin: 0 0 var(--space-xs);
+            color: var(--brand-600);
+            font-size: var(--text-xs);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .portal-hero-title {
+            margin: 0;
+            font-size: clamp(1.7rem, 4vw, 3rem);
+            line-height: 1.06;
+            letter-spacing: 0;
+        }
+
+        .portal-hero-copy {
+            max-width: 58ch;
+            color: var(--portal-muted);
+            font-size: var(--text-base);
+            line-height: 1.65;
+            margin: var(--space-sm) 0 0;
+        }
+
+        .portal-hero-actions,
+        .portal-action-row,
+        .portal-quick-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+
+        .portal-btn {
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            min-height: 44px;
+            padding: 0.7rem 1rem;
+            font: inherit;
+            font-size: var(--text-sm);
+            font-weight: 750;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: transform var(--ease-standard), box-shadow var(--ease-standard), background var(--ease-standard);
+        }
+
+        .portal-btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+            box-shadow: 0 12px 26px rgba(15, 143, 122, 0.24);
+        }
+
+        .portal-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 30px rgba(15, 143, 122, 0.30);
+        }
+
+        .portal-btn-secondary {
+            color: var(--portal-ink);
+            background: #fff;
+            border-color: var(--portal-line);
+        }
+
+        .portal-btn-danger {
+            color: #ad3f3f;
+            background: #fff7f7;
+            border-color: #f5caca;
+        }
+
+        .portal-btn[disabled] {
+            opacity: 0.68;
+            cursor: progress;
+        }
+
+        .portal-next-card {
+            border-radius: var(--radius-lg);
+            padding: clamp(1rem, 3vw, 1.35rem);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .next-date {
+            margin: 0;
+            font-size: var(--text-xl);
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .next-meta {
+            margin: 0;
+            color: var(--portal-muted);
+            line-height: 1.55;
+            font-size: var(--text-sm);
+        }
+
+        .portal-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .portal-kpi-card {
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            min-height: 156px;
+        }
+
+        .kpi-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .kpi-title {
+            margin: 0;
+            font-size: var(--text-sm);
+            color: var(--portal-muted);
+            font-weight: 750;
+        }
+
+        .kpi-value {
+            margin: 0;
+            font-size: var(--text-2xl);
+            font-weight: 850;
+        }
+
+        .kpi-caption {
+            margin: var(--space-xs) 0 0;
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+        }
+
+        .premium-progress {
+            width: 100%;
+            height: 10px;
+            margin-top: var(--space-md);
+            appearance: none;
+        }
+
+        .premium-progress::-webkit-progress-bar {
+            background: #dfecea;
+            border-radius: 999px;
+        }
+
+        .premium-progress::-webkit-progress-value {
+            background: linear-gradient(90deg, var(--brand-500), var(--blue-500));
+            border-radius: 999px;
+        }
+
+        .premium-progress::-moz-progress-bar {
+            background: linear-gradient(90deg, var(--brand-500), var(--blue-500));
+            border-radius: 999px;
+        }
+
+        .frequency-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+        }
+
+        .frequency-pill {
+            border: 1px solid var(--portal-line);
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.72);
+            padding: var(--space-sm);
+        }
+
+        .frequency-pill strong {
+            display: block;
+            font-size: var(--text-lg);
+        }
+
+        .frequency-pill span {
+            color: var(--portal-muted);
+            font-size: var(--text-xs);
+            font-weight: 700;
+        }
+
+        .portal-panel {
+            border-radius: var(--radius-lg);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            margin-bottom: var(--space-lg);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: var(--text-xl);
+            font-weight: 850;
+        }
+
+        .panel-subtitle {
+            margin: 0.25rem 0 0;
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+        }
+
+        .portal-timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: var(--space-md);
+            position: relative;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr);
+            gap: var(--space-md);
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: 18px;
+            top: 42px;
+            bottom: calc(-1 * var(--space-md));
+            width: 2px;
+            background: var(--portal-line);
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(34, 77, 93, 0.16);
+            z-index: 1;
+        }
+
+        .timeline-icon.realizada { background: #16a34a; }
+        .timeline-icon.agendada { background: var(--blue-500); }
+        .timeline-icon.falta { background: #d97706; }
+        .timeline-icon.cancelada { background: #d55353; }
+
+        .timeline-card {
+            border: 1px solid var(--portal-line);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.82);
+            padding: var(--space-md);
+        }
+
+        .timeline-main {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--space-md);
+        }
+
+        .timeline-date {
+            margin: 0;
+            font-weight: 800;
+            font-size: var(--text-base);
+        }
+
+        .timeline-meta {
+            margin: 0.25rem 0 0;
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+            line-height: 1.5;
+        }
+
+        .timeline-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            margin-top: var(--space-md);
+        }
+
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.25rem 0.6rem;
+            font-size: var(--text-xs);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .portal-badge.realizada,
+        .portal-badge.confirmada,
+        .portal-badge.ativo {
+            color: #067043;
+            background: #dcfce7;
+        }
+
+        .portal-badge.agendada {
+            color: #1d4ed8;
+            background: #dbeafe;
+        }
+
+        .portal-badge.falta,
+        .portal-badge.expirado {
+            color: #92400e;
+            background: #fef3c7;
+        }
+
+        .portal-badge.cancelada,
+        .portal-badge.cancelado {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .portal-empty {
+            border: 1px dashed var(--portal-line);
+            border-radius: var(--radius-md);
+            color: var(--portal-muted);
+            padding: var(--space-xl);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.56);
+        }
+
+        .portal-list {
+            display: grid;
+            gap: var(--space-sm);
+        }
+
+        .portal-list-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border: 1px solid var(--portal-line);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .portal-list-row p {
+            margin: 0;
+        }
+
+        .row-title {
+            font-weight: 800;
+        }
+
+        .row-meta {
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+            margin-top: 0.2rem;
+        }
+
+        .portal-details summary {
+            cursor: pointer;
+            color: var(--portal-muted);
+            font-size: var(--text-sm);
+            font-weight: 750;
+            margin-bottom: var(--space-sm);
+        }
+
+        .flash {
+            margin-bottom: var(--space-md);
+        }
+
+        .portal-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-md);
+        }
+
+        .portal-modal.show {
+            display: flex;
+        }
+
+        .portal-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 24, 32, 0.52);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-dialog {
+            width: min(720px, 100%);
+            max-height: 92dvh;
+            z-index: 1;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 28px 70px rgba(7, 20, 28, 0.34);
+            overflow: hidden;
+            max-height: 92dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header,
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--stroke-soft);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--stroke-soft);
+            border-bottom: 0;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: var(--text-lg);
+            font-weight: 850;
+        }
+
+        .modal-body {
+            padding: var(--space-lg);
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--stroke-soft);
+            background: #fff;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+
+        .portal-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-md);
+        }
+
+        .portal-form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .portal-form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .portal-form-field label {
+            color: var(--portal-ink);
+            font-size: var(--text-sm);
+            font-weight: 750;
+        }
+
+        .portal-control {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid var(--stroke-soft);
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 0.85rem;
+            font: inherit;
+            color: var(--portal-ink);
+            background: #fff;
+        }
+
+        .portal-control:focus {
+            outline: none;
+            border-color: var(--brand-500);
+            box-shadow: 0 0 0 3px rgba(15, 143, 122, 0.14);
+        }
+
+        .portal-help {
+            margin: 0;
+            color: var(--portal-muted);
+            font-size: var(--text-xs);
+        }
+
+        .portal-address-card {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border: 1px solid var(--stroke-soft);
+            border-radius: var(--radius-md);
+            background: #f7fbfc;
+        }
+
+        .portal-address-card.is-hidden {
+            display: none;
+        }
+
+        .no-slots-alert {
+            margin: 0 0 var(--space-md);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .portal-hero,
+            .portal-kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .portal-shell {
+                padding: var(--space-md);
+            }
+
+            .portal-topbar,
+            .panel-header,
+            .timeline-main,
+            .portal-list-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .portal-hero-main,
+            .portal-next-card,
+            .portal-panel,
+            .portal-kpi-card {
+                border-radius: var(--radius-md);
+            }
+
+            .portal-form-grid,
+            .portal-address-card,
+            .frequency-split {
+                grid-template-columns: 1fr;
+            }
+
+            .portal-form-field.full,
+            .portal-address-card {
+                grid-column: 1;
+            }
+
+            .portal-btn,
+            .portal-action-row form,
+            .portal-action-row a,
+            .portal-hero-actions .portal-btn,
+            .modal-footer .portal-btn {
+                width: 100%;
+            }
+
+            .timeline-item {
+                grid-template-columns: 34px minmax(0, 1fr);
+                gap: var(--space-sm);
+            }
+
+            .timeline-icon {
+                width: 34px;
+                height: 34px;
+            }
+
+            .timeline-item::before {
+                left: 16px;
+            }
+        }
+    </style>
 </head>
-<body class="portal-body">
-
-<header class="portal-header">
-    <div class="portal-logo">&#x1F3E5;</div>
-    <div>
-        <h1 th:text="${clinica != null ? clinica.nomeClinica : 'Portal do Paciente'}">Portal do Paciente</h1>
-        <p th:text="${paciente.nomeCompleto}">Nome do Paciente</p>
-    </div>
-</header>
-
-<main class="portal-main">
-
-    <!-- Flash -->
-    <div th:if="${successMessage}" class="flash flash-success" th:text="${successMessage}">Sucesso</div>
-    <div th:if="${errorMessage}" class="flash flash-error" th:text="${errorMessage}">Erro</div>
-
-    <!-- Card do paciente -->
-    <div class="card">
-        <p class="paciente-name" th:text="${paciente.nomeCompleto}">Nome</p>
-        <p class="paciente-meta"
-           th:if="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone)}"
-           th:text="'&#x1F4DE; ' + ${paciente.telefone}"></p>
-        <p class="paciente-meta"
-           th:if="${paciente.email != null and !#strings.isEmpty(paciente.email)}"
-           th:text="'&#x2709; ' + ${paciente.email}"></p>
-        <div class="saldo-grid">
-            <div class="saldo-item">
-                <p class="saldo-label">Sessoes disponiveis</p>
-                <p class="saldo-value" th:text="${saldoSessoesAtivas}">0</p>
+<body class="portal-premium">
+<div class="portal-shell">
+    <header class="portal-topbar">
+        <div class="portal-brand">
+            <div class="portal-brand-mark" aria-hidden="true">
+                <i data-lucide="heart-pulse"></i>
             </div>
-            <div class="saldo-item">
-                <p class="saldo-label">Planos ativos</p>
-                <p class="saldo-value" th:text="${planosAtivos.size()}">0</p>
+            <div>
+                <h1 th:text="${clinica != null ? clinica.nomeClinica : 'Portal do Paciente'}">Portal do Paciente</h1>
+                <p>Portal privado de acompanhamento</p>
             </div>
         </div>
-    </div>
+        <a th:if="${whatsappUrl != null}" th:href="${whatsappUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+            <i data-lucide="message-circle"></i>
+            Suporte
+        </a>
+    </header>
 
-    <!-- Proxima sessao em destaque -->
-    <div class="proxima-destaque" th:if="${!proximasSessoes.empty}">
-        <p class="proxima-destaque-label">Proxima sessao</p>
-        <p class="proxima-destaque-data"
-           th:text="${#temporals.format(proximasSessoes[0].sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}"></p>
-        <p class="proxima-destaque-hora"
-           th:text="${#temporals.format(proximasSessoes[0].sessao().dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(proximasSessoes[0].sessao().dataHoraFim, 'HH:mm')}"></p>
-        <p class="proxima-destaque-hora"
-           th:if="${proximasSessoes[0].sessao().tipoAtendimento != null and !#strings.isEmpty(proximasSessoes[0].sessao().tipoAtendimento)}"
-           th:text="${proximasSessoes[0].sessao().tipoAtendimento}"></p>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.6rem;align-items:center;">
-            <span th:if="${proximasSessoes[0].sessao().confirmadoPeloPaciente}" class="badge badge-confirmado">Confirmada</span>
-            <a th:href="${proximasSessoes[0].calendarUrl()}" target="_blank" rel="noopener" class="btn-calendar">
-                Adicionar ao Google Agenda
-            </a>
-        </div>
-    </div>
+    <main>
+        <div th:if="${successMessage}" class="flash flash-success" th:text="${successMessage}">Sucesso</div>
+        <div th:if="${errorMessage}" class="flash flash-error" th:text="${errorMessage}">Erro</div>
 
-    <!-- Planos ativos -->
-    <div class="portal-card" th:if="${!planosAtivos.empty}">
-        <p class="portal-section-title">Planos de tratamento ativos</p>
-        <div th:each="plano : ${planosAtivos}">
-            <div class="plano-row">
-                <div class="flex-1">
-                    <p class="plano-nome" th:text="${plano.nomePlano}">Plano</p>
-                    <p class="plano-meta"
-                       th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessoes realizadas'}"></p>
-                    <p class="plano-meta"
-                       th:if="${plano.dataValidade != null}"
-                       th:text="'Valido ate ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}"></p>
-                    <div class="progress-bar-wrap">
-                        <div class="progress-bar-fill"
-                             th:classappend="${(plano.sessoesContratadas - plano.sessoesConsumidas) == 0 ? ' empty' : ((plano.sessoesContratadas - plano.sessoesConsumidas) <= 2 ? ' low' : '')}"
-                             th:style="'width:' + ${plano.sessoesContratadas > 0 ? (plano.sessoesConsumidas * 100 / plano.sessoesContratadas) : 0} + '%'">
-                        </div>
+        <section class="portal-hero" aria-labelledby="portalHeroTitle">
+            <div class="portal-hero-main">
+                <div>
+                    <p class="portal-eyebrow">Bem-vindo de volta</p>
+                    <h2 id="portalHeroTitle" class="portal-hero-title" th:text="${paciente.nomeCompleto}">Nome do Paciente</h2>
+                    <p class="portal-hero-copy">
+                        Acompanhe sua agenda, histórico, recibos e evolução do plano em uma única tela.
+                    </p>
+                </div>
+                <div class="portal-hero-actions">
+                    <button type="button" class="portal-btn portal-btn-primary" data-portal-modal-open>
+                        <i data-lucide="calendar-plus"></i>
+                        Agendar Nova Sessão
+                    </button>
+                    <a th:href="${mapsUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+                        <i data-lucide="map-pinned"></i>
+                        Como Chegar
+                    </a>
+                </div>
+            </div>
+
+            <aside class="portal-next-card" th:if="${!proximasSessoes.empty}">
+                <div>
+                    <p class="portal-eyebrow">Próxima sessão</p>
+                    <p class="next-date"
+                       th:text="${#temporals.format(proximasSessoes[0].sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">
+                        Segunda-feira, 20/01/2026
+                    </p>
+                    <p class="next-meta"
+                       th:text="${#temporals.format(proximasSessoes[0].sessao().dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(proximasSessoes[0].sessao().dataHoraFim, 'HH:mm')}">
+                        09:00 - 10:00
+                    </p>
+                    <p class="next-meta">Profissional: <span th:text="${proximasSessoes[0].sessao().tipoAtendimento != null and !#strings.isEmpty(proximasSessoes[0].sessao().tipoAtendimento) ? proximasSessoes[0].sessao().tipoAtendimento : 'Equipe da clínica'}">Equipe</span></p>
+                </div>
+                <div class="portal-action-row">
+                    <span th:if="${proximasSessoes[0].sessao().confirmadoPeloPaciente}" class="portal-badge confirmada">Confirmada</span>
+                    <a th:href="${proximasSessoes[0].calendarUrl()}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+                        <i data-lucide="calendar-check"></i>
+                        Google Agenda
+                    </a>
+                </div>
+            </aside>
+
+            <aside class="portal-next-card" th:if="${proximasSessoes.empty}">
+                <div>
+                    <p class="portal-eyebrow">Agenda livre</p>
+                    <p class="next-date">Nenhuma sessão marcada</p>
+                    <p class="next-meta">Escolha um novo horário para manter seu tratamento em movimento.</p>
+                </div>
+                <button type="button" class="portal-btn portal-btn-primary" data-portal-modal-open>
+                    <i data-lucide="calendar-plus"></i>
+                    Agendar agora
+                </button>
+            </aside>
+        </section>
+
+        <section class="portal-kpi-grid" aria-label="Indicadores do tratamento">
+            <article class="portal-kpi-card">
+                <div class="kpi-head">
+                    <p class="kpi-title">Progresso do Tratamento</p>
+                    <i data-lucide="activity"></i>
+                </div>
+                <p class="kpi-value" th:text="${progressoTratamento + '%'}">60%</p>
+                <progress class="premium-progress" max="100" th:value="${progressoTratamento}" value="60"></progress>
+                <p class="kpi-caption" th:text="${sessoesConsumidasAtivas + ' de ' + sessoesContratadasAtivas + ' sessões do plano'}">6 de 10 sessões do plano</p>
+            </article>
+
+            <article class="portal-kpi-card">
+                <div class="kpi-head">
+                    <p class="kpi-title">Frequência</p>
+                    <i data-lucide="clipboard-check"></i>
+                </div>
+                <div class="frequency-split">
+                    <div class="frequency-pill">
+                        <strong th:text="${sessoesRealizadas}">0</strong>
+                        <span>Realizadas</span>
+                    </div>
+                    <div class="frequency-pill">
+                        <strong th:text="${faltasFaturadas}">0</strong>
+                        <span>Faltas faturadas</span>
                     </div>
                 </div>
-                <div class="plano-info-right">
-                    <span class="badge badge-ativo">Ativo</span>
-                    <span class="plano-restantes"
-                          th:text="${(plano.sessoesContratadas - plano.sessoesConsumidas) + ' restantes'}"></span>
+                <p class="kpi-caption" th:text="${saldoSessoesAtivas + ' sessões disponíveis'}">0 sessões disponíveis</p>
+            </article>
+
+            <article class="portal-kpi-card">
+                <div class="kpi-head">
+                    <p class="kpi-title">Atalhos Rápidos</p>
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <div class="portal-quick-actions">
+                    <a th:href="${mapsUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+                        <i data-lucide="map"></i>
+                        Como Chegar
+                    </a>
+                    <a th:if="${whatsappUrl != null}" th:href="${whatsappUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+                        <i data-lucide="message-circle"></i>
+                        WhatsApp
+                    </a>
+                </div>
+            </article>
+        </section>
+
+        <section class="portal-panel" aria-labelledby="timelineTitle">
+            <div class="panel-header">
+                <div>
+                    <h2 id="timelineTitle" class="panel-title">Timeline do tratamento</h2>
+                    <p class="panel-subtitle">Histórico e agenda em ordem de acompanhamento.</p>
+                </div>
+                <button type="button" class="portal-btn portal-btn-secondary" data-portal-modal-open>
+                    <i data-lucide="refresh-cw"></i>
+                    Reagendar
+                </button>
+            </div>
+
+            <div th:if="${proximasSessoes.empty and historicoSessoes.empty}" class="portal-empty">
+                Ainda não há sessões para exibir.
+            </div>
+
+            <ol class="portal-timeline" th:unless="${proximasSessoes.empty and historicoSessoes.empty}">
+                <li th:each="sv : ${proximasSessoes}" class="timeline-item">
+                    <div class="timeline-icon agendada" aria-hidden="true">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <article class="timeline-card">
+                        <div class="timeline-main">
+                            <div>
+                                <p class="timeline-date"
+                                   th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">Data</p>
+                                <p class="timeline-meta"
+                                   th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(sv.sessao().dataHoraFim, 'HH:mm')}">Horário</p>
+                                <p class="timeline-meta">Profissional: <span th:text="${sv.sessao().tipoAtendimento != null and !#strings.isEmpty(sv.sessao().tipoAtendimento) ? sv.sessao().tipoAtendimento : 'Equipe da clínica'}">Equipe</span></p>
+                            </div>
+                            <div class="portal-action-row">
+                                <span class="portal-badge agendada">Próximo agendamento</span>
+                                <span th:if="${sv.sessao().confirmadoPeloPaciente}" class="portal-badge confirmada">Confirmada</span>
+                            </div>
+                        </div>
+                        <div class="timeline-actions">
+                            <form th:unless="${sv.sessao().confirmadoPeloPaciente}"
+                                  th:action="@{/paciente/{token}/sessao/{sid}/confirmar(token=${token},sid=${sv.sessao().id})}"
+                                  method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="portal-btn portal-btn-primary">
+                                    <i data-lucide="check"></i>
+                                    Confirmar presença
+                                </button>
+                            </form>
+                            <button type="button" class="portal-btn portal-btn-secondary" data-portal-modal-open>
+                                <i data-lucide="calendar-clock"></i>
+                                Reagendar
+                            </button>
+                            <a th:href="${sv.calendarUrl()}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
+                                <i data-lucide="calendar-check"></i>
+                                Google Agenda
+                            </a>
+                            <form th:if="${sv.cancelavel()}"
+                                  th:action="@{/paciente/{token}/sessao/{sid}/cancelar(token=${token},sid=${sv.sessao().id})}"
+                                  method="post"
+                                  data-confirm-message="Deseja cancelar esta sessão?">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="portal-btn portal-btn-danger">
+                                    <i data-lucide="x"></i>
+                                    Cancelar
+                                </button>
+                            </form>
+                            <p th:unless="${sv.cancelavel()}" class="portal-help"
+                               th:text="'Cancelamento pelo portal disponível até ' + ${sv.horasAntecedencia()} + ' horas antes do atendimento.'">
+                                Cancelamento indisponível.
+                            </p>
+                        </div>
+                    </article>
+                </li>
+
+                <li th:each="sessao : ${historicoSessoes}" class="timeline-item">
+                    <div class="timeline-icon"
+                         th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? ' falta' : ' cancelada')}"
+                         aria-hidden="true">
+                        <i th:if="${sessao.status.name() == 'REALIZADA'}" data-lucide="check"></i>
+                        <i th:if="${sessao.status.name() == 'FALTA_FATURADA'}" data-lucide="triangle-alert"></i>
+                        <i th:if="${sessao.status.name() != 'REALIZADA' and sessao.status.name() != 'FALTA_FATURADA'}" data-lucide="x"></i>
+                    </div>
+                    <article class="timeline-card">
+                        <div class="timeline-main">
+                            <div>
+                                <p class="timeline-date"
+                                   th:text="${#temporals.format(sessao.dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">Data</p>
+                                <p class="timeline-meta"
+                                   th:text="${#temporals.format(sessao.dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(sessao.dataHoraFim, 'HH:mm')}">Horário</p>
+                                <p class="timeline-meta" th:if="${sessao.tipoAtendimento != null and !#strings.isEmpty(sessao.tipoAtendimento)}" th:text="${sessao.tipoAtendimento}">Tipo</p>
+                            </div>
+                            <span class="portal-badge"
+                                  th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? ' falta' : ' cancelada')}"
+                                  th:title="${sessao.status.name() == 'FALTA_FATURADA' ? 'Horário reservado e debitado conforme política de cancelamento' : null}"
+                                  th:text="${sessao.status.name() == 'REALIZADA' ? 'Realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? 'Falta Faturada' : 'Cancelada')}">
+                                Realizada
+                            </span>
+                        </div>
+                    </article>
+                </li>
+            </ol>
+        </section>
+
+        <section class="portal-panel" th:if="${!planosAtivos.empty}" aria-labelledby="planosTitle">
+            <div class="panel-header">
+                <div>
+                    <h2 id="planosTitle" class="panel-title">Planos ativos</h2>
+                    <p class="panel-subtitle">Saldo e consumo das sessões contratadas.</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Sessoes agendadas -->
-    <div class="portal-card">
-        <p class="portal-section-title">Sessoes agendadas</p>
-
-        <div th:if="${proximasSessoes.empty}" class="portal-empty">
-            Nenhuma sessao agendada no momento.
-        </div>
-
-        <div th:each="sv : ${proximasSessoes}" class="sessao-card">
-            <div class="portal-plano-actions">
-                <p class="sessao-data"
-                   th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">Data</p>
-                <span class="badge badge-agendada">Agendada</span>
-                <span th:if="${sv.sessao().confirmadoPeloPaciente}" class="badge badge-confirmado">Confirmada</span>
-            </div>
-            <p class="sessao-horario"
-               th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'HH:mm') + ' - ' + #temporals.format(sv.sessao().dataHoraFim, 'HH:mm')}"></p>
-            <p class="sessao-tipo"
-               th:if="${sv.sessao().tipoAtendimento != null and !#strings.isEmpty(sv.sessao().tipoAtendimento)}"
-               th:text="${sv.sessao().tipoAtendimento}"></p>
-
-            <div class="portal-plano-actions">
-                <form th:unless="${sv.sessao().confirmadoPeloPaciente}"
-                      th:action="@{/paciente/{token}/sessao/{sid}/confirmar(token=${token},sid=${sv.sessao().id})}"
-                      method="post" class="d-inline">
-                    <button type="submit" class="btn-confirmar">Confirmar presenca</button>
-                </form>
-                <div th:if="${sv.sessao().confirmadoPeloPaciente}" class="btn-ja-confirmado">
-                    Presenca confirmada
-                </div>
-                <a th:href="${sv.calendarUrl()}" target="_blank" rel="noopener" class="btn-calendar">
-                    Google Agenda
-                </a>
-                <form th:if="${sv.cancelavel()}"
-                      th:action="@{/paciente/{token}/sessao/{sid}/cancelar(token=${token},sid=${sv.sessao().id})}"
-                      method="post" class="d-inline"
-                      onsubmit="return confirm('Deseja cancelar esta sessao?');">
-                    <button type="submit" class="btn-cancelar">Cancelar sessao</button>
-                </form>
-                <p th:unless="${sv.cancelavel()}" class="cancel-info"
-                   th:text="'Cancelamento pelo portal disponivel ate ' + ${sv.horasAntecedencia()} + ' horas antes do atendimento.'">
-                    Cancelamento indisponivel.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recibos -->
-    <div class="portal-card" th:if="${!recibos.empty}">
-        <p class="portal-section-title">Recibos disponiveis</p>
-        <div th:each="recibo : ${recibos}" class="recibo-row">
-            <div>
-                <p class="recibo-desc" th:text="${recibo.descricao}">Descricao</p>
-                <p class="recibo-meta"
-                   th:text="${#temporals.format(recibo.dataPagamento != null ? recibo.dataPagamento : recibo.dataCompetencia, 'dd/MM/yyyy') + ' - R$ ' + #numbers.formatDecimal(recibo.valor, 1, 'COMMA', 2, 'POINT')}">
-                    01/01/2026 - R$ 0,00
-                </p>
-            </div>
-            <a class="btn-recibo"
-               th:href="@{/paciente/{token}/recibos/{rid}(token=${token},rid=${recibo.id})}">
-                Baixar recibo
-            </a>
-        </div>
-    </div>
-
-    <!-- Historico recente -->
-    <div class="portal-card" th:if="${!historicoSessoes.empty}">
-        <p class="portal-section-title">Historico recente</p>
-        <div th:each="sessao : ${historicoSessoes}" class="historico-row">
-            <div class="historico-esq">
-                <span class="historico-data"
-                      th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</span>
-                <span class="historico-tipo"
-                      th:if="${sessao.tipoAtendimento != null and !#strings.isEmpty(sessao.tipoAtendimento)}"
-                      th:text="${sessao.tipoAtendimento}"></span>
-            </div>
-            <span class="badge"
-                  th:classappend="${sessao.status.name() == 'REALIZADA' ? ' badge-realizada' : ' badge-cancelada'}"
-                  th:text="${sessao.status.name() == 'REALIZADA' ? 'Realizada' : 'Cancelada'}">
-            </span>
-        </div>
-    </div>
-
-    <!-- Planos encerrados (colapsavel) -->
-    <div th:if="${!planosEncerrados.empty}">
-        <p class="planos-encerrados-toggle" onclick="toggleEncerrados(this)">
-            <span>&#x25B6;</span> Ver planos encerrados
-            (<span th:text="${planosEncerrados.size()}">0</span>)
-        </p>
-        <div id="planosEncerradosBox" class="portal-card planos-encerrados-box">
-            <div th:each="plano : ${planosEncerrados}" class="plano-row plano-encerrado">
-                <div class="flex-1">
-                    <p class="plano-nome" th:text="${plano.nomePlano}">Plano</p>
-                    <p class="plano-meta"
-                       th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessoes realizadas'}"></p>
-                    <p class="plano-meta"
-                       th:if="${plano.dataValidade != null}"
-                       th:text="'Valido ate ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}"></p>
-                </div>
-                <div class="plano-info-right">
-                    <span class="badge"
-                          th:classappend="${plano.status.name() == 'CONCLUIDO' ? ' badge-concluido' : (plano.status.name() == 'EXPIRADO' ? ' badge-expirado' : ' badge-cancelado-pkg')}"
-                          th:text="${plano.status.name() == 'CONCLUIDO' ? 'Concluido' : (plano.status.name() == 'EXPIRADO' ? 'Expirado' : 'Cancelado')}">
-                    </span>
+            <div class="portal-list">
+                <div th:each="plano : ${planosAtivos}" class="portal-list-row">
+                    <div>
+                        <p class="row-title" th:text="${plano.nomePlano}">Plano</p>
+                        <p class="row-meta" th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessões realizadas'}">0 de 0 sessões</p>
+                        <p class="row-meta" th:if="${plano.dataValidade != null}" th:text="'Válido até ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}">Validade</p>
+                    </div>
+                    <div class="portal-action-row">
+                        <span class="portal-badge ativo">Ativo</span>
+                        <span class="row-meta" th:text="${(plano.sessoesContratadas - plano.sessoesConsumidas) + ' restantes'}">0 restantes</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="portal-panel" th:if="${!recibos.empty}" aria-labelledby="recibosTitle">
+            <div class="panel-header">
+                <div>
+                    <h2 id="recibosTitle" class="panel-title">Recibos disponíveis</h2>
+                    <p class="panel-subtitle">Documentos financeiros liberados para download.</p>
+                </div>
+            </div>
+            <div class="portal-list">
+                <div th:each="recibo : ${recibos}" class="portal-list-row">
+                    <div>
+                        <p class="row-title" th:text="${recibo.descricao}">Descrição</p>
+                        <p class="row-meta"
+                           th:text="${#temporals.format(recibo.dataPagamento != null ? recibo.dataPagamento : recibo.dataCompetencia, 'dd/MM/yyyy') + ' - R$ ' + #numbers.formatDecimal(recibo.valor, 1, 'COMMA', 2, 'POINT')}">
+                            01/01/2026 - R$ 0,00
+                        </p>
+                    </div>
+                    <a class="portal-btn portal-btn-secondary"
+                       th:href="@{/paciente/{token}/recibos/{rid}(token=${token},rid=${recibo.id})}">
+                        <i data-lucide="download"></i>
+                        Baixar
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <details class="portal-details" th:if="${!planosEncerrados.empty}">
+            <summary>Ver planos encerrados (<span th:text="${planosEncerrados.size()}">0</span>)</summary>
+            <section class="portal-panel">
+                <div class="portal-list">
+                    <div th:each="plano : ${planosEncerrados}" class="portal-list-row">
+                        <div>
+                            <p class="row-title" th:text="${plano.nomePlano}">Plano</p>
+                            <p class="row-meta" th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessões realizadas'}">0 de 0 sessões</p>
+                        </div>
+                        <span class="portal-badge"
+                              th:classappend="${plano.status.name() == 'CONCLUIDO' ? ' realizada' : (plano.status.name() == 'EXPIRADO' ? ' expirado' : ' cancelado')}"
+                              th:text="${plano.status.name() == 'CONCLUIDO' ? 'Concluído' : (plano.status.name() == 'EXPIRADO' ? 'Expirado' : 'Cancelado')}">
+                            Encerrado
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </details>
+    </main>
+</div>
+
+<div class="portal-modal modal fade" id="agendamentoModal" aria-hidden="true" aria-labelledby="agendamentoModalTitle" role="dialog">
+    <div class="portal-modal-backdrop" data-portal-modal-close></div>
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" th:action="@{/paciente/{token}/agendamento(token=${token})}" th:object="${agendamentoForm}" method="post" novalidate>
+            <div class="modal-header">
+                <div>
+                    <p class="portal-eyebrow">Agendamento online</p>
+                    <h2 id="agendamentoModalTitle" class="modal-title">Solicitar nova sessão</h2>
+                </div>
+                <button type="button" class="modal-close" data-portal-modal-close aria-label="Fechar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+                <div id="noSlotsAlert" class="pub-alert pub-alert-info no-slots-alert d-none">
+                    <i data-lucide="info"></i>
+                    <span>Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.</span>
+                </div>
+
+                <div class="portal-form-grid">
+                    <div class="portal-form-field full">
+                        <label for="nomePaciente">Nome completo</label>
+                        <input type="text" id="nomePaciente" class="portal-control" th:field="*{nomePaciente}" required autocomplete="name">
+                    </div>
+
+                    <div class="portal-form-field">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" class="portal-control" th:field="*{telefone}" required autocomplete="tel">
+                    </div>
+
+                    <div class="portal-form-field">
+                        <label for="cpf">CPF</label>
+                        <input type="text" id="cpf" class="portal-control" th:field="*{cpf}" maxlength="14" required inputmode="numeric">
+                    </div>
+
+                    <div class="portal-form-field">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" class="portal-control" th:field="*{email}" autocomplete="email">
+                    </div>
+
+                    <div class="portal-form-field">
+                        <label for="localAtendimento">Atendimento</label>
+                        <select id="localAtendimento" class="portal-control" th:field="*{localAtendimento}" required>
+                            <option value="CLINICA">Clínica</option>
+                            <option value="DOMICILIO">Em domicílio</option>
+                        </select>
+                    </div>
+
+                    <section class="portal-address-card is-hidden" id="enderecoCard" aria-label="Endereço para atendimento domiciliar">
+                        <div class="portal-form-field">
+                            <label for="cep">CEP</label>
+                            <input type="text" id="cep" class="portal-control" th:field="*{cep}" maxlength="9" inputmode="numeric">
+                        </div>
+                        <div class="portal-form-field">
+                            <label for="numero">Número</label>
+                            <input type="text" id="numero" class="portal-control" th:field="*{numero}" maxlength="20">
+                        </div>
+                        <div class="portal-form-field full">
+                            <label for="rua">Rua</label>
+                            <input type="text" id="rua" class="portal-control" th:field="*{rua}" maxlength="160">
+                        </div>
+                        <div class="portal-form-field">
+                            <label for="bairro">Bairro</label>
+                            <input type="text" id="bairro" class="portal-control" th:field="*{bairro}" maxlength="120">
+                        </div>
+                        <div class="portal-form-field">
+                            <label for="estado">Estado</label>
+                            <select id="estado" class="portal-control" th:field="*{estado}">
+                                <option value="">UF</option>
+                                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option>
+                                <option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option>
+                                <option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                                <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option>
+                                <option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option>
+                                <option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                                <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                            </select>
+                        </div>
+                        <div class="portal-form-field full">
+                            <label for="cidade">Cidade</label>
+                            <input type="text" id="cidade" class="portal-control" th:field="*{cidade}" maxlength="120">
+                        </div>
+                    </section>
+
+                    <div class="portal-form-field">
+                        <label for="data">Data desejada</label>
+                        <input type="date" id="data" class="portal-control" th:field="*{data}" required>
+                        <p class="portal-help">Ao alterar a data, os horários são atualizados automaticamente.</p>
+                    </div>
+
+                    <div class="portal-form-field">
+                        <label for="horario">Horário preferencial</label>
+                        <select id="horario" class="portal-control" th:field="*{horario}" required>
+                            <option value="">Selecione um horário</option>
+                        </select>
+                    </div>
+
+                    <div class="portal-form-field full">
+                        <label for="observacoes">Observações</label>
+                        <textarea id="observacoes" class="portal-control" rows="3" th:field="*{observacoes}" placeholder="Alguma informação adicional?"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="portal-btn portal-btn-secondary" data-portal-modal-close>Cancelar</button>
+                <button type="submit" class="portal-btn portal-btn-primary">
+                    <i data-lucide="send"></i>
+                    Solicitar Agendamento
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-</main>
-
-<footer class="portal-footer">
-    <p class="footer-clinica" th:if="${clinica != null}" th:text="${clinica.nomeClinica}">Clinica</p>
-    <div class="footer-contato" th:if="${clinica != null}">
-        <a th:if="${whatsappUrl != null}"
-           th:href="${whatsappUrl}"
-           target="_blank" rel="noopener">WhatsApp</a>
-        <a th:if="${clinica.emailContato != null and !#strings.isEmpty(clinica.emailContato)}"
-           th:href="'mailto:' + ${clinica.emailContato}"
-           th:text="${clinica.emailContato}">email</a>
-    </div>
-    <p>Este e o seu portal privado de autoatendimento. Nao compartilhe este link.</p>
-</footer>
-
+<script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
 <script>
-    function toggleEncerrados(el) {
-        var box = document.getElementById('planosEncerradosBox');
-        var arrow = el.querySelector('span');
-        var hidden = box.style.display === 'none';
-        box.style.display = hidden ? 'block' : 'none';
-        arrow.innerHTML = hidden ? '&#x25BC;' : '&#x25B6;';
-    }
-</script>
+    (() => {
+        const modal = document.getElementById('agendamentoModal');
+        const dataInput = document.getElementById('data');
+        const horarioSelect = document.getElementById('horario');
+        const noSlotsAlert = document.getElementById('noSlotsAlert');
+        const localAtendimentoSelect = document.getElementById('localAtendimento');
+        const enderecoCard = document.getElementById('enderecoCard');
+        const cpfInput = document.getElementById('cpf');
+        const telefoneInput = document.getElementById('telefone');
+        const cepInput = document.getElementById('cep');
 
+        const somenteDigitos = (value) => (value || '').replace(/\D/g, '');
+        const criarOpcao = (value, text) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+            return option;
+        };
+
+        const abrirModal = () => {
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            if (dataInput && dataInput.value) {
+                carregarHorarios(dataInput.value);
+            }
+        };
+
+        const fecharModal = () => {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+
+        const limparHorarios = () => {
+            horarioSelect.innerHTML = '';
+            horarioSelect.appendChild(criarOpcao('', 'Selecione um horário'));
+        };
+
+        const atualizarSemSlots = (mostrar) => {
+            if (noSlotsAlert) {
+                noSlotsAlert.classList.toggle('d-none', !mostrar);
+            }
+        };
+
+        const carregarHorarios = async (dataIso) => {
+            if (!dataIso || !horarioSelect) {
+                return;
+            }
+            horarioSelect.disabled = true;
+            const atual = horarioSelect.value;
+            try {
+                const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar horários');
+                }
+                const slots = await response.json();
+                limparHorarios();
+                slots.forEach((slot) => horarioSelect.appendChild(criarOpcao(slot.inicio || '', slot.label || slot.inicio || 'Horário')));
+                if (atual && slots.some((slot) => slot.inicio === atual)) {
+                    horarioSelect.value = atual;
+                }
+                atualizarSemSlots(slots.length === 0);
+            } catch (error) {
+                limparHorarios();
+                atualizarSemSlots(true);
+            } finally {
+                horarioSelect.disabled = false;
+            }
+        };
+
+        const toggleEndereco = () => {
+            const domicilio = localAtendimentoSelect && localAtendimentoSelect.value === 'DOMICILIO';
+            if (enderecoCard) {
+                enderecoCard.classList.toggle('is-hidden', !domicilio);
+            }
+            ['rua', 'numero', 'bairro', 'cidade', 'estado'].forEach((id) => {
+                const field = document.getElementById(id);
+                if (field) {
+                    field.required = domicilio;
+                }
+            });
+        };
+
+        const mascaraCpf = (value) => somenteDigitos(value).slice(0, 11)
+            .replace(/^(\d{3})(\d)/, '$1.$2')
+            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+
+        const mascaraTelefone = (value) => {
+            const digits = somenteDigitos(value).slice(0, 11);
+            if (digits.length <= 10) {
+                return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+        };
+
+        document.querySelectorAll('[data-portal-modal-open]').forEach((button) => {
+            button.addEventListener('click', abrirModal);
+        });
+        document.querySelectorAll('[data-portal-modal-close]').forEach((button) => {
+            button.addEventListener('click', fecharModal);
+        });
+        document.querySelectorAll('form[data-confirm-message]').forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (!window.confirm(form.dataset.confirmMessage)) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        if (dataInput) {
+            dataInput.addEventListener('change', () => carregarHorarios(dataInput.value));
+        }
+        if (localAtendimentoSelect) {
+            localAtendimentoSelect.addEventListener('change', toggleEndereco);
+        }
+        if (cpfInput) {
+            cpfInput.addEventListener('input', () => {
+                cpfInput.value = mascaraCpf(cpfInput.value);
+            });
+        }
+        if (telefoneInput) {
+            telefoneInput.addEventListener('input', () => {
+                telefoneInput.value = mascaraTelefone(telefoneInput.value);
+            });
+        }
+        if (cepInput) {
+            cepInput.addEventListener('input', () => {
+                cepInput.value = somenteDigitos(cepInput.value).slice(0, 8).replace(/^(\d{5})(\d)/, '$1-$2');
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal.classList.contains('show')) {
+                fecharModal();
+            }
+        });
+
+        toggleEndereco();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    })();
+</script>
 </body>
 </html>

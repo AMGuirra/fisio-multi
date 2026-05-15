@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout(${movimentoLabel}, ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">O saldo do seu plano de tratamento foi atualizado.</p>
+
+    <div th:style="${movimento == 'DEBITO' ? 'border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;' : 'border:1px solid #cfe1f5;border-radius:14px;padding:18px;background:#f3f8ff;margin-bottom:20px;'}">
+        <div th:style="${movimento == 'DEBITO' ? 'font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;' : 'font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#2f6fec;font-weight:800;'}"
+             th:text="${movimentoLabel}">Movimento</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;">
+            <span th:text="${quantidade}">1</span>
+            <span th:text="${quantidade == 1 ? ' sessão' : ' sessões'}"> sessão</span>
+        </div>
+        <div style="color:#4f6670;margin-top:2px;" th:text="${motivo}">Motivo</div>
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:22px;">
+        <tr><td style="padding:8px 0;color:#65808a;">Plano</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${nomePlano}">Plano</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Consumidas</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${sessoesConsumidas + ' de ' + sessoesContratadas}">0 de 0</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Saldo atual</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${sessoesRestantes + ' sessões'}">0 sessões</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Validade</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${dataValidade}">Sem validade definida</td></tr>
+    </table>
+
+    <p style="margin:0;">
+        <a th:href="${portalUrl}" style="display:inline-block;background:#0f8f7a;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700;">
+            Abrir portal do paciente
+        </a>
+    </p>
+</section>
+</body>
+</html>

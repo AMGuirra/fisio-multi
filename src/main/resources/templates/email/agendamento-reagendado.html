@@ -2,13 +2,27 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body th:replace="~{email/base :: layout('Agendamento reagendado', ~{::section})}">
 <section>
-    <p>Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
-    <p>Seu atendimento foi reagendado.</p>
-    <p><strong>Horário anterior:</strong> <span th:text="${dataAnterior}">01/01/2026</span> às <span th:text="${horaAnterior}">09:00</span></p>
-    <p><strong>Novo horário:</strong> <span th:text="${data}">01/01/2026</span> às <span th:text="${hora}">10:00</span></p>
-    <p><strong>Unidade/local:</strong> <span th:text="${local}">Clínica</span></p>
-    <p><strong>Profissional:</strong> <span th:text="${profissional}">Equipe da clínica</span></p>
-    <p><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações.</span></p>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">Seu atendimento foi reagendado. Considere o novo horário abaixo.</p>
+
+    <div style="border:1px solid #cfe1f5;border-radius:14px;padding:18px;background:#f3f8ff;margin-bottom:16px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#2f6fec;font-weight:800;">Novo horário</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;" th:text="${data}">01/01/2026</div>
+        <div style="color:#4f6670;margin-top:2px;">às <strong th:text="${hora}">10:00</strong></div>
+    </div>
+
+    <div style="border:1px solid #e6edf0;border-radius:12px;padding:14px;background:#fbfdfd;margin-bottom:20px;"
+         th:if="${dataHoraAnterior != null and !#strings.isEmpty(dataHoraAnterior)}">
+        <strong style="color:#18323a;">Horário anterior:</strong>
+        <span th:text="${dataHoraAnterior}">01/01/2026 09:00</span>
+        <span th:if="${fimAnterior != null and !#strings.isEmpty(fimAnterior)}"> - <span th:text="${fimAnterior}">10:00</span></span>
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+        <tr><td style="padding:8px 0;color:#65808a;">Local</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${local}">Clínica</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Profissional</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${profissional}">Equipe da clínica</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Observações</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${observacoes}">Sem observações.</td></tr>
+    </table>
 </section>
 </body>
 </html>

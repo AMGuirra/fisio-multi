@@ -17,6 +17,8 @@ import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
+import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
+import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +60,7 @@ public class PortalPacienteController {
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AgendaService agendaService;
+    private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
 
     @GetMapping("/{token}")
     public String portal(@PathVariable UUID token, Model model) {
@@ -103,6 +107,19 @@ public class PortalPacienteController {
         int saldoSessoesAtivas = planosAtivos.stream()
                 .mapToInt(this::sessoesRestantes)
                 .sum();
+        int sessoesContratadasAtivas = planosAtivos.stream()
+                .mapToInt(p -> p.getSessoesContratadas() != null ? p.getSessoesContratadas() : 0)
+                .sum();
+        int sessoesConsumidasAtivas = planosAtivos.stream()
+                .mapToInt(p -> p.getSessoesConsumidas() != null ? p.getSessoesConsumidas() : 0)
+                .sum();
+        int progressoTratamento = sessoesContratadasAtivas > 0
+                ? Math.min(100, Math.max(0, sessoesConsumidasAtivas * 100 / sessoesContratadasAtivas))
+                : 0;
+        long sessoesRealizadas = sessaoRepository.countByClienteIdAndStatus(
+                paciente.getId(), SessaoStatus.REALIZADA);
+        long faltasFaturadas = sessaoRepository.countByClienteIdAndStatus(
+                paciente.getId(), SessaoStatus.FALTA_FATURADA);
 
         List<LancamentoFinanceiroEntity> recibos = lancamentoFinanceiroRepository
                 .findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataCompetenciaDescCreatedAtDesc(
@@ -124,10 +141,40 @@ public class PortalPacienteController {
         model.addAttribute("planosAtivos", planosAtivos);
         model.addAttribute("planosEncerrados", planosEncerrados);
         model.addAttribute("saldoSessoesAtivas", saldoSessoesAtivas);
+        model.addAttribute("sessoesContratadasAtivas", sessoesContratadasAtivas);
+        model.addAttribute("sessoesConsumidasAtivas", sessoesConsumidasAtivas);
+        model.addAttribute("progressoTratamento", progressoTratamento);
+        model.addAttribute("sessoesRealizadas", sessoesRealizadas);
+        model.addAttribute("faltasFaturadas", faltasFaturadas);
         model.addAttribute("recibos", recibos);
         model.addAttribute("horasMinimasCancelamento", HORAS_MINIMAS_CANCELAMENTO);
+        model.addAttribute("mapsUrl", buildMapsUrl(clinica));
+        model.addAttribute("agendamentoForm", montarAgendamentoForm(paciente));
 
         return "portal/index";
+    }
+
+    @PostMapping("/{token}/agendamento")
+    public String solicitarAgendamento(
+            @PathVariable UUID token,
+            @ModelAttribute("agendamentoForm") AgendamentoOnlineForm form,
+            RedirectAttributes redirectAttributes) {
+
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+
+        preencherDadosPaciente(form, paciente);
+
+        try {
+            solicitacaoAgendamentoService.criarSolicitacaoPublica(form);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Solicitacao enviada. A equipe vai confirmar o novo horario.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/paciente/" + token;
     }
 
     @PostMapping("/{token}/sessao/{sessaoId}/confirmar")
@@ -238,6 +285,57 @@ public class PortalPacienteController {
         int contratadas = plano.getSessoesContratadas() != null ? plano.getSessoesContratadas() : 0;
         int consumidas = plano.getSessoesConsumidas() != null ? plano.getSessoesConsumidas() : 0;
         return Math.max(contratadas - consumidas, 0);
+    }
+
+    private AgendamentoOnlineForm montarAgendamentoForm(ClienteEntity paciente) {
+        AgendamentoOnlineForm form = new AgendamentoOnlineForm();
+        preencherDadosPaciente(form, paciente);
+        form.setLocalAtendimento("CLINICA");
+        return form;
+    }
+
+    private void preencherDadosPaciente(AgendamentoOnlineForm form, ClienteEntity paciente) {
+        if (form.getNomePaciente() == null || form.getNomePaciente().isBlank()) {
+            form.setNomePaciente(paciente.getNomeCompleto());
+        }
+        if (form.getTelefone() == null || form.getTelefone().isBlank()) {
+            form.setTelefone(paciente.getTelefone());
+        }
+        if (form.getEmail() == null || form.getEmail().isBlank()) {
+            form.setEmail(paciente.getEmail());
+        }
+        if (form.getCpf() == null || form.getCpf().isBlank()) {
+            form.setCpf(paciente.getCpf());
+        }
+        if (form.getCep() == null || form.getCep().isBlank()) {
+            form.setCep(paciente.getCep());
+        }
+        if (form.getRua() == null || form.getRua().isBlank()) {
+            form.setRua(paciente.getRua());
+        }
+        if (form.getNumero() == null || form.getNumero().isBlank()) {
+            form.setNumero(paciente.getNumero());
+        }
+        if (form.getBairro() == null || form.getBairro().isBlank()) {
+            form.setBairro(paciente.getBairro());
+        }
+        if (form.getCidade() == null || form.getCidade().isBlank()) {
+            form.setCidade(paciente.getCidade());
+        }
+        if (form.getEstado() == null || form.getEstado().isBlank()) {
+            form.setEstado(paciente.getEstado());
+        }
+        if (form.getLocalAtendimento() == null || form.getLocalAtendimento().isBlank()) {
+            form.setLocalAtendimento("CLINICA");
+        }
+    }
+
+    private String buildMapsUrl(ConfiguracaoClinicaEntity clinica) {
+        String termo = clinica != null && clinica.getNomeClinica() != null && !clinica.getNomeClinica().isBlank()
+                ? clinica.getNomeClinica()
+                : "clinica de fisioterapia";
+        return "https://www.google.com/maps/search/?api=1&query="
+                + URLEncoder.encode(termo, StandardCharsets.UTF_8);
     }
 
     private String gerarReciboTexto(ClienteEntity paciente, LancamentoFinanceiroEntity lancamento) {

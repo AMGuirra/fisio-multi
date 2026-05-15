@@ -358,7 +358,7 @@ public class AgendaService {
         SessaoEntity pai = null;
         for (OffsetDateTime inicio : inicios) {
             if (tipoAgendamento == TipoAgendamento.PLANO) {
-                planoSessaoService.reservarSessao(plano.getId());
+                planoSessaoService.reservarSessao(plano.getId(), false, 1);
             }
 
             SessaoEntity sessao = SessaoEntity.builder()
@@ -390,6 +390,13 @@ public class AgendaService {
             );
         }
 
+        if (tipoAgendamento == TipoAgendamento.PLANO) {
+            planoSessaoService.notificarConsumoPlano(
+                    plano.getId(),
+                    inicios.size(),
+                    "Série de agendamentos reservada no plano de tratamento."
+            );
+        }
         agendamentoEmailNotificationService.notificarConfirmadoPorSessao(salvas.get(0), profissionalResponsavel);
         return salvas;
     }
@@ -488,6 +495,7 @@ public class AgendaService {
                 "Sessão marcada como realizada.",
                 AuditEventOrigin.MANUAL
         );
+        agendamentoEmailNotificationService.notificarCanceladoPorSessao(salva, texto(observacoes), "Equipe da clínica");
         return salva;
     }
 

@@ -138,6 +138,25 @@ public class AgendamentoEmailNotificationService {
         );
     }
 
+    public void notificarCanceladoPorSessao(SessaoEntity sessao, String motivo, String profissional) {
+        if (!possuiEmail(sessao.getCliente().getEmail())) {
+            return;
+        }
+        enviar(
+                sessao.getCliente().getEmail(),
+                EmailLogType.AGENDAMENTO_CANCELADO,
+                "Seu agendamento foi cancelado",
+                "email/agendamento-cancelado",
+                sessao.getId(),
+                sessao.getCliente().getNomeCompleto(),
+                sessao.getDataHoraInicio(),
+                motivo,
+                texto(profissional, "Equipe da clÃ­nica"),
+                null,
+                null
+        );
+    }
+
     private void enviar(
             String destinatario,
             EmailLogType tipo,

@@ -2,11 +2,16 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body th:replace="~{email/base :: layout('Agendamento cancelado', ~{::section})}">
 <section>
-    <p>Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
-    <p>Seu agendamento foi cancelado pela clínica. Caso queira reagendar, entre em contato conosco.</p>
-    <p><strong>Horário cancelado:</strong> <span th:text="${dataHora}">01/01/2026 10:00</span></p>
-    <p><strong>Unidade/local:</strong> <span th:text="${local}">Clínica</span></p>
-    <p><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações.</span></p>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">Seu agendamento foi cancelado. Veja os detalhes do horário afetado.</p>
+
+    <div style="border:1px solid #f3d0d0;border-radius:14px;padding:18px;background:#fff7f7;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#b24747;font-weight:800;">Horário cancelado</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;" th:text="${data}">01/01/2026</div>
+        <div style="color:#4f6670;margin-top:2px;">às <strong th:text="${hora}">10:00</strong></div>
+    </div>
+
+    <p style="margin:0;color:#4f6670;"><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações adicionais.</span></p>
 </section>
 </body>
 </html>

@@ -8,6 +8,7 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.email.service.PacienteEmailNotificationService;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
@@ -39,6 +40,7 @@ public class PlanoSessaoService {
     private final SessaoRepository sessaoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
+    private final PacienteEmailNotificationService pacienteEmailNotificationService;
 
     public List<PlanoSessaoEntity> listarPorCliente(UUID clienteId) {
         return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
@@ -283,6 +285,11 @@ public class PlanoSessaoService {
 
     @Transactional
     public void reservarSessao(UUID planoId) {
+        reservarSessao(planoId, true, 1);
+    }
+
+    @Transactional
+    public PlanoSessaoEntity reservarSessao(UUID planoId, boolean notificar, int quantidadeNotificada) {
         PlanoSessaoEntity plano = validarDisponivel(planoId);
         var snapshotAnterior = auditService.snapshotOf(plano);
         plano.setSessoesConsumidas(plano.getSessoesConsumidas() + 1);
@@ -305,6 +312,14 @@ public class PlanoSessaoService {
                 "Reserva/baixa automática de sessão no plano de tratamento.",
                 AuditEventOrigin.SISTEMA
         );
+        if (notificar && pacienteEmailNotificationService != null) {
+            pacienteEmailNotificationService.notificarConsumoPlano(
+                    salvo,
+                    Math.max(quantidadeNotificada, 1),
+                    "Sessão reservada/debitada no plano de tratamento."
+            );
+        }
+        return salvo;
     }
 
     @Transactional
@@ -335,6 +350,22 @@ public class PlanoSessaoService {
                 "Estorno automático de sessão no plano de tratamento.",
                 AuditEventOrigin.SISTEMA
         );
+        if (pacienteEmailNotificationService != null) {
+            pacienteEmailNotificationService.notificarEstornoPlano(
+                salvo,
+                1,
+                "Sessão estornada no plano de tratamento."
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void notificarConsumoPlano(UUID planoId, int quantidade, String motivo) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado."));
+        if (pacienteEmailNotificationService != null) {
+            pacienteEmailNotificationService.notificarConsumoPlano(plano, quantidade, motivo);
+        }
     }
 
     public PlanoSessaoEntity validarDisponivel(UUID planoId) {

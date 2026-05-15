@@ -2,12 +2,16 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body th:replace="~{email/base :: layout('Solicitação recebida', ~{::section})}">
 <section>
-    <p>Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
-    <p>Recebemos sua solicitação e ela está aguardando confirmação.</p>
-    <p><strong>Data:</strong> <span th:text="${data}">01/01/2026</span> às <span th:text="${hora}">10:00</span></p>
-    <p><strong>Unidade/local:</strong> <span th:text="${local}">Clínica</span></p>
-    <p><strong>Profissional:</strong> <span th:text="${profissional}">Equipe da clínica</span></p>
-    <p><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações.</span></p>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">Recebemos sua solicitação de agendamento. A equipe vai conferir a agenda e confirmar o atendimento.</p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;">Solicitado</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;" th:text="${data}">01/01/2026</div>
+        <div style="color:#4f6670;margin-top:2px;">às <strong th:text="${hora}">10:00</strong></div>
+    </div>
+
+    <p style="margin:0;color:#4f6670;"><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações adicionais.</span></p>
 </section>
 </body>
 </html>
