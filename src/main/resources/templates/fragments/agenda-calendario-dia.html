@@ -214,6 +214,10 @@
                                     Pacote
                                 </option>
                             </select>
+                            <div id="editarSessaoSemPlanoAlert" class="flash-message warning compact-banner" hidden>
+                                <i data-lucide="triangle-alert"></i>
+                                <span>Este paciente não possui plano ativo. Escolha <button type="button" id="editarSessaoUsarAvulsoBtn" class="link-inline">sessão avulsa</button> ou <a href="#" id="editarSessaoCriarPlanoLink" target="_blank" class="link-inline">cadastre um plano</a> (abre em nova aba) e reabra este modal.</span>
+                            </div>
                             <p class="helper-text">Ao trocar o plano, o sistema estorna o consumo anterior e reserva no novo automaticamente.</p>
                         </div>
 
@@ -412,9 +416,22 @@
                     document.body.classList.toggle('modal-open', open);
                 };
 
+                const semPlanoAlert = document.getElementById('editarSessaoSemPlanoAlert');
+                const criarPlanoLink = document.getElementById('editarSessaoCriarPlanoLink');
+
+                const syncSalvarBtn = () => {
+                    if (!editarSessaoSalvarBtn || !semPlanoAlert) return;
+                    const semPlano = !semPlanoAlert.hidden;
+                    const tipoPacote = (editarSessaoTipoAgendamentoInputs.find((i) => i.checked)?.value || 'PACOTE') === 'PACOTE';
+                    const bloqueado = semPlano && tipoPacote;
+                    editarSessaoSalvarBtn.disabled = bloqueado;
+                    editarSessaoSalvarBtn.title = bloqueado ? 'Cadastre um plano ativo ou use sessão avulsa antes de salvar.' : '';
+                };
+
                 const syncPacotesModal = () => {
                     if (!editarSessaoPacoteSelect || !editarSessaoClienteSelect) return;
                     const clienteId = editarSessaoClienteSelect.value;
+                    let temPlano = false;
                     Array.from(editarSessaoPacoteSelect.options).forEach((option, index) => {
                         if (index === 0) {
                             option.hidden = false;
@@ -423,11 +440,20 @@
                         const optionCliente = option.getAttribute('data-cliente-id');
                         const visivel = !clienteId || optionCliente === clienteId;
                         option.hidden = !visivel;
+                        if (visivel) temPlano = true;
                     });
                     const selecionada = editarSessaoPacoteSelect.selectedOptions[0];
                     if (selecionada && selecionada.getAttribute('data-cliente-id') && selecionada.getAttribute('data-cliente-id') !== clienteId) {
                         editarSessaoPacoteSelect.value = '';
                     }
+                    if (semPlanoAlert) {
+                        semPlanoAlert.hidden = temPlano;
+                        if (criarPlanoLink && clienteId) {
+                            criarPlanoLink.href = '/pacotes-consumo?pacienteId=' + clienteId;
+                        }
+                        if (window.lucide) lucide.createIcons();
+                    }
+                    syncSalvarBtn();
                 };
 
                 const syncTipoAgendamentoModal = () => {
@@ -445,6 +471,7 @@
                             editarSessaoPacoteSelect.value = '';
                         }
                     }
+                    syncSalvarBtn();
                 };
 
                 document.querySelectorAll('.js-btn-editar-sessao').forEach((btn) => {
@@ -502,6 +529,17 @@
                 editarSessaoTipoAgendamentoInputs.forEach((input) => {
                     input.addEventListener('change', syncTipoAgendamentoModal);
                 });
+
+                const usarAvulsoBtn = document.getElementById('editarSessaoUsarAvulsoBtn');
+                if (usarAvulsoBtn) {
+                    usarAvulsoBtn.addEventListener('click', () => {
+                        const avulsoInput = editarSessaoTipoAgendamentoInputs.find((i) => i.value === 'AVULSO');
+                        if (avulsoInput) {
+                            avulsoInput.checked = true;
+                            avulsoInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                }
 
                 if (editarSessaoForm) {
                     editarSessaoForm.addEventListener('submit', async (e) => {

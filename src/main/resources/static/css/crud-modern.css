@@ -2035,6 +2035,116 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     outline: none;
 }
 
+/* ── Calendar Event Chips (Google Calendar style) ─────────────────────── */
+
+.calendar-day-number-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 760;
+}
+
+.calendar-day-number-link:hover {
+    color: var(--brand-600);
+    text-decoration: underline;
+}
+
+.calendar-day-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.cal-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+    transition: filter 0.12s;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.cal-chip:hover {
+    filter: brightness(0.9);
+}
+
+.cal-chip-time {
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+.cal-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cal-chip-warning {
+    background: #fff3cc;
+    color: #7a4f00;
+}
+
+.cal-chip-success {
+    background: #d6f5e8;
+    color: #0c5e36;
+}
+
+.cal-chip-danger {
+    background: #ffe0e0;
+    color: #8a2020;
+}
+
+.cal-chip-overflow {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-soft);
+    padding: 1px 4px;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.cal-chip-overflow:hover {
+    color: var(--brand-600);
+    text-decoration: underline;
+}
+
+/* Dark mode chip overrides */
+body[data-theme='dark'] .cal-chip-warning {
+    background: rgba(255, 200, 60, 0.15);
+    color: #f5d77a;
+}
+
+body[data-theme='dark'] .cal-chip-success {
+    background: rgba(36, 170, 122, 0.18);
+    color: #72e4b5;
+}
+
+body[data-theme='dark'] .cal-chip-danger {
+    background: rgba(234, 91, 91, 0.18);
+    color: #f09090;
+}
+
+/* Hide chips on mobile (signals take over) */
+@media (max-width: 920px) {
+    .calendar-day-chips {
+        display: none;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+
 .calendar-inline-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2483,6 +2593,17 @@ body.modal-open {
 
 .compact-banner {
     margin-bottom: 10px;
+}
+
+.link-inline {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 body[data-theme='dark'] .modern-form .form-control,

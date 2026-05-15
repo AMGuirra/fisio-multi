@@ -130,10 +130,23 @@
                                     <th:block th:each="dia : ${semana}">
                                         <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
                                             <th:block th:if="${dia.pertenceAoMes}">
-                                                <div class="calendar-day-number" th:text="${dia.data.dayOfMonth}">1</div>
-                                                <p class="calendar-day-item">Sessões: <strong th:text="${dia.sessoes}">0</strong></p>
-                                                <p class="calendar-day-item">Pendentes: <strong th:text="${dia.solicitacoesPendentes}">0</strong></p>
-                                                <p class="calendar-day-item">Bloqueios: <strong th:text="${dia.bloqueios}">0</strong></p>
+                                                <div class="calendar-day-number">
+                                                    <a class="calendar-day-number-link" th:href="@{/calendario(data=${dia.data})}" th:text="${dia.data.dayOfMonth}">1</a>
+                                                </div>
+                                                <div class="calendar-day-chips">
+                                                    <a th:each="chip : ${dia.sessaoChips}"
+                                                       class="cal-chip"
+                                                       th:classappend="${chip.status == 'REALIZADA' ? ' cal-chip-success' : (chip.status == 'AGENDADA' ? ' cal-chip-warning' : ' cal-chip-danger')}"
+                                                       th:href="@{/calendario(data=${dia.data})}"
+                                                       th:title="${chip.nomePaciente + ' • ' + chip.horario}">
+                                                        <span class="cal-chip-time" th:text="${chip.horario}">09:00</span>
+                                                        <span class="cal-chip-name" th:text="${chip.nomePaciente}">Paciente</span>
+                                                    </a>
+                                                    <a th:if="${dia.sessoes > dia.sessaoChips.size()}"
+                                                       class="cal-chip-overflow"
+                                                       th:href="@{/calendario(data=${dia.data})}"
+                                                       th:text="${'+' + (dia.sessoes - dia.sessaoChips.size()) + ' mais'}">+1 mais</a>
+                                                </div>
                                                 <div class="calendar-day-mobile-signals">
                                                     <span class="calendar-day-signal sessions"
                                                           th:if="${dia.sessoes > 0}"
@@ -150,9 +163,9 @@
                                                 </div>
                                                 <div class="calendar-day-links">
                                                     <a class="calendar-link"
-                                                       th:href="@{/calendario(data=${dia.data})}">
-                                                        Ver dia
-                                                    </a>
+                                                       th:if="${dia.solicitacoesPendentes > 0}"
+                                                       th:href="@{/calendario(data=${dia.data})}"
+                                                       th:text="${dia.solicitacoesPendentes + ' pendente' + (dia.solicitacoesPendentes > 1 ? 's' : '')}">1 pendente</a>
                                                     <a class="calendar-link"
                                                        th:href="@{/configuracoes/clinica(data=${dia.data})}">
                                                         Bloquear

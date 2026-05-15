@@ -26,8 +26,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,6 +178,9 @@ public class CalendarioController {
                 .toList());
     }
 
+    private static final DateTimeFormatter HORA_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final int MAX_CHIPS_POR_DIA = 3;
+
     private List<List<CalendarioDiaView>> montarSemanas(
             YearMonth mesSelecionado,
             LocalDate dataSelecionada,
@@ -184,6 +189,8 @@ public class CalendarioController {
             List<BloqueioAgendaEntity> bloqueiosMes
     ) {
         Map<LocalDate, Long> sessoesPorDia = countByDate(sessoesMes, sessao -> sessao.getDataHoraInicio().toLocalDate());
+        Map<LocalDate, List<SessaoEntity>> sessoesPorDiaLista = sessoesMes.stream()
+                .collect(Collectors.groupingBy(s -> s.getDataHoraInicio().toLocalDate()));
         Map<LocalDate, Long> solicitacoesPendentesPorDia = solicitacoesMes.stream()
                 .filter(sol -> sol.getStatus() == SolicitacaoStatus.PENDENTE)
                 .collect(Collectors.groupingBy(sol -> sol.getDataHoraInicio().toLocalDate(), Collectors.counting()));
@@ -202,6 +209,17 @@ public class CalendarioController {
 
         for (int dia = 1; dia <= mesSelecionado.lengthOfMonth(); dia++) {
             LocalDate data = mesSelecionado.atDay(dia);
+            List<CalendarioDiaView.SessaoChipView> chips = sessoesPorDiaLista
+                    .getOrDefault(data, List.of()).stream()
+                    .sorted(Comparator.comparing(s -> s.getDataHoraInicio()))
+                    .limit(MAX_CHIPS_POR_DIA)
+                    .map(s -> new CalendarioDiaView.SessaoChipView(
+                            s.getId(),
+                            s.getDataHoraInicio().format(HORA_FORMATTER),
+                            s.getCliente().getNomeCompleto(),
+                            s.getStatus().name()
+                    ))
+                    .toList();
             dias.add(new CalendarioDiaView(
                     data,
                     true,
@@ -209,6 +227,7 @@ public class CalendarioController {
                     solicitacoesPendentesPorDia.getOrDefault(data, 0L),
                     bloqueiosPorDia.getOrDefault(data, 0L),
                     resumoBloqueios(bloqueiosDetalhadosPorDia.getOrDefault(data, List.of())),
+                    chips,
                     data.equals(LocalDate.now()),
                     data.equals(dataSelecionada)
             ));
@@ -289,11 +308,14 @@ public class CalendarioController {
             long solicitacoesPendentes,
             long bloqueios,
             List<String> resumosBloqueio,
+            List<SessaoChipView> sessaoChips,
             boolean hoje,
             boolean selecionado
     ) {
         public static CalendarioDiaView vazio() {
-            return new CalendarioDiaView(null, false, 0, 0, 0, List.of(), false, false);
+            return new CalendarioDiaView(null, false, 0, 0, 0, List.of(), List.of(), false, false);
         }
+
+        public record SessaoChipView(UUID id, String horario, String nomePaciente, String status) {}
     }
 }
