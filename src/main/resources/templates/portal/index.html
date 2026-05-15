@@ -7,20 +7,27 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}" href="/css/dashboard-modern.css">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}" href="/css/crud-modern.css">
     <style>
         .portal-premium {
-            --portal-ink: #15303c;
-            --portal-muted: #607988;
-            --portal-line: rgba(21, 48, 60, 0.12);
-            --portal-soft: rgba(255, 255, 255, 0.76);
-            background: linear-gradient(145deg, #edf8f5 0%, #f7fbfd 58%, #eef6fb 100%);
+            --portal-ink: var(--text-strong);
+            --portal-muted: var(--text-body);
+            --portal-line: var(--stroke-soft);
+            --portal-soft: var(--bg-surface);
+            min-height: 100dvh;
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(1000px 460px at 12% -15%, rgba(15, 143, 122, 0.16), transparent 65%),
+                radial-gradient(900px 480px at 100% 0%, rgba(47, 111, 236, 0.08), transparent 70%),
+                var(--bg-canvas);
             color: var(--portal-ink);
         }
 
         .portal-shell {
             width: min(1120px, 100%);
             margin: 0 auto;
-            padding: clamp(1rem, 3vw, 2rem);
+            padding: clamp(1rem, 2.5vw, 1.5rem);
         }
 
         .portal-topbar {
@@ -52,7 +59,8 @@
         .portal-brand h1 {
             margin: 0;
             font-size: var(--text-lg);
-            font-weight: 800;
+            font-weight: 750;
+            letter-spacing: 0;
         }
 
         .portal-brand p {
@@ -74,9 +82,8 @@
         .portal-kpi-card,
         .portal-panel {
             background: var(--portal-soft);
-            border: 1px solid rgba(255, 255, 255, 0.72);
-            box-shadow: 0 18px 42px rgba(34, 77, 93, 0.12);
-            backdrop-filter: blur(16px);
+            border: 1px solid var(--portal-line);
+            box-shadow: var(--shadow-sm);
         }
 
         .portal-hero-main {
@@ -99,16 +106,18 @@
 
         .portal-hero-title {
             margin: 0;
-            font-size: clamp(1.7rem, 4vw, 3rem);
-            line-height: 1.06;
+            font-size: clamp(1.35rem, 2.1vw, 2.05rem);
+            line-height: 1.12;
             letter-spacing: 0;
+            font-weight: 760;
+            color: var(--text-strong);
         }
 
         .portal-hero-copy {
             max-width: 58ch;
             color: var(--portal-muted);
-            font-size: var(--text-base);
-            line-height: 1.65;
+            font-size: 0.96rem;
+            line-height: 1.55;
             margin: var(--space-sm) 0 0;
         }
 
@@ -123,12 +132,12 @@
 
         .portal-btn {
             border: 1px solid transparent;
-            border-radius: var(--radius-sm);
+            border-radius: 11px;
             min-height: 44px;
             padding: 0.7rem 1rem;
             font: inherit;
-            font-size: var(--text-sm);
-            font-weight: 750;
+            font-size: 0.9rem;
+            font-weight: 650;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -139,20 +148,20 @@
         }
 
         .portal-btn-primary {
-            color: #fff;
-            background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
-            box-shadow: 0 12px 26px rgba(15, 143, 122, 0.24);
+            color: #eefdf8;
+            background: linear-gradient(130deg, var(--brand-500), var(--brand-600));
+            box-shadow: 0 10px 20px rgba(12, 122, 104, 0.2);
         }
 
         .portal-btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 16px 30px rgba(15, 143, 122, 0.30);
+            box-shadow: 0 14px 24px rgba(12, 122, 104, 0.27);
         }
 
         .portal-btn-secondary {
-            color: var(--portal-ink);
-            background: #fff;
-            border-color: var(--portal-line);
+            color: #206861;
+            background: #eff8f6;
+            border-color: #b8d8d2;
         }
 
         .portal-btn-danger {
@@ -176,9 +185,10 @@
 
         .next-date {
             margin: 0;
-            font-size: var(--text-xl);
+            font-size: clamp(1.1rem, 1.5vw, 1.35rem);
             line-height: 1.2;
-            font-weight: 800;
+            font-weight: 740;
+            color: var(--text-strong);
         }
 
         .next-meta {
@@ -197,7 +207,7 @@
 
         .portal-kpi-card {
             border-radius: var(--radius-md);
-            padding: var(--space-lg);
+            padding: 16px;
             min-height: 156px;
         }
 
@@ -211,15 +221,16 @@
 
         .kpi-title {
             margin: 0;
-            font-size: var(--text-sm);
+            font-size: 0.82rem;
             color: var(--portal-muted);
-            font-weight: 750;
+            font-weight: 700;
         }
 
         .kpi-value {
             margin: 0;
-            font-size: var(--text-2xl);
-            font-weight: 850;
+            font-size: clamp(1.25rem, 1.6vw, 1.75rem);
+            font-weight: 760;
+            color: var(--text-strong);
         }
 
         .kpi-caption {
@@ -259,8 +270,8 @@
 
         .frequency-pill {
             border: 1px solid var(--portal-line);
-            border-radius: var(--radius-sm);
-            background: rgba(255, 255, 255, 0.72);
+            border-radius: 11px;
+            background: var(--bg-surface);
             padding: var(--space-sm);
         }
 
@@ -291,8 +302,9 @@
 
         .panel-title {
             margin: 0;
-            font-size: var(--text-xl);
-            font-weight: 850;
+            font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+            font-weight: 740;
+            color: var(--text-strong);
         }
 
         .panel-subtitle {
@@ -350,7 +362,7 @@
         .timeline-card {
             border: 1px solid var(--portal-line);
             border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.82);
+            background: var(--bg-surface);
             padding: var(--space-md);
         }
 
@@ -363,8 +375,9 @@
 
         .timeline-date {
             margin: 0;
-            font-weight: 800;
-            font-size: var(--text-base);
+            font-weight: 700;
+            font-size: 0.96rem;
+            color: var(--text-strong);
         }
 
         .timeline-meta {
