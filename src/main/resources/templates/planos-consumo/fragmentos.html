@@ -2,8 +2,8 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="configuracao-e-consumo">
-    <div th:replace="~{pacotes-consumo/fragmentos :: card-configuracao}"></div>
-    <div th:replace="~{pacotes-consumo/fragmentos :: card-consumo}"></div>
+    <div th:replace="~{planos-consumo/fragmentos :: card-configuracao}"></div>
+    <div th:replace="~{planos-consumo/fragmentos :: card-consumo}"></div>
 </div>
 
 <div th:fragment="lista-pacientes" id="lista-pacientes" class="plist">
@@ -38,8 +38,8 @@
             <div class="ctx-sub" th:text="${paciente.dataNascimentoFormatada}">04/07/1995</div>
         </div>
         <span class="mode-badge"
-              th:classappend="${modo == 'PACOTE'} ? ' mb-p' : ' mb-a'"
-              th:text="${modo == 'PACOTE'} ? 'Pacote' : (${modo == 'CRIAR_PACOTE'} ? 'Criar pacote' : (${modo == 'ESCOLHA'} ? 'Escolha' : 'Avulso'))">Pacote</span>
+              th:classappend="${modo == 'PLANO'} ? ' mb-p' : ' mb-a'"
+              th:text="${modo == 'PLANO'} ? 'Plano' : (${modo == 'CRIAR_PLANO'} ? 'Criar plano' : (${modo == 'ESCOLHA'} ? 'Escolha' : 'Avulso'))">Plano</span>
     </div>
     <div th:if="${successMessage}" class="inline-feedback ok" th:text="${successMessage}">Sucesso</div>
     <div th:if="${errorMessage}" class="inline-feedback err" th:text="${errorMessage}">Erro</div>
@@ -47,25 +47,25 @@
     <div th:if="${modo == 'ESCOLHA'}" class="flow-choice">
         <div class="divider">Escolha de modalidade</div>
         <div class="choice-grid">
-            <button type="button" class="choice-card choice-primary" onclick="iniciarFluxo('CRIAR_PACOTE')">
+            <button type="button" class="choice-card choice-primary" onclick="iniciarFluxo('CRIAR_PLANO')">
                 <i data-lucide="package-plus" aria-hidden="true"></i>
-                <span class="choice-title">Criar Pacote</span>
+                <span class="choice-title">Criar Plano</span>
                 <span class="choice-sub">Cadastre sessoes, valor e validade antes de usar saldo.</span>
             </button>
             <button type="button" class="choice-card choice-outline" onclick="iniciarFluxo('AVULSO')">
                 <i data-lucide="coins" aria-hidden="true"></i>
                 <span class="choice-title">Atendimento Avulso</span>
-                <span class="choice-sub">Registre uma cobranca pontual sem pacote ativo.</span>
+                <span class="choice-sub">Registre uma cobranca pontual sem plano ativo.</span>
             </button>
         </div>
     </div>
 
-    <div th:if="${modo != 'ESCOLHA' and modo != 'CRIAR_PACOTE'}">
+    <div th:if="${modo != 'ESCOLHA' and modo != 'CRIAR_PLANO'}">
         <div class="divider">Tipo de atendimento</div>
         <div class="toggle-wrap">
-            <button type="button" class="tgl" th:classappend="${modo == 'PACOTE'} ? ' on-p'" onclick="setModo('PACOTE')">
+            <button type="button" class="tgl" th:classappend="${modo == 'PLANO'} ? ' on-p'" onclick="setModo('PLANO')">
                 <i data-lucide="package" aria-hidden="true"></i>
-                <span class="tgl-lbl">Usar pacote</span>
+                <span class="tgl-lbl">Usar plano</span>
                 <span class="tgl-sub">Debita do saldo</span>
             </button>
             <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
@@ -76,16 +76,16 @@
         </div>
     </div>
 
-    <div th:if="${modo == 'PACOTE' or modo == 'CRIAR_PACOTE'}">
-        <div class="divider" th:text="${modo == 'CRIAR_PACOTE'} ? 'Dados do novo pacote' : 'Dados do plano'">Dados do plano</div>
-        <form th:action="@{/pacotes-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
+    <div th:if="${modo == 'PLANO' or modo == 'CRIAR_PLANO'}">
+        <div class="divider" th:text="${modo == 'CRIAR_PLANO'} ? 'Dados do novo plano' : 'Dados do plano'">Dados do plano</div>
+        <form th:action="@{/planos-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="fld">
                 <label>Tipo de plano</label>
                 <select name="tipoPlano">
-                    <option value="PACOTE_10" th:selected="${plano == null or plano.totalSessoes == 10}">Pacote de 10 Sessoes</option>
-                    <option value="PACOTE_5" th:selected="${plano != null and plano.totalSessoes == 5}">Pacote de 5 Sessoes</option>
-                    <option value="PACOTE_20" th:selected="${plano != null and plano.totalSessoes == 20}">Pacote de 20 Sessoes</option>
+                    <option value="PLANO_10" th:selected="${plano == null or plano.totalSessoes == 10}">Plano de 10 Sessoes</option>
+                    <option value="PLANO_5" th:selected="${plano != null and plano.totalSessoes == 5}">Plano de 5 Sessoes</option>
+                    <option value="PLANO_20" th:selected="${plano != null and plano.totalSessoes == 20}">Plano de 20 Sessoes</option>
                 </select>
             </div>
             <div class="two">
@@ -122,14 +122,14 @@
             </div>
             <button type="submit" class="btn-save">
                 <i data-lucide="save" aria-hidden="true"></i>
-                <span th:text="${modo == 'CRIAR_PACOTE'} ? 'Criar Pacote' : 'Salvar Plano'">Salvar Plano</span>
+                <span th:text="${modo == 'CRIAR_PLANO'} ? 'Criar Plano' : 'Salvar Plano'">Salvar Plano</span>
             </button>
         </form>
     </div>
 
     <div th:if="${modo == 'AVULSO'}">
         <div class="divider">Dados do atendimento</div>
-        <form th:action="@{/pacotes-consumo/{id}/avulso(id=${paciente.id})}" method="post" class="pc-form">
+        <form th:action="@{/planos-consumo/{id}/avulso(id=${paciente.id})}" method="post" class="pc-form">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="fld">
                 <label>Procedimento</label>
@@ -179,22 +179,22 @@
 <div th:fragment="card-consumo" id="card-consumo">
     <div th:if="${modo == 'ESCOLHA'}" class="placeholder compact">
         <i data-lucide="list-checks" aria-hidden="true"></i>
-        <p>Escolha criar um pacote ou registrar um atendimento avulso para acompanhar o historico aqui.</p>
+        <p>Escolha criar um plano ou registrar um atendimento avulso para acompanhar o historico aqui.</p>
     </div>
 
-    <div th:if="${modo == 'CRIAR_PACOTE'}" class="placeholder compact">
+    <div th:if="${modo == 'CRIAR_PLANO'}" class="placeholder compact">
         <i data-lucide="package-plus" aria-hidden="true"></i>
-        <p>Depois de salvar o pacote, o saldo de sessoes fica disponivel nesta coluna.</p>
+        <p>Depois de salvar o plano, o saldo de sessoes fica disponivel nesta coluna.</p>
     </div>
 
-    <div th:if="${modo == 'PACOTE' and plano != null}">
+    <div th:if="${modo == 'PLANO' and plano != null}">
         <div th:if="${plano.sessoesRestantes <= 1}" class="alert-box alert-danger">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
-            Última sessão do pacote! Renove antes de agendar.
+            Última sessão do plano! Renove antes de agendar.
         </div>
         <div th:if="${plano.sessoesRestantes > 1 and plano.sessoesRestantes <= 3}" class="alert-box alert-warn">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
-            <span th:text="${plano.sessoesRestantes}">2</span> sessoes restantes. Considere renovar o pacote.
+            <span th:text="${plano.sessoesRestantes}">2</span> sessoes restantes. Considere renovar o plano.
         </div>
 
         <div class="saldo-hdr">
@@ -254,11 +254,11 @@
                     </div>
                 </div>
 
-                <form th:action="@{/pacotes-consumo/agendar-sessao}" method="post" class="pc-form pc-agendamento-form">
+                <form th:action="@{/planos-consumo/agendar-sessao}" method="post" class="pc-form pc-agendamento-form">
                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                     <input type="hidden" name="clienteId" th:value="${paciente.id}">
-                    <input type="hidden" name="pacoteSessaoId" th:value="${plano.id}">
-                    <input type="hidden" name="tipoAgendamento" value="PACOTE">
+                    <input type="hidden" name="planoSessaoId" th:value="${plano.id}">
+                    <input type="hidden" name="tipoAgendamento" value="PLANO">
 
                     <div class="two">
                         <div class="fld">
@@ -318,7 +318,7 @@
             <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
         </div>
 
-        <p class="tip">Paciente sem pacote ativo. Registros avulsos sao exibidos acima.</p>
+        <p class="tip">Paciente sem plano ativo. Registros avulsos sao exibidos acima.</p>
     </div>
 </div>
 </body>

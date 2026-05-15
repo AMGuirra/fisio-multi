@@ -4,7 +4,7 @@ import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.service.PacienteService;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
@@ -44,7 +44,7 @@ public class CalendarioController {
 
     private final AgendaService agendaService;
     private final PacienteService pacienteService;
-    private final PacoteSessaoService pacoteSessaoService;
+    private final PlanoSessaoService planoSessaoService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
 
     @GetMapping
@@ -171,7 +171,7 @@ public class CalendarioController {
         model.addAttribute("calendarioSemanas", montarSemanas(mesSelecionado, dataSelecionada, sessoesMes, solicitacoesMes, bloqueiosMes));
         model.addAttribute("sessoes", sessoesDia);
         model.addAttribute("pacientes", pacienteService.listarAtivos());
-        model.addAttribute("pacotesAgenda", pacoteSessaoService.listarDisponiveisParaAgenda());
+        model.addAttribute("planosAgenda", planoSessaoService.listarDisponiveisParaAgenda());
         model.addAttribute("pendentes", pendentes);
         model.addAttribute("bloqueiosAtivosMes", bloqueiosMes.stream()
                 .sorted((a, b) -> a.getDataHoraInicio().compareTo(b.getDataHoraInicio()))

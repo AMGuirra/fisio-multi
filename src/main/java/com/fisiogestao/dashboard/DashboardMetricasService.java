@@ -58,13 +58,13 @@ public class DashboardMetricasService {
     public record ReceitaMensal(
             String mes,
             BigDecimal receitaAvulso,
-            BigDecimal receitaPacote,
+            BigDecimal receitaPlano,
             BigDecimal totalReceita
     ) {}
 
-    public record RetencaoPacotes(
+    public record RetencaoPlanos(
             long totalPacientesAtivos,
-            long pacientesComPacote,
+            long pacientesComPlano,
             long pacientesComRenovacao,
             double taxaConversao,
             double taxaRenovacao
@@ -79,7 +79,7 @@ public class DashboardMetricasService {
     public record MetricasDashboard(
             List<OcupacaoMensal> ocupacaoMensal,
             List<ReceitaMensal> receitaMensal,
-            RetencaoPacotes retencaoPacotes,
+            RetencaoPlanos retencaoPlanos,
             List<FrequenciaPaciente> rankingFrequencia
     ) {}
 
@@ -101,7 +101,7 @@ public class DashboardMetricasService {
         return new MetricasDashboard(
                 consultarOcupacaoMensal(meses, inicioJanela),
                 consultarReceitaMensal(meses, inicioJanela),
-                consultarRetencaoPacotes(),
+                consultarRetencaoPlanos(),
                 consultarRankingFrequencia(inicioJanela)
         );
     }
@@ -167,8 +167,8 @@ public class DashboardMetricasService {
                 SELECT
                     EXTRACT(YEAR FROM data_competencia) AS ano,
                     EXTRACT(MONTH FROM data_competencia) AS mes_num,
-                    COALESCE(SUM(CASE WHEN pacote_sessao_id IS NULL THEN valor ELSE 0 END), 0) AS receita_avulso,
-                    COALESCE(SUM(CASE WHEN pacote_sessao_id IS NOT NULL THEN valor ELSE 0 END), 0) AS receita_pacote,
+                    COALESCE(SUM(CASE WHEN plano_sessao_id IS NULL THEN valor ELSE 0 END), 0) AS receita_avulso,
+                    COALESCE(SUM(CASE WHEN plano_sessao_id IS NOT NULL THEN valor ELSE 0 END), 0) AS receita_plano,
                     COALESCE(SUM(valor), 0) AS total_receita
                 FROM lancamento_financeiro
                 WHERE tipo = 'RECEITA'
@@ -184,7 +184,7 @@ public class DashboardMetricasService {
             agregados.put(mes, new ReceitaMensal(
                     mes.toString(),
                     rs.getBigDecimal("receita_avulso"),
-                    rs.getBigDecimal("receita_pacote"),
+                    rs.getBigDecimal("receita_plano"),
                     rs.getBigDecimal("total_receita")
             ));
         }, inicioJanela);
@@ -197,16 +197,16 @@ public class DashboardMetricasService {
                 .toList();
     }
 
-    private RetencaoPacotes consultarRetencaoPacotes() {
+    private RetencaoPlanos consultarRetencaoPlanos() {
         Long totalAtivos = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM cliente WHERE ativo = true",
                 Long.class
         );
 
-        Long comPacote = jdbc.queryForObject(
+        Long comPlano = jdbc.queryForObject(
                 """
                 SELECT COUNT(DISTINCT p.cliente_id)
-                FROM pacote_sessao p
+                FROM plano_sessao p
                 JOIN cliente c ON c.id = p.cliente_id
                 WHERE c.ativo = true
                 """,
@@ -217,7 +217,7 @@ public class DashboardMetricasService {
                 """
                 SELECT COUNT(*) FROM (
                     SELECT p.cliente_id
-                    FROM pacote_sessao p
+                    FROM plano_sessao p
                     JOIN cliente c ON c.id = p.cliente_id
                     WHERE c.ativo = true
                     GROUP BY p.cliente_id
@@ -228,15 +228,15 @@ public class DashboardMetricasService {
         );
 
         long ativos = valorOuZero(totalAtivos);
-        long pacote = valorOuZero(comPacote);
+        long plano = valorOuZero(comPlano);
         long renovacao = valorOuZero(comRenovacao);
 
-        return new RetencaoPacotes(
+        return new RetencaoPlanos(
                 ativos,
-                pacote,
+                plano,
                 renovacao,
-                ativos > 0 ? arredondar((double) pacote / ativos * 100.0) : 0.0,
-                pacote > 0 ? arredondar((double) renovacao / pacote * 100.0) : 0.0
+                ativos > 0 ? arredondar((double) plano / ativos * 100.0) : 0.0,
+                plano > 0 ? arredondar((double) renovacao / plano * 100.0) : 0.0
         );
     }
 

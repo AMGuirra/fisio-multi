@@ -1,12 +1,12 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.dto.PacienteListaDTO;
 import com.fisiogestao.pacientes.dto.PlanoFormDTO;
 import com.fisiogestao.pacientes.dto.PlanoResumoDTO;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class PlanoService {
     private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final PacienteService pacienteService;
-    private final PacoteSessaoRepository pacoteSessaoRepository;
+    private final PlanoSessaoRepository planoSessaoRepository;
 
     @Transactional(readOnly = true)
     public List<PacienteListaDTO> listarPacientesComResumoPlano() {
@@ -44,61 +44,61 @@ public class PlanoService {
 
     @Transactional(readOnly = true)
     public PlanoResumoDTO buscarPlanoPorPaciente(UUID pacienteId) {
-        return pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                .filter(pacote -> pacote.getStatus() == PacoteSessaoStatus.ATIVO)
+        return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
+                .filter(plano -> plano.getStatus() == PlanoSessaoStatus.ATIVO)
                 .min(Comparator
-                        .comparing((PacoteSessaoEntity pacote) -> sessoesRestantes(pacote) <= 0)
-                        .thenComparing(PacoteSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(PacoteSessaoEntity::getCreatedAt))
+                        .comparing((PlanoSessaoEntity plano) -> sessoesRestantes(plano) <= 0)
+                        .thenComparing(PlanoSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(PlanoSessaoEntity::getCreatedAt))
                 .map(this::paraPlanoResumo)
                 .orElse(null);
     }
 
     @Transactional
-    public PacoteSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form) {
+    public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form) {
         ClienteEntity paciente = pacienteService.buscarPorId(pacienteId);
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                .filter(item -> item.getStatus() == PacoteSessaoStatus.ATIVO)
+        PlanoSessaoEntity plano = planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
+                .filter(item -> item.getStatus() == PlanoSessaoStatus.ATIVO)
                 .findFirst()
                 .orElseGet(() -> {
-                    PacoteSessaoEntity novo = new PacoteSessaoEntity();
+                    PlanoSessaoEntity novo = new PlanoSessaoEntity();
                     novo.setCliente(paciente);
                     novo.setSessoesConsumidas(0);
                     return novo;
                 });
 
         int total = form.getTotalSessoes() > 0 ? form.getTotalSessoes() : totalPorTipo(form.getTipoPlano());
-        if (pacote.getSessoesConsumidas() != null && pacote.getSessoesConsumidas() > total) {
+        if (plano.getSessoesConsumidas() != null && plano.getSessoesConsumidas() > total) {
             throw new BusinessException("O total de sessoes nao pode ser menor que o consumo ja registrado.");
         }
 
-        pacote.setCliente(paciente);
-        pacote.setNomePacote(rotuloPlano(form.getTipoPlano(), total));
-        pacote.setSessoesContratadas(total);
-        pacote.setValorTotal(form.getValorTotal() == null ? BigDecimal.ZERO : form.getValorTotal());
-        pacote.setDataInicio(form.getInicioVigencia() == null ? java.time.LocalDate.now() : form.getInicioVigencia());
-        pacote.setDataValidade(form.getFimVigencia());
-        pacote.setStatus(status(form.getStatus(), pacote, total));
-        return pacoteSessaoRepository.save(pacote);
+        plano.setCliente(paciente);
+        plano.setNomePlano(rotuloPlano(form.getTipoPlano(), total));
+        plano.setSessoesContratadas(total);
+        plano.setValorTotal(form.getValorTotal() == null ? BigDecimal.ZERO : form.getValorTotal());
+        plano.setDataInicio(form.getInicioVigencia() == null ? java.time.LocalDate.now() : form.getInicioVigencia());
+        plano.setDataValidade(form.getFimVigencia());
+        plano.setStatus(status(form.getStatus(), plano, total));
+        return planoSessaoRepository.save(plano);
     }
 
-    public PlanoResumoDTO paraPlanoResumo(PacoteSessaoEntity pacote) {
-        int total = valorSeguro(pacote.getSessoesContratadas());
-        int usadas = valorSeguro(pacote.getSessoesConsumidas());
+    public PlanoResumoDTO paraPlanoResumo(PlanoSessaoEntity plano) {
+        int total = valorSeguro(plano.getSessoesContratadas());
+        int usadas = valorSeguro(plano.getSessoesConsumidas());
         int restantes = Math.max(0, total - usadas);
         int percentual = total == 0 ? 0 : Math.min(100, Math.round((usadas * 100f) / total));
         return new PlanoResumoDTO(
-                pacote.getId(),
-                pacote.getNomePacote(),
+                plano.getId(),
+                plano.getNomePlano(),
                 total,
                 usadas,
                 restantes,
                 percentual,
-                dinheiro(pacote.getValorTotal()),
+                dinheiro(plano.getValorTotal()),
                 corBarra(restantes),
-                pacote.getDataInicio(),
-                pacote.getDataValidade(),
-                pacote.getStatus() == null ? PacoteSessaoStatus.ATIVO.name() : pacote.getStatus().name()
+                plano.getDataInicio(),
+                plano.getDataValidade(),
+                plano.getStatus() == null ? PlanoSessaoStatus.ATIVO.name() : plano.getStatus().name()
         );
     }
 
@@ -120,7 +120,7 @@ public class PlanoService {
                 possuiPlano ? plano.sessoesUsadas() : 0,
                 possuiPlano ? plano.totalSessoes() : 0,
                 possuiPlano ? plano.sessoesRestantes() : 0,
-                possuiPlano ? "pacote" : "sem",
+                possuiPlano ? "plano" : "sem",
                 paciente.getTelefone(),
                 paciente.getEmail()
         );
@@ -136,8 +136,8 @@ public class PlanoService {
         return (primeira + segunda).toUpperCase(PT_BR);
     }
 
-    private int sessoesRestantes(PacoteSessaoEntity pacote) {
-        return Math.max(0, valorSeguro(pacote.getSessoesContratadas()) - valorSeguro(pacote.getSessoesConsumidas()));
+    private int sessoesRestantes(PlanoSessaoEntity plano) {
+        return Math.max(0, valorSeguro(plano.getSessoesContratadas()) - valorSeguro(plano.getSessoesConsumidas()));
     }
 
     private int valorSeguro(Integer valor) {
@@ -159,30 +159,30 @@ public class PlanoService {
     }
 
     private int totalPorTipo(String tipoPlano) {
-        if ("PACOTE_5".equals(tipoPlano)) {
+        if ("PLANO_5".equals(tipoPlano)) {
             return 5;
         }
-        if ("PACOTE_20".equals(tipoPlano)) {
+        if ("PLANO_20".equals(tipoPlano)) {
             return 20;
         }
         return 10;
     }
 
     private String rotuloPlano(String tipoPlano, int total) {
-        if (tipoPlano != null && tipoPlano.startsWith("PACOTE_")) {
-            return "Pacote de " + total + " Sessões";
+        if (tipoPlano != null && tipoPlano.startsWith("PLANO_")) {
+            return "Plano de " + total + " Sessões";
         }
-        return tipoPlano == null || tipoPlano.isBlank() ? "Pacote de " + total + " Sessões" : tipoPlano.trim();
+        return tipoPlano == null || tipoPlano.isBlank() ? "Plano de " + total + " Sessões" : tipoPlano.trim();
     }
 
-    private PacoteSessaoStatus status(String status, PacoteSessaoEntity pacote, int total) {
-        if (pacote.getSessoesConsumidas() != null && pacote.getSessoesConsumidas() >= total) {
-            return PacoteSessaoStatus.CONCLUIDO;
+    private PlanoSessaoStatus status(String status, PlanoSessaoEntity plano, int total) {
+        if (plano.getSessoesConsumidas() != null && plano.getSessoesConsumidas() >= total) {
+            return PlanoSessaoStatus.CONCLUIDO;
         }
         try {
-            return status == null || status.isBlank() ? PacoteSessaoStatus.ATIVO : PacoteSessaoStatus.valueOf(status);
+            return status == null || status.isBlank() ? PlanoSessaoStatus.ATIVO : PlanoSessaoStatus.valueOf(status);
         } catch (IllegalArgumentException ex) {
-            return PacoteSessaoStatus.ATIVO;
+            return PlanoSessaoStatus.ATIVO;
         }
     }
 }

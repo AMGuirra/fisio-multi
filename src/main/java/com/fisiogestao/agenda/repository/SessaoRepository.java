@@ -28,27 +28,27 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             OffsetDateTime dataHoraInicio
     );
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     List<SessaoEntity> findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(
             OffsetDateTime inicio,
             OffsetDateTime fim
     );
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     List<SessaoEntity> findByClienteIdOrderByDataHoraInicioDesc(UUID clienteId);
 
     @Override
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     Optional<SessaoEntity> findById(UUID id);
 
     boolean existsByClienteId(UUID clienteId);
 
-    boolean existsByPacoteSessaoId(UUID pacoteSessaoId);
+    boolean existsByPlanoSessaoId(UUID planoSessaoId);
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao", "recorrencia", "recorrenciaPai"})
-    List<SessaoEntity> findByPacoteSessaoIdOrderByDataHoraInicioDesc(UUID pacoteSessaoId);
+    @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
+    List<SessaoEntity> findByPlanoSessaoIdOrderByDataHoraInicioDesc(UUID planoSessaoId);
 
-    boolean existsByPacoteSessaoIdAndStatusIn(UUID pacoteSessaoId, Collection<SessaoStatus> statuses);
+    boolean existsByPlanoSessaoIdAndStatusIn(UUID planoSessaoId, Collection<SessaoStatus> statuses);
 
     long countByStatus(SessaoStatus status);
 
@@ -65,9 +65,9 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
     Optional<SessaoEntity> findByIdAndClienteIdAndStatus(UUID id, UUID clienteId, SessaoStatus status);
 
     @Modifying
-    @Query("DELETE FROM SessaoEntity s WHERE s.pacoteSessao.id = :pacoteId AND s.status = :status AND s.dataHoraInicio > :agora")
-    int deletarFuturasPorPacoteEStatus(
-            @Param("pacoteId") UUID pacoteId,
+    @Query("DELETE FROM SessaoEntity s WHERE s.planoSessao.id = :planoId AND s.status = :status AND s.dataHoraInicio > :agora")
+    int deletarFuturasPorPlanoEStatus(
+            @Param("planoId") UUID planoId,
             @Param("status") SessaoStatus status,
             @Param("agora") OffsetDateTime agora);
 }

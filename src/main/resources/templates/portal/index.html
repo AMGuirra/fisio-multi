@@ -40,7 +40,7 @@
             </div>
             <div class="saldo-item">
                 <p class="saldo-label">Planos ativos</p>
-                <p class="saldo-value" th:text="${pacotesAtivos.size()}">0</p>
+                <p class="saldo-value" th:text="${planosAtivos.size()}">0</p>
             </div>
         </div>
     </div>
@@ -63,29 +63,29 @@
         </div>
     </div>
 
-    <!-- Pacotes ativos -->
-    <div class="portal-card" th:if="${!pacotesAtivos.empty}">
+    <!-- Planos ativos -->
+    <div class="portal-card" th:if="${!planosAtivos.empty}">
         <p class="portal-section-title">Planos de tratamento ativos</p>
-        <div th:each="pacote : ${pacotesAtivos}">
-            <div class="pacote-row">
+        <div th:each="plano : ${planosAtivos}">
+            <div class="plano-row">
                 <div class="flex-1">
-                    <p class="pacote-nome" th:text="${pacote.nomePacote}">Pacote</p>
-                    <p class="pacote-meta"
-                       th:text="${pacote.sessoesConsumidas + ' de ' + pacote.sessoesContratadas + ' sessoes realizadas'}"></p>
-                    <p class="pacote-meta"
-                       th:if="${pacote.dataValidade != null}"
-                       th:text="'Valido ate ' + ${#temporals.format(pacote.dataValidade, 'dd/MM/yyyy')}"></p>
+                    <p class="plano-nome" th:text="${plano.nomePlano}">Plano</p>
+                    <p class="plano-meta"
+                       th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessoes realizadas'}"></p>
+                    <p class="plano-meta"
+                       th:if="${plano.dataValidade != null}"
+                       th:text="'Valido ate ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}"></p>
                     <div class="progress-bar-wrap">
                         <div class="progress-bar-fill"
-                             th:classappend="${(pacote.sessoesContratadas - pacote.sessoesConsumidas) == 0 ? ' empty' : ((pacote.sessoesContratadas - pacote.sessoesConsumidas) <= 2 ? ' low' : '')}"
-                             th:style="'width:' + ${pacote.sessoesContratadas > 0 ? (pacote.sessoesConsumidas * 100 / pacote.sessoesContratadas) : 0} + '%'">
+                             th:classappend="${(plano.sessoesContratadas - plano.sessoesConsumidas) == 0 ? ' empty' : ((plano.sessoesContratadas - plano.sessoesConsumidas) <= 2 ? ' low' : '')}"
+                             th:style="'width:' + ${plano.sessoesContratadas > 0 ? (plano.sessoesConsumidas * 100 / plano.sessoesContratadas) : 0} + '%'">
                         </div>
                     </div>
                 </div>
-                <div class="pacote-info-right">
+                <div class="plano-info-right">
                     <span class="badge badge-ativo">Ativo</span>
-                    <span class="pacote-restantes"
-                          th:text="${(pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' restantes'}"></span>
+                    <span class="plano-restantes"
+                          th:text="${(plano.sessoesContratadas - plano.sessoesConsumidas) + ' restantes'}"></span>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
         </div>
 
         <div th:each="sv : ${proximasSessoes}" class="sessao-card">
-            <div class="portal-pacote-actions">
+            <div class="portal-plano-actions">
                 <p class="sessao-data"
                    th:text="${#temporals.format(sv.sessao().dataHoraInicio, 'EEEE, dd/MM/yyyy', #locale)}">Data</p>
                 <span class="badge badge-agendada">Agendada</span>
@@ -112,7 +112,7 @@
                th:if="${sv.sessao().tipoAtendimento != null and !#strings.isEmpty(sv.sessao().tipoAtendimento)}"
                th:text="${sv.sessao().tipoAtendimento}"></p>
 
-            <div class="portal-pacote-actions">
+            <div class="portal-plano-actions">
                 <form th:unless="${sv.sessao().confirmadoPeloPaciente}"
                       th:action="@{/paciente/{token}/sessao/{sid}/confirmar(token=${token},sid=${sv.sessao().id})}"
                       method="post" class="d-inline">
@@ -174,26 +174,26 @@
         </div>
     </div>
 
-    <!-- Pacotes encerrados (colapsavel) -->
-    <div th:if="${!pacotesEncerrados.empty}">
-        <p class="pacotes-encerrados-toggle" onclick="toggleEncerrados(this)">
+    <!-- Planos encerrados (colapsavel) -->
+    <div th:if="${!planosEncerrados.empty}">
+        <p class="planos-encerrados-toggle" onclick="toggleEncerrados(this)">
             <span>&#x25B6;</span> Ver planos encerrados
-            (<span th:text="${pacotesEncerrados.size()}">0</span>)
+            (<span th:text="${planosEncerrados.size()}">0</span>)
         </p>
-        <div id="pacotesEncerradosBox" class="portal-card pacotes-encerrados-box">
-            <div th:each="pacote : ${pacotesEncerrados}" class="pacote-row pacote-encerrado">
+        <div id="planosEncerradosBox" class="portal-card planos-encerrados-box">
+            <div th:each="plano : ${planosEncerrados}" class="plano-row plano-encerrado">
                 <div class="flex-1">
-                    <p class="pacote-nome" th:text="${pacote.nomePacote}">Pacote</p>
-                    <p class="pacote-meta"
-                       th:text="${pacote.sessoesConsumidas + ' de ' + pacote.sessoesContratadas + ' sessoes realizadas'}"></p>
-                    <p class="pacote-meta"
-                       th:if="${pacote.dataValidade != null}"
-                       th:text="'Valido ate ' + ${#temporals.format(pacote.dataValidade, 'dd/MM/yyyy')}"></p>
+                    <p class="plano-nome" th:text="${plano.nomePlano}">Plano</p>
+                    <p class="plano-meta"
+                       th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessoes realizadas'}"></p>
+                    <p class="plano-meta"
+                       th:if="${plano.dataValidade != null}"
+                       th:text="'Valido ate ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}"></p>
                 </div>
-                <div class="pacote-info-right">
+                <div class="plano-info-right">
                     <span class="badge"
-                          th:classappend="${pacote.status.name() == 'CONCLUIDO' ? ' badge-concluido' : (pacote.status.name() == 'EXPIRADO' ? ' badge-expirado' : ' badge-cancelado-pkg')}"
-                          th:text="${pacote.status.name() == 'CONCLUIDO' ? 'Concluido' : (pacote.status.name() == 'EXPIRADO' ? 'Expirado' : 'Cancelado')}">
+                          th:classappend="${plano.status.name() == 'CONCLUIDO' ? ' badge-concluido' : (plano.status.name() == 'EXPIRADO' ? ' badge-expirado' : ' badge-cancelado-pkg')}"
+                          th:text="${plano.status.name() == 'CONCLUIDO' ? 'Concluido' : (plano.status.name() == 'EXPIRADO' ? 'Expirado' : 'Cancelado')}">
                     </span>
                 </div>
             </div>
@@ -217,7 +217,7 @@
 
 <script>
     function toggleEncerrados(el) {
-        var box = document.getElementById('pacotesEncerradosBox');
+        var box = document.getElementById('planosEncerradosBox');
         var arrow = el.querySelector('span');
         var hidden = box.style.display === 'none';
         box.style.display = hidden ? 'block' : 'none';

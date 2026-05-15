@@ -8,7 +8,7 @@ import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
@@ -57,7 +57,7 @@ class SolicitacaoAgendamentoServiceTest {
     private PacienteService pacienteService;
 
     @Mock
-    private PacoteSessaoService pacoteSessaoService;
+    private PlanoSessaoService planoSessaoService;
 
     @Mock
     private AgendamentoEmailNotificationService agendamentoEmailNotificationService;
@@ -93,7 +93,7 @@ class SolicitacaoAgendamentoServiceTest {
         verify(pacienteService).validarRelacionamentoSolicitacaoClienteUuid();
         verify(solicitacaoAgendamentoRepository).save(argThat(saved -> saved.getCliente() == cliente
                 && saved.getStatus() == SolicitacaoStatus.PENDENTE));
-        verify(pacoteSessaoService, never()).resolverPacoteParaSessao(any(), any(), any());
+        verify(planoSessaoService, never()).resolverPlanoParaSessao(any(), any(), any());
         verify(sessaoRepository, never()).save(any());
     }
 
@@ -111,7 +111,7 @@ class SolicitacaoAgendamentoServiceTest {
         );
 
         assertEquals("Cadastre o paciente antes de aprovar a solicitação.", ex.getMessage());
-        verifyNoInteractions(horarioBloqueadoRepository, pacienteService, pacoteSessaoService, sessaoRepository);
+        verifyNoInteractions(horarioBloqueadoRepository, pacienteService, planoSessaoService, sessaoRepository);
     }
 
     private SolicitacaoAgendamentoEntity solicitacaoPendente() {

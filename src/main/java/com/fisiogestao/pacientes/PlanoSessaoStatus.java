@@ -1,6 +1,6 @@
 package com.fisiogestao.pacientes;
 
-public enum PacoteSessaoStatus {
+public enum PlanoSessaoStatus {
     ATIVO,
     CONCLUIDO,
     EXPIRADO,

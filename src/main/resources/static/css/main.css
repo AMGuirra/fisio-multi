@@ -560,7 +560,7 @@ body[data-theme='dark'] {
 }
 
 /* ── 14. Portal do paciente — inline styles críticos ─────────────── */
-.portal-pacote-header {
+.portal-plano-header {
     display: flex;
     gap: var(--space-sm);
     flex-wrap: wrap;
@@ -698,7 +698,7 @@ body[data-theme='dark'] {
     margin-top: var(--space-xl);
 }
 
-/* ── 17. Barra de progresso de pacote (portal) ───────────────────── */
+/* ── 17. Barra de progresso de plano (portal) ───────────────────── */
 .plan-progress-bar {
     height: 8px;
     background: var(--stroke-soft);
@@ -1123,8 +1123,8 @@ main.portal-main {
 .proxima-destaque-data  { font-size: 1.1rem; font-weight: 700; margin: 0; }
 .proxima-destaque-hora  { font-size: 0.9rem; color: #607988; margin-top: 0.1rem; margin-bottom: 0; }
 
-/* Linha de pacote/plano */
-.pacote-row {
+/* Linha de plano */
+.plano-row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1133,10 +1133,10 @@ main.portal-main {
     gap: 0.75rem;
 }
 
-.pacote-row:last-child    { border-bottom: none; }
-.pacote-nome              { font-weight: 600; font-size: 0.95rem; margin: 0; }
-.pacote-meta              { font-size: 0.82rem; color: #607988; margin-top: 0.15rem; margin-bottom: 0; }
-.pacote-encerrado         { opacity: 0.65; }
+.plano-row:last-child    { border-bottom: none; }
+.plano-nome              { font-weight: 600; font-size: 0.95rem; margin: 0; }
+.plano-meta              { font-size: 0.82rem; color: #607988; margin-top: 0.15rem; margin-bottom: 0; }
+.plano-encerrado         { opacity: 0.65; }
 
 .progress-bar-wrap {
     height: 6px;
@@ -1150,7 +1150,7 @@ main.portal-main {
 .progress-bar-fill.low     { background: #d97706; }
 .progress-bar-fill.empty   { background: #e53e3e; }
 
-.pacotes-encerrados-toggle {
+.planos-encerrados-toggle {
     font-size: 0.85rem;
     color: #607988;
     cursor: pointer;
@@ -1161,7 +1161,7 @@ main.portal-main {
     user-select: none;
 }
 
-.pacotes-encerrados-toggle:hover { color: #15303c; }
+.planos-encerrados-toggle:hover { color: #15303c; }
 
 /* Saldo grid */
 .saldo-grid {
@@ -1272,10 +1272,10 @@ main.portal-main {
 .portal-empty { color: #607988; font-size: 0.9rem; text-align: center; padding: 1.5rem; }
 .portal-section-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: #15303c; margin-top: 0; }
 
-/* Info extras de pacotes encerrados */
-.pacote-info-right { text-align: right; flex-shrink: 0; }
-.pacote-restantes  { font-size: 0.82rem; color: #607988; margin-top: 0.25rem; display: block; }
-.portal-pacote-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+/* Info extras de planos encerrados */
+.plano-info-right { text-align: right; flex-shrink: 0; }
+.plano-restantes  { font-size: 0.82rem; color: #607988; margin-top: 0.25rem; display: block; }
+.portal-plano-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
 /* Footer */
 footer.portal-footer {
@@ -1291,8 +1291,8 @@ footer.portal-footer {
 .footer-contato a         { color: #1ea387; text-decoration: none; font-weight: 500; }
 .footer-contato a:hover   { text-decoration: underline; }
 
-/* Pacotes encerrados box */
-.pacotes-encerrados-box { display: none; margin-top: 0.5rem; }
+/* Planos encerrados box */
+.planos-encerrados-box { display: none; margin-top: 0.5rem; }
 
 /* Responsivo: sessão card ação em coluna em mobile */
 @media (max-width: 480px) {

@@ -10,10 +10,10 @@ import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
-import com.fisiogestao.pacientes.form.PacoteSessaoForm;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.form.PlanoSessaoForm;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,10 +41,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PacoteSessaoServiceTest {
+class PlanoSessaoServiceTest {
 
     @Mock
-    private PacoteSessaoRepository pacoteSessaoRepository;
+    private PlanoSessaoRepository planoSessaoRepository;
 
     @Mock
     private PacienteService pacienteService;
@@ -62,38 +62,38 @@ class PacoteSessaoServiceTest {
     private AuditService auditService;
 
     @InjectMocks
-    private PacoteSessaoService pacoteSessaoService;
+    private PlanoSessaoService planoSessaoService;
 
     // -----------------------------------------------------------------------
-    // criar — deve disparar registrarReceitaPacote
+    // criar — deve disparar registrarReceitaPlano
     // -----------------------------------------------------------------------
 
     @Test
     void deveRegistrarReceitaFinanceiraAoCriarPacote() {
         UUID clienteId = UUID.randomUUID();
-        PacoteSessaoForm form = formPacote("Plano Mensal", 10, "450.00",
+        PlanoSessaoForm form = formPacote("Plano Mensal", 10, "450.00",
                 LocalDate.now(), LocalDate.now().plusMonths(1));
 
         when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente("Maria"));
-        when(pacoteSessaoRepository.save(any())).thenAnswer(inv -> {
-            PacoteSessaoEntity p = inv.getArgument(0);
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> {
+            PlanoSessaoEntity p = inv.getArgument(0);
             p.setId(UUID.randomUUID());
             return p;
         });
 
-        pacoteSessaoService.criar(clienteId, form);
+        planoSessaoService.criar(clienteId, form);
 
-        verify(financeiroService).registrarReceitaPacote(any(PacoteSessaoEntity.class));
+        verify(financeiroService).registrarReceitaPlano(any(PlanoSessaoEntity.class));
     }
 
     @Test
     void deveImpedirCriacaoComValidadeAnteriorAoInicio() {
         UUID clienteId = UUID.randomUUID();
-        PacoteSessaoForm form = formPacote("Plano", 5, "200.00",
+        PlanoSessaoForm form = formPacote("Plano", 5, "200.00",
                 LocalDate.now(), LocalDate.now().minusDays(1));
 
-        assertThrows(BusinessException.class, () -> pacoteSessaoService.criar(clienteId, form));
-        verify(pacoteSessaoRepository, never()).save(any());
+        assertThrows(BusinessException.class, () -> planoSessaoService.criar(clienteId, form));
+        verify(planoSessaoRepository, never()).save(any());
     }
 
     // -----------------------------------------------------------------------
@@ -102,70 +102,70 @@ class PacoteSessaoServiceTest {
 
     @Test
     void deveIncrementarSessoesConsumidasAoReservar() {
-        PacoteSessaoEntity pacote = pacoteAtivo(5, 3);
+        PlanoSessaoEntity pacote = pacoteAtivo(5, 3);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
-        when(pacoteSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        pacoteSessaoService.reservarSessao(pacote.getId());
+        planoSessaoService.reservarSessao(pacote.getId());
 
         assertEquals(4, pacote.getSessoesConsumidas());
-        assertEquals(PacoteSessaoStatus.ATIVO, pacote.getStatus());
+        assertEquals(PlanoSessaoStatus.ATIVO, pacote.getStatus());
     }
 
     @Test
     void deveConcluirPacoteQuandoUltimaSessionForReservada() {
-        PacoteSessaoEntity pacote = pacoteAtivo(5, 4); // falta só 1
+        PlanoSessaoEntity pacote = pacoteAtivo(5, 4); // falta só 1
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
-        when(pacoteSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        pacoteSessaoService.reservarSessao(pacote.getId());
+        planoSessaoService.reservarSessao(pacote.getId());
 
         assertEquals(5, pacote.getSessoesConsumidas());
-        assertEquals(PacoteSessaoStatus.CONCLUIDO, pacote.getStatus());
+        assertEquals(PlanoSessaoStatus.CONCLUIDO, pacote.getStatus());
     }
 
     @Test
     void deveLancarExcecaoAoReservarPacoteEsgotado() {
-        PacoteSessaoEntity pacote = pacoteComStatus(PacoteSessaoStatus.CONCLUIDO, 5, 5);
+        PlanoSessaoEntity pacote = pacoteComStatus(PlanoSessaoStatus.CONCLUIDO, 5, 5);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
 
         assertThrows(BusinessException.class,
-                () -> pacoteSessaoService.reservarSessao(pacote.getId()));
+                () -> planoSessaoService.reservarSessao(pacote.getId()));
     }
 
     @Test
     void deveLancarExcecaoAoReservarPacoteCancelado() {
-        PacoteSessaoEntity pacote = pacoteComStatus(PacoteSessaoStatus.CANCELADO, 10, 2);
+        PlanoSessaoEntity pacote = pacoteComStatus(PlanoSessaoStatus.CANCELADO, 10, 2);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
 
         assertThrows(BusinessException.class,
-                () -> pacoteSessaoService.reservarSessao(pacote.getId()));
+                () -> planoSessaoService.reservarSessao(pacote.getId()));
     }
 
     @Test
     void deveLancarExcecaoAoReservarPacoteComValidadeVencida() {
-        PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
+        PlanoSessaoEntity pacote = PlanoSessaoEntity.builder()
                 .cliente(cliente("Teste"))
-                .nomePacote("Plano Expirado")
+                .nomePlano("Plano Expirado")
                 .sessoesContratadas(10)
                 .sessoesConsumidas(2)
                 .valorTotal(BigDecimal.TEN)
                 .dataInicio(LocalDate.now().minusMonths(2))
                 .dataValidade(LocalDate.now().minusDays(1)) // vencido ontem
-                .status(PacoteSessaoStatus.ATIVO)
+                .status(PlanoSessaoStatus.ATIVO)
                 .build();
         pacote.setId(UUID.randomUUID());
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
 
         assertThrows(BusinessException.class,
-                () -> pacoteSessaoService.reservarSessao(pacote.getId()));
+                () -> planoSessaoService.reservarSessao(pacote.getId()));
     }
 
     // -----------------------------------------------------------------------
@@ -174,27 +174,27 @@ class PacoteSessaoServiceTest {
 
     @Test
     void deveDecrementarSessoesConsumidasAoEstornar() {
-        PacoteSessaoEntity pacote = pacoteComStatus(PacoteSessaoStatus.CONCLUIDO, 5, 5);
+        PlanoSessaoEntity pacote = pacoteComStatus(PlanoSessaoStatus.CONCLUIDO, 5, 5);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
-        when(pacoteSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        pacoteSessaoService.estornarSessao(pacote.getId());
+        planoSessaoService.estornarSessao(pacote.getId());
 
         assertEquals(4, pacote.getSessoesConsumidas());
-        assertEquals(PacoteSessaoStatus.ATIVO, pacote.getStatus());
+        assertEquals(PlanoSessaoStatus.ATIVO, pacote.getStatus());
     }
 
     @Test
     void deveIgnorarEstornoQuandoSessoesConsumidasForZero() {
-        PacoteSessaoEntity pacote = pacoteAtivo(5, 0);
+        PlanoSessaoEntity pacote = pacoteAtivo(5, 0);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
 
-        pacoteSessaoService.estornarSessao(pacote.getId());
+        planoSessaoService.estornarSessao(pacote.getId());
 
-        verify(pacoteSessaoRepository, never()).save(any());
+        verify(planoSessaoRepository, never()).save(any());
         assertEquals(0, pacote.getSessoesConsumidas());
     }
 
@@ -203,30 +203,31 @@ class PacoteSessaoServiceTest {
     // -----------------------------------------------------------------------
 
     @Test
-    void deveCancelarPacoteSemSessoesAtivas() {
-        PacoteSessaoEntity pacote = pacoteAtivo(10, 0);
+    void deveCancelarPlanoSemSessoesFuturas() {
+        PlanoSessaoEntity pacote = pacoteAtivo(10, 0);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.existsByPacoteSessaoIdAndStatusIn(any(), any())).thenReturn(false);
-        when(pacoteSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.deletarFuturasPorPlanoEStatus(any(), any(), any())).thenReturn(0);
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        assertDoesNotThrow(() -> pacoteSessaoService.cancelar(pacote.getId()));
+        assertDoesNotThrow(() -> planoSessaoService.cancelar(pacote.getId()));
 
-        assertEquals(PacoteSessaoStatus.CANCELADO, pacote.getStatus());
+        assertEquals(PlanoSessaoStatus.CANCELADO, pacote.getStatus());
     }
 
     @Test
-    void deveBloquearCancelamentoComSessoesAtivas() {
-        PacoteSessaoEntity pacote = pacoteAtivo(10, 3);
+    void deveCancelarPlanoRemovendoSessoesFuturas() {
+        PlanoSessaoEntity pacote = pacoteAtivo(10, 3);
 
-        when(pacoteSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.existsByPacoteSessaoIdAndStatusIn(any(), any())).thenReturn(true);
+        when(planoSessaoRepository.findById(pacote.getId())).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.deletarFuturasPorPlanoEStatus(any(), any(), any())).thenReturn(2);
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> pacoteSessaoService.cancelar(pacote.getId()));
+        assertDoesNotThrow(() -> planoSessaoService.cancelar(pacote.getId()));
 
-        assertTrue(ex.getMessage().contains("sessões confirmadas ou realizadas"));
+        assertEquals(PlanoSessaoStatus.CANCELADO, pacote.getStatus());
     }
 
     // -----------------------------------------------------------------------
@@ -235,13 +236,13 @@ class PacoteSessaoServiceTest {
 
     @Test
     void deveCalcularSessoesDisponiveisPorDiferenca() {
-        assertEquals(7, pacoteSessaoService.calcularSessoesDisponiveis(pacoteAtivo(10, 3)));
+        assertEquals(7, planoSessaoService.calcularSessoesDisponiveis(pacoteAtivo(10, 3)));
     }
 
     @Test
     void sessoesDisponiveisNuncaDeveSerNegativa() {
         // Cenário defensivo: consumidas > contratadas por inconsistência de dados
-        assertEquals(0, pacoteSessaoService.calcularSessoesDisponiveis(pacoteAtivo(5, 7)));
+        assertEquals(0, planoSessaoService.calcularSessoesDisponiveis(pacoteAtivo(5, 7)));
     }
 
     // -----------------------------------------------------------------------
@@ -251,24 +252,24 @@ class PacoteSessaoServiceTest {
     @Test
     void deveRetornarVazioQuandoNenhumPacoteDisponivel() {
         UUID clienteId = UUID.randomUUID();
-        PacoteSessaoEntity concluido = pacoteComStatus(PacoteSessaoStatus.CONCLUIDO, 5, 5);
-        PacoteSessaoEntity cancelado = pacoteComStatus(PacoteSessaoStatus.CANCELADO, 5, 0);
+        PlanoSessaoEntity concluido = pacoteComStatus(PlanoSessaoStatus.CONCLUIDO, 5, 5);
+        PlanoSessaoEntity cancelado = pacoteComStatus(PlanoSessaoStatus.CANCELADO, 5, 0);
 
-        when(pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+        when(planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
                 .thenReturn(List.of(concluido, cancelado));
 
-        assertTrue(pacoteSessaoService.buscarPrimeiroDisponivel(clienteId).isEmpty());
+        assertTrue(planoSessaoService.buscarPrimeiroDisponivel(clienteId).isEmpty());
     }
 
     @Test
     void deveRetornarPrimeiroPacoteDisponivel() {
         UUID clienteId = UUID.randomUUID();
-        PacoteSessaoEntity disponivel = pacoteAtivo(10, 2);
+        PlanoSessaoEntity disponivel = pacoteAtivo(10, 2);
 
-        when(pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+        when(planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
                 .thenReturn(List.of(disponivel));
 
-        assertTrue(pacoteSessaoService.buscarPrimeiroDisponivel(clienteId).isPresent());
+        assertTrue(planoSessaoService.buscarPrimeiroDisponivel(clienteId).isPresent());
     }
 
     // -----------------------------------------------------------------------
@@ -278,54 +279,54 @@ class PacoteSessaoServiceTest {
     @Test
     void deveExcluirPacoteSemHistoricoRemovendoLancamentosPendentes() {
         UUID pacoteId = UUID.randomUUID();
-        PacoteSessaoEntity pacote = pacoteComStatus(PacoteSessaoStatus.CANCELADO, 10, 0);
+        PlanoSessaoEntity pacote = pacoteComStatus(PlanoSessaoStatus.CANCELADO, 10, 0);
         pacote.setId(pacoteId);
         LancamentoFinanceiroEntity lancamento = lancamentoPendente(pacote);
 
-        when(pacoteSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.findByPacoteSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of());
-        when(lancamentoFinanceiroRepository.findByPacoteSessaoId(pacoteId)).thenReturn(List.of(lancamento));
+        when(planoSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.findByPlanoSessaoId(pacoteId)).thenReturn(List.of(lancamento));
 
-        assertDoesNotThrow(() -> pacoteSessaoService.excluir(pacoteId));
+        assertDoesNotThrow(() -> planoSessaoService.excluir(pacoteId));
 
         verify(lancamentoFinanceiroRepository).deleteAll(List.of(lancamento));
-        verify(pacoteSessaoRepository).delete(pacote);
+        verify(planoSessaoRepository).delete(pacote);
     }
 
     @Test
     void deveExcluirPacoteComHistoricoDeSessoesDesvinculandoAgenda() {
         UUID pacoteId = UUID.randomUUID();
         ClienteEntity clienteObj = cliente("Maria");
-        PacoteSessaoEntity pacote = pacoteAtivo(10, 0);
+        PlanoSessaoEntity pacote = pacoteAtivo(10, 0);
         pacote.setId(pacoteId);
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(clienteObj)
-                .pacoteSessao(pacote)
+                .planoSessao(pacote)
                 .dataHoraInicio(OffsetDateTime.now().plusDays(1))
                 .dataHoraFim(OffsetDateTime.now().plusDays(1).plusMinutes(50))
                 .status(SessaoStatus.CANCELADA)
-                .tipoAgendamento(TipoAgendamento.PACOTE)
-                .pacoteConsumoRegistrado(Boolean.FALSE)
+                .tipoAgendamento(TipoAgendamento.PLANO)
+                .planoConsumoRegistrado(Boolean.FALSE)
                 .build();
         sessao.setId(UUID.randomUUID());
 
-        when(pacoteSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.findByPacoteSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of(sessao));
+        when(planoSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of(sessao));
         when(sessaoRepository.save(sessao)).thenReturn(sessao);
-        when(lancamentoFinanceiroRepository.findByPacoteSessaoId(pacoteId)).thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.findByPlanoSessaoId(pacoteId)).thenReturn(List.of());
 
-        assertDoesNotThrow(() -> pacoteSessaoService.excluir(pacoteId));
+        assertDoesNotThrow(() -> planoSessaoService.excluir(pacoteId));
 
-        assertNull(sessao.getPacoteSessao());
+        assertNull(sessao.getPlanoSessao());
         assertEquals(TipoAgendamento.AVULSO, sessao.getTipoAgendamento());
-        assertFalse(sessao.getPacoteConsumoRegistrado());
-        verify(pacoteSessaoRepository).delete(pacote);
+        assertFalse(sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoRepository).delete(pacote);
     }
 
     @Test
     void devePreservarLancamentoPagoAoExcluirPacote() {
         UUID pacoteId = UUID.randomUUID();
-        PacoteSessaoEntity pacote = pacoteAtivo(10, 3);
+        PlanoSessaoEntity pacote = pacoteAtivo(10, 3);
         pacote.setId(pacoteId);
         LancamentoFinanceiroEntity lancamentoPago = LancamentoFinanceiroEntity.builder()
                 .status(StatusLancamentoFinanceiro.PAGO)
@@ -334,21 +335,21 @@ class PacoteSessaoServiceTest {
                 .tipo(com.fisiogestao.financeiro.TipoLancamentoFinanceiro.RECEITA)
                 .valor(BigDecimal.TEN)
                 .dataCompetencia(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
-                .pacoteSessao(pacote)
+                .planoSessao(pacote)
                 .build();
         lancamentoPago.setId(UUID.randomUUID());
 
-        when(pacoteSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.findByPacoteSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of());
-        when(lancamentoFinanceiroRepository.findByPacoteSessaoId(pacoteId)).thenReturn(List.of(lancamentoPago));
+        when(planoSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.findByPlanoSessaoId(pacoteId)).thenReturn(List.of(lancamentoPago));
         when(lancamentoFinanceiroRepository.save(lancamentoPago)).thenReturn(lancamentoPago);
 
-        assertDoesNotThrow(() -> pacoteSessaoService.excluir(pacoteId));
+        assertDoesNotThrow(() -> planoSessaoService.excluir(pacoteId));
 
-        assertNull(lancamentoPago.getPacoteSessao());
+        assertNull(lancamentoPago.getPlanoSessao());
         verify(lancamentoFinanceiroRepository, never()).deleteAll(List.of(lancamentoPago));
         verify(lancamentoFinanceiroRepository).save(lancamentoPago);
-        verify(pacoteSessaoRepository).delete(pacote);
+        verify(planoSessaoRepository).delete(pacote);
     }
 
     // -----------------------------------------------------------------------
@@ -361,14 +362,14 @@ class PacoteSessaoServiceTest {
         return c;
     }
 
-    private PacoteSessaoEntity pacoteAtivo(int contratadas, int consumidas) {
-        return pacoteComStatus(PacoteSessaoStatus.ATIVO, contratadas, consumidas);
+    private PlanoSessaoEntity pacoteAtivo(int contratadas, int consumidas) {
+        return pacoteComStatus(PlanoSessaoStatus.ATIVO, contratadas, consumidas);
     }
 
-    private PacoteSessaoEntity pacoteComStatus(PacoteSessaoStatus status, int contratadas, int consumidas) {
-        PacoteSessaoEntity p = PacoteSessaoEntity.builder()
+    private PlanoSessaoEntity pacoteComStatus(PlanoSessaoStatus status, int contratadas, int consumidas) {
+        PlanoSessaoEntity p = PlanoSessaoEntity.builder()
                 .cliente(cliente("Paciente"))
-                .nomePacote("Plano Teste")
+                .nomePlano("Plano Teste")
                 .sessoesContratadas(contratadas)
                 .sessoesConsumidas(consumidas)
                 .valorTotal(new BigDecimal("300.00"))
@@ -380,10 +381,10 @@ class PacoteSessaoServiceTest {
         return p;
     }
 
-    private PacoteSessaoForm formPacote(String nome, int sessoes, String valor,
+    private PlanoSessaoForm formPacote(String nome, int sessoes, String valor,
                                         LocalDate inicio, LocalDate validade) {
-        PacoteSessaoForm form = new PacoteSessaoForm();
-        form.setNomePacote(nome);
+        PlanoSessaoForm form = new PlanoSessaoForm();
+        form.setNomePlano(nome);
         form.setSessoesContratadas(sessoes);
         form.setValorTotal(new BigDecimal(valor));
         form.setDataInicio(inicio);
@@ -391,7 +392,7 @@ class PacoteSessaoServiceTest {
         return form;
     }
 
-    private LancamentoFinanceiroEntity lancamentoPendente(PacoteSessaoEntity pacote) {
+    private LancamentoFinanceiroEntity lancamentoPendente(PlanoSessaoEntity pacote) {
         LancamentoFinanceiroEntity l = LancamentoFinanceiroEntity.builder()
                 .status(StatusLancamentoFinanceiro.PENDENTE)
                 .descricao("Plano de tratamento")
@@ -399,7 +400,7 @@ class PacoteSessaoServiceTest {
                 .tipo(com.fisiogestao.financeiro.TipoLancamentoFinanceiro.RECEITA)
                 .valor(BigDecimal.TEN)
                 .dataCompetencia(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
-                .pacoteSessao(pacote)
+                .planoSessao(pacote)
                 .build();
         l.setId(UUID.randomUUID());
         return l;

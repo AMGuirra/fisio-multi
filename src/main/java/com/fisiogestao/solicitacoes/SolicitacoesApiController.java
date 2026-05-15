@@ -68,7 +68,7 @@ public class SolicitacoesApiController {
     ) {
         AprovacaoSolicitacaoForm form = new AprovacaoSolicitacaoForm();
         if (body != null) {
-            form.setPacoteSessaoId(body.pacoteSessaoId());
+            form.setPlanoSessaoId(body.planoSessaoId());
         }
         solicitacaoAgendamentoService.aprovarSolicitacao(id, form);
         return toDto(solicitacaoAgendamentoService.buscarPorId(id));
@@ -200,7 +200,7 @@ public class SolicitacoesApiController {
             java.time.OffsetDateTime updatedAt
     ) {}
 
-    public record AprovarRequest(UUID pacoteSessaoId) {}
+    public record AprovarRequest(UUID planoSessaoId) {}
 
     public record CadastrarPacienteRequest(
             String nomeCompleto,

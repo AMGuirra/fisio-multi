@@ -449,7 +449,7 @@
                                     <td th:text="${sessao.cliente.nomeCompleto}">Paciente</td>
                                     <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
                                     <td th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</td>
-                                    <td th:text="${sessao.pacoteSessao != null ? sessao.pacoteSessao.nomePacote : 'Sem plano vinculado'}">Plano</td>
+                                    <td th:text="${sessao.planoSessao != null ? sessao.planoSessao.nomePlano : 'Sem plano vinculado'}">Plano</td>
                                     <td>
                                         <span class="chip"
                                               th:classappend="${sessao.status.name() == 'REALIZADA' ? ' status-completed' : (sessao.status.name() == 'CANCELADA' ? ' status-danger' : ' status-warning')}"

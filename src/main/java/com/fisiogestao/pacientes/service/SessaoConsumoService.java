@@ -38,7 +38,7 @@ public class SessaoConsumoService {
     @Transactional(readOnly = true)
     public List<SessaoHistoricoDTO> historicoPorPaciente(UUID pacienteId) {
         return sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(pacienteId).stream()
-                .filter(sessao -> sessao.getTipoAgendamento() == TipoAgendamento.PACOTE)
+                .filter(sessao -> sessao.getTipoAgendamento() == TipoAgendamento.PLANO)
                 .limit(8)
                 .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA))
                 .toList();

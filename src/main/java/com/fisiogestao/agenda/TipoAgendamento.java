@@ -1,6 +1,6 @@
 package com.fisiogestao.agenda;
 
 public enum TipoAgendamento {
-    PACOTE,
+    PLANO,
     AVULSO
 }

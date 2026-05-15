@@ -12,11 +12,11 @@ import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
-import com.fisiogestao.pacientes.form.PacoteConsumoForm;
-import com.fisiogestao.pacientes.form.PacoteSessaoForm;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.form.PlanoConsumoForm;
+import com.fisiogestao.pacientes.form.PlanoSessaoForm;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,37 +31,37 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class PacoteSessaoService {
+public class PlanoSessaoService {
 
-    private final PacoteSessaoRepository pacoteSessaoRepository;
+    private final PlanoSessaoRepository planoSessaoRepository;
     private final PacienteService pacienteService;
     private final FinanceiroService financeiroService;
     private final SessaoRepository sessaoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
 
-    public List<PacoteSessaoEntity> listarPorCliente(UUID clienteId) {
-        return pacoteSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
+    public List<PlanoSessaoEntity> listarPorCliente(UUID clienteId) {
+        return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId);
     }
 
-    public List<PacoteSessaoEntity> listarDisponiveisParaAgenda() {
-        return pacoteSessaoRepository.findByStatusOrderByCreatedAtDesc(PacoteSessaoStatus.ATIVO).stream()
+    public List<PlanoSessaoEntity> listarDisponiveisParaAgenda() {
+        return planoSessaoRepository.findByStatusOrderByCreatedAtDesc(PlanoSessaoStatus.ATIVO).stream()
                 .filter(this::isDisponivel)
                 .toList();
     }
 
-    public List<PacoteSessaoEntity> listarDisponiveisParaAgenda(UUID clienteId) {
+    public List<PlanoSessaoEntity> listarDisponiveisParaAgenda(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
                 .filter(this::isDisponivel)
                 .sorted(comparadorDisponibilidade())
                 .toList();
     }
 
-    public Optional<PacoteSessaoEntity> buscarPorId(UUID id) {
-        return pacoteSessaoRepository.findById(id);
+    public Optional<PlanoSessaoEntity> buscarPorId(UUID id) {
+        return planoSessaoRepository.findById(id);
     }
 
-    public Optional<PacoteSessaoEntity> buscarPrimeiroDisponivel(UUID clienteId) {
+    public Optional<PlanoSessaoEntity> buscarPrimeiroDisponivel(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
                 .filter(this::isDisponivel)
                 .sorted(comparadorDisponibilidade())
@@ -69,24 +69,24 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public PacoteSessaoEntity criar(UUID clienteId, PacoteSessaoForm form) {
+    public PlanoSessaoEntity criar(UUID clienteId, PlanoSessaoForm form) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
 
-        PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
+        PlanoSessaoEntity plano = PlanoSessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(clienteId))
-                .nomePacote(form.getNomePacote().trim())
+                .nomePlano(form.getNomePlano().trim())
                 .sessoesContratadas(form.getSessoesContratadas())
                 .sessoesConsumidas(0)
                 .valorTotal(form.getValorTotal())
                 .dataInicio(form.getDataInicio())
                 .dataValidade(form.getDataValidade())
-                .status(PacoteSessaoStatus.ATIVO)
+                .status(PlanoSessaoStatus.ATIVO)
                 .build();
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
-        financeiroService.registrarReceitaPacote(salvo);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
+        financeiroService.registrarReceitaPlano(salvo);
         auditService.recordCreate(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo,
                 null,
                 "Plano de tratamento criado pelo fluxo vinculado ao paciente.",
@@ -96,12 +96,12 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public PacoteSessaoEntity criarViaCrud(PacoteConsumoForm form) {
+    public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
 
-        PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
+        PlanoSessaoEntity plano = PlanoSessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(form.getClienteId()))
-                .nomePacote(form.getNomePacote().trim())
+                .nomePlano(form.getNomePlano().trim())
                 .sessoesContratadas(form.getSessoesContratadas())
                 .sessoesConsumidas(0)
                 .valorTotal(form.getValorTotal())
@@ -109,11 +109,11 @@ public class PacoteSessaoService {
                 .dataValidade(form.getDataValidade())
                 .status(statusAjustado(form.getStatus(), 0, form.getSessoesContratadas(), form.getDataValidade()))
                 .build();
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
-        financeiroService.registrarReceitaPacote(salvo);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
+        financeiroService.registrarReceitaPlano(salvo);
         auditService.recordCreate(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo,
                 null,
                 "Plano de tratamento criado pelo CRUD de planos de tratamento.",
@@ -123,35 +123,35 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public PacoteSessaoEntity atualizarViaCrud(UUID pacoteId, PacoteConsumoForm form) {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+    public PlanoSessaoEntity atualizarViaCrud(UUID planoId, PlanoConsumoForm form) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        var snapshotAnterior = auditService.snapshotOf(pacote);
+        var snapshotAnterior = auditService.snapshotOf(plano);
 
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
-        validarConsumo(pacote.getSessoesConsumidas(), form.getSessoesContratadas());
-        if (form.getStatus() == PacoteSessaoStatus.CANCELADO) {
-            sessaoRepository.deletarFuturasPorPacoteEStatus(pacoteId, SessaoStatus.AGENDADA, OffsetDateTime.now());
+        validarConsumo(plano.getSessoesConsumidas(), form.getSessoesContratadas());
+        if (form.getStatus() == PlanoSessaoStatus.CANCELADO) {
+            sessaoRepository.deletarFuturasPorPlanoEStatus(planoId, SessaoStatus.AGENDADA, OffsetDateTime.now());
         }
 
-        pacote.setCliente(pacienteService.buscarPorId(form.getClienteId()));
-        pacote.setNomePacote(form.getNomePacote().trim());
-        pacote.setSessoesContratadas(form.getSessoesContratadas());
-        pacote.setValorTotal(form.getValorTotal());
-        pacote.setDataInicio(form.getDataInicio());
-        pacote.setDataValidade(form.getDataValidade());
-        pacote.setStatus(statusAjustado(
+        plano.setCliente(pacienteService.buscarPorId(form.getClienteId()));
+        plano.setNomePlano(form.getNomePlano().trim());
+        plano.setSessoesContratadas(form.getSessoesContratadas());
+        plano.setValorTotal(form.getValorTotal());
+        plano.setDataInicio(form.getDataInicio());
+        plano.setDataValidade(form.getDataValidade());
+        plano.setStatus(statusAjustado(
                 form.getStatus(),
-                pacote.getSessoesConsumidas(),
+                plano.getSessoesConsumidas(),
                 form.getSessoesContratadas(),
                 form.getDataValidade()
         ));
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
         auditService.recordManual(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo.getId().toString(),
-                salvo.getNomePacote(),
+                salvo.getNomePlano(),
                 AuditActionType.UPDATE,
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
@@ -163,27 +163,27 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public void cancelar(UUID pacoteId) {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+    public void cancelar(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        var snapshotAnterior = auditService.snapshotOf(pacote);
+        var snapshotAnterior = auditService.snapshotOf(plano);
 
-        int sessoesCanceladas = sessaoRepository.deletarFuturasPorPacoteEStatus(
-                pacoteId, SessaoStatus.AGENDADA, OffsetDateTime.now()
+        int sessoesCanceladas = sessaoRepository.deletarFuturasPorPlanoEStatus(
+                planoId, SessaoStatus.AGENDADA, OffsetDateTime.now()
         );
 
-        pacote.setStatus(PacoteSessaoStatus.CANCELADO);
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        plano.setStatus(PlanoSessaoStatus.CANCELADO);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
 
         String detalhes = sessoesCanceladas > 0
                 ? String.format("Cancelamento de plano de tratamento. %d sessão(ões) agendada(s) futura(s) removida(s) da agenda.", sessoesCanceladas)
                 : "Cancelamento de plano de tratamento.";
 
         auditService.recordManual(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo.getId().toString(),
-                salvo.getNomePacote(),
+                salvo.getNomePlano(),
                 AuditActionType.CANCEL,
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
@@ -194,19 +194,19 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public void excluir(UUID pacoteId) {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+    public void excluir(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        var snapshotAnterior = auditService.snapshotOf(pacote);
+        var snapshotAnterior = auditService.snapshotOf(plano);
 
-        desvincularSessoesDoPlano(pacote.getId());
-        limparLancamentosDoPlano(pacote.getId());
+        desvincularSessoesDoPlano(plano.getId());
+        limparLancamentosDoPlano(plano.getId());
 
         auditService.recordManual(
-                AuditModule.PACOTES,
-                "pacote_sessao",
-                pacote.getId().toString(),
-                pacote.getNomePacote(),
+                AuditModule.PLANOS,
+                "plano_sessao",
+                plano.getId().toString(),
+                plano.getNomePlano(),
                 AuditActionType.DELETE_PHYSICAL,
                 snapshotAnterior,
                 null,
@@ -214,20 +214,20 @@ public class PacoteSessaoService {
                 "Exclusão física de plano de tratamento.",
                 AuditEventOrigin.MANUAL
         );
-        pacoteSessaoRepository.delete(pacote);
+        planoSessaoRepository.delete(plano);
     }
 
-    private void desvincularSessoesDoPlano(UUID pacoteId) {
-        List<SessaoEntity> sessoesVinculadas = sessaoRepository.findByPacoteSessaoIdOrderByDataHoraInicioDesc(pacoteId);
+    private void desvincularSessoesDoPlano(UUID planoId) {
+        List<SessaoEntity> sessoesVinculadas = sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(planoId);
         if (sessoesVinculadas.isEmpty()) {
             return;
         }
 
         for (SessaoEntity sessao : sessoesVinculadas) {
             var snapshotAnterior = auditService.snapshotOf(sessao);
-            sessao.setPacoteSessao(null);
+            sessao.setPlanoSessao(null);
             sessao.setTipoAgendamento(TipoAgendamento.AVULSO);
-            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
             SessaoEntity salvo = sessaoRepository.save(sessao);
             auditService.recordManual(
                     AuditModule.AGENDA,
@@ -245,8 +245,8 @@ public class PacoteSessaoService {
         sessaoRepository.flush();
     }
 
-    private void limparLancamentosDoPlano(UUID pacoteId) {
-        List<LancamentoFinanceiroEntity> lancamentosVinculados = lancamentoFinanceiroRepository.findByPacoteSessaoId(pacoteId);
+    private void limparLancamentosDoPlano(UUID planoId) {
+        List<LancamentoFinanceiroEntity> lancamentosVinculados = lancamentoFinanceiroRepository.findByPlanoSessaoId(planoId);
         if (lancamentosVinculados.isEmpty()) {
             return;
         }
@@ -263,7 +263,7 @@ public class PacoteSessaoService {
                 .toList();
         for (LancamentoFinanceiroEntity lancamento : lancamentosPagos) {
             var snapshotAnterior = auditService.snapshotOf(lancamento);
-            lancamento.setPacoteSessao(null);
+            lancamento.setPlanoSessao(null);
             LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
             auditService.recordManual(
                     AuditModule.FINANCEIRO,
@@ -282,22 +282,22 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public void reservarSessao(UUID pacoteId) {
-        PacoteSessaoEntity pacote = validarDisponivel(pacoteId);
-        var snapshotAnterior = auditService.snapshotOf(pacote);
-        pacote.setSessoesConsumidas(pacote.getSessoesConsumidas() + 1);
-        pacote.setStatus(statusAjustado(
-                pacote.getStatus(),
-                pacote.getSessoesConsumidas(),
-                pacote.getSessoesContratadas(),
-                pacote.getDataValidade()
+    public void reservarSessao(UUID planoId) {
+        PlanoSessaoEntity plano = validarDisponivel(planoId);
+        var snapshotAnterior = auditService.snapshotOf(plano);
+        plano.setSessoesConsumidas(plano.getSessoesConsumidas() + 1);
+        plano.setStatus(statusAjustado(
+                plano.getStatus(),
+                plano.getSessoesConsumidas(),
+                plano.getSessoesContratadas(),
+                plano.getDataValidade()
         ));
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
         auditService.recordManual(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo.getId().toString(),
-                salvo.getNomePacote(),
+                salvo.getNomePlano(),
                 AuditActionType.UPDATE,
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
@@ -308,26 +308,26 @@ public class PacoteSessaoService {
     }
 
     @Transactional
-    public void estornarSessao(UUID pacoteId) {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+    public void estornarSessao(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        if (pacote.getSessoesConsumidas() <= 0) {
+        if (plano.getSessoesConsumidas() <= 0) {
             return;
         }
-        var snapshotAnterior = auditService.snapshotOf(pacote);
-        pacote.setSessoesConsumidas(pacote.getSessoesConsumidas() - 1);
-        pacote.setStatus(statusAjustado(
-                PacoteSessaoStatus.ATIVO,
-                pacote.getSessoesConsumidas(),
-                pacote.getSessoesContratadas(),
-                pacote.getDataValidade()
+        var snapshotAnterior = auditService.snapshotOf(plano);
+        plano.setSessoesConsumidas(plano.getSessoesConsumidas() - 1);
+        plano.setStatus(statusAjustado(
+                PlanoSessaoStatus.ATIVO,
+                plano.getSessoesConsumidas(),
+                plano.getSessoesContratadas(),
+                plano.getDataValidade()
         ));
-        PacoteSessaoEntity salvo = pacoteSessaoRepository.save(pacote);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
         auditService.recordManual(
-                AuditModule.PACOTES,
-                "pacote_sessao",
+                AuditModule.PLANOS,
+                "plano_sessao",
                 salvo.getId().toString(),
-                salvo.getNomePacote(),
+                salvo.getNomePlano(),
                 AuditActionType.RESTORE,
                 snapshotAnterior,
                 auditService.snapshotOf(salvo),
@@ -337,46 +337,46 @@ public class PacoteSessaoService {
         );
     }
 
-    public PacoteSessaoEntity validarDisponivel(UUID pacoteId) {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findById(pacoteId)
+    public PlanoSessaoEntity validarDisponivel(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        if (!isDisponivel(pacote)) {
+        if (!isDisponivel(plano)) {
             throw new BusinessException("O plano de tratamento selecionado não possui sessões disponíveis.");
         }
-        return pacote;
+        return plano;
     }
 
-    public PacoteSessaoEntity resolverPacoteParaSessao(UUID clienteId, UUID pacoteId, UUID pacoteAtualId) {
-        if (pacoteId == null) {
+    public PlanoSessaoEntity resolverPlanoParaSessao(UUID clienteId, UUID planoId, UUID planoAtualId) {
+        if (planoId == null) {
             return buscarPrimeiroDisponivel(clienteId)
                     .orElseThrow(() -> new BusinessException(
                             "O paciente não possui plano de tratamento disponível. Cadastre ou renove um plano antes de confirmar a sessão."
                     ));
         }
 
-        PacoteSessaoEntity pacote = buscarPorId(pacoteId)
+        PlanoSessaoEntity plano = buscarPorId(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        if (!pacote.getCliente().getId().equals(clienteId)) {
+        if (!plano.getCliente().getId().equals(clienteId)) {
             throw new BusinessException("O plano de tratamento selecionado não pertence ao paciente informado.");
         }
-        if (pacoteAtualId != null && pacoteAtualId.equals(pacoteId)) {
-            return pacote;
+        if (planoAtualId != null && planoAtualId.equals(planoId)) {
+            return plano;
         }
-        return validarDisponivel(pacoteId);
+        return validarDisponivel(planoId);
     }
 
-    public int calcularSessoesDisponiveis(PacoteSessaoEntity pacote) {
-        return Math.max(0, pacote.getSessoesContratadas() - pacote.getSessoesConsumidas());
+    public int calcularSessoesDisponiveis(PlanoSessaoEntity plano) {
+        return Math.max(0, plano.getSessoesContratadas() - plano.getSessoesConsumidas());
     }
 
-    private boolean isDisponivel(PacoteSessaoEntity pacote) {
-        if (pacote.getStatus() != PacoteSessaoStatus.ATIVO) {
+    private boolean isDisponivel(PlanoSessaoEntity plano) {
+        if (plano.getStatus() != PlanoSessaoStatus.ATIVO) {
             return false;
         }
-        if (pacote.getDataValidade() != null && pacote.getDataValidade().isBefore(LocalDate.now())) {
+        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
             return false;
         }
-        return pacote.getSessoesConsumidas() < pacote.getSessoesContratadas();
+        return plano.getSessoesConsumidas() < plano.getSessoesContratadas();
     }
 
     private void validarPeriodo(LocalDate dataInicio, LocalDate dataValidade) {
@@ -391,29 +391,29 @@ public class PacoteSessaoService {
         }
     }
 
-    private Comparator<PacoteSessaoEntity> comparadorDisponibilidade() {
+    private Comparator<PlanoSessaoEntity> comparadorDisponibilidade() {
         return Comparator
-                .comparing((PacoteSessaoEntity pacote) -> pacote.getDataValidade() == null)
-                .thenComparing(PacoteSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(PacoteSessaoEntity::getDataInicio)
-                .thenComparing(PacoteSessaoEntity::getCreatedAt);
+                .comparing((PlanoSessaoEntity plano) -> plano.getDataValidade() == null)
+                .thenComparing(PlanoSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(PlanoSessaoEntity::getDataInicio)
+                .thenComparing(PlanoSessaoEntity::getCreatedAt);
     }
 
-    private PacoteSessaoStatus statusAjustado(
-            PacoteSessaoStatus statusSolicitado,
+    private PlanoSessaoStatus statusAjustado(
+            PlanoSessaoStatus statusSolicitado,
             Integer sessoesConsumidas,
             Integer sessoesContratadas,
             LocalDate dataValidade
     ) {
-        if (statusSolicitado == PacoteSessaoStatus.CANCELADO) {
-            return PacoteSessaoStatus.CANCELADO;
+        if (statusSolicitado == PlanoSessaoStatus.CANCELADO) {
+            return PlanoSessaoStatus.CANCELADO;
         }
         if (sessoesConsumidas >= sessoesContratadas) {
-            return PacoteSessaoStatus.CONCLUIDO;
+            return PlanoSessaoStatus.CONCLUIDO;
         }
         if (dataValidade != null && dataValidade.isBefore(LocalDate.now())) {
-            return PacoteSessaoStatus.EXPIRADO;
+            return PlanoSessaoStatus.EXPIRADO;
         }
-        return PacoteSessaoStatus.ATIVO;
+        return PlanoSessaoStatus.ATIVO;
     }
 }

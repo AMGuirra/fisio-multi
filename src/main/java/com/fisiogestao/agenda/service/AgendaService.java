@@ -19,10 +19,10 @@ import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.RecorrenciaRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.service.PacienteService;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class AgendaService {
     private final HorarioBloqueadoRepository horarioBloqueadoRepository;
     private final RecorrenciaRepository recorrenciaRepository;
     private final PacienteService pacienteService;
-    private final PacoteSessaoService pacoteSessaoService;
+    private final PlanoSessaoService planoSessaoService;
     private final FinanceiroService financeiroService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
     private final BloqueioAgendaService bloqueioAgendaService;
@@ -285,14 +285,14 @@ public class AgendaService {
         validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null, permitirRetroativo);
 
         TipoAgendamento tipoAgendamento = tipoAgendamento(form);
-        PacoteSessaoEntity pacote = resolverPacoteParaCriacao(form, tipoAgendamento);
-        if (tipoAgendamento == TipoAgendamento.PACOTE) {
-            pacoteSessaoService.reservarSessao(pacote.getId());
+        PlanoSessaoEntity plano = resolverPlanoParaCriacao(form, tipoAgendamento);
+        if (tipoAgendamento == TipoAgendamento.PLANO) {
+            planoSessaoService.reservarSessao(plano.getId());
         }
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(form.getClienteId()))
-                .pacoteSessao(pacote)
+                .planoSessao(plano)
                 .dataHoraInicio(intervalo.inicio())
                 .dataHoraFim(intervalo.fim())
                 .status(SessaoStatus.AGENDADA)
@@ -300,7 +300,7 @@ public class AgendaService {
                 .tipoAgendamento(tipoAgendamento)
                 .valorAvulso(tipoAgendamento == TipoAgendamento.AVULSO ? form.getValorAvulso() : null)
                 .observacoes(texto(form.getObservacoes()))
-                .pacoteConsumoRegistrado(tipoAgendamento == TipoAgendamento.PACOTE)
+                .planoConsumoRegistrado(tipoAgendamento == TipoAgendamento.PLANO)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordCreate(
@@ -318,7 +318,7 @@ public class AgendaService {
     @Transactional
     public List<SessaoEntity> agendarSessoesRecorrentes(AgendaManualForm form, String profissionalResponsavel) {
         TipoAgendamento tipoAgendamento = tipoAgendamento(form);
-        PacoteSessaoEntity pacote = resolverPacoteParaCriacao(form, tipoAgendamento);
+        PlanoSessaoEntity plano = resolverPlanoParaCriacao(form, tipoAgendamento);
         List<OffsetDateTime> inicios = gerarIniciosRecorrentes(form).stream()
                 .sorted()
                 .toList();
@@ -326,8 +326,8 @@ public class AgendaService {
             throw new BusinessException("A regra de recorrência não gerou nenhuma ocorrência.");
         }
 
-        if (tipoAgendamento == TipoAgendamento.PACOTE) {
-            int sessoesDisponiveis = pacoteSessaoService.calcularSessoesDisponiveis(pacote);
+        if (tipoAgendamento == TipoAgendamento.PLANO) {
+            int sessoesDisponiveis = planoSessaoService.calcularSessoesDisponiveis(plano);
             if (inicios.size() > sessoesDisponiveis) {
                 throw new BusinessException("A recorrencia gera " + inicios.size()
                         + " sessoes, mas o plano selecionado possui apenas "
@@ -351,13 +351,13 @@ public class AgendaService {
         ArrayList<SessaoEntity> salvas = new ArrayList<>();
         SessaoEntity pai = null;
         for (OffsetDateTime inicio : inicios) {
-            if (tipoAgendamento == TipoAgendamento.PACOTE) {
-                pacoteSessaoService.reservarSessao(pacote.getId());
+            if (tipoAgendamento == TipoAgendamento.PLANO) {
+                planoSessaoService.reservarSessao(plano.getId());
             }
 
             SessaoEntity sessao = SessaoEntity.builder()
                     .cliente(pacienteService.buscarPorId(form.getClienteId()))
-                    .pacoteSessao(pacote)
+                    .planoSessao(plano)
                     .dataHoraInicio(inicio)
                     .dataHoraFim(inicio.plusMinutes(duracaoDaSessao(form)))
                     .status(SessaoStatus.AGENDADA)
@@ -367,7 +367,7 @@ public class AgendaService {
                     .recorrencia(pai == null ? recorrencia : null)
                     .recorrenciaPai(pai)
                     .observacoes(texto(form.getObservacoes()))
-                    .pacoteConsumoRegistrado(tipoAgendamento == TipoAgendamento.PACOTE)
+                    .planoConsumoRegistrado(tipoAgendamento == TipoAgendamento.PLANO)
                     .build();
             SessaoEntity salva = sessaoRepository.save(sessao);
             if (pai == null) {
@@ -399,8 +399,8 @@ public class AgendaService {
 
         OffsetDateTime inicioAnterior = sessao.getDataHoraInicio();
         OffsetDateTime fimAnterior = sessao.getDataHoraFim();
-        UUID pacoteAnteriorId = sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null;
-        boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado());
+        UUID planoAnteriorId = sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getId() : null;
+        boolean consumoAnteriorRegistrado = Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado());
         IntervaloAgenda intervalo = montarIntervalo(form.getData(), form.getHorario());
         boolean permitirRetroativo = sessao.getStatus() == SessaoStatus.REALIZADA || !form.getData().isAfter(LocalDate.now());
         validarHorarioDisponivel(
@@ -412,11 +412,11 @@ public class AgendaService {
         );
 
         TipoAgendamento novoTipo = tipoAgendamento(form);
-        PacoteSessaoEntity novoPacote = resolverPacoteParaEdicao(form, novoTipo, pacoteAnteriorId);
-        sincronizarPacoteDaSessao(sessao, novoTipo, novoPacote, pacoteAnteriorId, consumoAnteriorRegistrado);
+        PlanoSessaoEntity novoPlano = resolverPlanoParaEdicao(form, novoTipo, planoAnteriorId);
+        sincronizarPlanoDaSessao(sessao, novoTipo, novoPlano, planoAnteriorId, consumoAnteriorRegistrado);
 
         sessao.setCliente(pacienteService.buscarPorId(form.getClienteId()));
-        sessao.setPacoteSessao(novoPacote);
+        sessao.setPlanoSessao(novoPlano);
         sessao.setDataHoraInicio(intervalo.inicio());
         sessao.setDataHoraFim(intervalo.fim());
         sessao.setTipoAtendimento(texto(form.getTipoAtendimento()));
@@ -456,9 +456,9 @@ public class AgendaService {
             return sessao;
         }
 
-        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
-            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
-            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
 
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
@@ -497,9 +497,9 @@ public class AgendaService {
             throw new BusinessException("Somente sessões pendentes podem ser registradas como falta faturada.");
         }
 
-        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
-            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
-            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
             financeiroService.registrarReceitaAvulso(sessao);
@@ -558,9 +558,9 @@ public class AgendaService {
             throw new BusinessException("Apenas sessões canceladas podem voltar para pendente.");
         }
 
-        if (sessao.getPacoteSessao() != null && !Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
-            pacoteSessaoService.reservarSessao(sessao.getPacoteSessao().getId());
-            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
 
         sessao.setStatus(SessaoStatus.AGENDADA);
@@ -621,9 +621,9 @@ public class AgendaService {
         if (sessao.getStatus() == SessaoStatus.CANCELADA) {
             return sessao;
         }
-        if (sessao.getPacoteSessao() != null && Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
-            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
-            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+        if (sessao.getPlanoSessao() != null && Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            planoSessaoService.estornarSessao(sessao.getPlanoSessao().getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
         }
         sessao.setStatus(SessaoStatus.CANCELADA);
         if (texto(observacoes) != null) {
@@ -653,9 +653,9 @@ public class AgendaService {
         SessaoEntity sessao = buscarSessao(sessaoId);
         var snapshotAnterior = auditService.snapshotOf(sessao);
 
-        if (sessao.getPacoteSessao() != null && Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())) {
-            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
-            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+        if (sessao.getPlanoSessao() != null && Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            planoSessaoService.estornarSessao(sessao.getPlanoSessao().getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
         }
 
         try {
@@ -701,34 +701,34 @@ public class AgendaService {
                 && fim.isAfter(configuracao.getHorarioInicioAlmoco());
     }
 
-    private void sincronizarPacoteDaSessao(
+    private void sincronizarPlanoDaSessao(
             SessaoEntity sessao,
             TipoAgendamento novoTipo,
-            PacoteSessaoEntity novoPacote,
-            UUID pacoteAnteriorId,
+            PlanoSessaoEntity novoPlano,
+            UUID planoAnteriorId,
             boolean consumoAnteriorRegistrado
     ) {
         if (novoTipo == TipoAgendamento.AVULSO) {
-            if (consumoAnteriorRegistrado && pacoteAnteriorId != null) {
-                pacoteSessaoService.estornarSessao(pacoteAnteriorId);
+            if (consumoAnteriorRegistrado && planoAnteriorId != null) {
+                planoSessaoService.estornarSessao(planoAnteriorId);
             }
-            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
             return;
         }
 
-        UUID novoPacoteId = novoPacote != null ? novoPacote.getId() : null;
-        boolean mudouPacote = pacoteAnteriorId == null
-                ? novoPacoteId != null
-                : !pacoteAnteriorId.equals(novoPacoteId);
+        UUID novoPlanoId = novoPlano != null ? novoPlano.getId() : null;
+        boolean mudouPlano = planoAnteriorId == null
+                ? novoPlanoId != null
+                : !planoAnteriorId.equals(novoPlanoId);
 
-        if (consumoAnteriorRegistrado && pacoteAnteriorId != null && mudouPacote) {
-            pacoteSessaoService.estornarSessao(pacoteAnteriorId);
-            sessao.setPacoteConsumoRegistrado(Boolean.FALSE);
+        if (consumoAnteriorRegistrado && planoAnteriorId != null && mudouPlano) {
+            planoSessaoService.estornarSessao(planoAnteriorId);
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
         }
 
-        if (novoPacoteId != null && (!consumoAnteriorRegistrado || mudouPacote)) {
-            pacoteSessaoService.reservarSessao(novoPacoteId);
-            sessao.setPacoteConsumoRegistrado(Boolean.TRUE);
+        if (novoPlanoId != null && (!consumoAnteriorRegistrado || mudouPlano)) {
+            planoSessaoService.reservarSessao(novoPlanoId);
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
     }
 
@@ -737,30 +737,30 @@ public class AgendaService {
     }
 
     private TipoAgendamento tipoAgendamento(AgendaManualForm form) {
-        return form.getTipoAgendamento() == null ? TipoAgendamento.PACOTE : form.getTipoAgendamento();
+        return form.getTipoAgendamento() == null ? TipoAgendamento.PLANO : form.getTipoAgendamento();
     }
 
-    private PacoteSessaoEntity resolverPacoteParaCriacao(AgendaManualForm form, TipoAgendamento tipoAgendamento) {
+    private PlanoSessaoEntity resolverPlanoParaCriacao(AgendaManualForm form, TipoAgendamento tipoAgendamento) {
         validarVinculoAgendamento(form, tipoAgendamento);
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
-        return pacoteSessaoService.resolverPacoteParaSessao(form.getClienteId(), form.getPacoteSessaoId(), null);
+        return planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), null);
     }
 
-    private PacoteSessaoEntity resolverPacoteParaEdicao(AgendaManualForm form, TipoAgendamento tipoAgendamento, UUID pacoteAtualId) {
+    private PlanoSessaoEntity resolverPlanoParaEdicao(AgendaManualForm form, TipoAgendamento tipoAgendamento, UUID planoAtualId) {
         validarVinculoAgendamento(form, tipoAgendamento);
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
-        return pacoteSessaoService.resolverPacoteParaSessao(form.getClienteId(), form.getPacoteSessaoId(), pacoteAtualId);
+        return planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), planoAtualId);
     }
 
     private void validarVinculoAgendamento(AgendaManualForm form, TipoAgendamento tipoAgendamento) {
-        if (tipoAgendamento == TipoAgendamento.PACOTE) {
+        if (tipoAgendamento == TipoAgendamento.PLANO) {
             return;
         }
-        if (form.getPacoteSessaoId() != null) {
+        if (form.getPlanoSessaoId() != null) {
             throw new BusinessException("Consulta avulsa não deve possuir plano de tratamento vinculado.");
         }
         if (form.getValorAvulso() != null && form.getValorAvulso().signum() < 0) {

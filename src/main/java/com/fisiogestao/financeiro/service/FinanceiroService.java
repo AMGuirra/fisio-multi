@@ -11,7 +11,7 @@ import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -199,16 +199,16 @@ public class FinanceiroService {
     }
 
     @Transactional
-    public void registrarReceitaPacote(PacoteSessaoEntity pacote) {
+    public void registrarReceitaPlano(PlanoSessaoEntity plano) {
         LancamentoFinanceiroEntity receita = LancamentoFinanceiroEntity.builder()
                 .tipo(TipoLancamentoFinanceiro.RECEITA)
                 .status(StatusLancamentoFinanceiro.PENDENTE)
-                .descricao("Plano de tratamento: " + pacote.getNomePacote())
+                .descricao("Plano de tratamento: " + plano.getNomePlano())
                 .categoria("Planos de tratamento")
-                .valor(pacote.getValorTotal())
-                .dataCompetencia(paraInicioDoDia(pacote.getDataInicio()))
-                .cliente(pacote.getCliente())
-                .pacoteSessao(pacote)
+                .valor(plano.getValorTotal())
+                .dataCompetencia(paraInicioDoDia(plano.getDataInicio()))
+                .cliente(plano.getCliente())
+                .planoSessao(plano)
                 .build();
         LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(receita);
         auditService.recordCreate(

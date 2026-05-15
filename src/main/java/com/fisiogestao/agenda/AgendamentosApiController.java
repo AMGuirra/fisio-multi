@@ -37,8 +37,8 @@ public class AgendamentosApiController {
             summary = "Criar agendamento avulso",
             description = """
                     Cria uma sessão única na agenda para o paciente indicado.
-                    O campo `tipo` deve ser `AVULSO` ou `PACOTE`.
-                    Quando `tipo = PACOTE`, o campo `pacoteId` é obrigatório.
+                    O campo `tipo` deve ser `AVULSO` ou `PLANO`.
+                    Quando `tipo = PLANO`, o campo `planoId` é obrigatório.
                     """,
             responses = {
                     @ApiResponse(responseCode = "200", description = "Agendamento criado com sucesso",
@@ -98,7 +98,7 @@ public class AgendamentosApiController {
         AgendaManualForm form = new AgendaManualForm();
         form.setClienteId(request.getPacienteId());
         form.setTipoAgendamento(request.getTipo());
-        form.setPacoteSessaoId(request.getPacoteId());
+        form.setPlanoSessaoId(request.getPlanoId());
         form.setValorAvulso(request.getValorAvulso());
         form.setData(inicio.toLocalDate());
         form.setHorario(inicio.toLocalTime());

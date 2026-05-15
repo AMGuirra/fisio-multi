@@ -13,10 +13,10 @@ import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.service.PacienteService;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +62,7 @@ class AgendaServiceTest {
     private PacienteService pacienteService;
 
     @Mock
-    private PacoteSessaoService pacoteSessaoService;
+    private PlanoSessaoService planoSessaoService;
 
     @Mock
     private AgendamentoEmailNotificationService agendamentoEmailNotificationService;
@@ -80,9 +80,9 @@ class AgendaServiceTest {
     private AgendaService agendaService;
 
     @Test
-    void devePermitirCancelarSessaoRealizadaEstornandoPacote() {
-        PacoteSessaoEntity pacote = criarPacote();
-        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, pacote, true, OffsetDateTime.now().minusDays(1));
+    void devePermitirCancelarSessaoRealizadaEstornandoPlano() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, plano, true, OffsetDateTime.now().minusDays(1));
 
         when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
         when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -91,14 +91,14 @@ class AgendaServiceTest {
         agendaService.cancelarSessao(sessao.getId(), "Cancelamento administrativo");
 
         assertEquals(SessaoStatus.CANCELADA, sessao.getStatus());
-        assertEquals(Boolean.FALSE, sessao.getPacoteConsumoRegistrado());
-        verify(pacoteSessaoService).estornarSessao(pacote.getId());
+        assertEquals(Boolean.FALSE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService).estornarSessao(plano.getId());
     }
 
     @Test
-    void devePermitirMarcarSessaoCanceladaComoRealizadaReservandoPacote() {
-        PacoteSessaoEntity pacote = criarPacote();
-        SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, pacote, false, OffsetDateTime.now().minusDays(1));
+    void devePermitirMarcarSessaoCanceladaComoRealizadaReservandoPlano() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, plano, false, OffsetDateTime.now().minusDays(1));
 
         when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
         when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -107,14 +107,14 @@ class AgendaServiceTest {
         agendaService.marcarComoRealizada(sessao.getId(), "Atendimento confirmado");
 
         assertEquals(SessaoStatus.REALIZADA, sessao.getStatus());
-        assertEquals(Boolean.TRUE, sessao.getPacoteConsumoRegistrado());
-        verify(pacoteSessaoService).reservarSessao(pacote.getId());
+        assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService).reservarSessao(plano.getId());
     }
 
     @Test
-    void devePermitirReabrirSessaoCanceladaComoPendenteReservandoPacote() {
-        PacoteSessaoEntity pacote = criarPacote();
-        SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, pacote, false, OffsetDateTime.now().minusDays(1));
+    void devePermitirReabrirSessaoCanceladaComoPendenteReservandoPlano() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, plano, false, OffsetDateTime.now().minusDays(1));
 
         when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
         when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -124,14 +124,14 @@ class AgendaServiceTest {
         agendaService.reabrirSessaoCancelada(sessao.getId());
 
         assertEquals(SessaoStatus.AGENDADA, sessao.getStatus());
-        assertEquals(Boolean.TRUE, sessao.getPacoteConsumoRegistrado());
-        verify(pacoteSessaoService).reservarSessao(pacote.getId());
+        assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService).reservarSessao(plano.getId());
     }
 
     @Test
-    void deveExcluirSessaoEstornandoPacoteQuandoNecessario() {
-        PacoteSessaoEntity pacote = criarPacote();
-        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, pacote, true, OffsetDateTime.now().minusDays(1));
+    void deveExcluirSessaoEstornandoPlanoQuandoNecessario() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, plano, true, OffsetDateTime.now().minusDays(1));
 
         when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
@@ -141,7 +141,7 @@ class AgendaServiceTest {
 
         agendaService.excluirSessao(sessao.getId());
 
-        verify(pacoteSessaoService).estornarSessao(pacote.getId());
+        verify(planoSessaoService).estornarSessao(plano.getId());
         verify(sessaoRepository).delete(sessao);
         verify(sessaoRepository).flush();
     }
@@ -149,16 +149,16 @@ class AgendaServiceTest {
     @Test
     void devePermitirEditarSessaoRealizadaMesmoEmHorarioPassado() {
         ClienteEntity cliente = criarCliente();
-        PacoteSessaoEntity pacote = criarPacote();
+        PlanoSessaoEntity plano = criarPlano();
         OffsetDateTime inicioPassado = LocalDate.now()
                 .minusDays(2)
                 .atTime(9, 0)
                 .atZone(ZoneId.of("America/Campo_Grande"))
                 .toOffsetDateTime();
-        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, pacote, true, inicioPassado);
+        SessaoEntity sessao = criarSessao(SessaoStatus.REALIZADA, plano, true, inicioPassado);
         AgendaManualForm form = new AgendaManualForm();
         form.setClienteId(cliente.getId());
-        form.setPacoteSessaoId(pacote.getId());
+        form.setPlanoSessaoId(plano.getId());
         form.setData(inicioPassado.toLocalDate());
         form.setHorario(inicioPassado.toLocalTime());
         form.setTipoAtendimento("Pilates Solo");
@@ -172,7 +172,7 @@ class AgendaServiceTest {
                 .thenReturn(List.<HorarioBloqueadoEntity>of());
         when(bloqueioAgendaService.existeBloqueioAtivo(any(), any(), any())).thenReturn(false);
         when(pacienteService.buscarPorId(cliente.getId())).thenReturn(cliente);
-        when(pacoteSessaoService.resolverPacoteParaSessao(cliente.getId(), pacote.getId(), pacote.getId())).thenReturn(pacote);
+        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), plano.getId())).thenReturn(plano);
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
         when(auditService.describeOf(any())).thenReturn("Sessão Teste");
 
@@ -184,7 +184,7 @@ class AgendaServiceTest {
     }
 
     @Test
-    void deveCriarAgendamentoAvulsoSemReservarPacote() {
+    void deveCriarAgendamentoAvulsoSemReservarPlano() {
         ClienteEntity cliente = criarCliente();
         AgendaManualForm form = new AgendaManualForm();
         form.setClienteId(cliente.getId());
@@ -206,9 +206,9 @@ class AgendaServiceTest {
 
         assertEquals(TipoAgendamento.AVULSO, sessao.getTipoAgendamento());
         assertEquals(new BigDecimal("180.00"), sessao.getValorAvulso());
-        assertEquals(null, sessao.getPacoteSessao());
-        assertEquals(Boolean.FALSE, sessao.getPacoteConsumoRegistrado());
-        verify(pacoteSessaoService, never()).reservarSessao(any());
+        assertEquals(null, sessao.getPlanoSessao());
+        assertEquals(Boolean.FALSE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService, never()).reservarSessao(any());
     }
 
     @Test
@@ -218,7 +218,7 @@ class AgendaServiceTest {
                 .atTime(10, 0)
                 .atZone(ZoneId.of("America/Campo_Grande"))
                 .toOffsetDateTime();
-        SessaoEntity conflito = criarSessao(SessaoStatus.AGENDADA, criarPacote(), true, inicio);
+        SessaoEntity conflito = criarSessao(SessaoStatus.AGENDADA, criarPlano(), true, inicio);
         AgendaManualForm form = criarFormAvulso(cliente, inicio.toLocalDate(), inicio.toLocalTime());
 
         when(configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()).thenReturn(Optional.of(criarConfiguracao()));
@@ -275,31 +275,31 @@ class AgendaServiceTest {
         return cliente;
     }
 
-    private PacoteSessaoEntity criarPacote() {
-        PacoteSessaoEntity pacote = PacoteSessaoEntity.builder()
+    private PlanoSessaoEntity criarPlano() {
+        PlanoSessaoEntity plano = PlanoSessaoEntity.builder()
                 .cliente(criarCliente())
-                .nomePacote("Plano Teste")
+                .nomePlano("Plano Teste")
                 .sessoesContratadas(10)
                 .sessoesConsumidas(1)
                 .valorTotal(new BigDecimal("1200.00"))
                 .dataInicio(LocalDate.now().minusDays(10))
                 .dataValidade(LocalDate.now().plusDays(20))
-                .status(PacoteSessaoStatus.ATIVO)
+                .status(PlanoSessaoStatus.ATIVO)
                 .build();
-        pacote.setId(UUID.randomUUID());
-        return pacote;
+        plano.setId(UUID.randomUUID());
+        return plano;
     }
 
-    private SessaoEntity criarSessao(SessaoStatus status, PacoteSessaoEntity pacote, boolean consumoRegistrado, OffsetDateTime inicio) {
+    private SessaoEntity criarSessao(SessaoStatus status, PlanoSessaoEntity plano, boolean consumoRegistrado, OffsetDateTime inicio) {
         SessaoEntity sessao = SessaoEntity.builder()
-                .cliente(pacote.getCliente())
-                .pacoteSessao(pacote)
+                .cliente(plano.getCliente())
+                .planoSessao(plano)
                 .dataHoraInicio(inicio)
                 .dataHoraFim(inicio.plusMinutes(50))
                 .status(status)
                 .tipoAtendimento("Pilates")
                 .observacoes("Sessão teste")
-                .pacoteConsumoRegistrado(consumoRegistrado)
+                .planoConsumoRegistrado(consumoRegistrado)
                 .build();
         sessao.setId(UUID.randomUUID());
         return sessao;

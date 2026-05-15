@@ -7,7 +7,7 @@ import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.email.EmailConfiguracaoEntity;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.prontuario.ProntuarioAnexoEntity;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
@@ -43,8 +43,8 @@ public class AuditSnapshotFactory {
         if (source instanceof InMemoryUserCatalog.SystemUserView usuarioView) {
             return snapshotUsuarioView(usuarioView);
         }
-        if (source instanceof PacoteSessaoEntity pacote) {
-            return snapshotPacote(pacote);
+        if (source instanceof PlanoSessaoEntity plano) {
+            return snapshotPlano(plano);
         }
         if (source instanceof LancamentoFinanceiroEntity lancamento) {
             return snapshotLancamento(lancamento);
@@ -84,8 +84,8 @@ public class AuditSnapshotFactory {
         if (source instanceof InMemoryUserCatalog.SystemUserView usuarioView) {
             return usuarioView.nome();
         }
-        if (source instanceof PacoteSessaoEntity pacote) {
-            return pacote.getNomePacote();
+        if (source instanceof PlanoSessaoEntity plano) {
+            return plano.getNomePlano();
         }
         if (source instanceof LancamentoFinanceiroEntity lancamento) {
             return lancamento.getDescricao();
@@ -119,14 +119,14 @@ public class AuditSnapshotFactory {
         map.put("id", sessao.getId());
         map.put("clienteId", sessao.getCliente() != null ? sessao.getCliente().getId() : null);
         map.put("clienteNome", sessao.getCliente() != null ? sessao.getCliente().getNomeCompleto() : null);
-        map.put("pacoteId", sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null);
-        map.put("pacoteNome", sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getNomePacote() : null);
+        map.put("planoId", sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getId() : null);
+        map.put("planoNome", sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getNomePlano() : null);
         map.put("dataHoraInicio", sessao.getDataHoraInicio());
         map.put("dataHoraFim", sessao.getDataHoraFim());
         map.put("status", sessao.getStatus());
         map.put("tipoAtendimento", sessao.getTipoAtendimento());
         map.put("observacoes", sessao.getObservacoes());
-        map.put("pacoteConsumoRegistrado", sessao.getPacoteConsumoRegistrado());
+        map.put("planoConsumoRegistrado", sessao.getPlanoConsumoRegistrado());
         return map;
     }
 
@@ -167,18 +167,18 @@ public class AuditSnapshotFactory {
         return map;
     }
 
-    private Map<String, Object> snapshotPacote(PacoteSessaoEntity pacote) {
+    private Map<String, Object> snapshotPlano(PlanoSessaoEntity plano) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("id", pacote.getId());
-        map.put("clienteId", pacote.getCliente() != null ? pacote.getCliente().getId() : null);
-        map.put("clienteNome", pacote.getCliente() != null ? pacote.getCliente().getNomeCompleto() : null);
-        map.put("nomePacote", pacote.getNomePacote());
-        map.put("sessoesContratadas", pacote.getSessoesContratadas());
-        map.put("sessoesConsumidas", pacote.getSessoesConsumidas());
-        map.put("valorTotal", pacote.getValorTotal());
-        map.put("dataInicio", pacote.getDataInicio());
-        map.put("dataValidade", pacote.getDataValidade());
-        map.put("status", pacote.getStatus());
+        map.put("id", plano.getId());
+        map.put("clienteId", plano.getCliente() != null ? plano.getCliente().getId() : null);
+        map.put("clienteNome", plano.getCliente() != null ? plano.getCliente().getNomeCompleto() : null);
+        map.put("nomePlano", plano.getNomePlano());
+        map.put("sessoesContratadas", plano.getSessoesContratadas());
+        map.put("sessoesConsumidas", plano.getSessoesConsumidas());
+        map.put("valorTotal", plano.getValorTotal());
+        map.put("dataInicio", plano.getDataInicio());
+        map.put("dataValidade", plano.getDataValidade());
+        map.put("status", plano.getStatus());
         return map;
     }
 
@@ -194,8 +194,8 @@ public class AuditSnapshotFactory {
         map.put("dataPagamento", lancamento.getDataPagamento());
         map.put("clienteId", lancamento.getCliente() != null ? lancamento.getCliente().getId() : null);
         map.put("clienteNome", lancamento.getCliente() != null ? lancamento.getCliente().getNomeCompleto() : null);
-        map.put("pacoteId", lancamento.getPacoteSessao() != null ? lancamento.getPacoteSessao().getId() : null);
-        map.put("pacoteNome", lancamento.getPacoteSessao() != null ? lancamento.getPacoteSessao().getNomePacote() : null);
+        map.put("planoId", lancamento.getPlanoSessao() != null ? lancamento.getPlanoSessao().getId() : null);
+        map.put("planoNome", lancamento.getPlanoSessao() != null ? lancamento.getPlanoSessao().getNomePlano() : null);
         return map;
     }
 

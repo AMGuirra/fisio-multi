@@ -441,8 +441,8 @@
                             <form id="formStep2" class="modern-form" novalidate>
                                 <div class="form-field">
                                     <label for="s2NomePlano">Nome do plano <span class="required-mark">*</span></label>
-                                    <input id="s2NomePlano" name="nomePacote" type="text" class="form-control" maxlength="120"
-                                           placeholder="Ex: Plano Mensal, Pacote 10 sessões…">
+                                    <input id="s2NomePlano" name="nomePlano" type="text" class="form-control" maxlength="120"
+                                           placeholder="Ex: Plano Mensal, Plano 10 sessões…">
                                 </div>
                                 <div class="form-field">
                                     <label for="s2Sessoes">Sessões contratadas <span class="required-mark">*</span></label>
@@ -941,7 +941,7 @@
             const valor    = valorRaw ? parseFloat(valorRaw) : 0;
 
             const body = {
-                nomePacote:          nomePlano,
+                nomePlano:           nomePlano,
                 sessoesContratadas:  sessoes,
                 valorTotal:          valor,
                 dataInicio:          s2DataIni.value || null,
@@ -986,11 +986,11 @@
                 const pl = fluxo.plano.planos.find(p => p.id === state.planoId)
                         || fluxo.plano.planos[0];
                 if (!state.planoId) state.planoId = pl.id;
-                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+                csPl.textContent = `${pl.nomePlano} (${pl.sessoesDisponiveis} sessões disponíveis)`;
             } else if (fluxo.plano.planos.length > 0) {
                 const pl = fluxo.plano.planos[0];
                 state.planoId = pl.id;
-                csPl.textContent = `${pl.nomePacote} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+                csPl.textContent = `${pl.nomePlano} (${pl.sessoesDisponiveis} sessões disponíveis)`;
             } else {
                 csPl.textContent = '—';
             }
@@ -1023,7 +1023,7 @@
             btnLoading(s3ConfirmBtn, true);
             try {
                 await postJson(`/api/solicitacoes/${state.solicitacaoId}/aprovar`, {
-                    pacoteSessaoId: state.planoId || null
+                    planoSessaoId: state.planoId || null
                 });
                 closeModal();
                 window.location.href = '/solicitacoes?sucesso=1';
@@ -1273,7 +1273,7 @@
                     }
 
                     await postJson(`/api/solicitacoes/${id}/aprovar`, {
-                        pacoteSessaoId: fluxo?.plano?.planos?.[0]?.id ?? null
+                        planoSessaoId: fluxo?.plano?.planos?.[0]?.id ?? null
                     });
                     aprovadas++;
                 } catch (err) {

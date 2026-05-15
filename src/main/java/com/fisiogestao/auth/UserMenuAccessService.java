@@ -221,7 +221,7 @@ public class UserMenuAccessService {
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.PACOTES_SESSOES,
+                    AppMenuItem.PLANOS_SESSOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.AGENDAMENTO_ONLINE
             );

@@ -9,7 +9,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
@@ -36,7 +36,7 @@ public class PacienteService {
 
     private final ClienteRepository clienteRepository;
     private final JdbcTemplate jdbcTemplate;
-    private final PacoteSessaoRepository pacoteSessaoRepository;
+    private final PlanoSessaoRepository planoSessaoRepository;
     private final SessaoRepository sessaoRepository;
     private final ProntuarioSoapRepository prontuarioSoapRepository;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
@@ -308,7 +308,7 @@ public class PacienteService {
         ClienteEntity cliente = buscarPorId(clienteId);
         var snapshotAnterior = auditService.snapshotOf(cliente);
 
-        if (pacoteSessaoRepository.existsByClienteId(clienteId)) {
+        if (planoSessaoRepository.existsByClienteId(clienteId)) {
             throw new BusinessException("Exclua primeiro os planos de tratamento vinculados a este paciente.");
         }
         if (sessaoRepository.existsByClienteId(clienteId)) {

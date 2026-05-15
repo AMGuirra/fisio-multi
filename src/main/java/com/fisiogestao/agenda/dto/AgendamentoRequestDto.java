@@ -17,9 +17,9 @@ public class AgendamentoRequestDto {
     @NotNull
     private UUID pacienteId;
 
-    private TipoAgendamento tipo = TipoAgendamento.PACOTE;
+    private TipoAgendamento tipo = TipoAgendamento.PLANO;
 
-    private UUID pacoteId;
+    private UUID planoId;
 
     private BigDecimal valorAvulso;
 
@@ -36,8 +36,8 @@ public class AgendamentoRequestDto {
         return false;
     }
 
-    @AssertTrue(message = "Quando tipo = PACOTE, informe o pacoteId do plano de tratamento.")
-    public boolean isPacoteObrigatorioQuandoUsarPlano() {
-        return tipo != TipoAgendamento.PACOTE || pacoteId != null;
+    @AssertTrue(message = "Quando tipo = PLANO, informe o planoId do plano de tratamento.")
+    public boolean isPlanoObrigatorioQuandoUsarPlano() {
+        return tipo != TipoAgendamento.PLANO || planoId != null;
     }
 }

@@ -9,7 +9,7 @@ import java.util.UUID;
 @Setter
 public class AprovacaoSolicitacaoForm {
 
-    private UUID pacoteSessaoId;
+    private UUID planoSessaoId;
 
     private String nomeCompleto;
 

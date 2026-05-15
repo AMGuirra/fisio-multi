@@ -8,8 +8,8 @@ import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.shared.web.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -215,18 +215,18 @@ class FinanceiroServiceTest {
     }
 
     // -----------------------------------------------------------------------
-    // registrarReceitaPacote
+    // registrarReceitaPlano
     // -----------------------------------------------------------------------
 
     @Test
-    void deveRegistrarReceitaAoVenderPacote() {
+    void deveRegistrarReceitaAoVenderPlano() {
         ClienteEntity cliente = cliente("João");
-        PacoteSessaoEntity pacote = pacote(cliente, "Plano Mensal", "500.00", LocalDate.now());
+        PlanoSessaoEntity plano = plano(cliente, "Plano Mensal", "500.00", LocalDate.now());
 
         ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
         when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-        financeiroService.registrarReceitaPacote(pacote);
+        financeiroService.registrarReceitaPlano(plano);
 
         LancamentoFinanceiroEntity salvo = captor.getValue();
         assertEquals(TipoLancamentoFinanceiro.RECEITA, salvo.getTipo());
@@ -234,17 +234,17 @@ class FinanceiroServiceTest {
         assertEquals(new BigDecimal("500.00"), salvo.getValor());
         assertEquals("Planos de tratamento", salvo.getCategoria());
         assertEquals(cliente, salvo.getCliente());
-        assertEquals(pacote, salvo.getPacoteSessao());
+        assertEquals(plano, salvo.getPlanoSessao());
     }
 
     @Test
-    void descricaoDaReceitaDePacoteDeveConterNomeDoPlano() {
-        PacoteSessaoEntity pacote = pacote(cliente("Ana"), "Fisio Intensivo", "800.00", LocalDate.now());
+    void descricaoDaReceitaDePlanoDeveConterNomeDoPlano() {
+        PlanoSessaoEntity plano = plano(cliente("Ana"), "Fisio Intensivo", "800.00", LocalDate.now());
 
         ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
         when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-        financeiroService.registrarReceitaPacote(pacote);
+        financeiroService.registrarReceitaPlano(plano);
 
         assertEquals("Plano de tratamento: Fisio Intensivo", captor.getValue().getDescricao());
     }
@@ -488,15 +488,15 @@ class FinanceiroServiceTest {
         return c;
     }
 
-    private PacoteSessaoEntity pacote(ClienteEntity cliente, String nome, String valor, LocalDate dataInicio) {
-        PacoteSessaoEntity p = PacoteSessaoEntity.builder()
+    private PlanoSessaoEntity plano(ClienteEntity cliente, String nome, String valor, LocalDate dataInicio) {
+        PlanoSessaoEntity p = PlanoSessaoEntity.builder()
                 .cliente(cliente)
-                .nomePacote(nome)
+                .nomePlano(nome)
                 .sessoesContratadas(10)
                 .sessoesConsumidas(0)
                 .valorTotal(new BigDecimal(valor))
                 .dataInicio(dataInicio)
-                .status(PacoteSessaoStatus.ATIVO)
+                .status(PlanoSessaoStatus.ATIVO)
                 .build();
         p.setId(UUID.randomUUID());
         return p;

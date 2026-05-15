@@ -1,7 +1,7 @@
 package com.fisiogestao.agenda;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.shared.persistence.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,8 +36,8 @@ public class SessaoEntity extends BaseEntity {
     private ClienteEntity cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pacote_sessao_id")
-    private PacoteSessaoEntity pacoteSessao;
+    @JoinColumn(name = "plano_sessao_id")
+    private PlanoSessaoEntity planoSessao;
 
     @Column(name = "data_hora_inicio", nullable = false)
     private OffsetDateTime dataHoraInicio;
@@ -56,7 +56,7 @@ public class SessaoEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_agendamento", nullable = false, length = 20)
     @Builder.Default
-    private TipoAgendamento tipoAgendamento = TipoAgendamento.PACOTE;
+    private TipoAgendamento tipoAgendamento = TipoAgendamento.PLANO;
 
     @Column(name = "valor_avulso", precision = 10, scale = 2)
     private BigDecimal valorAvulso;
@@ -72,9 +72,9 @@ public class SessaoEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 
-    @Column(name = "pacote_consumo_registrado", nullable = false)
+    @Column(name = "plano_consumo_registrado", nullable = false)
     @Builder.Default
-    private Boolean pacoteConsumoRegistrado = Boolean.FALSE;
+    private Boolean planoConsumoRegistrado = Boolean.FALSE;
 
     /** True quando o paciente confirmou presença via portal de autoatendimento (V21). */
     @Column(name = "confirmado_pelo_paciente", nullable = false)

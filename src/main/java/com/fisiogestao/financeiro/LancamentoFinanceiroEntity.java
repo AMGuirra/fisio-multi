@@ -1,7 +1,7 @@
 package com.fisiogestao.financeiro;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.shared.persistence.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,6 +60,6 @@ public class LancamentoFinanceiroEntity extends BaseEntity {
     private ClienteEntity cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pacote_sessao_id")
-    private PacoteSessaoEntity pacoteSessao;
+    @JoinColumn(name = "plano_sessao_id")
+    private PlanoSessaoEntity planoSessao;
 }

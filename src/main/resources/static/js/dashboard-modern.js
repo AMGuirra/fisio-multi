@@ -259,7 +259,7 @@
                 const data = await response.json();
                 const ocupacao = data.ocupacaoMensal || [];
                 const receitas = data.receitaMensal || [];
-                const retencao = data.retencaoPacotes || {};
+                const retencao = data.retencaoPlanos || {};
                 const frequencia = data.rankingFrequencia || [];
 
                 const ocupacaoMedia = ocupacao.length
@@ -273,7 +273,7 @@
                 setText('taxaRenovacao', `${Number(retencao.taxaRenovacao || 0).toFixed(1)}%`);
                 setText(
                     'retencaoBase',
-                    `${retencao.pacientesComPacote || 0} de ${retencao.totalPacientesAtivos || 0} pacientes ativos com plano`
+                    `${retencao.pacientesComPlano || 0} de ${retencao.totalPacientesAtivos || 0} pacientes ativos com plano`
                 );
 
                 renderBars(ocupacaoChart, ocupacao, {
@@ -286,7 +286,7 @@
                 renderBars(receitaChart, receitas, {
                     value: (item) => Number(item.totalReceita || 0),
                     display: (item) => formatCurrency(item.totalReceita),
-                    title: (item) => `Pacotes ${formatCurrency(item.receitaPacote)} / Avulso ${formatCurrency(item.receitaAvulso)}`,
+                    title: (item) => `Planos ${formatCurrency(item.receitaPlano)} / Avulso ${formatCurrency(item.receitaAvulso)}`,
                     fillClass: 'chart-fill-receita'
                 });
 

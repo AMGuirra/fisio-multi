@@ -14,11 +14,11 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class PacoteSessaoForm {
+public class PlanoSessaoForm {
 
     @NotBlank(message = "Informe o nome do plano de tratamento.")
     @Size(max = 120)
-    private String nomePacote;
+    private String nomePlano;
 
     @NotNull(message = "Informe a quantidade de sessões.")
     @Min(value = 1, message = "O plano de tratamento precisa ter ao menos uma sessão.")

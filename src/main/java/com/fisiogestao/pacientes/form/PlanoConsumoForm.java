@@ -1,6 +1,6 @@
 package com.fisiogestao.pacientes.form;
 
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -16,14 +16,14 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class PacoteConsumoForm {
+public class PlanoConsumoForm {
 
     @NotNull(message = "Selecione o paciente.")
     private UUID clienteId;
 
     @NotBlank(message = "Informe o nome do plano de tratamento.")
     @Size(max = 120)
-    private String nomePacote;
+    private String nomePlano;
 
     @NotNull(message = "Informe a quantidade de sessões.")
     @Min(value = 1, message = "O plano de tratamento precisa ter ao menos uma sessão.")
@@ -45,5 +45,5 @@ public class PacoteConsumoForm {
     private LocalDate dataValidade;
 
     @NotNull(message = "Informe o status do plano de tratamento.")
-    private PacoteSessaoStatus status;
+    private PlanoSessaoStatus status;
 }

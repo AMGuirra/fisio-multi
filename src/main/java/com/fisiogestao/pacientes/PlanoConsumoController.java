@@ -6,7 +6,7 @@ import com.fisiogestao.pacientes.dto.AtendimentoAvulsoFormDTO;
 import com.fisiogestao.pacientes.dto.PacienteListaDTO;
 import com.fisiogestao.pacientes.dto.PlanoFormDTO;
 import com.fisiogestao.pacientes.dto.PlanoResumoDTO;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.pacientes.service.PlanoService;
 import com.fisiogestao.pacientes.service.SessaoConsumoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -28,13 +28,13 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/pacotes-consumo")
+@RequestMapping("/planos-consumo")
 @RequiredArgsConstructor
-public class PacoteConsumoController {
+public class PlanoConsumoController {
 
     private final PlanoService planoService;
     private final SessaoConsumoService sessaoConsumoService;
-    private final PacoteSessaoService pacoteSessaoService;
+    private final PlanoSessaoService planoSessaoService;
     private final AgendaService agendaService;
 
     @GetMapping
@@ -50,29 +50,29 @@ public class PacoteConsumoController {
         model.addAttribute("hoje", LocalDate.now());
         model.addAttribute("agendamentoSessaoModalOpen", abrirAgendamento && selecionado != null);
         if (selecionado != null) {
-            adicionarContextoPaciente(selecionado, "PACOTE", model);
+            adicionarContextoPaciente(selecionado, "PLANO", model);
         }
-        return "pacotes-consumo/index";
+        return "planos-consumo/index";
     }
 
     @GetMapping("/{pacienteId}/selecionar")
     public String selecionarPaciente(
             @PathVariable UUID pacienteId,
-            @RequestParam(defaultValue = "PACOTE") String modo,
+            @RequestParam(defaultValue = "PLANO") String modo,
             Model model
     ) {
         adicionarContextoPaciente(pacienteId, modo, model);
-        return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+        return "planos-consumo/fragmentos :: configuracao-e-consumo";
     }
 
-    @PostMapping("/pacotes/iniciar-fluxo")
+    @PostMapping("/planos/iniciar-fluxo")
     public String iniciarFluxo(
             @RequestParam UUID pacienteId,
             @RequestParam String fluxo,
             Model model
     ) {
         adicionarContextoPaciente(pacienteId, fluxo, model);
-        return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+        return "planos-consumo/fragmentos :: configuracao-e-consumo";
     }
 
     @PostMapping("/{pacienteId}/plano")
@@ -87,19 +87,19 @@ public class PacoteConsumoController {
             planoService.salvarOuAtualizar(pacienteId, form);
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Plano salvo com sucesso.");
-                adicionarContextoPaciente(pacienteId, "PACOTE", model);
-                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+                adicionarContextoPaciente(pacienteId, "PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             redirectAttributes.addFlashAttribute("successMessage", "Plano salvo com sucesso.");
         } catch (BusinessException ex) {
             if (isAjax(requestedWith)) {
                 model.addAttribute("errorMessage", ex.getMessage());
-                adicionarContextoPaciente(pacienteId, "CRIAR_PACOTE", model);
-                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+                adicionarContextoPaciente(pacienteId, "CRIAR_PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/pacotes-consumo?pacienteId=" + pacienteId;
+        return "redirect:/planos-consumo?pacienteId=" + pacienteId;
     }
 
     @PostMapping("/agendar-sessao")
@@ -126,7 +126,7 @@ public class PacoteConsumoController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            pacoteSessaoService.cancelar(id);
+            planoSessaoService.cancelar(id);
             redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento cancelado com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -142,7 +142,7 @@ public class PacoteConsumoController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            pacoteSessaoService.excluir(id);
+            planoSessaoService.excluir(id);
             redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento excluído com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -165,18 +165,18 @@ public class PacoteConsumoController {
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Atendimento avulso registrado.");
                 adicionarContextoPaciente(pacienteId, "AVULSO", model);
-                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             redirectAttributes.addFlashAttribute("successMessage", "Atendimento avulso registrado.");
         } catch (BusinessException ex) {
             if (isAjax(requestedWith)) {
                 model.addAttribute("errorMessage", ex.getMessage());
                 adicionarContextoPaciente(pacienteId, "AVULSO", model);
-                return "pacotes-consumo/fragmentos :: configuracao-e-consumo";
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/pacotes-consumo?pacienteId=" + pacienteId;
+        return "redirect:/planos-consumo?pacienteId=" + pacienteId;
     }
 
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
@@ -198,13 +198,13 @@ public class PacoteConsumoController {
         if ("AVULSO".equals(modoSolicitado)) {
             return "AVULSO";
         }
-        if ("CRIAR_PACOTE".equals(modoSolicitado)) {
-            return "CRIAR_PACOTE";
+        if ("CRIAR_PLANO".equals(modoSolicitado)) {
+            return "CRIAR_PLANO";
         }
         if (!possuiPlano) {
             return "ESCOLHA";
         }
-        return "PACOTE";
+        return "PLANO";
     }
 
     private boolean isAjax(String requestedWith) {
@@ -212,7 +212,7 @@ public class PacoteConsumoController {
     }
 
     private String construirDestinoLegado(UUID pacienteId) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/pacotes-consumo");
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/planos-consumo");
         if (pacienteId != null) {
             builder.queryParam("paciente", pacienteId);
         }

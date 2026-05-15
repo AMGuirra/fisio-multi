@@ -544,7 +544,7 @@ public class AuditService {
                         "valor",
                         "dataHoraInicio",
                         "dataHoraFim",
-                        "pacoteConsumoRegistrado"
+                        "planoConsumoRegistrado"
                 ).contains(field));
     }
 

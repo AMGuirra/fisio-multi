@@ -9,7 +9,7 @@
         <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
-    <link rel="stylesheet" th:href="@{/css/pacotes-consumo.css}">
+    <link rel="stylesheet" th:href="@{/css/planos-consumo.css}">
 </head>
 <body class="dashboard-app dashboard-loading">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -65,11 +65,11 @@
 
                         <div class="filter-row">
                             <button type="button" class="fbtn on" onclick="setFiltro('todos', this)">Todos</button>
-                            <button type="button" class="fbtn" onclick="setFiltro('pacote', this)">Com pacote</button>
+                            <button type="button" class="fbtn" onclick="setFiltro('plano', this)">Com plano</button>
                             <button type="button" class="fbtn" onclick="setFiltro('sem', this)">Sem plano</button>
                         </div>
 
-                        <div th:replace="~{pacotes-consumo/fragmentos :: lista-pacientes}"></div>
+                        <div th:replace="~{planos-consumo/fragmentos :: lista-pacientes}"></div>
                     </aside>
 
                     <section class="col col-config">
@@ -77,7 +77,7 @@
                             <span class="step-num step-2">2</span>
                             <div>
                                 <strong>Configure o Atendimento</strong>
-                                <small id="c2s" th:text="${paciente != null and modo == 'PACOTE' ? 'Debito de sessao no pacote' : (paciente != null and modo == 'CRIAR_PACOTE' ? 'Criacao de pacote' : (paciente != null and modo == 'AVULSO' ? 'Cobranca avulsa' : (paciente != null ? 'Escolha a modalidade' : 'Aguardando paciente')))}">Aguardando paciente</small>
+                                <small id="c2s" th:text="${paciente != null and modo == 'PLANO' ? 'Debito de sessao no plano' : (paciente != null and modo == 'CRIAR_PLANO' ? 'Criacao de plano' : (paciente != null and modo == 'AVULSO' ? 'Cobranca avulsa' : (paciente != null ? 'Escolha a modalidade' : 'Aguardando paciente')))}">Aguardando paciente</small>
                             </div>
                         </div>
                         <div id="c2b" class="panel-body">
@@ -86,7 +86,7 @@
                                 <p>Escolha um paciente na lista para configurar pacote ou atendimento avulso.</p>
                             </div>
                             <th:block th:if="${paciente != null}">
-                                <div th:replace="~{pacotes-consumo/fragmentos :: card-configuracao}"></div>
+                                <div th:replace="~{planos-consumo/fragmentos :: card-configuracao}"></div>
                             </th:block>
                         </div>
                     </section>
@@ -105,7 +105,7 @@
                                 <p>O consumo aparece aqui apos a selecao.</p>
                             </div>
                             <th:block th:if="${paciente != null}">
-                                <div th:replace="~{pacotes-consumo/fragmentos :: card-consumo}"></div>
+                                <div th:replace="~{planos-consumo/fragmentos :: card-consumo}"></div>
                             </th:block>
                         </div>
                     </aside>
@@ -120,8 +120,8 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
 
         function rotuloModo(modo) {
-            if (modo === 'PACOTE') return 'Debito de sessao no pacote';
-            if (modo === 'CRIAR_PACOTE') return 'Criacao de pacote';
+            if (modo === 'PLANO') return 'Debito de sessao no plano';
+            if (modo === 'CRIAR_PLANO') return 'Criacao de plano';
             if (modo === 'AVULSO') return 'Cobranca avulsa';
             return 'Escolha a modalidade';
         }
@@ -137,7 +137,7 @@
         }
 
         async function carregarPaciente(pacienteId, modo) {
-            const url = `/pacotes-consumo/${pacienteId}/selecionar?modo=${modo}`;
+            const url = `/planos-consumo/${pacienteId}/selecionar?modo=${modo}`;
             try {
                 const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
                 if (!res.ok) {
@@ -152,7 +152,7 @@
 
         async function selecionarPaciente(row) {
             const pacienteId = row.dataset.id;
-            const modo = row.dataset.plan === 'pacote' ? 'PACOTE' : 'ESCOLHA';
+            const modo = row.dataset.plan === 'plano' ? 'PLANO' : 'ESCOLHA';
             document.querySelectorAll('.prow').forEach(r => r.classList.remove('sel'));
             row.classList.add('sel');
             await carregarPaciente(pacienteId, modo);
@@ -168,7 +168,7 @@
             const selRow = document.querySelector('.prow.sel');
             if (!selRow) return;
             const body = new URLSearchParams({pacienteId: selRow.dataset.id, fluxo});
-            const res = await fetch('/pacotes-consumo/pacotes/iniciar-fluxo', {
+            const res = await fetch('/planos-consumo/planos/iniciar-fluxo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -242,13 +242,13 @@
                 body: new FormData(form)
             });
             const html = await res.text();
-            const modo = form.action.includes('/avulso') ? 'AVULSO' : 'PACOTE';
+            const modo = form.action.includes('/avulso') ? 'AVULSO' : 'PLANO';
             atualizarPaineis(html, modo);
 
             if (!form.action.includes('/avulso')) {
                 const selRow = document.querySelector('.prow.sel');
                 const badge = selRow?.querySelector('.pbadge');
-                if (selRow) selRow.dataset.plan = 'pacote';
+                if (selRow) selRow.dataset.plan = 'plano';
                 if (badge) {
                     const saldo = document.querySelector('#c3b .saldo-num')?.textContent?.replace(/\s+/g, '');
                     if (saldo) badge.textContent = saldo;

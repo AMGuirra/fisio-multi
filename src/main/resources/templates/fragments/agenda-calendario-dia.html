@@ -30,7 +30,7 @@
                                 <div class="session-detail">
                                     <p class="session-title" th:text="${sessao.cliente.nomeCompleto}">Paciente</p>
                                     <p class="session-text" th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</p>
-                                    <p class="session-text" th:text="${sessao.tipoAgendamento != null and sessao.tipoAgendamento.name() == 'AVULSO' ? 'Consulta avulsa' : (sessao.pacoteSessao != null ? 'Plano: ' + sessao.pacoteSessao.nomePacote : 'Sem plano vinculado')}">Plano</p>
+                                    <p class="session-text" th:text="${sessao.tipoAgendamento != null and sessao.tipoAgendamento.name() == 'AVULSO' ? 'Consulta avulsa' : (sessao.planoSessao != null ? 'Plano: ' + sessao.planoSessao.nomePlano : 'Sem plano vinculado')}">Plano</p>
                                     <p class="session-text" th:if="${sessao.valorAvulso != null}" th:text="${'Valor: R$ ' + #numbers.formatDecimal(sessao.valorAvulso, 1, 'POINT', 2, 'COMMA')}">Valor</p>
                                     <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
                                 </div>
@@ -192,8 +192,8 @@
                             <label>Tipo de consulta</label>
                             <div class="segmented-control appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
                                 <label class="appointment-type-option">
-                                    <input type="radio" name="tipoAgendamento" value="PACOTE" checked>
-                                    <span>📦 Pacote</span>
+                                    <input type="radio" name="tipoAgendamento" value="PLANO" checked>
+                                    <span>📋 Plano</span>
                                 </label>
                                 <label class="appointment-type-option">
                                     <input type="radio" name="tipoAgendamento" value="AVULSO">
@@ -203,15 +203,15 @@
                             <p class="helper-text" id="editarSessaoRecorrenteHelper" hidden>Este agendamento faz parte de uma recorrência. Ao salvar ou cancelar, escolha se a mudança é somente desta ocorrência ou dos próximos atendimentos.</p>
                         </div>
 
-                        <div class="form-field js-editar-pacote-field">
-                            <label for="editarSessaoPacote">Plano de tratamento</label>
-                            <select id="editarSessaoPacote" name="pacoteSessaoId" class="form-select">
+                        <div class="form-field js-editar-plano-field">
+                            <label for="editarSessaoPlano">Plano de tratamento</label>
+                            <select id="editarSessaoPlano" name="planoSessaoId" class="form-select">
                                 <option value="">Selecionar automaticamente o plano ativo</option>
-                                <option th:each="pacote : ${pacotesAgenda}"
-                                        th:value="${pacote.id}"
-                                        th:attr="data-cliente-id=${pacote.cliente.id}"
-                                        th:text="${pacote.nomePacote + ' • ' + pacote.cliente.nomeCompleto + ' • ' + (pacote.sessoesContratadas - pacote.sessoesConsumidas) + ' disponíveis'}">
-                                    Pacote
+                                <option th:each="plano : ${planosAgenda}"
+                                        th:value="${plano.id}"
+                                        th:attr="data-cliente-id=${plano.cliente.id}"
+                                        th:text="${plano.nomePlano + ' • ' + plano.cliente.nomeCompleto + ' • ' + (plano.sessoesContratadas - plano.sessoesConsumidas) + ' disponíveis'}">
+                                    Plano
                                 </option>
                             </select>
                             <div id="editarSessaoSemPlanoAlert" class="flash-message warning compact-banner" hidden>
@@ -224,7 +224,7 @@
                         <div class="form-field js-editar-avulso-field initially-hidden">
                             <div class="flash-message success compact-banner">
                                 <i data-lucide="circle-check"></i>
-                                <span>Será contabilizada como consulta avulsa — sem vínculo com pacote.</span>
+                                <span>Será contabilizada como consulta avulsa — sem vínculo com plano.</span>
                             </div>
                             <label for="editarSessaoValorAvulso">Valor da consulta</label>
                             <input id="editarSessaoValorAvulso" type="number" name="valorAvulso" class="form-control" min="0" step="0.01">
@@ -399,7 +399,7 @@
                 const editarSessaoDataInput = document.getElementById('editarSessaoData');
                 const editarSessaoHorarioInput = document.getElementById('editarSessaoHorario');
                 const editarSessaoClienteSelect = document.getElementById('editarSessaoCliente');
-                const editarSessaoPacoteSelect = document.getElementById('editarSessaoPacote');
+                const editarSessaoPlanoSelect = document.getElementById('editarSessaoPlano');
                 const editarSessaoTipoAgendamentoInputs = Array.from(document.querySelectorAll('#editarSessaoForm input[name="tipoAgendamento"]'));
                 const editarSessaoValorAvulsoInput = document.getElementById('editarSessaoValorAvulso');
                 const editarSessaoRecorrenteHelper = document.getElementById('editarSessaoRecorrenteHelper');
@@ -422,17 +422,17 @@
                 const syncSalvarBtn = () => {
                     if (!editarSessaoSalvarBtn || !semPlanoAlert) return;
                     const semPlano = !semPlanoAlert.hidden;
-                    const tipoPacote = (editarSessaoTipoAgendamentoInputs.find((i) => i.checked)?.value || 'PACOTE') === 'PACOTE';
-                    const bloqueado = semPlano && tipoPacote;
+                    const tipoPlano = (editarSessaoTipoAgendamentoInputs.find((i) => i.checked)?.value || 'PLANO') === 'PLANO';
+                    const bloqueado = semPlano && tipoPlano;
                     editarSessaoSalvarBtn.disabled = bloqueado;
                     editarSessaoSalvarBtn.title = bloqueado ? 'Cadastre um plano ativo ou use sessão avulsa antes de salvar.' : '';
                 };
 
-                const syncPacotesModal = () => {
-                    if (!editarSessaoPacoteSelect || !editarSessaoClienteSelect) return;
+                const syncPlanosModal = () => {
+                    if (!editarSessaoPlanoSelect || !editarSessaoClienteSelect) return;
                     const clienteId = editarSessaoClienteSelect.value;
                     let temPlano = false;
-                    Array.from(editarSessaoPacoteSelect.options).forEach((option, index) => {
+                    Array.from(editarSessaoPlanoSelect.options).forEach((option, index) => {
                         if (index === 0) {
                             option.hidden = false;
                             return;
@@ -442,14 +442,14 @@
                         option.hidden = !visivel;
                         if (visivel) temPlano = true;
                     });
-                    const selecionada = editarSessaoPacoteSelect.selectedOptions[0];
+                    const selecionada = editarSessaoPlanoSelect.selectedOptions[0];
                     if (selecionada && selecionada.getAttribute('data-cliente-id') && selecionada.getAttribute('data-cliente-id') !== clienteId) {
-                        editarSessaoPacoteSelect.value = '';
+                        editarSessaoPlanoSelect.value = '';
                     }
                     if (semPlanoAlert) {
                         semPlanoAlert.hidden = temPlano;
                         if (criarPlanoLink && clienteId) {
-                            criarPlanoLink.href = '/pacotes-consumo?pacienteId=' + clienteId;
+                            criarPlanoLink.href = '/planos-consumo?pacienteId=' + clienteId;
                         }
                         if (window.lucide) lucide.createIcons();
                     }
@@ -457,18 +457,18 @@
                 };
 
                 const syncTipoAgendamentoModal = () => {
-                    const tipo = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PACOTE';
+                    const tipo = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PLANO';
                     const avulso = tipo === 'AVULSO';
-                    document.querySelectorAll('#editarSessaoForm .js-editar-pacote-field').forEach((field) => {
+                    document.querySelectorAll('#editarSessaoForm .js-editar-plano-field').forEach((field) => {
                         field.classList.toggle('initially-hidden', avulso);
                     });
                     document.querySelectorAll('#editarSessaoForm .js-editar-avulso-field').forEach((field) => {
                         field.classList.toggle('initially-hidden', !avulso);
                     });
-                    if (editarSessaoPacoteSelect) {
-                        editarSessaoPacoteSelect.disabled = avulso;
+                    if (editarSessaoPlanoSelect) {
+                        editarSessaoPlanoSelect.disabled = avulso;
                         if (avulso) {
-                            editarSessaoPacoteSelect.value = '';
+                            editarSessaoPlanoSelect.value = '';
                         }
                     }
                     syncSalvarBtn();
@@ -496,9 +496,9 @@
                             editarSessaoDataInput.value = sessao.data;
                             editarSessaoHorarioInput.value = sessao.horario;
                             editarSessaoClienteSelect.value = sessao.clienteId || '';
-                            editarSessaoPacoteSelect.value = sessao.pacoteSessaoId || '';
+                            editarSessaoPlanoSelect.value = sessao.planoSessaoId || '';
                             editarSessaoTipoAgendamentoInputs.forEach((input) => {
-                                input.checked = input.value === (sessao.tipoAgendamento || 'PACOTE');
+                                input.checked = input.value === (sessao.tipoAgendamento || 'PLANO');
                             });
                             editarSessaoValorAvulsoInput.value = sessao.valorAvulso || '';
                             if (editarSessaoRecorrenteHelper) {
@@ -509,7 +509,7 @@
                             editarSessaoPacienteNome.textContent = sessao.clienteNome || 'Paciente';
                             editarSessaoError.style.display = 'none';
 
-                            syncPacotesModal();
+                            syncPlanosModal();
                             syncTipoAgendamentoModal();
                             setEditarModalOpen(true);
                         } catch (err) {
@@ -524,7 +524,7 @@
                 });
 
                 if (editarSessaoClienteSelect) {
-                    editarSessaoClienteSelect.addEventListener('change', syncPacotesModal);
+                    editarSessaoClienteSelect.addEventListener('change', syncPlanosModal);
                 }
                 editarSessaoTipoAgendamentoInputs.forEach((input) => {
                     input.addEventListener('change', syncTipoAgendamentoModal);
@@ -548,10 +548,10 @@
 
                         const formData = new URLSearchParams();
                         formData.append('clienteId', editarSessaoClienteSelect.value);
-                        const tipoAgendamento = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PACOTE';
+                        const tipoAgendamento = editarSessaoTipoAgendamentoInputs.find((input) => input.checked)?.value || 'PLANO';
                         formData.append('tipoAgendamento', tipoAgendamento);
-                        if (tipoAgendamento === 'PACOTE' && editarSessaoPacoteSelect.value) {
-                            formData.append('pacoteSessaoId', editarSessaoPacoteSelect.value);
+                        if (tipoAgendamento === 'PLANO' && editarSessaoPlanoSelect.value) {
+                            formData.append('planoSessaoId', editarSessaoPlanoSelect.value);
                         }
                         if (tipoAgendamento === 'AVULSO' && editarSessaoValorAvulsoInput.value) {
                             formData.append('valorAvulso', editarSessaoValorAvulsoInput.value);

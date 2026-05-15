@@ -18,22 +18,22 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
 
     boolean existsByClienteId(UUID clienteId);
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
-    List<LancamentoFinanceiroEntity> findByPacoteSessaoId(UUID pacoteSessaoId);
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
+    List<LancamentoFinanceiroEntity> findByPlanoSessaoId(UUID planoSessaoId);
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
     List<LancamentoFinanceiroEntity> findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataCompetenciaDescCreatedAtDesc(
             UUID clienteId, TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
     Optional<LancamentoFinanceiroEntity> findByIdAndClienteIdAndTipoAndStatus(
             UUID id, UUID clienteId, TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
-    boolean existsByPacoteSessaoIdAndStatus(UUID pacoteSessaoId, StatusLancamentoFinanceiro status);
+    boolean existsByPlanoSessaoIdAndStatus(UUID planoSessaoId, StatusLancamentoFinanceiro status);
 
     long countByTipoAndStatus(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
-    @EntityGraph(attributePaths = {"cliente", "pacoteSessao"})
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
     List<LancamentoFinanceiroEntity> findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(
             OffsetDateTime inicio, OffsetDateTime fim);
 

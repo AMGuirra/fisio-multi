@@ -240,6 +240,10 @@
                                     <td th:text="${#temporals.format(lancamento.dataCompetencia, 'dd/MM/yyyy')}">01/01/2026</td>
                                     <td>
                                         <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
+                                        <p class="entity-meta" th:if="${lancamento.cliente != null}">
+                                            <i data-lucide="user" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;"></i>
+                                            <span th:text="${lancamento.cliente.nomeCompleto}">Paciente</span>
+                                        </p>
                                         <p class="entity-meta" th:text="${lancamento.categoria}">Categoria</p>
                                     </td>
                                     <td>

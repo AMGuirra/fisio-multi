@@ -20,21 +20,21 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "pacote_sessao")
+@Table(name = "plano_sessao")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class PacoteSessaoEntity extends BaseEntity {
+public class PlanoSessaoEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)
     private ClienteEntity cliente;
 
-    @Column(name = "nome_pacote", nullable = false, length = 120)
-    private String nomePacote;
+    @Column(name = "nome_plano", nullable = false, length = 120)
+    private String nomePlano;
 
     @Column(name = "sessoes_contratadas", nullable = false)
     private Integer sessoesContratadas;
@@ -55,5 +55,5 @@ public class PacoteSessaoEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private PacoteSessaoStatus status = PacoteSessaoStatus.ATIVO;
+    private PlanoSessaoStatus status = PlanoSessaoStatus.ATIVO;
 }

@@ -5,7 +5,7 @@ import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
@@ -37,7 +37,7 @@ class PacienteServiceTest {
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private PacoteSessaoRepository pacoteSessaoRepository;
+    private PlanoSessaoRepository pacoteSessaoRepository;
 
     @Mock
     private SessaoRepository sessaoRepository;

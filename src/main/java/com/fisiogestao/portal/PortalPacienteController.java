@@ -12,10 +12,10 @@ import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
@@ -53,7 +53,7 @@ public class PortalPacienteController {
 
     private final ClienteRepository clienteRepository;
     private final SessaoRepository sessaoRepository;
-    private final PacoteSessaoRepository pacoteSessaoRepository;
+    private final PlanoSessaoRepository planoSessaoRepository;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AgendaService agendaService;
@@ -89,18 +89,18 @@ public class PortalPacienteController {
                 .findTop10ByClienteIdAndStatusNotOrderByDataHoraInicioDesc(
                         paciente.getId(), SessaoStatus.AGENDADA);
 
-        List<PacoteSessaoEntity> pacotes = pacoteSessaoRepository
+        List<PlanoSessaoEntity> planos = planoSessaoRepository
                 .findByClienteIdOrderByCreatedAtDesc(paciente.getId());
 
-        List<PacoteSessaoEntity> pacotesAtivos = pacotes.stream()
-                .filter(p -> p.getStatus() == PacoteSessaoStatus.ATIVO)
+        List<PlanoSessaoEntity> planosAtivos = planos.stream()
+                .filter(p -> p.getStatus() == PlanoSessaoStatus.ATIVO)
                 .toList();
 
-        List<PacoteSessaoEntity> pacotesEncerrados = pacotes.stream()
-                .filter(p -> p.getStatus() != PacoteSessaoStatus.ATIVO)
+        List<PlanoSessaoEntity> planosEncerrados = planos.stream()
+                .filter(p -> p.getStatus() != PlanoSessaoStatus.ATIVO)
                 .toList();
 
-        int saldoSessoesAtivas = pacotesAtivos.stream()
+        int saldoSessoesAtivas = planosAtivos.stream()
                 .mapToInt(this::sessoesRestantes)
                 .sum();
 
@@ -121,8 +121,8 @@ public class PortalPacienteController {
         model.addAttribute("whatsappUrl", whatsappUrl);
         model.addAttribute("proximasSessoes", proximasSessoes);
         model.addAttribute("historicoSessoes", historicoSessoes);
-        model.addAttribute("pacotesAtivos", pacotesAtivos);
-        model.addAttribute("pacotesEncerrados", pacotesEncerrados);
+        model.addAttribute("planosAtivos", planosAtivos);
+        model.addAttribute("planosEncerrados", planosEncerrados);
         model.addAttribute("saldoSessoesAtivas", saldoSessoesAtivas);
         model.addAttribute("recibos", recibos);
         model.addAttribute("horasMinimasCancelamento", HORAS_MINIMAS_CANCELAMENTO);
@@ -234,9 +234,9 @@ public class PortalPacienteController {
         return !sessao.getDataHoraInicio().isBefore(agora.plusHours(HORAS_MINIMAS_CANCELAMENTO));
     }
 
-    private int sessoesRestantes(PacoteSessaoEntity pacote) {
-        int contratadas = pacote.getSessoesContratadas() != null ? pacote.getSessoesContratadas() : 0;
-        int consumidas = pacote.getSessoesConsumidas() != null ? pacote.getSessoesConsumidas() : 0;
+    private int sessoesRestantes(PlanoSessaoEntity plano) {
+        int contratadas = plano.getSessoesContratadas() != null ? plano.getSessoesContratadas() : 0;
+        int consumidas = plano.getSessoesConsumidas() != null ? plano.getSessoesConsumidas() : 0;
         return Math.max(contratadas - consumidas, 0);
     }
 

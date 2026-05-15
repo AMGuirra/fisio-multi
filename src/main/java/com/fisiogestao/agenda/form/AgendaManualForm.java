@@ -20,7 +20,7 @@ public class AgendaManualForm {
     @NotNull(message = "Selecione o paciente.")
     private UUID clienteId;
 
-    private UUID pacoteSessaoId;
+    private UUID planoSessaoId;
 
     @NotNull(message = "Informe a data.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -33,7 +33,7 @@ public class AgendaManualForm {
     @Size(max = 80)
     private String tipoAtendimento;
 
-    private TipoAgendamento tipoAgendamento = TipoAgendamento.PACOTE;
+    private TipoAgendamento tipoAgendamento = TipoAgendamento.PLANO;
 
     private BigDecimal valorAvulso;
 

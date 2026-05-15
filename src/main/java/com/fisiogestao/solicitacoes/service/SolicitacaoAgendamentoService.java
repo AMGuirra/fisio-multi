@@ -16,10 +16,10 @@ import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.service.PacienteService;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
@@ -53,7 +53,7 @@ public class SolicitacaoAgendamentoService {
     private final AgendaService agendaService;
     private final BloqueioAgendaService bloqueioAgendaService;
     private final PacienteService pacienteService;
-    private final PacoteSessaoService pacoteSessaoService;
+    private final PlanoSessaoService planoSessaoService;
     private final AgendamentoEmailNotificationService agendamentoEmailNotificationService;
     private final AuditService auditService;
 
@@ -276,21 +276,21 @@ public class SolicitacaoAgendamentoService {
 
         ClienteEntity cliente = solicitacao.getCliente();
 
-        PacoteSessaoEntity pacote = pacoteSessaoService.resolverPacoteParaSessao(
+        PlanoSessaoEntity plano = planoSessaoService.resolverPlanoParaSessao(
                 cliente.getId(),
-                form != null ? form.getPacoteSessaoId() : null,
+                form != null ? form.getPlanoSessaoId() : null,
                 null);
-        pacoteSessaoService.reservarSessao(pacote.getId());
+        planoSessaoService.reservarSessao(plano.getId());
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(cliente)
-                .pacoteSessao(pacote)
+                .planoSessao(plano)
                 .dataHoraInicio(solicitacao.getDataHoraInicio())
                 .dataHoraFim(solicitacao.getDataHoraFim())
                 .status(SessaoStatus.AGENDADA)
                 .tipoAtendimento(solicitacao.getLocalAtendimentoDescricao())
                 .observacoes(montarObservacoesSessao(solicitacao))
-                .pacoteConsumoRegistrado(Boolean.TRUE)
+                .planoConsumoRegistrado(Boolean.TRUE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordCreate(
@@ -469,9 +469,9 @@ public class SolicitacaoAgendamentoService {
                     solicitacao.getCliente().getId(),
                     solicitacao.getDataHoraInicio(),
                     com.fisiogestao.agenda.SessaoStatus.AGENDADA).ifPresent(sessao -> {
-                        if (Boolean.TRUE.equals(sessao.getPacoteConsumoRegistrado())
-                                && sessao.getPacoteSessao() != null) {
-                            pacoteSessaoService.estornarSessao(sessao.getPacoteSessao().getId());
+                        if (Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())
+                                && sessao.getPlanoSessao() != null) {
+                            planoSessaoService.estornarSessao(sessao.getPlanoSessao().getId());
                         }
                         sessao.setStatus(com.fisiogestao.agenda.SessaoStatus.CANCELADA);
                         sessaoRepository.save(sessao);

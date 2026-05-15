@@ -20,10 +20,10 @@ import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.PacoteSessaoEntity;
-import com.fisiogestao.pacientes.PacoteSessaoStatus;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
+import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
-import com.fisiogestao.pacientes.repository.PacoteSessaoRepository;
+import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,7 +71,7 @@ class PageSmokeTest {
     private ClienteRepository clienteRepository;
 
     @Autowired
-    private PacoteSessaoRepository pacoteSessaoRepository;
+    private PlanoSessaoRepository planoSessaoRepository;
 
     @Autowired
     private SessaoRepository sessaoRepository;
@@ -182,7 +182,7 @@ class PageSmokeTest {
             "/configuracao/clinica",
             "/financeiro",
             "/pacientes",
-            "/pacotes-consumo",
+            "/planos-consumo",
             "/prontuario",
             "/relatorios",
             "/solicitacoes",
@@ -208,7 +208,7 @@ class PageSmokeTest {
             "/calendario",
             "/solicitacoes",
             "/pacientes",
-            "/pacotes-consumo"
+            "/planos-consumo"
     })
     void recepcaoPodeAcessarMenusPadraoEsperados(String path) throws Exception {
         mockMvc.perform(get(path))
@@ -308,8 +308,8 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void pacotesConsumoAbreModalDeAgendamentoAoSelecionarPaciente() throws Exception {
-        mockMvc.perform(get("/pacotes-consumo")
+    void planosConsumoAbreModalDeAgendamentoAoSelecionarPaciente() throws Exception {
+        mockMvc.perform(get("/planos-consumo")
                         .param("paciente", clienteAgenda.getId().toString())
                         .param("agendar", "true"))
                 .andExpect(status().isOk())
@@ -318,7 +318,7 @@ class PageSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("aria-hidden=\"false\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente em atendimento")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"clienteId\" value=\"" + clienteAgenda.getId())))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"pacoteSessaoId\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"planoSessaoId\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"data\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"horario\" value=\"08:00\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Buscar Paciente"))))
@@ -327,29 +327,29 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void pacotesConsumoAgendaSessaoEPermaneceNaMesmaTela() throws Exception {
-        PacoteSessaoEntity pacoteAntes = pacoteSessaoRepository.findAll().stream()
+    void planosConsumoAgendaSessaoEPermaneceNaMesmaTela() throws Exception {
+        PlanoSessaoEntity planoAntes = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para o agendamento via planos."));
+                .orElseThrow(() -> new IllegalStateException("Plano de teste não encontrado para o agendamento via planos."));
 
-        mockMvc.perform(post("/pacotes-consumo/agendar-sessao")
+        mockMvc.perform(post("/planos-consumo/agendar-sessao")
                         .with(csrf())
                         .param("clienteId", clienteAgenda.getId().toString())
-                        .param("pacoteSessaoId", pacoteAntes.getId().toString())
+                        .param("planoSessaoId", planoAntes.getId().toString())
                         .param("data", agendaDate.toString())
                         .param("horario", "10:00")
                         .param("tipoAtendimento", "RPG")
                         .param("observacoes", "Agendamento criado pela tela de planos"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/pacotes-consumo?paciente=" + clienteAgenda.getId()));
+                .andExpect(redirectedUrl("/planos-consumo?paciente=" + clienteAgenda.getId()));
 
-        PacoteSessaoEntity pacoteDepois = pacoteSessaoRepository.findById(pacoteAntes.getId())
-                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado após o agendamento."));
+        PlanoSessaoEntity planoDepois = planoSessaoRepository.findById(planoAntes.getId())
+                .orElseThrow(() -> new IllegalStateException("Plano de teste não encontrado após o agendamento."));
 
         org.junit.jupiter.api.Assertions.assertEquals(
-                pacoteAntes.getSessoesConsumidas() + 1,
-                pacoteDepois.getSessoesConsumidas()
+                planoAntes.getSessoesConsumidas() + 1,
+                planoDepois.getSessoesConsumidas()
         );
 
         long sessoesAgendadas = sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
@@ -363,25 +363,25 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void pacotesConsumoExcluiPlanoComSessaoVinculada() throws Exception {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findAll().stream()
+    void planosConsumoExcluiPlanoComSessaoVinculada() throws Exception {
+        PlanoSessaoEntity plano = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para exclusão."));
+                .orElseThrow(() -> new IllegalStateException("Plano de teste não encontrado para exclusão."));
 
-        mockMvc.perform(post("/pacotes-consumo/{id}/excluir", pacote.getId())
+        mockMvc.perform(post("/planos-consumo/{id}/excluir", plano.getId())
                         .with(csrf())
                         .param("paciente", clienteAgenda.getId().toString()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/pacotes-consumo?paciente=" + clienteAgenda.getId()));
+                .andExpect(redirectedUrl("/planos-consumo?paciente=" + clienteAgenda.getId()));
 
-        org.junit.jupiter.api.Assertions.assertFalse(pacoteSessaoRepository.existsById(pacote.getId()));
+        org.junit.jupiter.api.Assertions.assertFalse(planoSessaoRepository.existsById(plano.getId()));
 
         SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
                 .orElseThrow(() -> new IllegalStateException("Sessão de teste não encontrada após excluir o plano."));
-        org.junit.jupiter.api.Assertions.assertNull(sessao.getPacoteSessao());
+        org.junit.jupiter.api.Assertions.assertNull(sessao.getPlanoSessao());
         org.junit.jupiter.api.Assertions.assertEquals(TipoAgendamento.AVULSO, sessao.getTipoAgendamento());
-        org.junit.jupiter.api.Assertions.assertFalse(sessao.getPacoteConsumoRegistrado());
+        org.junit.jupiter.api.Assertions.assertFalse(sessao.getPlanoConsumoRegistrado());
     }
 
     @Test
@@ -490,7 +490,7 @@ class PageSmokeTest {
     private void prepararCenarioAgenda() {
         sessaoRepository.deleteAll();
         lancamentoFinanceiroRepository.deleteAll();
-        pacoteSessaoRepository.deleteAll();
+        planoSessaoRepository.deleteAll();
         clienteRepository.deleteAll();
         configuracaoClinicaRepository.deleteAll();
 
@@ -514,45 +514,45 @@ class PageSmokeTest {
                 .ativo(true)
                 .build());
 
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.save(PacoteSessaoEntity.builder()
+        PlanoSessaoEntity plano = planoSessaoRepository.save(PlanoSessaoEntity.builder()
                 .cliente(clienteAgenda)
-                .nomePacote("Plano Teste Agenda")
+                .nomePlano("Plano Teste Agenda")
                 .sessoesContratadas(10)
                 .sessoesConsumidas(1)
                 .valorTotal(new BigDecimal("1200.00"))
                 .dataInicio(agendaDate.minusDays(7))
                 .dataValidade(agendaDate.plusDays(30))
-                .status(PacoteSessaoStatus.ATIVO)
+                .status(PlanoSessaoStatus.ATIVO)
                 .build());
 
         SessaoEntity sessao = sessaoRepository.save(SessaoEntity.builder()
                 .cliente(clienteAgenda)
-                .pacoteSessao(pacote)
+                .planoSessao(plano)
                 .dataHoraInicio(agendaDate.atTime(9, 0).atZone(zoneId).toOffsetDateTime())
                 .dataHoraFim(agendaDate.atTime(9, 50).atZone(zoneId).toOffsetDateTime())
                 .status(SessaoStatus.AGENDADA)
                 .tipoAtendimento("Pilates")
                 .observacoes("Sessão criada no smoke test.")
-                .pacoteConsumoRegistrado(Boolean.TRUE)
+                .planoConsumoRegistrado(Boolean.TRUE)
                 .build());
 
         sessaoAgendaId = sessao.getId();
     }
 
     private LancamentoFinanceiroEntity criarLancamentoFinanceiroPendente() {
-        PacoteSessaoEntity pacote = pacoteSessaoRepository.findAll().stream()
+        PlanoSessaoEntity plano = planoSessaoRepository.findAll().stream()
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Pacote de teste não encontrado para o financeiro."));
+                .orElseThrow(() -> new IllegalStateException("Plano de teste não encontrado para o financeiro."));
 
         return lancamentoFinanceiroRepository.save(LancamentoFinanceiroEntity.builder()
                 .tipo(TipoLancamentoFinanceiro.RECEITA)
                 .status(StatusLancamentoFinanceiro.PENDENTE)
-                .descricao("Pacote de sessões: Acompanhamento domiciliar")
-                .categoria("Pacotes")
+                .descricao("Plano de sessões: Acompanhamento domiciliar")
+                .categoria("Planos de tratamento")
                 .valor(new BigDecimal("1.00"))
                 .dataCompetencia(agendaDate.atStartOfDay(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
                 .cliente(clienteAgenda)
-                .pacoteSessao(pacote)
+                .planoSessao(plano)
                 .build());
     }
 }

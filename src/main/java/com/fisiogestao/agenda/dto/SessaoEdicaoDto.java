@@ -9,8 +9,8 @@ public record SessaoEdicaoDto(
     UUID id,
     UUID clienteId,
     String clienteNome,
-    UUID pacoteSessaoId,
-    String pacoteSessaoNome,
+    UUID planoSessaoId,
+    String planoSessaoNome,
     LocalDate data,
     LocalTime horario,
     String tipoAtendimento,
@@ -24,8 +24,8 @@ public record SessaoEdicaoDto(
             UUID id,
             UUID clienteId,
             String clienteNome,
-            UUID pacoteSessaoId,
-            String pacoteSessaoNome,
+            UUID planoSessaoId,
+            String planoSessaoNome,
             LocalDate data,
             LocalTime horario,
             String tipoAtendimento,
@@ -36,8 +36,8 @@ public record SessaoEdicaoDto(
             String status
     ) {
         return new SessaoEdicaoDto(
-                id, clienteId, clienteNome, pacoteSessaoId,
-                pacoteSessaoNome, data, horario, tipoAtendimento, tipoAgendamento, valorAvulso, recorrente, observacoes, status
+                id, clienteId, clienteNome, planoSessaoId,
+                planoSessaoNome, data, horario, tipoAtendimento, tipoAgendamento, valorAvulso, recorrente, observacoes, status
         );
     }
 }

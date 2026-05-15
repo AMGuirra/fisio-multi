@@ -3,8 +3,8 @@ package com.fisiogestao.agenda;
 import com.fisiogestao.agenda.dto.SessaoEdicaoDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.service.AgendaService;
-import com.fisiogestao.pacientes.form.PacoteConsumoForm;
-import com.fisiogestao.pacientes.service.PacoteSessaoService;
+import com.fisiogestao.pacientes.form.PlanoConsumoForm;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ import java.util.UUID;
 public class AgendaController {
 
     private final AgendaService agendaService;
-    private final PacoteSessaoService pacoteSessaoService;
+    private final PlanoSessaoService planoSessaoService;
 
     @GetMapping
     public String agenda(
@@ -73,9 +73,9 @@ public class AgendaController {
         }
     }
 
-    @PostMapping("/pacotes")
-    public String criarPacotePelaAgenda(
-            @Valid @ModelAttribute("pacoteAgendaForm") PacoteConsumoForm form,
+    @PostMapping("/planos")
+    public String criarPlanoPelaAgenda(
+            @Valid @ModelAttribute("planoAgendaForm") PlanoConsumoForm form,
             BindingResult bindingResult,
             @RequestParam(required = false, name = "agendaData") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate agendaData,
             RedirectAttributes redirectAttributes
@@ -86,7 +86,7 @@ public class AgendaController {
         }
 
         try {
-            pacoteSessaoService.criarViaCrud(form);
+            planoSessaoService.criarViaCrud(form);
             redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento criado e selecionado para o agendamento.");
             return construirDestinoCalendario(dataOuHoje(agendaData));
         } catch (BusinessException ex) {
@@ -228,12 +228,12 @@ public class AgendaController {
                     sessao.getId(),
                     sessao.getCliente().getId(),
                     sessao.getCliente().getNomeCompleto(),
-                    sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getId() : null,
-                    sessao.getPacoteSessao() != null ? sessao.getPacoteSessao().getNomePacote() : null,
+                    sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getId() : null,
+                    sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getNomePlano() : null,
                     inicio.toLocalDate(),
                     inicio.toLocalTime(),
                     sessao.getTipoAtendimento(),
-                    sessao.getTipoAgendamento() != null ? sessao.getTipoAgendamento().name() : TipoAgendamento.PACOTE.name(),
+                    sessao.getTipoAgendamento() != null ? sessao.getTipoAgendamento().name() : TipoAgendamento.PLANO.name(),
                     sessao.getValorAvulso(),
                     sessao.getRecorrencia() != null || sessao.getRecorrenciaPai() != null,
                     sessao.getObservacoes(),
@@ -252,7 +252,7 @@ public class AgendaController {
     public ResponseEntity<?> atualizarSessaoJson(
             @PathVariable UUID id,
             @RequestParam UUID clienteId,
-            @RequestParam(required = false) UUID pacoteSessaoId,
+            @RequestParam(required = false) UUID planoSessaoId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horario,
             @RequestParam(required = false) String tipoAtendimento,
@@ -264,7 +264,7 @@ public class AgendaController {
         try {
             AgendaManualForm form = new AgendaManualForm();
             form.setClienteId(clienteId);
-            form.setPacoteSessaoId(pacoteSessaoId);
+            form.setPlanoSessaoId(planoSessaoId);
             form.setData(data);
             form.setHorario(horario);
             form.setTipoAtendimento(tipoAtendimento);

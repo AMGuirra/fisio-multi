@@ -11,7 +11,7 @@ public enum AppMenuItem {
     BLOQUEIOS("Bloqueios",           "/configuracoes/clinica#secao-bloqueios", "calendar-x-2", false, false, false, false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
-    PACOTES_SESSOES("Planos de Tratamentos", "/pacotes-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/pacotes-consumo")),
+    PLANOS_SESSOES("Planos de Tratamentos", "/planos-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/planos-consumo")),
     PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
     FINANCEIRO("Financeiro",         "/financeiro",          "wallet",              false, false, true,  false, MenuSection.GESTAO,  List.of("/financeiro")),
     RELATORIOS("Relatórios",         "/relatorios",          "file-text",           false, false, true,  false, MenuSection.GESTAO,  List.of("/relatorios")),
@@ -131,8 +131,8 @@ public enum AppMenuItem {
                 return "Centraliza pedidos de agendamento e outras solicitacoes recebidas.";
             case PACIENTES:
                 return "Permite cadastrar, localizar e acompanhar os pacientes da clinica.";
-            case PACOTES_SESSOES:
-                return "Gerencia planos de tratamento, pacotes contratados e consumos de sessoes.";
+            case PLANOS_SESSOES:
+                return "Gerencia planos de tratamento e consumos de sessoes.";
             case PRONTUARIO:
                 return "Da acesso ao registro clinico e evolucao dos atendimentos.";
             case FINANCEIRO:
@@ -180,7 +180,7 @@ public enum AppMenuItem {
                 AGENDA,
                 SOLICITACOES,
                 PACIENTES,
-                PACOTES_SESSOES,
+                PLANOS_SESSOES,
                 PRONTUARIO,
                 FINANCEIRO,
                 RELATORIOS,
