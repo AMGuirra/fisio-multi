@@ -229,29 +229,29 @@
                                 </div>
                             </div>
 
-                            <div class="form-grid form-grid-three">
-                                <div class="form-field">
+                            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+                                <div class="form-field" style="flex:0 0 160px">
                                     <label for="cep">CEP</label>
-                                    <div style="display:flex;gap:8px;align-items:flex-start">
-                                        <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric" style="flex:1">
-                                        <button type="button" id="btnBuscarCep" class="action-button ghost" style="white-space:nowrap;margin-top:0" title="Buscar endereço pelo CEP">
-                                            <i data-lucide="search"></i>Buscar
-                                        </button>
-                                    </div>
-                                    <p id="cepFeedback" class="helper-text" style="display:none"></p>
+                                    <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric">
                                     <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                                 </div>
-                                <div class="form-field">
+                                <div class="form-field" style="flex:0 0 auto;padding-bottom:1px">
+                                    <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereço pelo CEP">
+                                        <i data-lucide="search"></i>Buscar CEP
+                                    </button>
+                                </div>
+                                <div class="form-field" style="flex:1;min-width:160px">
                                     <label for="cidade">Cidade</label>
                                     <input id="cidade" type="text" class="form-control" th:field="*{cidade}" maxlength="100" placeholder="Ex: Campo Grande">
                                     <p class="form-error" th:if="${#fields.hasErrors('cidade')}" th:errors="*{cidade}"></p>
                                 </div>
-                                <div class="form-field">
+                                <div class="form-field" style="flex:0 0 90px">
                                     <label for="estado">Estado (UF)</label>
-                                    <input id="estado" type="text" class="form-control" th:field="*{estado}" maxlength="2" placeholder="Ex: MS" style="text-transform:uppercase">
+                                    <input id="estado" type="text" class="form-control" th:field="*{estado}" maxlength="2" placeholder="MS" style="text-transform:uppercase">
                                     <p class="form-error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></p>
                                 </div>
                             </div>
+                            <p id="cepFeedback" class="helper-text" style="display:none;margin-top:-8px"></p>
 
                             <div class="form-field">
                                 <label>Dias de funcionamento</label>
