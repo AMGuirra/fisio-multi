@@ -232,7 +232,13 @@
                             <div class="form-grid form-grid-three">
                                 <div class="form-field">
                                     <label for="cep">CEP</label>
-                                    <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric">
+                                    <div style="display:flex;gap:8px;align-items:flex-start">
+                                        <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric" style="flex:1">
+                                        <button type="button" id="btnBuscarCep" class="action-button ghost" style="white-space:nowrap;margin-top:0" title="Buscar endereço pelo CEP">
+                                            <i data-lucide="search"></i>Buscar
+                                        </button>
+                                    </div>
+                                    <p id="cepFeedback" class="helper-text" style="display:none"></p>
                                     <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                                 </div>
                                 <div class="form-field">
@@ -608,6 +614,67 @@
 
             checkbox.addEventListener('change', syncState);
             syncState();
+        })();
+    </script>
+    <script>
+        (() => {
+            const cepInput     = document.getElementById('cep');
+            const btnBuscar    = document.getElementById('btnBuscarCep');
+            const feedback     = document.getElementById('cepFeedback');
+            const logradouro   = document.getElementById('logradouro');
+            const bairroInput  = document.getElementById('bairro');
+            const cidadeInput  = document.getElementById('cidade');
+            const estadoInput  = document.getElementById('estado');
+
+            if (!cepInput || !btnBuscar) return;
+
+            const mascararCep = (v) => v.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').slice(0, 9);
+
+            cepInput.addEventListener('input', () => {
+                cepInput.value = mascararCep(cepInput.value);
+            });
+
+            const setFeedback = (msg, isError) => {
+                feedback.textContent = msg;
+                feedback.style.display = msg ? 'block' : 'none';
+                feedback.style.color = isError ? 'var(--color-danger, #dc3545)' : 'var(--color-success, #198754)';
+            };
+
+            const buscar = async () => {
+                const cep = cepInput.value.replace(/\D/g, '');
+                if (cep.length !== 8) {
+                    setFeedback('Digite um CEP válido com 8 dígitos.', true);
+                    return;
+                }
+
+                btnBuscar.disabled = true;
+                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscando…';
+                if (window.lucide) lucide.createIcons();
+                setFeedback('', false);
+
+                try {
+                    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                    if (!res.ok) throw new Error('Falha na requisição');
+                    const data = await res.json();
+                    if (data.erro) throw new Error('CEP não encontrado');
+
+                    if (logradouro)  logradouro.value  = data.logradouro || '';
+                    if (bairroInput) bairroInput.value = data.bairro     || '';
+                    if (cidadeInput) cidadeInput.value = data.localidade  || '';
+                    if (estadoInput) estadoInput.value = (data.uf        || '').toUpperCase();
+
+                    setFeedback('Endereço preenchido com sucesso.', false);
+                } catch (e) {
+                    setFeedback(e.message === 'CEP não encontrado' ? 'CEP não encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
+                } finally {
+                    btnBuscar.disabled = false;
+                    btnBuscar.innerHTML = '<i data-lucide="search"></i>Buscar';
+                    if (window.lucide) lucide.createIcons();
+                }
+            };
+
+            btnBuscar.addEventListener('click', buscar);
+            cepInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
         })();
     </script>
 </body>
