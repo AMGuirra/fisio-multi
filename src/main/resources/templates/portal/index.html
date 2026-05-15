@@ -755,10 +755,6 @@
                     <p class="next-date">Nenhuma sessão marcada</p>
                     <p class="next-meta">Escolha um novo horário para manter seu tratamento em movimento.</p>
                 </div>
-                <button type="button" class="portal-btn portal-btn-primary" data-portal-modal-open>
-                    <i data-lucide="calendar-plus"></i>
-                    Agendar agora
-                </button>
             </aside>
         </section>
 
@@ -791,16 +787,12 @@
                 <p class="kpi-caption" th:text="${saldoSessoesAtivas + ' sessões disponíveis'}">0 sessões disponíveis</p>
             </article>
 
-            <article class="portal-kpi-card">
+            <article class="portal-kpi-card" th:if="${whatsappUrl != null}">
                 <div class="kpi-head">
                     <p class="kpi-title">Atalhos Rápidos</p>
                     <i data-lucide="sparkles"></i>
                 </div>
                 <div class="portal-quick-actions">
-                    <a th:href="${mapsUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
-                        <i data-lucide="map"></i>
-                        Como Chegar
-                    </a>
                     <a th:if="${whatsappUrl != null}" th:href="${whatsappUrl}" target="_blank" rel="noopener" class="portal-btn portal-btn-secondary">
                         <i data-lucide="message-circle"></i>
                         WhatsApp
@@ -815,10 +807,6 @@
                     <h2 id="timelineTitle" class="panel-title">Timeline do tratamento</h2>
                     <p class="panel-subtitle">Histórico e agenda em ordem de acompanhamento.</p>
                 </div>
-                <button type="button" class="portal-btn portal-btn-secondary" data-portal-modal-open>
-                    <i data-lucide="refresh-cw"></i>
-                    Reagendar
-                </button>
             </div>
 
             <div th:if="${proximasSessoes.empty and historicoSessoes.empty}" class="portal-empty">
