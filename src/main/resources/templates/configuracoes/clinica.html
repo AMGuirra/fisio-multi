@@ -198,6 +198,55 @@
                                 </div>
                             </div>
 
+                            <div class="section-divider">
+                                <span><i data-lucide="map-pin"></i> Endereço da clínica</span>
+                                <p class="helper-text">Usado no botão "Como Chegar" do portal do paciente.</p>
+                            </div>
+
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field" style="flex: 2">
+                                    <label for="logradouro">Logradouro</label>
+                                    <input id="logradouro" type="text" class="form-control" th:field="*{logradouro}" maxlength="200" placeholder="Ex: Rua das Flores">
+                                    <p class="form-error" th:if="${#fields.hasErrors('logradouro')}" th:errors="*{logradouro}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="numero">Número</label>
+                                    <input id="numero" type="text" class="form-control" th:field="*{numero}" maxlength="20" placeholder="Ex: 123">
+                                    <p class="form-error" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></p>
+                                </div>
+                            </div>
+
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="complemento">Complemento</label>
+                                    <input id="complemento" type="text" class="form-control" th:field="*{complemento}" maxlength="100" placeholder="Ex: Sala 5, 2º andar">
+                                    <p class="form-error" th:if="${#fields.hasErrors('complemento')}" th:errors="*{complemento}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="bairro">Bairro</label>
+                                    <input id="bairro" type="text" class="form-control" th:field="*{bairro}" maxlength="100" placeholder="Ex: Centro">
+                                    <p class="form-error" th:if="${#fields.hasErrors('bairro')}" th:errors="*{bairro}"></p>
+                                </div>
+                            </div>
+
+                            <div class="form-grid form-grid-three">
+                                <div class="form-field">
+                                    <label for="cep">CEP</label>
+                                    <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric">
+                                    <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="cidade">Cidade</label>
+                                    <input id="cidade" type="text" class="form-control" th:field="*{cidade}" maxlength="100" placeholder="Ex: Campo Grande">
+                                    <p class="form-error" th:if="${#fields.hasErrors('cidade')}" th:errors="*{cidade}"></p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="estado">Estado (UF)</label>
+                                    <input id="estado" type="text" class="form-control" th:field="*{estado}" maxlength="2" placeholder="Ex: MS" style="text-transform:uppercase">
+                                    <p class="form-error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></p>
+                                </div>
+                            </div>
+
                             <div class="form-field">
                                 <label>Dias de funcionamento</label>
                                 <div class="permission-grid">
@@ -271,6 +320,15 @@
                                     <div>
                                         <p class="entity-name" th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' minutos por sessão' : 'Duração não informada'}">60 minutos por sessão</p>
                                         <p class="entity-meta">Padrão usado para os slots livres da agenda</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item" th:if="${configuracaoClinicaForm.cidade != null and !#strings.isEmpty(configuracaoClinicaForm.cidade)}">
+                                    <div>
+                                        <p class="entity-name"
+                                           th:text="${(configuracaoClinicaForm.logradouro != null and !#strings.isEmpty(configuracaoClinicaForm.logradouro) ? configuracaoClinicaForm.logradouro + (configuracaoClinicaForm.numero != null and !#strings.isEmpty(configuracaoClinicaForm.numero) ? ', ' + configuracaoClinicaForm.numero : '') + ' — ' : '') + configuracaoClinicaForm.cidade + (configuracaoClinicaForm.estado != null and !#strings.isEmpty(configuracaoClinicaForm.estado) ? '/' + configuracaoClinicaForm.estado : '')}">
+                                            Endereço da clínica
+                                        </p>
+                                        <p class="entity-meta">Usado no botão "Como Chegar" do portal do paciente</p>
                                     </div>
                                 </div>
                             </div>

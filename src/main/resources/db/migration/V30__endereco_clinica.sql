@@ -1,0 +1,8 @@
+ALTER TABLE configuracao_clinica
+    ADD COLUMN IF NOT EXISTS logradouro   VARCHAR(200),
+    ADD COLUMN IF NOT EXISTS numero       VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS complemento  VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS bairro       VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS cidade       VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS estado       CHAR(2),
+    ADD COLUMN IF NOT EXISTS cep          VARCHAR(9);

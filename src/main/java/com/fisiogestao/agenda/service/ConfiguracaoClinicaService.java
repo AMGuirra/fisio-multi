@@ -65,6 +65,13 @@ public class ConfiguracaoClinicaService {
         entity.setTimezoneId(normalizarTimezone(form.getTimezoneId()));
         entity.setTelefoneWhatsapp(normalizarTelefone(form.getTelefoneWhatsapp()));
         entity.setEmailContato(normalizarEmail(form.getEmailContato()));
+        entity.setLogradouro(normalizar(form.getLogradouro()));
+        entity.setNumero(normalizar(form.getNumero()));
+        entity.setComplemento(normalizar(form.getComplemento()));
+        entity.setBairro(normalizar(form.getBairro()));
+        entity.setCidade(normalizar(form.getCidade()));
+        entity.setEstado(normalizarEstado(form.getEstado()));
+        entity.setCep(normalizar(form.getCep()));
         entity.setAtivo(true);
 
         ConfiguracaoClinicaEntity salva = configuracaoClinicaRepository.save(entity);
@@ -177,6 +184,13 @@ public class ConfiguracaoClinicaService {
         form.setTimezoneId(entity.getTimezoneId());
         form.setTelefoneWhatsapp(entity.getTelefoneWhatsapp());
         form.setEmailContato(entity.getEmailContato());
+        form.setLogradouro(entity.getLogradouro());
+        form.setNumero(entity.getNumero());
+        form.setComplemento(entity.getComplemento());
+        form.setBairro(entity.getBairro());
+        form.setCidade(entity.getCidade());
+        form.setEstado(entity.getEstado());
+        form.setCep(entity.getCep());
         return form;
     }
 
@@ -244,6 +258,21 @@ public class ConfiguracaoClinicaService {
             throw new BusinessException("Informe um e-mail de contato válido.");
         }
         return email;
+    }
+
+    private String normalizar(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        return valor.trim();
+    }
+
+    private String normalizarEstado(String estado) {
+        String v = normalizar(estado);
+        if (v == null) {
+            return null;
+        }
+        return v.toUpperCase(Locale.ROOT);
     }
 
     public record TimezoneOption(String id, String label) {

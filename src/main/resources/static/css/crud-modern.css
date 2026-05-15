@@ -2175,6 +2175,35 @@ body[data-theme='dark'] .cal-chip-danger {
     line-height: 1.5;
 }
 
+.section-divider {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.75rem 0 0.25rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+
+.section-divider span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2d6a4f;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.section-divider span [data-lucide] {
+    width: 14px;
+    height: 14px;
+}
+
+.section-divider .helper-text {
+    margin: 0;
+}
+
 .field-label-row {
     display: flex;
     align-items: center;

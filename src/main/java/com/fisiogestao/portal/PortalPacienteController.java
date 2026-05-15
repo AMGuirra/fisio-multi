@@ -331,11 +331,32 @@ public class PortalPacienteController {
     }
 
     private String buildMapsUrl(ConfiguracaoClinicaEntity clinica) {
-        String termo = clinica != null && clinica.getNomeClinica() != null && !clinica.getNomeClinica().isBlank()
-                ? clinica.getNomeClinica()
-                : "clinica de fisioterapia";
-        return "https://www.google.com/maps/search/?api=1&query="
-                + URLEncoder.encode(termo, StandardCharsets.UTF_8);
+        if (clinica == null) {
+            return "https://www.google.com/maps/search/?api=1&query=clinica+de+fisioterapia";
+        }
+        String endereco = buildEnderecoCompleto(clinica);
+        String termo = !endereco.isBlank() ? endereco : (clinica.getNomeClinica() != null ? clinica.getNomeClinica() : "clinica de fisioterapia");
+        return "https://www.google.com/maps/search/?api=1&query=" + URLEncoder.encode(termo, StandardCharsets.UTF_8);
+    }
+
+    private String buildEnderecoCompleto(ConfiguracaoClinicaEntity clinica) {
+        StringBuilder sb = new StringBuilder();
+        if (clinica.getLogradouro() != null && !clinica.getLogradouro().isBlank()) {
+            sb.append(clinica.getLogradouro().trim());
+        }
+        if (clinica.getNumero() != null && !clinica.getNumero().isBlank()) {
+            sb.append(sb.isEmpty() ? "" : ", ").append(clinica.getNumero().trim());
+        }
+        if (clinica.getBairro() != null && !clinica.getBairro().isBlank()) {
+            sb.append(sb.isEmpty() ? "" : ", ").append(clinica.getBairro().trim());
+        }
+        if (clinica.getCidade() != null && !clinica.getCidade().isBlank()) {
+            sb.append(sb.isEmpty() ? "" : ", ").append(clinica.getCidade().trim());
+        }
+        if (clinica.getEstado() != null && !clinica.getEstado().isBlank()) {
+            sb.append(sb.isEmpty() ? "" : " - ").append(clinica.getEstado().trim().toUpperCase());
+        }
+        return sb.toString();
     }
 
     private String gerarReciboTexto(ClienteEntity paciente, LancamentoFinanceiroEntity lancamento) {

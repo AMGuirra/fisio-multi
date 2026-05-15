@@ -58,4 +58,25 @@ public class ConfiguracaoClinicaForm {
     @Email(message = "Informe um e-mail de contato válido.")
     @Size(max = 120, message = "O e-mail de contato deve ter até 120 caracteres.")
     private String emailContato;
+
+    @Size(max = 200, message = "O logradouro deve ter até 200 caracteres.")
+    private String logradouro;
+
+    @Size(max = 20, message = "O número deve ter até 20 caracteres.")
+    private String numero;
+
+    @Size(max = 100, message = "O complemento deve ter até 100 caracteres.")
+    private String complemento;
+
+    @Size(max = 100, message = "O bairro deve ter até 100 caracteres.")
+    private String bairro;
+
+    @Size(max = 100, message = "A cidade deve ter até 100 caracteres.")
+    private String cidade;
+
+    @Size(max = 2, message = "Informe a sigla do estado (2 letras).")
+    private String estado;
+
+    @Size(max = 9, message = "O CEP deve ter até 9 caracteres.")
+    private String cep;
 }
