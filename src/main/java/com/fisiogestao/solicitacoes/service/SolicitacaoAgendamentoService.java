@@ -83,26 +83,23 @@ public class SolicitacaoAgendamentoService {
         String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
         ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
 
-        // Quando há filtro de datas, usamos uma query delimitada por updatedAt para
-        // evitar
-        // full table scan. Sem datas, carrega somente os não-PENDENTE ordenados.
-        List<SolicitacaoAgendamentoEntity> candidatos;
-        if (inicioInclusive != null && fimInclusive != null) {
-            OffsetDateTime dtInicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
-            OffsetDateTime dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
-            candidatos = solicitacaoAgendamentoRepository
-                    .findByStatusNotAndUpdatedAtBetweenOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE, dtInicio,
-                            dtFim);
-        } else {
-            candidatos = solicitacaoAgendamentoRepository
-                    .findByStatusNotOrderByUpdatedAtDesc(SolicitacaoStatus.PENDENTE);
+        OffsetDateTime dtInicio = null;
+        OffsetDateTime dtFim = null;
+        if (inicioInclusive != null) {
+            dtInicio = inicioInclusive.atStartOfDay(zoneId).toOffsetDateTime();
+        }
+        if (fimInclusive != null) {
+            dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
         }
 
-        return candidatos.stream()
-                .filter(sol -> status == null || sol.getStatus() == status)
-                .filter(sol -> correspondeDataHistorico(sol, inicioInclusive, fimInclusive, zoneId))
-                .filter(sol -> correspondeBuscaHistorico(sol, buscaTexto, buscaTelefone))
-                .toList(); // já ordenado pelo banco; sem sorted() redundante
+        return solicitacaoAgendamentoRepository.filtrarHistoricoNoBanco(
+                SolicitacaoStatus.PENDENTE,
+                status,
+                dtInicio,
+                dtFim,
+                buscaTexto,
+                buscaTelefone
+        );
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
