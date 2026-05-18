@@ -892,6 +892,49 @@
                                 Realizada
                             </span>
                         </div>
+
+                        <!-- EVA já respondida -->
+                        <div th:if="${sessao.feedbackEvaPaciente != null}"
+                             class="eva-resultado"
+                             aria-label="Sua avaliação de dor para esta sessão">
+                            <i data-lucide="heart-pulse"></i>
+                            <span>Sua dor nessa sessão: <strong th:text="${sessao.feedbackEvaPaciente} + '/10'">5/10</strong></span>
+                            <span th:if="${sessao.feedbackObsPaciente != null}" class="eva-obs" th:text="'— ' + ${sessao.feedbackObsPaciente}"></span>
+                        </div>
+
+                        <!-- Formulário EVA: só para REALIZADA ou FALTA_FATURADA sem feedback -->
+                        <details th:if="${sessao.feedbackEvaPaciente == null and (sessao.status.name() == 'REALIZADA' or sessao.status.name() == 'FALTA_FATURADA')}"
+                                 class="eva-form-details">
+                            <summary class="eva-form-summary">
+                                <i data-lucide="star"></i>
+                                Como estava sua dor nesta sessão?
+                            </summary>
+                            <form th:action="@{/paciente/{token}/sessao/{sid}/feedback-eva(token=${token},sid=${sessao.id})}"
+                                  method="post" class="eva-form">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <fieldset class="eva-scale">
+                                    <legend class="sr-only">Nota de dor (0 = sem dor, 10 = pior dor)</legend>
+                                    <th:block th:each="n : ${#numbers.sequence(0, 10)}">
+                                        <label th:for="${'eva-' + sessao.id + '-' + n}" class="eva-label">
+                                            <input type="radio" name="eva"
+                                                   th:id="${'eva-' + sessao.id + '-' + n}"
+                                                   th:value="${n}" required>
+                                            <span th:text="${n}">0</span>
+                                        </label>
+                                    </th:block>
+                                </fieldset>
+                                <div class="eva-scale-legend">
+                                    <span>Sem dor</span>
+                                    <span>Pior dor</span>
+                                </div>
+                                <textarea name="obs" class="portal-control" rows="2"
+                                          placeholder="Alguma observação? (opcional)"></textarea>
+                                <button type="submit" class="portal-btn portal-btn-primary eva-submit">
+                                    <i data-lucide="send"></i>
+                                    Enviar avaliação
+                                </button>
+                            </form>
+                        </details>
                     </article>
                 </li>
             </ol>
@@ -942,6 +985,71 @@
                     </a>
                 </div>
             </div>
+        </section>
+
+        <!-- Lista de espera -->
+        <section class="portal-panel" aria-labelledby="listaEsperaTitle">
+            <div class="panel-header">
+                <div>
+                    <h2 id="listaEsperaTitle" class="panel-title">Lista de espera</h2>
+                    <p class="panel-subtitle">Quando não há horário disponível, entre na fila e seja avisado.</p>
+                </div>
+            </div>
+
+            <!-- Paciente JÁ está na lista -->
+            <div th:if="${naListaEspera}" class="eva-resultado" style="margin:0">
+                <i data-lucide="clock"></i>
+                <span>Você está na lista de espera. Entraremos em contato assim que houver uma vaga disponível.</span>
+            </div>
+            <div th:if="${naListaEspera and !listaEsperaEntradas.empty}">
+                <div th:each="entrada : ${listaEsperaEntradas}" th:if="${entrada.status.name() == 'AGUARDANDO'}" style="margin-top:0.75rem">
+                    <form th:action="@{/paciente/{token}/lista-espera/{eid}/cancelar(token=${token},eid=${entrada.id})}"
+                          method="post" data-confirm-message="Deseja sair da lista de espera?">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                        <button type="submit" class="portal-btn portal-btn-secondary" style="font-size:0.8rem">
+                            <i data-lucide="x"></i>
+                            Sair da lista de espera
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Formulário para entrar -->
+            <details th:unless="${naListaEspera}" class="eva-form-details" style="margin-top:0">
+                <summary class="eva-form-summary">
+                    <i data-lucide="clock"></i>
+                    Entrar na lista de espera
+                </summary>
+                <form th:action="@{/paciente/{token}/lista-espera/entrar(token=${token})}"
+                      method="post" class="eva-form" style="margin-top:0.75rem">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <div class="portal-form-grid" style="margin:0">
+                        <div class="portal-form-field">
+                            <label for="periodo">Período preferido</label>
+                            <select id="periodo" name="periodo" class="portal-control">
+                                <option value="QUALQUER">Qualquer horário</option>
+                                <option value="MANHA">Manhã</option>
+                                <option value="TARDE">Tarde</option>
+                                <option value="NOITE">Noite</option>
+                            </select>
+                        </div>
+                        <div class="portal-form-field">
+                            <label for="diasSemana">Dias preferidos</label>
+                            <input type="text" id="diasSemana" name="diasSemana" class="portal-control"
+                                   placeholder="Ex: Segunda, Quarta">
+                        </div>
+                        <div class="portal-form-field full">
+                            <label for="obsEspera">Observações</label>
+                            <textarea id="obsEspera" name="observacoes" class="portal-control" rows="2"
+                                      placeholder="Algum horário específico ou restrição?"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="portal-btn portal-btn-primary eva-submit">
+                        <i data-lucide="clock"></i>
+                        Entrar na lista de espera
+                    </button>
+                </form>
+            </details>
         </section>
 
         <details class="portal-details" th:if="${!planosEncerrados.empty}">

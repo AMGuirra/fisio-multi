@@ -1299,3 +1299,49 @@ footer.portal-footer {
     .recibo-row    { flex-direction: column; align-items: flex-start; }
     .historico-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* ── EVA Feedback (portal do paciente) ─────────────────────────────────── */
+.eva-resultado {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    margin-top: 0.75rem; padding: 0.5rem 0.75rem;
+    background: var(--bg-surface, #f8fafc); border-radius: var(--radius-sm, 8px);
+    font-size: 0.82rem; color: var(--text-body, #607988);
+    border: 1px solid var(--stroke-soft, #e2ece9);
+}
+.eva-resultado i { width: 14px; height: 14px; color: var(--brand-500, #0f8f7a); flex-shrink: 0; }
+.eva-obs { color: var(--text-body, #607988); font-style: italic; }
+
+.eva-form-details { margin-top: 0.75rem; }
+.eva-form-summary {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.82rem; font-weight: 600; color: var(--brand-600, #0a7060);
+    cursor: pointer; list-style: none; user-select: none;
+}
+.eva-form-summary::-webkit-details-marker { display: none; }
+.eva-form-summary i { width: 14px; height: 14px; }
+
+.eva-form { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
+
+.eva-scale {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    border: none; padding: 0; margin: 0;
+}
+.eva-label {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.15rem; cursor: pointer;
+}
+.eva-label input[type="radio"] { accent-color: var(--brand-500, #0f8f7a); width: 16px; height: 16px; }
+.eva-label span { font-size: 0.72rem; font-weight: 600; color: var(--text-body, #607988); }
+.eva-label:has(input:checked) span { color: var(--brand-600, #0a7060); }
+
+.eva-scale-legend {
+    display: flex; justify-content: space-between;
+    font-size: 0.7rem; color: var(--text-muted, #8fa8b0);
+}
+
+.eva-submit { align-self: flex-start; }
+
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}

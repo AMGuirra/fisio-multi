@@ -55,8 +55,12 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/solicitacoes}" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/lista-espera}" class="page-tab">
+                    <i data-lucide="clock"></i> Lista de Espera
+                    <span th:if="${aguardandoListaEspera > 0}" class="tab-badge" th:text="${aguardandoListaEspera}">0</span>
+                </a>
             </nav>
 
             <div class="solicitacoes-content">
@@ -148,9 +152,16 @@
                                                                  data-email=${sol.email},
                                                                  data-cpf=${sol.cpf},
                                                                  data-local=${sol.localAtendimento}">Aprovar</button>
-                                                <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form">
+                                                <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form rejeitar-form">
                                                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                    <button type="submit" class="action-button sol-btn sol-btn-danger">Negar</button>
+                                                    <button type="submit" name="adicionarListaEspera" value="false"
+                                                            class="action-button sol-btn sol-btn-danger">Negar</button>
+                                                    <button th:if="${sol.cliente != null}" type="submit"
+                                                            name="adicionarListaEspera" value="true"
+                                                            class="action-button sol-btn sol-btn-warning"
+                                                            title="Negar e adicionar à lista de espera">
+                                                        <i data-lucide="clock"></i> + Fila
+                                                    </button>
                                                 </form>
                                                 <button type="button"
                                                         class="action-button sol-btn sol-btn-neutral open-editar"

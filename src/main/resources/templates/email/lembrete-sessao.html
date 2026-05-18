@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Lembrete de sessão amanhã', ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">Passando para lembrar que você tem uma sessão marcada <strong>amanhã</strong>. Te esperamos!</p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;">Sessão</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;" th:text="${data}">01/01/2026</div>
+        <div style="color:#4f6670;margin-top:2px;">às <strong th:text="${hora}">10:00</strong></div>
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
+        <tr><td style="padding:8px 0;color:#65808a;">Local</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${local}">Clínica</td></tr>
+        <tr><td style="padding:8px 0;color:#65808a;">Profissional</td><td align="right" style="padding:8px 0;font-weight:700;" th:text="${profissional}">Equipe da clínica</td></tr>
+    </table>
+
+    <p style="margin:0;font-size:13px;color:#65808a;">
+        Caso precise cancelar ou reagendar, acesse o seu portal ou entre em contato com a clínica com pelo menos 24 horas de antecedência.
+    </p>
+</section>
+</body>
+</html>

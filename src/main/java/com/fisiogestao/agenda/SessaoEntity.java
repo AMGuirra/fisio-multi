@@ -80,4 +80,17 @@ public class SessaoEntity extends BaseEntity {
     @Column(name = "confirmado_pelo_paciente", nullable = false)
     @Builder.Default
     private Boolean confirmadoPeloPaciente = Boolean.FALSE;
+
+    /** Escala EVA (0-10) informada pelo paciente via portal após a sessão (V32). */
+    @Column(name = "feedback_eva_paciente")
+    private Integer feedbackEvaPaciente;
+
+    /** Observação livre do paciente sobre a sessão (V32). */
+    @Column(name = "feedback_obs_paciente", columnDefinition = "TEXT")
+    private String feedbackObsPaciente;
+
+    /** True quando o lembrete automático de 24h foi enviado para esta sessão (V32). */
+    @Column(name = "lembrete_enviado", nullable = false)
+    @Builder.Default
+    private Boolean lembreteEnviado = Boolean.FALSE;
 }

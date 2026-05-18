@@ -398,7 +398,7 @@ class PageSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar Lançamento")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar alterações")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Marcar pago")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Baixa")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar")));
     }
 

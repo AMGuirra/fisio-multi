@@ -94,10 +94,11 @@ public class FinanceiroController {
     @PostMapping("/lancamentos/{id}/pagar")
     public String marcarComoPago(
             @PathVariable("id") UUID id,
+            @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            financeiroService.marcarComoPago(id);
+            financeiroService.marcarComoPago(id, metodoPagamento);
             redirectAttributes.addFlashAttribute("successMessage", "Lançamento marcado como pago.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -151,6 +152,7 @@ public class FinanceiroController {
 
         model.addAttribute("lancamentoForm", formResolvido);
         model.addAttribute("tiposLancamento", TipoLancamentoFinanceiro.values());
+        model.addAttribute("metodosPagamento", MetodoPagamento.values());
         model.addAttribute("lancamentos", financeiroService.listarNoPeriodo(periodoInicio, periodoFim));
         model.addAttribute("resumo", resumo);
         model.addAttribute("periodoInicio", periodoInicio);

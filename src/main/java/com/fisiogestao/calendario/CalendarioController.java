@@ -51,11 +51,19 @@ public class CalendarioController {
     public String index(
             @RequestParam(name = "mes", required = false) String mes,
             @RequestParam(name = "data", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "clienteId", required = false) UUID clienteId,
             Model model
     ) {
         YearMonth mesSelecionado = resolverMesSelecionado(mes, data);
         LocalDate dataSelecionada = resolverDataSelecionada(mesSelecionado, data);
         carregarPagina(model, mesSelecionado, dataSelecionada);
+        if (clienteId != null) {
+            try {
+                model.addAttribute("clienteDestaque",
+                        pacienteService.buscarPorId(clienteId).getNomeCompleto());
+            } catch (Exception ignored) {
+            }
+        }
         return "calendario/index";
     }
 

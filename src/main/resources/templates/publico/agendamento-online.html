@@ -27,7 +27,12 @@
             <div id="noSlotsAlert" class="pub-alert pub-alert-info"
                  th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
                 <i data-lucide="info"></i>
-                <span>Não há horários disponíveis para a data selecionada. Escolha outra data para continuar.</span>
+                <span>Não há horários disponíveis para a data selecionada. Escolha outra data ou
+                    <a th:href="@{/lista-espera-publica}" href="/lista-espera-publica"
+                       style="color:#0f8f7a;font-weight:600;text-decoration:underline;">
+                        entre na lista de espera
+                    </a> para ser avisado quando houver vaga.
+                </span>
             </div>
 
             <form th:action="@{/agendamento-online}" th:object="${form}" method="post" novalidate>

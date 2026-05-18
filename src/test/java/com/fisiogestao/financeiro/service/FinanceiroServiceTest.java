@@ -155,7 +155,7 @@ class FinanceiroServiceTest {
         when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        financeiroService.marcarComoPago(lancamento.getId());
+        financeiroService.marcarComoPago(lancamento.getId(), null);
 
         assertEquals(StatusLancamentoFinanceiro.PAGO, lancamento.getStatus());
         assertNotNull(lancamento.getDataPagamento());
@@ -169,7 +169,7 @@ class FinanceiroServiceTest {
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> financeiroService.marcarComoPago(lancamento.getId()));
+                () -> financeiroService.marcarComoPago(lancamento.getId(), null));
         assertEquals("Apenas lançamentos pendentes podem ser marcados como pagos.", ex.getMessage());
     }
 
@@ -181,7 +181,7 @@ class FinanceiroServiceTest {
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
         assertThrows(BusinessException.class,
-                () -> financeiroService.marcarComoPago(lancamento.getId()));
+                () -> financeiroService.marcarComoPago(lancamento.getId(), null));
     }
 
     // -----------------------------------------------------------------------

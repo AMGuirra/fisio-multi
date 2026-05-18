@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Há uma vaga disponível para você!', ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">
+        Temos uma <strong>vaga disponível</strong> na agenda e você está na nossa lista de espera!
+        Entre em contato o quanto antes para garantir o seu horário.
+    </p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;">Local</div>
+        <div style="font-size:18px;font-weight:700;color:#18323a;margin-top:6px;" th:text="${nomeClinica}">Clínica</div>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#65808a;">
+        Entre em contato diretamente com a clínica pelo WhatsApp ou telefone para confirmar o horário.
+        Esta notificação não garante a reserva — o horário será confirmado apenas após o contato.
+    </p>
+</section>
+</body>
+</html>

@@ -13,7 +13,8 @@ public enum AuditModule {
     CONFIGURACOES("Configurações"),
     SOLICITACOES("Solicitações"),
     EMAIL("E-mail"),
-    AUDITORIA("Auditoria");
+    AUDITORIA("Auditoria"),
+    LISTA_ESPERA("Lista de Espera");
 
     private final String label;
 

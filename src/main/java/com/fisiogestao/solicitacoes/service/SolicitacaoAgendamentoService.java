@@ -324,7 +324,7 @@ public class SolicitacaoAgendamentoService {
     }
 
     @Transactional
-    public void rejeitarSolicitacao(UUID solicitacaoId) {
+    public SolicitacaoAgendamentoEntity rejeitarSolicitacao(UUID solicitacaoId) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
@@ -352,6 +352,7 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL);
 
         agendamentoEmailNotificationService.notificarRecusado(solicitacao);
+        return salva;
     }
 
     @Transactional

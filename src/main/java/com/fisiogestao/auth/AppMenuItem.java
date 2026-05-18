@@ -10,6 +10,7 @@ public enum AppMenuItem {
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/configuracoes/clinica#secao-bloqueios", "calendar-x-2", false, false, false, false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
+    LISTA_ESPERA("Lista de Espera", "/lista-espera",        "clock",               false, false, true,  false, MenuSection.AGENDA, List.of("/lista-espera")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
     PLANOS_SESSOES("Planos de Tratamentos", "/planos-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/planos-consumo")),
     PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
@@ -151,6 +152,8 @@ public enum AppMenuItem {
                 return "Configura envio de e-mails e parametros de comunicacao.";
             case AUDITORIA:
                 return "Permite consultar o historico de acoes realizadas no sistema.";
+            case LISTA_ESPERA:
+                return "Gerencia pacientes aguardando um horario disponivel para agendamento.";
             case AGENDAMENTO_ONLINE:
                 return "Disponibiliza o link e o acesso ao agendamento online da clinica.";
             default:
@@ -179,6 +182,7 @@ public enum AppMenuItem {
                 DASHBOARD,
                 AGENDA,
                 SOLICITACOES,
+                LISTA_ESPERA,
                 PACIENTES,
                 PLANOS_SESSOES,
                 PRONTUARIO,

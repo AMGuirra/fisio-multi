@@ -33,6 +33,19 @@
                                     <p class="session-text" th:text="${sessao.tipoAgendamento != null and sessao.tipoAgendamento.name() == 'AVULSO' ? 'Consulta avulsa' : (sessao.planoSessao != null ? 'Plano: ' + sessao.planoSessao.nomePlano : 'Sem plano vinculado')}">Plano</p>
                                     <p class="session-text" th:if="${sessao.valorAvulso != null}" th:text="${'Valor: R$ ' + #numbers.formatDecimal(sessao.valorAvulso, 1, 'POINT', 2, 'COMMA')}">Valor</p>
                                     <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
+                                    <!-- EVA auto-reportada pelo paciente via portal -->
+                                    <p th:if="${sessao.feedbackEvaPaciente != null}"
+                                       class="session-text"
+                                       style="display:flex;align-items:center;gap:0.3rem;">
+                                        <span style="font-size:0.7rem;font-weight:700;opacity:.6;">EVA paciente:</span>
+                                        <span class="chip"
+                                              style="font-size:0.68rem;padding:0 6px;"
+                                              th:classappend="${sessao.feedbackEvaPaciente <= 3 ? 'status-completed' : (sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
+                                              th:text="${sessao.feedbackEvaPaciente} + '/10'">5/10</span>
+                                        <span th:if="${sessao.feedbackObsPaciente != null}"
+                                              style="font-size:0.7rem;font-style:italic;opacity:.7;"
+                                              th:text="${sessao.feedbackObsPaciente}"></span>
+                                    </p>
                                 </div>
                                 <div class="session-actions">
                                     <div class="session-actions-top">

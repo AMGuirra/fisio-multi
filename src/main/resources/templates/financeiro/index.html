@@ -231,6 +231,7 @@
                                     <th>Descrição</th>
                                     <th>Tipo</th>
                                     <th>Status</th>
+                                    <th>Forma de Pgto</th>
                                     <th class="text-right">Valor</th>
                                     <th class="text-right">Ação</th>
                                 </tr>
@@ -251,6 +252,12 @@
                                     </td>
                                     <td>
                                         <span class="chip" th:classappend="${lancamento.status.name() == 'PAGO' ? 'status-pago' : (lancamento.status.name() == 'CANCELADO' ? 'status-cancelado' : 'status-pendente')}" th:text="${lancamento.status.name()}">PENDENTE</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${lancamento.metodoPagamento != null}"
+                                              class="chip"
+                                              th:text="${lancamento.metodoPagamento.label}">—</span>
+                                        <span th:if="${lancamento.metodoPagamento == null}" style="color:#8fa8b0">—</span>
                                     </td>
                                     <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
                                     <td class="text-right">
@@ -279,16 +286,21 @@
                                             <form th:if="${lancamento.status.name() == 'PENDENTE'}"
                                                   th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}"
                                                   method="post"
-                                                  class="inline-form"
-                                                  data-confirm-modal
-                                                  data-confirm-title="Marcar como pago?"
-                                                  data-confirm-message="Deseja marcar este lançamento como pago?"
-                                                  data-confirm-helper-title="A baixa será registrada agora"
-                                                  data-confirm-helper-message="O lançamento sairá dos pendentes e ficará registrado como pago."
-                                                  data-confirm-action-label="Marcar pago">
+                                                  class="inline-form baixa-form">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento">
+                                                    <option value="">Forma de pgto</option>
+                                                    <option value="PIX">PIX</option>
+                                                    <option value="DINHEIRO">Dinheiro</option>
+                                                    <option value="CARTAO_CREDITO">Cartão crédito</option>
+                                                    <option value="CARTAO_DEBITO">Cartão débito</option>
+                                                    <option value="TRANSFERENCIA">Transferência</option>
+                                                    <option value="CHEQUE">Cheque</option>
+                                                    <option value="OUTRO">Outro</option>
+                                                </select>
                                                 <button type="submit" class="action-button success">
                                                     <i data-lucide="check-check"></i>
-                                                    Marcar pago
+                                                    Baixa
                                                 </button>
                                             </form>
                                             <form th:if="${lancamento.status.name() == 'PAGO'}"

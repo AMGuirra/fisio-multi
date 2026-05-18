@@ -17,6 +17,10 @@ import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
+import com.fisiogestao.listaespera.ListaEsperaEntity;
+import com.fisiogestao.listaespera.ListaEsperaService;
+import com.fisiogestao.listaespera.PeriodoPreferido;
+import com.fisiogestao.listaespera.StatusListaEspera;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -61,6 +66,7 @@ public class PortalPacienteController {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AgendaService agendaService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
+    private final ListaEsperaService listaEsperaService;
 
     @GetMapping("/{token}")
     public String portal(@PathVariable UUID token, Model model) {
@@ -148,8 +154,15 @@ public class PortalPacienteController {
         model.addAttribute("faltasFaturadas", faltasFaturadas);
         model.addAttribute("recibos", recibos);
         model.addAttribute("horasMinimasCancelamento", HORAS_MINIMAS_CANCELAMENTO);
+        List<ListaEsperaEntity> listaEsperaEntradas = listaEsperaService.listarPorCliente(paciente.getId());
+        boolean naListaEspera = listaEsperaEntradas.stream()
+                .anyMatch(e -> e.getStatus() == StatusListaEspera.AGUARDANDO);
+
         model.addAttribute("mapsUrl", buildMapsUrl(clinica));
         model.addAttribute("agendamentoForm", montarAgendamentoForm(paciente));
+        model.addAttribute("listaEsperaEntradas", listaEsperaEntradas);
+        model.addAttribute("periodoPreferidoOpcoes", PeriodoPreferido.values());
+        model.addAttribute("naListaEspera", naListaEspera);
 
         return "portal/index";
     }
@@ -232,6 +245,85 @@ public class PortalPacienteController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
+        return "redirect:/paciente/" + token;
+    }
+
+    @PostMapping("/{token}/lista-espera/entrar")
+    public String entrarNaListaEspera(
+            @PathVariable UUID token,
+            @RequestParam(value = "periodo", required = false) PeriodoPreferido periodo,
+            @RequestParam(value = "diasSemana", required = false) String diasSemana,
+            @RequestParam(value = "observacoes", required = false) String observacoes,
+            RedirectAttributes redirectAttributes) {
+
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+
+        try {
+            listaEsperaService.entrarNaFila(paciente, periodo, diasSemana, observacoes);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Você entrou na lista de espera! Entraremos em contato quando houver uma vaga.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/paciente/" + token;
+    }
+
+    @PostMapping("/{token}/lista-espera/{entradaId}/cancelar")
+    public String sairDaListaEspera(
+            @PathVariable UUID token,
+            @PathVariable UUID entradaId,
+            RedirectAttributes redirectAttributes) {
+
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+
+        try {
+            listaEsperaService.cancelarPeloPaciente(entradaId, paciente.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Você saiu da lista de espera.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/paciente/" + token;
+    }
+
+    @PostMapping("/{token}/sessao/{sessaoId}/feedback-eva")
+    public String registrarFeedbackEva(
+            @PathVariable UUID token,
+            @PathVariable UUID sessaoId,
+            @RequestParam("eva") Integer eva,
+            @RequestParam(value = "obs", required = false) String obs,
+            RedirectAttributes redirectAttributes) {
+
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+
+        if (eva == null || eva < 0 || eva > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Nota EVA inválida. Informe um valor entre 0 e 10.");
+            return "redirect:/paciente/" + token;
+        }
+
+        sessaoRepository.findById(sessaoId).ifPresent(sessao -> {
+            boolean doMesmoPaciente = sessao.getCliente().getId().equals(paciente.getId());
+            boolean statusPermite = sessao.getStatus() == com.fisiogestao.agenda.SessaoStatus.REALIZADA
+                    || sessao.getStatus() == com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA;
+            boolean semFeedback = sessao.getFeedbackEvaPaciente() == null;
+            if (doMesmoPaciente && statusPermite && semFeedback) {
+                sessao.setFeedbackEvaPaciente(eva);
+                if (obs != null && !obs.isBlank()) {
+                    sessao.setFeedbackObsPaciente(obs.trim());
+                }
+                sessaoRepository.save(sessao);
+            }
+        });
+
+        redirectAttributes.addFlashAttribute("successMessage", "Obrigado pelo seu feedback!");
         return "redirect:/paciente/" + token;
     }
 
@@ -370,6 +462,10 @@ public class PortalPacienteController {
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         BigDecimal valor = lancamento.getValor() != null ? lancamento.getValor() : BigDecimal.ZERO;
 
+        String formaPagamento = lancamento.getMetodoPagamento() != null
+                ? lancamento.getMetodoPagamento().getLabel()
+                : "Não informada";
+
         return """
                 RECIBO DE PAGAMENTO
 
@@ -378,6 +474,7 @@ public class PortalPacienteController {
                 Categoria: %s
                 Competencia: %s
                 Data do pagamento: %s
+                Forma de pagamento: %s
                 Valor: %s
 
                 Este recibo foi emitido pelo portal do paciente.
@@ -387,6 +484,7 @@ public class PortalPacienteController {
                 lancamento.getCategoria(),
                 competencia,
                 dataPagamento,
+                formaPagamento,
                 moeda.format(valor));
     }
 }

@@ -4234,3 +4234,47 @@ body.modal-open {
         min-width: 10px;
     }
 }
+
+/* ── Badge nas abas de navegação ─────────────────────────────────────────── */
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 999px;
+    background: var(--brand-500, #0f8f7a);
+    color: #fff;
+    margin-left: 0.3rem;
+}
+
+/* ── Botão "Negar + Fila" lado a lado ────────────────────────────────────── */
+.rejeitar-form { display: inline-flex; gap: 0.25rem; align-items: center; }
+.sol-btn-warning {
+    background: #f59e0b; color: #fff; border: none;
+    font-size: 0.75rem; padding: 0.3rem 0.55rem;
+}
+.sol-btn-warning:hover { background: #d97706; }
+
+/* ── Baixa com método de pagamento ───────────────────────────────────────── */
+.baixa-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+}
+
+.baixa-select {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--stroke-soft, #e0eae7);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--bg-surface, #fff);
+    color: var(--text-strong, #18323a);
+    cursor: pointer;
+    max-width: 140px;
+}

@@ -370,11 +370,17 @@
                                               th:text="${#temporals.format(registro.sessao.dataHoraInicio, 'dd/MM HH:mm')}">
                                             Sessão
                                         </span>
-                                        <!-- EVA badge com cor por nível de dor -->
+                                        <!-- EVA do fisioterapeuta (SOAP) -->
                                         <span th:if="${registro.escalaEvaDor != null}"
                                               class="chip"
                                               th:classappend="${registro.escalaEvaDor <= 3 ? 'status-approved' : (registro.escalaEvaDor <= 6 ? 'status-warning' : 'status-danger')}"
-                                              th:text="'EVA ' + ${registro.escalaEvaDor}">EVA</span>
+                                              th:text="'EVA clínica: ' + ${registro.escalaEvaDor}">EVA</span>
+                                        <!-- EVA auto-reportada pelo paciente via portal -->
+                                        <span th:if="${registro.sessao != null and registro.sessao.feedbackEvaPaciente != null}"
+                                              class="chip"
+                                              th:classappend="${registro.sessao.feedbackEvaPaciente <= 3 ? 'status-approved' : (registro.sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
+                                              th:title="'Nota informada pelo próprio paciente no portal'"
+                                              th:text="'EVA paciente: ' + ${registro.sessao.feedbackEvaPaciente}">EVA Paciente</span>
                                         <span th:if="${registro.regiaoCorporal != null and !#strings.isEmpty(registro.regiaoCorporal)}"
                                               class="chip status-info"
                                               th:text="${registro.regiaoCorporal}">Região</span>

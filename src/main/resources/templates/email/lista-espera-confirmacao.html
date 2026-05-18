@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Você está na lista de espera', ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">
+        Recebemos seu contato e você foi adicionado à nossa lista de espera.
+        Assim que um horário ficar disponível, nossa equipe entrará em contato.
+    </p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;">Sua preferência</div>
+        <div style="font-size:18px;font-weight:700;color:#18323a;margin-top:6px;" th:text="${periodoPreferido}">Qualquer horário</div>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#65808a;">
+        Você pode entrar em contato diretamente com a clínica pelo WhatsApp ou telefone caso queira informações sobre a disponibilidade.
+    </p>
+</section>
+</body>
+</html>

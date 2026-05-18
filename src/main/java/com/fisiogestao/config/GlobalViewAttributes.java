@@ -4,6 +4,8 @@ import com.fisiogestao.auth.InMemoryUserCatalog;
 import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UserMenuAccessService;
 import com.fisiogestao.auth.UserRole;
+import com.fisiogestao.listaespera.ListaEsperaRepository;
+import com.fisiogestao.listaespera.StatusListaEspera;
 import com.fisiogestao.status.SystemStatusEntity;
 import com.fisiogestao.status.SystemStatusService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,15 +25,18 @@ public class GlobalViewAttributes {
     private final InMemoryUserCatalog userCatalog;
     private final UserMenuAccessService userMenuAccessService;
     private final SystemStatusService systemStatusService;
+    private final ListaEsperaRepository listaEsperaRepository;
 
     public GlobalViewAttributes(
             InMemoryUserCatalog userCatalog,
             UserMenuAccessService userMenuAccessService,
-            SystemStatusService systemStatusService
+            SystemStatusService systemStatusService,
+            ListaEsperaRepository listaEsperaRepository
     ) {
         this.userCatalog = userCatalog;
         this.userMenuAccessService = userMenuAccessService;
         this.systemStatusService = systemStatusService;
+        this.listaEsperaRepository = listaEsperaRepository;
     }
 
     @ModelAttribute("loggedUsername")
@@ -166,5 +171,17 @@ public class GlobalViewAttributes {
     @ModelAttribute("systemStatusAtual")
     public SystemStatusEntity systemStatusAtual() {
         return systemStatusService.getStatusAtual();
+    }
+
+    @ModelAttribute("aguardandoListaEspera")
+    public long aguardandoListaEspera(Authentication authentication) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return 0;
+        }
+        try {
+            return listaEsperaRepository.countByStatus(StatusListaEspera.AGUARDANDO);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

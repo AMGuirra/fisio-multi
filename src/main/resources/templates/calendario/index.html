@@ -55,13 +55,21 @@
             </section>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/calendario}" href="/calendario" class="page-tab active"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/calendario}" class="page-tab active"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/solicitacoes}" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/lista-espera}" class="page-tab">
+                    <i data-lucide="clock"></i> Lista de Espera
+                    <span th:if="${aguardandoListaEspera > 0}" class="tab-badge" th:text="${aguardandoListaEspera}">0</span>
+                </a>
             </nav>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+                <div th:if="${clienteDestaque}" class="flash-message success" style="background:var(--brand-50,#e6f7f4);border-color:var(--brand-300,#7dd3c8);">
+                    <i data-lucide="user-check"></i>
+                    <span>Agendando para <strong th:text="${clienteDestaque}">Paciente</strong> — use o botão <strong>+</strong> no dia desejado para criar a sessão.</span>
+                </div>
             </div>
 
             <section class="agenda-mobile-shell" aria-label="Painel mobile da agenda">

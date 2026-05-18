@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/error",
                                 "/agendamento-online",
                                 "/agendamento-online/sucesso",
+                                "/lista-espera-publica",
+                                "/lista-espera-publica/sucesso",
                                 "/paciente/**",
                                 "/actuator/health",
                                 "/actuator/health/**",

@@ -7,6 +7,7 @@ import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
+import com.fisiogestao.financeiro.MetodoPagamento;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
@@ -266,7 +267,7 @@ public class FinanceiroService {
     }
 
     @Transactional
-    public void marcarComoPago(UUID lancamentoId) {
+    public void marcarComoPago(UUID lancamentoId, MetodoPagamento metodoPagamento) {
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
                 .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(lancamento);
@@ -277,6 +278,7 @@ public class FinanceiroService {
 
         lancamento.setStatus(StatusLancamentoFinanceiro.PAGO);
         lancamento.setDataPagamento(ClinicTimezoneHolder.now());
+        lancamento.setMetodoPagamento(metodoPagamento);
         LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
         auditService.recordManual(
                 AuditModule.FINANCEIRO,

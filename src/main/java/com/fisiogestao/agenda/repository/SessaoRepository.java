@@ -68,6 +68,18 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     Optional<SessaoEntity> findByIdAndClienteIdAndStatus(UUID id, UUID clienteId, SessaoStatus status);
 
+    @EntityGraph(attributePaths = {"cliente"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+              AND s.lembreteEnviado = false
+              AND s.dataHoraInicio >= :de
+              AND s.dataHoraInicio < :ate
+            """)
+    List<SessaoEntity> findSessoesParaLembrete(
+            @Param("de") OffsetDateTime de,
+            @Param("ate") OffsetDateTime ate);
+
     @Modifying
     @Query("DELETE FROM SessaoEntity s WHERE s.planoSessao.id = :planoId AND s.status = :status AND s.dataHoraInicio > :agora")
     int deletarFuturasPorPlanoEStatus(
