@@ -82,7 +82,7 @@ public class SessaoEntity extends BaseEntity {
     private Boolean confirmadoPeloPaciente = Boolean.FALSE;
 
     /** Escala EVA (0-10) informada pelo paciente via portal após a sessão (V32). */
-    @Column(name = "feedback_eva_paciente")
+    @Column(name = "feedback_eva_paciente", columnDefinition = "SMALLINT")
     private Integer feedbackEvaPaciente;
 
     /** Observação livre do paciente sobre a sessão (V32). */
