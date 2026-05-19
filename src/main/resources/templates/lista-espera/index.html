@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Espera - FisioGestao</title>
-    <meta name="csrf-token"  th:content="${_csrf.token}">
+    <meta name="csrf-token" th:content="${_csrf.token}">
     <meta name="csrf-header" th:content="${_csrf.headerName}">
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,12 +22,12 @@
     <div class="app-shell">
         <header class="app-header">
             <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar">
                     <i data-lucide="panel-left" aria-hidden="true"></i>
                 </button>
                 <div class="header-copy">
                     <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
-                    <p class="header-date skeletonable" id="headerFullDate">Segunda-feira, 01 de janeiro de 2026</p>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
                 </div>
             </div>
             <div class="header-right">
@@ -39,104 +39,148 @@
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
+                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
                         <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
                     </div>
                 </div>
             </div>
         </header>
 
-        <main class="dashboard-main crud-main">
+        <main class="dashboard-main crud-main lista-espera-page">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Lista de Espera</h1>
-                    <p class="hero-subtitle">Pacientes aguardando um horário disponível. Notifique quando houver vaga e converta em agendamento.</p>
+                    <p class="hero-subtitle">Acompanhe quem aguarda vaga, priorize contatos e converta a fila em agenda com menos atrito.</p>
                 </div>
-                <span class="hero-pill">Agenda</span>
+                <span class="hero-pill"><i data-lucide="clock-3"></i> Agenda</span>
             </section>
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
-                <a th:href="@{/lista-espera}" class="page-tab active">
+                <a th:href="@{/calendario}" href="/calendario" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/solicitacoes}" href="/solicitacoes" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+                <a th:href="@{/lista-espera}" href="/lista-espera" class="page-tab active">
                     <i data-lucide="clock"></i> Lista de Espera
                     <span th:if="${aguardandoListaEspera > 0}" class="tab-badge" th:text="${aguardandoListaEspera}">0</span>
                 </a>
             </nav>
 
-            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success">
+                    <i data-lucide="circle-check"></i>
+                    <span th:text="${successMessage}">Sucesso</span>
+                </div>
+                <div th:if="${errorMessage}" class="flash-message error">
+                    <i data-lucide="triangle-alert"></i>
+                    <span th:text="${errorMessage}">Erro</span>
+                </div>
+            </div>
 
-            <section class="crud-section">
-                <div th:if="${entradas.empty}" class="crud-empty-state">
-                    <i data-lucide="inbox"></i>
-                    <p>Nenhum paciente na lista de espera no momento.</p>
+            <section class="waitlist-metrics" aria-label="Resumo da lista de espera">
+                <article class="waitlist-metric">
+                    <span class="waitlist-metric-icon"><i data-lucide="users-round"></i></span>
+                    <div>
+                        <p class="waitlist-metric-label">Aguardando</p>
+                        <strong th:text="${totalAguardando}">0</strong>
+                    </div>
+                </article>
+                <article class="waitlist-metric">
+                    <span class="waitlist-metric-icon"><i data-lucide="user-check"></i></span>
+                    <div>
+                        <p class="waitlist-metric-label">Com cadastro</p>
+                        <strong th:text="${totalComCadastro}">0</strong>
+                    </div>
+                </article>
+                <article class="waitlist-metric">
+                    <span class="waitlist-metric-icon"><i data-lucide="globe-2"></i></span>
+                    <div>
+                        <p class="waitlist-metric-label">Via formulario publico</p>
+                        <strong th:text="${totalPublico}">0</strong>
+                    </div>
+                </article>
+            </section>
+
+            <section class="waitlist-panel" aria-labelledby="waitlistTitle">
+                <div class="waitlist-panel-head">
+                    <div>
+                        <h2 id="waitlistTitle">Fila de pacientes</h2>
+                        <p>Ordenada por entrada mais antiga para facilitar a priorizacao.</p>
+                    </div>
+                    <span class="waitlist-count" th:text="${totalAguardando + ' aguardando'}">0 aguardando</span>
                 </div>
 
-                <div th:unless="${entradas.empty}" class="crud-table-wrapper">
-                    <table class="crud-table">
-                        <thead>
-                            <tr>
-                                <th>Paciente</th>
-                                <th>Período preferido</th>
-                                <th>Dias preferidos</th>
-                                <th>Observações</th>
-                                <th>Na fila desde</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="entrada : ${entradas}">
-                                <td>
-                                    <strong th:text="${entrada.nomeExibicao}">Nome</strong>
-                                    <br>
-                                    <small th:text="${entrada.telefoneExibicao}">Telefone</small>
-                                </td>
-                                <td>
-                                    <span th:switch="${entrada.periodoPreferido.name()}">
-                                        <span th:case="'MANHA'">Manhã</span>
-                                        <span th:case="'TARDE'">Tarde</span>
-                                        <span th:case="'NOITE'">Noite</span>
-                                        <span th:case="*">Qualquer</span>
-                                    </span>
-                                </td>
-                                <td th:text="${entrada.diasSemana != null ? entrada.diasSemana : '—'}">—</td>
-                                <td th:text="${entrada.observacoes != null ? entrada.observacoes : '—'}">—</td>
-                                <td th:text="${#temporals.format(entrada.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
-                                <td>
-                                    <div class="crud-actions">
-                                        <form th:action="@{/lista-espera/{id}/notificar(id=${entrada.id})}" method="post" style="display:inline">
-                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <button type="submit" class="btn-crud btn-crud-success" title="Marcar como notificado">
-                                                <i data-lucide="bell"></i> Notificar
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/lista-espera/{id}/converter(id=${entrada.id})}" method="post" style="display:inline">
-                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <button type="submit" class="btn-crud btn-crud-primary" title="Converter em agendamento">
-                                                <i data-lucide="calendar-check"></i> Converter
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/lista-espera/{id}/cancelar(id=${entrada.id})}" method="post" style="display:inline"
-                                              data-confirm-message="Remover paciente da lista de espera?">
-                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <button type="submit" class="btn-crud btn-crud-danger" title="Remover da lista">
-                                                <i data-lucide="x"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div th:if="${entradas == null or entradas.empty}" class="waitlist-empty">
+                    <span class="waitlist-empty-icon"><i data-lucide="inbox"></i></span>
+                    <h3>Nenhum paciente aguardando agora</h3>
+                    <p>Quando alguem entrar pela pagina publica ou for adicionado apos uma solicitacao recusada, o registro aparece aqui.</p>
+                    <a th:href="@{/lista-espera-publica}" href="/lista-espera-publica" class="waitlist-public-link" target="_blank" rel="noopener">
+                        <i data-lucide="external-link"></i>
+                        Abrir formulario publico
+                    </a>
+                </div>
+
+                <div th:unless="${entradas == null or entradas.empty}" class="waitlist-list">
+                    <article th:each="entrada : ${entradas}" class="waitlist-item">
+                        <div class="waitlist-person">
+                            <span class="waitlist-avatar" th:text="${entrada.inicialExibicao}">P</span>
+                            <div class="waitlist-person-copy">
+                                <h3 th:text="${entrada.nomeExibicao}">Nome do paciente</h3>
+                                <p>
+                                    <i data-lucide="phone"></i>
+                                    <span th:text="${entrada.telefoneExibicao != null and !#strings.isEmpty(entrada.telefoneExibicao) ? entrada.telefoneExibicao : 'Sem telefone'}">Telefone</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="waitlist-details">
+                            <span class="waitlist-chip" th:switch="${entrada.periodoPreferido != null ? entrada.periodoPreferido.name() : 'QUALQUER'}">
+                                <i data-lucide="sun"></i>
+                                <span th:case="'MANHA'">Manha</span>
+                                <span th:case="'TARDE'">Tarde</span>
+                                <span th:case="'NOITE'">Noite</span>
+                                <span th:case="*">Qualquer periodo</span>
+                            </span>
+                            <span class="waitlist-chip">
+                                <i data-lucide="calendar-days"></i>
+                                <span th:text="${entrada.diasSemana != null and !#strings.isEmpty(entrada.diasSemana) ? entrada.diasSemana : 'Dias flexiveis'}">Dias flexiveis</span>
+                            </span>
+                            <span class="waitlist-chip muted">
+                                <i data-lucide="timer"></i>
+                                <span th:text="${'Desde ' + #temporals.format(entrada.createdAt, 'dd/MM/yyyy HH:mm')}">Desde 01/01/2026</span>
+                            </span>
+                        </div>
+
+                        <p class="waitlist-note" th:text="${entrada.observacoes != null and !#strings.isEmpty(entrada.observacoes) ? entrada.observacoes : 'Sem observacoes registradas.'}">Observacoes</p>
+
+                        <div class="waitlist-actions">
+                            <form th:action="@{/lista-espera/{id}/notificar(id=${entrada.id})}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="action-button waitlist-action-success" title="Marcar como notificado">
+                                    <i data-lucide="bell"></i> Notificar
+                                </button>
+                            </form>
+                            <form th:action="@{/lista-espera/{id}/converter(id=${entrada.id})}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="action-button waitlist-action-primary" title="Converter em agendamento">
+                                    <i data-lucide="calendar-check"></i> Converter
+                                </button>
+                            </form>
+                            <form th:action="@{/lista-espera/{id}/cancelar(id=${entrada.id})}" method="post"
+                                  data-confirm-message="Remover paciente da lista de espera?">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="action-button waitlist-action-danger" title="Remover da lista">
+                                    <i data-lucide="x"></i> Remover
+                                </button>
+                            </form>
+                        </div>
+                    </article>
                 </div>
             </section>
         </main>
     </div>
 
-    <th:block th:replace="~{fragments/confirm-modal :: confirmModal}"></th:block>
     <script th:src="@{/js/vendor/lucide.min.js}"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
     <script>
         if (window.lucide) lucide.createIcons();
         document.querySelectorAll('form[data-confirm-message]').forEach(f => {

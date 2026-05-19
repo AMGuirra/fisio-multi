@@ -21,7 +21,15 @@ public class ListaEsperaController {
 
     @GetMapping
     public String index(Model model) {
-        model.addAttribute("entradas", listaEsperaService.listarAguardando());
+        var entradas = listaEsperaService.listarAguardando();
+        long totalComCadastro = entradas.stream()
+                .filter(entrada -> entrada.getCliente() != null)
+                .count();
+
+        model.addAttribute("entradas", entradas);
+        model.addAttribute("totalAguardando", entradas.size());
+        model.addAttribute("totalComCadastro", totalComCadastro);
+        model.addAttribute("totalPublico", entradas.size() - totalComCadastro);
         model.addAttribute("periodos", PeriodoPreferido.values());
         return "lista-espera/index";
     }

@@ -183,6 +183,7 @@ class PageSmokeTest {
             "/configuracoes/clinica",
             "/configuracao/clinica",
             "/financeiro",
+            "/lista-espera",
             "/pacientes",
             "/planos-consumo",
             "/prontuario",

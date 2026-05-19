@@ -66,6 +66,14 @@ public class ListaEsperaEntity extends BaseEntity {
         return nomePublico != null ? nomePublico : "(sem nome)";
     }
 
+    public String getInicialExibicao() {
+        String nome = getNomeExibicao();
+        if (nome == null || nome.isBlank()) {
+            return "P";
+        }
+        return nome.trim().substring(0, 1).toUpperCase();
+    }
+
     public String getTelefoneExibicao() {
         if (cliente != null) return cliente.getTelefone();
         return telefonePublico;
