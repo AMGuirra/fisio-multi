@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -242,7 +242,7 @@
                                     <td>
                                         <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
                                         <p class="entity-meta" th:if="${lancamento.cliente != null}">
-                                            <i data-lucide="user" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;"></i>
+                                            <i data-lucide="user" class="financeiro-paciente-icon"></i>
                                             <span th:text="${lancamento.cliente.nomeCompleto}">Paciente</span>
                                         </p>
                                         <p class="entity-meta" th:text="${lancamento.categoria}">Categoria</p>
@@ -257,7 +257,7 @@
                                         <span th:if="${lancamento.metodoPagamento != null}"
                                               class="chip"
                                               th:text="${lancamento.metodoPagamento.label}">—</span>
-                                        <span th:if="${lancamento.metodoPagamento == null}" style="color:#8fa8b0">—</span>
+                                        <span th:if="${lancamento.metodoPagamento == null}" class="text-muted-color">—</span>
                                     </td>
                                     <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
                                     <td class="text-right">

@@ -997,16 +997,16 @@
             </div>
 
             <!-- Paciente JÁ está na lista -->
-            <div th:if="${naListaEspera}" class="eva-resultado" style="margin:0">
+            <div th:if="${naListaEspera}" class="eva-resultado m-0">
                 <i data-lucide="clock"></i>
                 <span>Você está na lista de espera. Entraremos em contato assim que houver uma vaga disponível.</span>
             </div>
             <div th:if="${naListaEspera and !listaEsperaEntradas.empty}">
-                <div th:each="entrada : ${listaEsperaEntradas}" th:if="${entrada.status.name() == 'AGUARDANDO'}" style="margin-top:0.75rem">
+                <div th:each="entrada : ${listaEsperaEntradas}" th:if="${entrada.status.name() == 'AGUARDANDO'}" class="mt-3q">
                     <form th:action="@{/paciente/{token}/lista-espera/{eid}/cancelar(token=${token},eid=${entrada.id})}"
                           method="post" data-confirm-message="Deseja sair da lista de espera?">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                        <button type="submit" class="portal-btn portal-btn-secondary" style="font-size:0.8rem">
+                        <button type="submit" class="portal-btn portal-btn-secondary text-xs">
                             <i data-lucide="x"></i>
                             Sair da lista de espera
                         </button>
@@ -1015,15 +1015,15 @@
             </div>
 
             <!-- Formulário para entrar -->
-            <details th:unless="${naListaEspera}" class="eva-form-details" style="margin-top:0">
+            <details th:unless="${naListaEspera}" class="eva-form-details mt-0">
                 <summary class="eva-form-summary">
                     <i data-lucide="clock"></i>
                     Entrar na lista de espera
                 </summary>
                 <form th:action="@{/paciente/{token}/lista-espera/entrar(token=${token})}"
-                      method="post" class="eva-form" style="margin-top:0.75rem">
+                      method="post" class="eva-form mt-3q">
                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                    <div class="portal-form-grid" style="margin:0">
+                    <div class="portal-form-grid m-0">
                         <div class="portal-form-field">
                             <label for="periodo">Período preferido</label>
                             <select id="periodo" name="periodo" class="portal-control">

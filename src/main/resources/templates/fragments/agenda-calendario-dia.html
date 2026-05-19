@@ -35,15 +35,13 @@
                                     <p class="session-text" th:if="${sessao.observacoes != null}" th:text="${sessao.observacoes}">Observações</p>
                                     <!-- EVA auto-reportada pelo paciente via portal -->
                                     <p th:if="${sessao.feedbackEvaPaciente != null}"
-                                       class="session-text"
-                                       style="display:flex;align-items:center;gap:0.3rem;">
-                                        <span style="font-size:0.7rem;font-weight:700;opacity:.6;">EVA paciente:</span>
-                                        <span class="chip"
-                                              style="font-size:0.68rem;padding:0 6px;"
+                                       class="session-text agenda-eva-container">
+                                        <span class="agenda-eva-label">EVA paciente:</span>
+                                        <span class="chip agenda-eva-chip"
                                               th:classappend="${sessao.feedbackEvaPaciente <= 3 ? 'status-completed' : (sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
                                               th:text="${sessao.feedbackEvaPaciente} + '/10'">5/10</span>
                                         <span th:if="${sessao.feedbackObsPaciente != null}"
-                                              style="font-size:0.7rem;font-style:italic;opacity:.7;"
+                                              class="agenda-eva-obs"
                                               th:text="${sessao.feedbackObsPaciente}"></span>
                                     </p>
                                 </div>

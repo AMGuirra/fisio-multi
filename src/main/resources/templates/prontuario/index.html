@@ -545,7 +545,7 @@
                                       onsubmit="return confirm('Excluir o arquivo \'' + this.dataset.nome + '\'? Esta ação não pode ser desfeita.');">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                     <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
-                                    <button type="submit" class="action-button ghost" style="color:var(--red-500)">
+                                    <button type="submit" class="action-button ghost text-danger">
                                         <i data-lucide="trash-2"></i>
                                         Excluir
                                     </button>

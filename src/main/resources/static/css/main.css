@@ -1384,3 +1384,60 @@ footer.portal-footer {
     justify-content: center;
 }
 
+.pub-label-optional {
+    font-weight: 400;
+    color: #8fa8b0;
+}
+
+.pub-footer-links {
+    text-align: center;
+    margin-top: 1.25rem;
+}
+
+.pub-footer-link {
+    font-size: 0.82rem;
+    color: #0f8f7a;
+    text-decoration: none;
+}
+.pub-footer-link:hover {
+    text-decoration: underline;
+}
+
+.pub-link-highlight {
+    color: #0f8f7a;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* ── 22. Utilitários Gerais ────────────────────────────────────────────── */
+.m-0 { margin: 0 !important; }
+.mt-0 { margin-top: 0 !important; }
+.mt-3q { margin-top: 0.75rem !important; }
+.pb-0 { padding-bottom: 0 !important; }
+.text-xs { font-size: 0.8rem !important; }
+.text-muted-color { color: #8fa8b0 !important; }
+.text-danger { color: var(--red-500, #e53e3e) !important; }
+
+.financeiro-paciente-icon {
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+.agenda-eva-container { display: flex; align-items: center; gap: 0.3rem; }
+.agenda-eva-label { font-size: 0.7rem; font-weight: 700; opacity: .6; }
+.agenda-eva-chip { font-size: 0.68rem; padding: 0 6px; }
+.agenda-eva-obs { font-size: 0.7rem; font-style: italic; opacity: .7; }
+
+/* ── 23. Formulários Dinâmicos e Layouts Específicos ──────────────────── */
+.clinica-campo-flex-2 { flex: 2; }
+.clinica-endereco-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.clinica-endereco-cep { flex: 0 0 160px; }
+.clinica-endereco-btn { flex: 0 0 auto; padding-bottom: 1px; }
+.clinica-endereco-cidade { flex: 1; min-width: 160px; }
+.clinica-endereco-estado { flex: 0 0 90px; }
+.clinica-cep-feedback { display: none; margin-top: -8px; }
+.flash-message-highlight { background: var(--brand-50, #e6f7f4) !important; border-color: var(--brand-300, #7dd3c8) !important; }
+.mb-2rem { margin-bottom: 2rem !important; }
+.text-uppercase { text-transform: uppercase !important; }

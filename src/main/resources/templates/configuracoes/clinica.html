@@ -204,7 +204,7 @@
                             </div>
 
                             <div class="form-grid form-grid-two">
-                                <div class="form-field" style="flex: 2">
+                                <div class="form-field clinica-campo-flex-2">
                                     <label for="logradouro">Logradouro</label>
                                     <input id="logradouro" type="text" class="form-control" th:field="*{logradouro}" maxlength="200" placeholder="Ex: Rua das Flores">
                                     <p class="form-error" th:if="${#fields.hasErrors('logradouro')}" th:errors="*{logradouro}"></p>
@@ -229,29 +229,29 @@
                                 </div>
                             </div>
 
-                            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
-                                <div class="form-field" style="flex:0 0 160px">
+                            <div class="clinica-endereco-row">
+                                <div class="form-field clinica-endereco-cep">
                                     <label for="cep">CEP</label>
                                     <input id="cep" type="text" class="form-control" th:field="*{cep}" maxlength="9" placeholder="00000-000" inputmode="numeric">
                                     <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                                 </div>
-                                <div class="form-field" style="flex:0 0 auto;padding-bottom:1px">
+                                <div class="form-field clinica-endereco-btn">
                                     <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereço pelo CEP">
                                         <i data-lucide="search"></i>Buscar CEP
                                     </button>
                                 </div>
-                                <div class="form-field" style="flex:1;min-width:160px">
+                                <div class="form-field clinica-endereco-cidade">
                                     <label for="cidade">Cidade</label>
                                     <input id="cidade" type="text" class="form-control" th:field="*{cidade}" maxlength="100" placeholder="Ex: Campo Grande">
                                     <p class="form-error" th:if="${#fields.hasErrors('cidade')}" th:errors="*{cidade}"></p>
                                 </div>
-                                <div class="form-field" style="flex:0 0 90px">
+                                <div class="form-field clinica-endereco-estado">
                                     <label for="estado">Estado (UF)</label>
-                                    <input id="estado" type="text" class="form-control" th:field="*{estado}" maxlength="2" placeholder="MS" style="text-transform:uppercase">
+                                    <input id="estado" type="text" class="form-control text-uppercase" th:field="*{estado}" maxlength="2" placeholder="MS">
                                     <p class="form-error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></p>
                                 </div>
                             </div>
-                            <p id="cepFeedback" class="helper-text" style="display:none;margin-top:-8px"></p>
+                            <p id="cepFeedback" class="helper-text clinica-cep-feedback"></p>
 
                             <div class="form-field">
                                 <label>Dias de funcionamento</label>

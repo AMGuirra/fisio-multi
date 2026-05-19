@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -66,7 +66,7 @@
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
-                <div th:if="${clienteDestaque}" class="flash-message success" style="background:var(--brand-50,#e6f7f4);border-color:var(--brand-300,#7dd3c8);">
+                <div th:if="${clienteDestaque}" class="flash-message success flash-message-highlight">
                     <i data-lucide="user-check"></i>
                     <span>Agendando para <strong th:text="${clienteDestaque}">Paciente</strong> — use o botão <strong>+</strong> no dia desejado para criar a sessão.</span>
                 </div>

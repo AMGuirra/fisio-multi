@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="pub-form-group">
-                    <label class="pub-label" for="email">E-mail <span style="font-weight:400;color:#8fa8b0">(opcional)</span></label>
+                    <label class="pub-label" for="email">E-mail <span class="pub-label-optional">(opcional)</span></label>
                     <input type="email" id="email" name="email" class="pub-control"
                            placeholder="seu@email.com" autocomplete="email">
                 </div>
@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="pub-form-group">
-                    <label class="pub-label" for="observacoes">Observações <span style="font-weight:400;color:#8fa8b0">(opcional)</span></label>
+                    <label class="pub-label" for="observacoes">Observações <span class="pub-label-optional">(opcional)</span></label>
                     <textarea id="observacoes" name="observacoes" class="pub-control" rows="3"
                               placeholder="Alguma restrição de horário ou preferência?"></textarea>
                 </div>
@@ -67,10 +67,10 @@
                 </button>
             </form>
 
-            <div style="text-align:center;margin-top:1.25rem;">
-                <a th:href="@{/agendamento-online}" href="/agendamento-online"
-                   style="font-size:0.82rem;color:#0f8f7a;text-decoration:none;">
-                    ← Tentar agendar um horário
+            <div class="pub-footer-links">
+                <a th:href="@{/agendamento-online}"
+                   class="pub-footer-link">
+                   Agendar horário online
                 </a>
             </div>
         </div>
