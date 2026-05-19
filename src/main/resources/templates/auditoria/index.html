@@ -78,32 +78,16 @@
                     <p class="audit-summary-value" th:text="${resumoAuditoria.totalAcoes()}">0</p>
                 </article>
                 <article class="audit-summary-card">
-                    <p class="audit-summary-label">Inclusões</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalInclusoes()}">0</p>
-                </article>
-                <article class="audit-summary-card">
-                    <p class="audit-summary-label">Edições</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalEdicoes()}">0</p>
-                </article>
-                <article class="audit-summary-card">
-                    <p class="audit-summary-label">Exclusões</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalExclusoes()}">0</p>
+                    <p class="audit-summary-label">Confirmações</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalConfirmacoes()}">0</p>
                 </article>
                 <article class="audit-summary-card">
                     <p class="audit-summary-label">Cancelamentos</p>
                     <p class="audit-summary-value" th:text="${resumoAuditoria.totalCancelamentos()}">0</p>
                 </article>
                 <article class="audit-summary-card">
-                    <p class="audit-summary-label">Confirmações</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalConfirmacoes()}">0</p>
-                </article>
-                <article class="audit-summary-card">
-                    <p class="audit-summary-label">Exportações</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalExportacoes()}">0</p>
-                </article>
-                <article class="audit-summary-card">
-                    <p class="audit-summary-label">Envios por e-mail</p>
-                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalEnviosEmail()}">0</p>
+                    <p class="audit-summary-label">Edições</p>
+                    <p class="audit-summary-value" th:text="${resumoAuditoria.totalEdicoes()}">0</p>
                 </article>
             </section>
 
@@ -113,7 +97,7 @@
                 </header>
                 <div class="section-body">
                     <form th:action="@{/auditoria}" method="get" th:object="${filtroForm}" class="modern-form">
-                        <div class="audit-filter-grid">
+                        <div class="audit-filter-grid audit-filter-grid--compact">
                             <div class="form-field">
                                 <label for="dataInicial">Período inicial</label>
                                 <input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}">
@@ -121,20 +105,6 @@
                             <div class="form-field">
                                 <label for="dataFinal">Período final</label>
                                 <input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}">
-                            </div>
-                            <div class="form-field">
-                                <label for="modulo">Módulo</label>
-                                <select id="modulo" class="form-select" th:field="*{modulo}">
-                                    <option value="">Todos</option>
-                                    <option th:each="modulo : ${modulosAuditoria}" th:value="${modulo}" th:text="${modulo.label}">Agenda</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label for="entidade">Entidade</label>
-                                <input id="entidade" type="text" class="form-control" th:field="*{entidade}" list="entidades-auditoria" placeholder="Ex.: sessao">
-                                <datalist id="entidades-auditoria">
-                                    <option th:each="entidade : ${entidadesAuditoria}" th:value="${entidade}"></option>
-                                </datalist>
                             </div>
                             <div class="form-field">
                                 <label for="tipoAcao">Tipo de ação</label>
@@ -150,32 +120,6 @@
                                     <option th:each="usuario : ${usuariosAuditoria}" th:value="${usuario}"></option>
                                 </datalist>
                             </div>
-                            <div class="form-field">
-                                <label for="paciente">Paciente</label>
-                                <input id="paciente" type="text" class="form-control" th:field="*{paciente}" placeholder="Nome do paciente">
-                            </div>
-                            <div class="form-field">
-                                <label for="profissional">Profissional</label>
-                                <input id="profissional" type="text" class="form-control" th:field="*{profissional}" placeholder="Nome do profissional">
-                            </div>
-                            <div class="form-field">
-                                <label for="registroAfetado">Registro afetado</label>
-                                <input id="registroAfetado" type="text" class="form-control" th:field="*{registroAfetado}" placeholder="ID ou descrição">
-                            </div>
-                            <div class="form-field">
-                                <label for="origemEvento">Origem do evento</label>
-                                <select id="origemEvento" class="form-select" th:field="*{origemEvento}">
-                                    <option value="">Todas</option>
-                                    <option th:each="origem : ${origensAuditoria}" th:value="${origem}" th:text="${origem.label}">Manual</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="audit-checkbox-grid">
-                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteExclusoes}"> Somente exclusões</label>
-                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteCancelamentos}"> Somente cancelamentos</label>
-                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteEdicoes}"> Somente edições</label>
-                            <label class="audit-checkbox"><input type="checkbox" th:field="*{somenteAlteracoesCriticas}"> Somente alterações críticas</label>
                         </div>
 
                         <div class="audit-button-row">
@@ -208,21 +152,15 @@
                         <thead>
                             <tr>
                                 <th>Data/Hora</th>
-                                <th>Módulo</th>
-                                <th>Entidade</th>
                                 <th>Ação</th>
-                                <th>Registro</th>
                                 <th>Usuário</th>
-                                <th>Origem</th>
-                                <th>Motivo</th>
-                                <th class="text-right">Ações</th>
+                                <th>Registro</th>
+                                <th class="text-right">Detalhes</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="evento : ${eventos}">
                                 <td th:text="${#temporals.format(evento.createdAt, 'dd/MM/yyyy HH:mm')}">01/04/2026 08:00</td>
-                                <td th:text="${evento.modulo != null ? evento.modulo.label : '-'}">Agenda</td>
-                                <td th:text="${evento.entidade}">sessao</td>
                                 <td>
                                     <div class="audit-inline-stack">
                                         <span class="audit-action-badge" th:classappend="${evento.tipoAcao != null ? ' ' + evento.tipoAcao.badgeClass : ''}" th:text="${evento.tipoAcao != null ? evento.tipoAcao.label : '-'}">Inclusão</span>
@@ -231,21 +169,14 @@
                                 </td>
                                 <td>
                                     <div class="audit-inline-stack">
-                                        <strong th:text="${evento.descricaoRegistro != null && !#strings.isEmpty(evento.descricaoRegistro) ? evento.descricaoRegistro : 'Sem descrição'}">Registro</strong>
-                                        <span class="audit-inline-meta" th:text="${evento.entidadeId != null ? 'ID: ' + evento.entidadeId : 'Sem ID informado'}">ID</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="audit-inline-stack">
                                         <strong th:text="${evento.usuarioNome != null ? evento.usuarioNome : 'Sistema'}">Usuário</strong>
                                         <span class="audit-inline-meta" th:text="${evento.perfilUsuario != null ? evento.perfilUsuario : '-'}">Perfil</span>
                                     </div>
                                 </td>
-                                <td><span class="audit-origin-badge" th:text="${evento.origemEvento != null ? evento.origemEvento.label : '-'}">Manual</span></td>
-                                <td th:text="${evento.motivo != null && !#strings.isEmpty(evento.motivo) ? evento.motivo : '-'}">-</td>
+                                <td th:text="${evento.descricaoRegistro != null && !#strings.isEmpty(evento.descricaoRegistro) ? evento.descricaoRegistro : '-'}">Registro</td>
                                 <td class="text-right">
                                     <a th:href="@{/auditoria/{id}(id=${evento.id})}" class="action-button secondary">
-                                        <i data-lucide="eye"></i> Ver detalhes
+                                        <i data-lucide="eye"></i> Ver
                                     </a>
                                 </td>
                             </tr>

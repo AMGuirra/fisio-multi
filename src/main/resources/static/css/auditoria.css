@@ -41,6 +41,16 @@
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.audit-filter-grid--compact {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 900px) {
+    .audit-filter-grid--compact {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .audit-checkbox-grid {
     display: flex;
     flex-wrap: wrap;
