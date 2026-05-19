@@ -368,11 +368,12 @@ body[data-theme="dark"] {
 .pname,
 .ctx-name {
   color: var(--pc-text);
-  font-weight: 500;
+  font-weight: 650;
 }
 
 .pname {
-  font-size: .78rem;
+  font-size: .95rem;
+  line-height: 1.18;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -382,14 +383,15 @@ body[data-theme="dark"] {
 .ctx-sub,
 .sess-time {
   color: var(--pc-muted);
-  font-size: .7rem;
+  font-size: .78rem;
+  line-height: 1.2;
 }
 
 .pbadge {
   border-radius: 999px;
   padding: 3px 6px;
-  font-size: .64rem;
-  font-weight: 500;
+  font-size: .72rem;
+  font-weight: 650;
   white-space: nowrap;
 }
 
