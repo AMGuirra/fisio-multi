@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -81,7 +82,7 @@ public class SolicitacaoAgendamentoService {
             String buscaPaciente) {
         String buscaTexto = texto(buscaPaciente);
         String buscaTelefone = normalizarBuscaTelefone(buscaTexto);
-        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+        ZoneId zoneId = ClinicTimezoneHolder.zoneId();
 
         OffsetDateTime dtInicio = null;
         OffsetDateTime dtFim = null;
@@ -103,7 +104,7 @@ public class SolicitacaoAgendamentoService {
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
-        ZoneId zoneId = ZoneId.of(agendaService.obterConfiguracaoAtiva().getTimezoneId());
+        ZoneId zoneId = ClinicTimezoneHolder.zoneId();
         LocalDate hoje = LocalDate.now(zoneId);
         OffsetDateTime inicioMes = hoje.withDayOfMonth(1).atStartOfDay(zoneId).toOffsetDateTime();
         OffsetDateTime inicioProximoMes = hoje.withDayOfMonth(1).plusMonths(1).atStartOfDay(zoneId).toOffsetDateTime();
