@@ -59,7 +59,24 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
 
     @Query("SELECT s FROM SolicitacaoAgendamentoEntity s WHERE " +
            "s.status <> :statusExcluido " +
-           "AND (:status IS NULL OR s.status = :status) " +
+           "AND (:inicio IS NULL OR s.updatedAt >= :inicio) " +
+           "AND (:fim IS NULL OR s.updatedAt <= :fim) " +
+           "AND (:buscaTexto IS NULL OR " +
+           "     LOWER(s.nomePaciente) LIKE LOWER(CONCAT('%', :buscaTexto, '%')) OR " +
+           "     s.telefone LIKE CONCAT('%', :buscaTelefone, '%')" +
+           ") " +
+           "ORDER BY s.updatedAt DESC")
+    List<SolicitacaoAgendamentoEntity> filtrarHistoricoNoBancoTodos(
+            @Param("statusExcluido") SolicitacaoStatus statusExcluido,
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim,
+            @Param("buscaTexto") String buscaTexto,
+            @Param("buscaTelefone") String buscaTelefone
+    );
+
+    @Query("SELECT s FROM SolicitacaoAgendamentoEntity s WHERE " +
+           "s.status <> :statusExcluido " +
+           "AND s.status = :status " +
            "AND (:inicio IS NULL OR s.updatedAt >= :inicio) " +
            "AND (:fim IS NULL OR s.updatedAt <= :fim) " +
            "AND (:buscaTexto IS NULL OR " +

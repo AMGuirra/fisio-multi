@@ -93,14 +93,12 @@ public class SolicitacaoAgendamentoService {
             dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
         }
 
+        if (status == null) {
+            return solicitacaoAgendamentoRepository.filtrarHistoricoNoBancoTodos(
+                    SolicitacaoStatus.PENDENTE, dtInicio, dtFim, buscaTexto, buscaTelefone);
+        }
         return solicitacaoAgendamentoRepository.filtrarHistoricoNoBanco(
-                SolicitacaoStatus.PENDENTE,
-                status,
-                dtInicio,
-                dtFim,
-                buscaTexto,
-                buscaTelefone
-        );
+                SolicitacaoStatus.PENDENTE, status, dtInicio, dtFim, buscaTexto, buscaTelefone);
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
@@ -643,45 +641,6 @@ public class SolicitacaoAgendamentoService {
         }
         String somenteDigitos = buscaTexto.replaceAll("\\D", "");
         return somenteDigitos.isBlank() ? null : somenteDigitos;
-    }
-
-    private boolean correspondeDataHistorico(
-            SolicitacaoAgendamentoEntity solicitacao,
-            LocalDate inicioInclusive,
-            LocalDate fimInclusive,
-            ZoneId zoneId) {
-        if (inicioInclusive == null && fimInclusive == null) {
-            return true;
-        }
-
-        OffsetDateTime referencia = solicitacao.getUpdatedAt() != null
-                ? solicitacao.getUpdatedAt()
-                : solicitacao.getCreatedAt();
-        if (referencia == null) {
-            return false;
-        }
-
-        LocalDate dataReferencia = referencia.atZoneSameInstant(zoneId).toLocalDate();
-        if (inicioInclusive != null && dataReferencia.isBefore(inicioInclusive)) {
-            return false;
-        }
-        return fimInclusive == null || !dataReferencia.isAfter(fimInclusive);
-    }
-
-    private boolean correspondeBuscaHistorico(
-            SolicitacaoAgendamentoEntity solicitacao,
-            String buscaTexto,
-            String buscaTelefone) {
-        if (buscaTexto == null) {
-            return true;
-        }
-
-        String nomePaciente = texto(solicitacao.getNomePaciente());
-        boolean nomeCorresponde = nomePaciente != null && nomePaciente.toLowerCase().contains(buscaTexto.toLowerCase());
-        boolean telefoneCorresponde = buscaTelefone != null
-                && solicitacao.getTelefone() != null
-                && solicitacao.getTelefone().contains(buscaTelefone);
-        return nomeCorresponde || telefoneCorresponde;
     }
 
     private void validarFormularioPublico(AgendamentoOnlineForm form) {
