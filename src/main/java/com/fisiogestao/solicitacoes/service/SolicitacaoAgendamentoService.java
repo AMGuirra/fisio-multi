@@ -30,16 +30,20 @@ import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fisiogestao.config.ClinicTimezoneHolder;
+import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -93,12 +97,42 @@ public class SolicitacaoAgendamentoService {
             dtFim = fimInclusive.plusDays(1).atStartOfDay(zoneId).toOffsetDateTime().minusNanos(1);
         }
 
-        if (status == null) {
-            return solicitacaoAgendamentoRepository.filtrarHistoricoNoBancoTodos(
-                    SolicitacaoStatus.PENDENTE, dtInicio, dtFim, buscaTexto, buscaTelefone);
-        }
-        return solicitacaoAgendamentoRepository.filtrarHistoricoNoBanco(
-                SolicitacaoStatus.PENDENTE, status, dtInicio, dtFim, buscaTexto, buscaTelefone);
+        return solicitacaoAgendamentoRepository.findAll(
+                filtroHistorico(status, dtInicio, dtFim, buscaTexto, buscaTelefone),
+                Sort.by(Sort.Direction.DESC, "updatedAt"));
+    }
+
+    private Specification<SolicitacaoAgendamentoEntity> filtroHistorico(
+            SolicitacaoStatus status,
+            OffsetDateTime inicio,
+            OffsetDateTime fim,
+            String buscaTexto,
+            String buscaTelefone) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.notEqual(root.get("status"), SolicitacaoStatus.PENDENTE));
+
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            if (inicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("updatedAt"), inicio));
+            }
+            if (fim != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("updatedAt"), fim));
+            }
+            if (buscaTexto != null) {
+                String termoNome = "%" + buscaTexto.toLowerCase() + "%";
+                Predicate nomeContem = cb.like(cb.lower(root.get("nomePaciente")), termoNome);
+                if (buscaTelefone != null) {
+                    predicates.add(cb.or(nomeContem, cb.like(root.get("telefone"), "%" + buscaTelefone + "%")));
+                } else {
+                    predicates.add(nomeContem);
+                }
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
     }
 
     public ResumoSolicitacoes resumoMesAtual() {
