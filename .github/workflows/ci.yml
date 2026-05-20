@@ -24,4 +24,4 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run tests
-        run: bash ./mvnw test
+        run: ./mvnw test
