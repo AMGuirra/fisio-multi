@@ -74,31 +74,19 @@ public class InMemoryUserCatalog {
     }
 
     public Optional<SystemUserCredentials> buscarCredenciais(String username) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            return Optional.empty();
-        }
-        return repository.findByUsername(normalized)
+        return findByUsernameOrEmail(username)
                 .map(user -> new SystemUserCredentials(user.getUsername(), user.getPasswordHash(), user.getRole()));
     }
 
     public Optional<String> buscarNomeExibicao(String username) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            return Optional.empty();
-        }
-        return repository.findByUsername(normalized)
+        return findByUsernameOrEmail(username)
                 .map(UsuarioSistemaEntity::getNome)
                 .map(String::trim)
                 .filter(nome -> !nome.isBlank());
     }
 
     public Optional<SystemUserSessionView> buscarSessao(String username) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            return Optional.empty();
-        }
-        return repository.findByUsername(normalized)
+        return findByUsernameOrEmail(username)
                 .map(user -> new SystemUserSessionView(
                         user.getUsername(),
                         user.getNome(),
@@ -278,12 +266,7 @@ public class InMemoryUserCatalog {
 
     @Transactional
     public void atualizarTema(String username, UserThemePreference tema) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            throw new BusinessException("Usuário não encontrado.");
-        }
-
-        UsuarioSistemaEntity existing = repository.findByUsername(normalized)
+        UsuarioSistemaEntity existing = findByUsernameOrEmail(username)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
         UserThemePreference resolvedTheme = UserThemePreference.fallback(tema);
 
@@ -320,6 +303,17 @@ public class InMemoryUserCatalog {
         }
         String normalized = username.trim().toLowerCase(Locale.ROOT);
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private Optional<UsuarioSistemaEntity> findByUsernameOrEmail(String usernameOrEmail) {
+        String normalized = normalizeUsernameForLookup(usernameOrEmail);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        if (normalized.contains("@")) {
+            return repository.findByEmailIgnoreCase(normalized);
+        }
+        return repository.findByUsername(normalized);
     }
 
     private String normalizeEmail(String email) {
