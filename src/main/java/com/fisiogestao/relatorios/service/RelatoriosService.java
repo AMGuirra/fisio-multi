@@ -76,7 +76,14 @@ public class RelatoriosService {
 
         PeriodoComparacao periodo = calcularPeriodoComparacao(filtro.getDataInicial(), filtro.getDataFinal());
 
-        List<ClienteEntity> pacientes = filtro.isIncluirPacientes() ? pacienteService.listarAtivos() : List.of();
+        long totalPacientesAtivos = filtro.isIncluirPacientes() ? pacienteService.contarAtivos() : 0L;
+        long novosPacientesAtual = filtro.isIncluirPacientes()
+                ? contarPacientesNoPeriodo(periodo.atualInicio(), periodo.atualFimExclusivo())
+                : 0L;
+        long novosPacientesAnterior = filtro.isIncluirPacientes()
+                ? contarPacientesNoPeriodo(periodo.anteriorInicio(), periodo.anteriorFimExclusivo())
+                : 0L;
+        List<ClienteEntity> pacientesRecentes = filtro.isIncluirPacientes() ? pacienteService.listarAtivosRecentes() : List.of();
         List<SessaoEntity> sessoes = filtro.isIncluirAgenda()
                 ? agendaService.listarSessoesNoPeriodo(periodo.atualInicio(), periodo.atualFimExclusivo())
                 : List.of();
@@ -104,7 +111,10 @@ public class RelatoriosService {
 
         RelatorioAnalytics analytics = construirAnalytics(
                 periodo,
-                pacientes,
+                totalPacientesAtivos,
+                novosPacientesAtual,
+                novosPacientesAnterior,
+                pacientesRecentes,
                 sessoes,
                 sessoesAnterior,
                 lancamentos,
@@ -117,7 +127,8 @@ public class RelatoriosService {
 
         return new RelatorioOperacional(
                 filtro,
-                pacientes,
+                pacientesRecentes,
+                totalPacientesAtivos,
                 sessoes,
                 lancamentos,
                 solicitacoes,
@@ -199,7 +210,10 @@ public class RelatoriosService {
 
     private RelatorioAnalytics construirAnalytics(
             PeriodoComparacao periodo,
-            List<ClienteEntity> pacientes,
+            long totalPacientesAtivos,
+            long novosPacientesAtual,
+            long novosPacientesAnterior,
+            List<ClienteEntity> pacientesRecentes,
             List<SessaoEntity> sessoes,
             List<SessaoEntity> sessoesAnterior,
             List<LancamentoFinanceiroEntity> lancamentos,
@@ -209,9 +223,6 @@ public class RelatoriosService {
             BigDecimal totalReceitas,
             BigDecimal totalDespesas
     ) {
-        long novosPacientesAtual = contarPacientesNoPeriodo(pacientes, periodo.atualInicio(), periodo.atualFimInclusive());
-        long novosPacientesAnterior = contarPacientesNoPeriodo(pacientes, periodo.anteriorInicio(), periodo.anteriorFimInclusive());
-
         long sessoesRealizadasAtual = contarSessoesPorStatus(sessoes, SessaoStatus.REALIZADA);
         long sessoesCanceladasAtual = contarSessoesPorStatus(sessoes, SessaoStatus.CANCELADA);
         long sessoesRealizadasAnterior = contarSessoesPorStatus(sessoesAnterior, SessaoStatus.REALIZADA);
@@ -248,7 +259,7 @@ public class RelatoriosService {
         );
 
         List<RelatorioAnalytics.MetricCard> metricas = List.of(
-                new RelatorioAnalytics.MetricCard("users-round", "Pacientes ativos", formatInteiro(pacientes.size()), formatInteiro(novosPacientesAtual) + " novos no período", "Base ativa da clínica", "teal", TONE_NEUTRAL),
+                new RelatorioAnalytics.MetricCard("users-round", "Pacientes ativos", formatInteiro(totalPacientesAtivos), formatInteiro(novosPacientesAtual) + " novos no período", "Base ativa da clínica", "teal", TONE_NEUTRAL),
                 new RelatorioAnalytics.MetricCard("user-plus", "Novos pacientes", formatInteiro(novosPacientesAtual), "Cadastros no intervalo atual", deltaNovosPacientes.label(), "blue", deltaNovosPacientes.tone()),
                 new RelatorioAnalytics.MetricCard("calendar-range", "Sessões do período", formatInteiro(sessoes.size()), formatInteiro(sessoesRealizadasAtual) + " realizadas • " + formatInteiro(sessoesCanceladasAtual) + " canceladas", deltaSessoes.label(), "indigo", deltaSessoes.tone()),
                 new RelatorioAnalytics.MetricCard("activity", "Taxa de conclusão", formatPercent(taxaConclusaoAtual), formatInteiro(sessoesRealizadasAtual) + " de " + formatInteiro(sessoes.size()) + " sessões concluídas", deltaConclusao.label(), "green", deltaConclusao.tone()),
@@ -281,7 +292,7 @@ public class RelatoriosService {
                 construirGraficoFinanceiro(totalReceitas, totalDespesas),
                 construirRankingPacientes(sessoes, lancamentos),
                 construirCategoriasFinanceiras(lancamentos),
-                construirPacientesRecentes(pacientes)
+                construirPacientesRecentes(pacientesRecentes)
         );
     }
 
@@ -547,7 +558,7 @@ public class RelatoriosService {
             resumo.addCell(celulaCabecalho("Receitas"));
             resumo.addCell(celulaCabecalho("Despesas"));
             resumo.addCell(celulaCabecalho("Saldo"));
-            resumo.addCell(celulaValor(String.valueOf(relatorio.pacientes().size())));
+            resumo.addCell(celulaValor(String.valueOf(relatorio.totalPacientesAtivos())));
             resumo.addCell(celulaValor(String.valueOf(relatorio.sessoes().size())));
             resumo.addCell(celulaValor(formatCurrency(relatorio.totalReceitas())));
             resumo.addCell(celulaValor(formatCurrency(relatorio.totalDespesas())));
@@ -584,7 +595,7 @@ public class RelatoriosService {
             row.createCell(1).setCellValue(relatorio.filtro().getDataInicial() + " até " + relatorio.filtro().getDataFinal());
             row = resumo.createRow(1);
             row.createCell(0).setCellValue("Pacientes");
-            row.createCell(1).setCellValue(relatorio.pacientes().size());
+            row.createCell(1).setCellValue(relatorio.totalPacientesAtivos());
             row = resumo.createRow(2);
             row.createCell(0).setCellValue("Sessões");
             row.createCell(1).setCellValue(relatorio.sessoes().size());
@@ -634,6 +645,7 @@ public class RelatoriosService {
         return gerarPdf(new RelatorioOperacional(
                 filtro,
                 List.of(),
+                0L,
                 List.of(),
                 List.of(lancamento),
                 List.of(),
@@ -814,13 +826,11 @@ public class RelatoriosService {
                 .toList();
     }
 
-    private long contarPacientesNoPeriodo(List<ClienteEntity> pacientes, LocalDate inicioInclusive, LocalDate fimInclusive) {
-        return pacientes.stream()
-                .filter(item -> item.getCreatedAt() != null)
-                .map(ClienteEntity::getCreatedAt)
-                .map(this::paraLocalDate)
-                .filter(data -> !data.isBefore(inicioInclusive) && !data.isAfter(fimInclusive))
-                .count();
+    private long contarPacientesNoPeriodo(LocalDate inicioInclusive, LocalDate fimExclusivo) {
+        return pacienteService.contarAtivosCriadosNoPeriodo(
+                inicioInclusive.atStartOfDay(clinicZone()).toOffsetDateTime(),
+                fimExclusivo.atStartOfDay(clinicZone()).toOffsetDateTime()
+        );
     }
 
     private long contarSessoesPorStatus(List<SessaoEntity> sessoes, SessaoStatus status) {

@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -72,6 +73,19 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public long contarAtivos() {
         return clienteRepository.countByAtivoTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long contarAtivosCriadosNoPeriodo(OffsetDateTime inicioInclusive, OffsetDateTime fimExclusivo) {
+        return clienteRepository.countByAtivoTrueAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                inicioInclusive,
+                fimExclusivo
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClienteEntity> listarAtivosRecentes() {
+        return clienteRepository.findTop6ByAtivoTrueOrderByCreatedAtDesc();
     }
 
     /** Conta pacientes ativos que possuem telefone preenchido. */

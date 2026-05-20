@@ -1,11 +1,13 @@
 package com.fisiogestao.config;
 
 import com.fisiogestao.auth.InMemoryUserCatalog;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -24,13 +26,47 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableMethodSecurity   // habilita @PreAuthorize / @PostAuthorize para proteção em profundidade nos services/controllers
 public class SecurityConfig {
 
+    private static final String DEFAULT_REMEMBER_ME_KEY = "fisiogestao-default-remember-me-key-troque-em-producao";
+
     /**
      * Chave usada para assinar tokens "lembre-me". Configure via APP_SECURITY_REMEMBER_ME_KEY.
      * Valor padrao fixo garante que tokens sobrevivam a restarts, mas o ideal e definir
      * um valor aleatorio longo em producao.
      */
-    @Value("${app.security.remember-me-key:fisiogestao-default-remember-me-key-troque-em-producao}")
+    @Value("${app.security.remember-me-key:" + DEFAULT_REMEMBER_ME_KEY + "}")
     private String rememberMeKey;
+
+    @Value("${app.base-url:http://localhost:8081}")
+    private String appBaseUrl;
+
+    private final Environment environment;
+
+    public SecurityConfig(Environment environment) {
+        this.environment = environment;
+    }
+
+    @PostConstruct
+    void validarRememberMeKey() {
+        if (!DEFAULT_REMEMBER_ME_KEY.equals(rememberMeKey) || !isRuntimeProducao()) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Configure APP_SECURITY_REMEMBER_ME_KEY com um valor aleatorio longo antes de iniciar em producao."
+        );
+    }
+
+    private boolean isRuntimeProducao() {
+        if (environment.matchesProfiles("prod", "production")) {
+            return true;
+        }
+        String render = environment.getProperty("RENDER");
+        if ("true".equalsIgnoreCase(render)) {
+            return true;
+        }
+        return appBaseUrl != null
+                && !appBaseUrl.contains("localhost")
+                && !appBaseUrl.contains("127.0.0.1");
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(

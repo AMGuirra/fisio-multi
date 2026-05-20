@@ -13,6 +13,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.LongSupplier;
@@ -166,14 +168,32 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String extrairIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader(HEADER_X_FORWARDED_FOR);
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+        if (isProxyConfiavel(request.getRemoteAddr())) {
+            String xForwardedFor = request.getHeader(HEADER_X_FORWARDED_FOR);
+            if (xForwardedFor == null || xForwardedFor.isBlank()) {
+                return request.getRemoteAddr();
+            }
             String primeiroIp = xForwardedFor.split(",")[0].strip();
             if (!primeiroIp.isEmpty()) {
                 return primeiroIp;
             }
         }
         return request.getRemoteAddr();
+    }
+
+    private boolean isProxyConfiavel(String remoteAddr) {
+        if (remoteAddr == null || remoteAddr.isBlank()) {
+            return false;
+        }
+        try {
+            InetAddress address = InetAddress.getByName(remoteAddr);
+            return address.isLoopbackAddress()
+                    || address.isSiteLocalAddress()
+                    || address.isLinkLocalAddress();
+        } catch (UnknownHostException ex) {
+            LOGGER.debug("Endereco remoto invalido para rate limiting: {}", remoteAddr);
+            return false;
+        }
     }
 
     int bucketCacheSize() {

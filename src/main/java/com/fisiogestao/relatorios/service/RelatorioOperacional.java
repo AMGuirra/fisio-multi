@@ -12,6 +12,7 @@ import java.util.List;
 public record RelatorioOperacional(
         FiltroRelatorioForm filtro,
         List<ClienteEntity> pacientes,
+        long totalPacientesAtivos,
         List<SessaoEntity> sessoes,
         List<LancamentoFinanceiroEntity> lancamentos,
         List<SolicitacaoAgendamentoEntity> solicitacoes,

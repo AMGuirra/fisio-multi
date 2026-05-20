@@ -126,6 +126,25 @@ class RateLimitingFilterTest {
     }
 
     @Test
+    void deveIgnorarXForwardedForQuandoOrigemNaoForProxyConfiavel() throws ServletException, IOException {
+        FilterChain chain = mock(FilterChain.class);
+        String remoteAddr = "203.0.113.200";
+
+        for (int i = 0; i < 5; i++) {
+            MockHttpServletRequest request = postAgendamento("198.51.100." + i);
+            request.setRemoteAddr(remoteAddr);
+            filter.doFilterInternal(request, new MockHttpServletResponse(), chain);
+        }
+
+        MockHttpServletRequest bloqueadaComHeaderForjado = postAgendamento("198.51.100.99");
+        bloqueadaComHeaderForjado.setRemoteAddr(remoteAddr);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilterInternal(bloqueadaComHeaderForjado, response, chain);
+
+        assertEquals(429, response.getStatus());
+    }
+
+    @Test
     void naoLimitaGetNemRotasInternas() throws ServletException, IOException {
         FilterChain chain = mock(FilterChain.class);
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/dashboard");

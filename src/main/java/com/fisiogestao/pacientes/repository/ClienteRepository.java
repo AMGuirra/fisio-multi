@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,12 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
     List<ClienteEntity> findByAtivoTrueOrderByNomeCompletoAsc();
 
     long countByAtivoTrue();
+
+    long countByAtivoTrueAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            OffsetDateTime inicioInclusive,
+            OffsetDateTime fimExclusivo);
+
+    List<ClienteEntity> findTop6ByAtivoTrueOrderByCreatedAtDesc();
 
     Optional<ClienteEntity> findFirstByCpf(String cpf);
 
