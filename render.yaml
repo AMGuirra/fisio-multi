@@ -32,6 +32,8 @@ services:
         sync: false
       - key: APP_ENCRYPTION_KEY
         sync: false
+      - key: APP_SECURITY_REMEMBER_ME_KEY
+        generateValue: true
       - key: APP_BOOTSTRAP_ADMIN_ENABLED
         sync: false
       - key: APP_BOOTSTRAP_ADMIN_USERNAME

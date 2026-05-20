@@ -62,6 +62,7 @@ app:
     repair-on-startup: ${APP_FLYWAY_REPAIR_ON_STARTUP:false}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY:}
+    remember-me-key: ${APP_SECURITY_REMEMBER_ME_KEY:fisiogestao-default-remember-me-key-troque-em-producao}
   bootstrap-admin:
     enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
     nome: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}

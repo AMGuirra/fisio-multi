@@ -30,6 +30,7 @@ Tambem configure obrigatoriamente:
 
 - `APP_BASE_URL` com a URL publica final do servico, por exemplo `https://seu-servico.onrender.com`
 - `APP_ENCRYPTION_KEY` com uma chave forte e estavel para criptografar credenciais SMTP
+- `APP_SECURITY_REMEMBER_ME_KEY` com uma chave forte e estavel para assinar cookies "lembrar-me"
 
 ## Corrigir checksum mismatch do Flyway
 
