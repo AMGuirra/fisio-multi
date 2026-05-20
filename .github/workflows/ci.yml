@@ -20,5 +20,8 @@ jobs:
           java-version: "26"
           cache: maven
 
+      - name: Ensure Maven wrapper is executable
+        run: chmod +x mvnw
+
       - name: Run tests
         run: ./mvnw test
