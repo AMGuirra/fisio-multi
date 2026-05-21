@@ -4644,6 +4644,149 @@ body[data-theme='dark'] .waitlist-action-danger {
     max-width: 140px;
 }
 
+/* Financeiro: keep table actions visible inside the available desktop width. */
+.financeiro-page .crud-layout.form-table {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.financeiro-page .crud-layout.form-table > .section-card {
+    min-width: 0;
+}
+
+.financeiro-page .crud-layout.form-table > .section-card:first-child .section-body {
+    padding: 16px 20px 18px;
+}
+
+.financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.8fr) minmax(220px, 1.5fr) minmax(170px, 1fr) minmax(170px, 1fr) minmax(130px, 0.8fr) minmax(170px, 1fr) auto;
+    align-items: end;
+    gap: 14px;
+}
+
+.financeiro-page .crud-layout.form-table > .section-card:first-child .section-head {
+    min-height: 60px;
+    padding-block: 16px;
+}
+
+.financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form .form-field {
+    margin: 0;
+}
+
+.financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form .action-button {
+    min-width: 170px;
+    height: 44px;
+}
+
+.finance-table {
+    min-width: 0;
+    table-layout: fixed;
+}
+
+.finance-table .finance-col-date {
+    width: 106px;
+}
+
+.finance-table .finance-col-description {
+    width: auto;
+}
+
+.finance-table .finance-col-type {
+    width: 108px;
+}
+
+.finance-table .finance-col-status {
+    width: 118px;
+}
+
+.finance-table .finance-col-payment {
+    width: 126px;
+}
+
+.finance-table .finance-col-value {
+    width: 104px;
+}
+
+.finance-table .finance-col-actions {
+    width: 236px;
+}
+
+.finance-table thead th,
+.finance-table tbody td {
+    padding-inline: 12px;
+}
+
+.finance-table .entity-name,
+.finance-table .entity-meta {
+    overflow-wrap: anywhere;
+}
+
+.finance-action-cell {
+    vertical-align: top;
+}
+
+.finance-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, max-content));
+    justify-content: end;
+    align-items: stretch;
+    gap: 8px;
+    white-space: normal;
+}
+
+.finance-actions .action-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    gap: 6px;
+}
+
+.finance-actions .action-button svg,
+.finance-actions .action-button [data-lucide] {
+    width: 16px;
+    height: 16px;
+}
+
+.finance-actions .inline-form {
+    display: inline-flex;
+}
+
+.finance-actions .baixa-form {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 220px;
+    gap: 8px;
+}
+
+.finance-actions .baixa-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+.finance-actions .baixa-form .action-button {
+    padding-inline: 10px;
+}
+
+@media (max-width: 1440px) {
+    .financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form .action-button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 760px) {
+    .financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form {
+        grid-template-columns: 1fr;
+    }
+}
+
 .finance-report-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

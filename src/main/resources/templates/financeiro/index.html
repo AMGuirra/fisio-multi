@@ -12,7 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
-<body class="dashboard-app dashboard-loading">
+<body class="dashboard-app dashboard-loading financeiro-page">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
@@ -244,7 +244,16 @@
                     </div>
 
                     <div class="data-table-wrap" th:unless="${lancamentos.empty}">
-                        <table class="data-table">
+                        <table class="data-table finance-table">
+                            <colgroup>
+                                <col class="finance-col-date">
+                                <col class="finance-col-description">
+                                <col class="finance-col-type">
+                                <col class="finance-col-status">
+                                <col class="finance-col-payment">
+                                <col class="finance-col-value">
+                                <col class="finance-col-actions">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Competência</th>
@@ -284,8 +293,8 @@
                                         <span th:if="${lancamento.metodoPagamento == null}" class="text-muted-color">—</span>
                                     </td>
                                     <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
-                                    <td class="text-right">
-                                        <div class="table-actions">
+                                    <td class="text-right finance-action-cell">
+                                        <div class="table-actions finance-actions">
                                             <a th:if="${lancamento.status.name() != 'CANCELADO'}"
                                                th:href="@{/financeiro(editar=${lancamento.id})}"
                                                class="action-button ghost">
@@ -419,4 +428,3 @@
     </script>
 </body>
 </html>
-
