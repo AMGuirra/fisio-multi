@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 public enum AppMenuItem {
+    HOJE("Hoje",                      "/hoje",                "sun",                 false, false, true,  false, MenuSection.NONE,   List.of("/hoje")),
     DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard", "/api/dashboard")),
     AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
@@ -122,6 +123,8 @@ public enum AppMenuItem {
         switch (this) {
             case DASHBOARD:
                 return "Mostra o painel geral com os principais indicadores e atalhos do sistema.";
+            case HOJE:
+                return "Exibe a linha do tempo do dia com sessões, pendências financeiras e alertas de ação imediata.";
             case AGENDA:
                 return "Permite acompanhar o calendario mensal e organizar as sessoes do dia em uma unica tela.";
             case CALENDARIO:
@@ -179,6 +182,7 @@ public enum AppMenuItem {
 
     public static List<AppMenuItem> sidebarPrincipais() {
         return List.of(
+                HOJE,
                 DASHBOARD,
                 AGENDA,
                 SOLICITACOES,

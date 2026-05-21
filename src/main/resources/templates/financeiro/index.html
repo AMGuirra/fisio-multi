@@ -303,6 +303,14 @@
                                                     Baixa
                                                 </button>
                                             </form>
+                                            <a th:if="${lancamento.status.name() == 'PAGO'}"
+                                               th:href="@{/financeiro/lancamentos/{id}/recibo.pdf(id=${lancamento.id})}"
+                                               class="action-button ghost"
+                                               target="_blank"
+                                               title="Baixar recibo em PDF">
+                                                <i data-lucide="file-down"></i>
+                                                Recibo
+                                            </a>
                                             <form th:if="${lancamento.status.name() == 'PAGO'}"
                                                   th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}"
                                                   method="post"

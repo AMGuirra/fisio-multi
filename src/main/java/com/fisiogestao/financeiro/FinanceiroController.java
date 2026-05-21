@@ -2,10 +2,15 @@ package com.fisiogestao.financeiro;
 
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
 import com.fisiogestao.financeiro.service.FinanceiroService;
+import com.fisiogestao.financeiro.service.ReciboPdfService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,6 +31,7 @@ import java.util.UUID;
 public class FinanceiroController {
 
     private final FinanceiroService financeiroService;
+    private final ReciboPdfService reciboPdfService;
 
     @GetMapping
     public String index(
@@ -118,6 +124,18 @@ public class FinanceiroController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/financeiro";
+    }
+
+    @GetMapping("/lancamentos/{id}/recibo.pdf")
+    public ResponseEntity<byte[]> baixarRecibo(@PathVariable UUID id) {
+        byte[] pdf = reciboPdfService.gerarRecibo(id);
+        String idCurto = id.toString().substring(0, 8).toUpperCase();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("recibo-" + idCurto + ".pdf")
+                .build());
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 
     @PostMapping("/lancamentos/{id}/cancelar")
