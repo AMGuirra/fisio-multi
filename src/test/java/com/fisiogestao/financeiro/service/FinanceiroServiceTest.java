@@ -3,6 +3,7 @@ package com.fisiogestao.financeiro.service;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
+import com.fisiogestao.financeiro.MetodoPagamento;
 import com.fisiogestao.financeiro.StatusLancamentoFinanceiro;
 import com.fisiogestao.financeiro.TipoLancamentoFinanceiro;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
@@ -22,14 +23,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -57,6 +61,7 @@ class FinanceiroServiceTest {
     @Test
     void deveCriarLancamentoManualComStatusPendente() {
         LancamentoFinanceiroForm form = formReceita("Consulta avulsa", "Sessões", "120.00");
+        form.setProfissional("Dra. Ana");
         when(lancamentoFinanceiroRepository.save(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
 
@@ -65,6 +70,7 @@ class FinanceiroServiceTest {
         assertEquals(TipoLancamentoFinanceiro.RECEITA, salvo.getTipo());
         assertEquals(StatusLancamentoFinanceiro.PENDENTE, salvo.getStatus());
         assertEquals("Consulta avulsa", salvo.getDescricao());
+        assertEquals("Dra. Ana", salvo.getProfissional());
         assertEquals(new BigDecimal("120.00"), salvo.getValor());
     }
 
@@ -77,6 +83,7 @@ class FinanceiroServiceTest {
         LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "100.00");
         LancamentoFinanceiroForm form = formDespesa("Material terapêutico", "Insumos", "89.90");
 
+        form.setProfissional("Dr. Bruno");
         when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
         when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
@@ -85,6 +92,7 @@ class FinanceiroServiceTest {
 
         assertEquals(TipoLancamentoFinanceiro.DESPESA, lancamento.getTipo());
         assertEquals("Material terapêutico", lancamento.getDescricao());
+        assertEquals("Dr. Bruno", lancamento.getProfissional());
         assertEquals(new BigDecimal("89.90"), lancamento.getValor());
     }
 
@@ -191,6 +199,7 @@ class FinanceiroServiceTest {
     @Test
     void deveCancelarBaixaVoltandoParaPendente() {
         LancamentoFinanceiroEntity lancamento = lancamentoPago("300.00");
+        lancamento.setMetodoPagamento(MetodoPagamento.PIX);
 
         when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
         when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -200,6 +209,7 @@ class FinanceiroServiceTest {
 
         assertEquals(StatusLancamentoFinanceiro.PENDENTE, lancamento.getStatus());
         assertNull(lancamento.getDataPagamento());
+        assertNull(lancamento.getMetodoPagamento());
     }
 
     @Test
@@ -270,6 +280,18 @@ class FinanceiroServiceTest {
     }
 
     @Test
+    void deveRegistrarReceitaAvulsoComProfissionalResponsavel() {
+        SessaoEntity sessao = sessaoAvulsa("Pilates", new BigDecimal("90.00"));
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaAvulso(sessao, "dra.ana");
+
+        assertEquals("dra.ana", captor.getValue().getProfissional());
+    }
+
+    @Test
     void naoDeveRegistrarReceitaAvulsoSemValor() {
         SessaoEntity sessao = sessaoAvulsa("RPG", null);
 
@@ -331,17 +353,6 @@ class FinanceiroServiceTest {
         assertEquals(new BigDecimal("270.00"), resumo.saldoRealizado());
         // saldoProjetado = 350 + 100 - 80 - 50 = 320
         assertEquals(new BigDecimal("320.00"), resumo.saldoProjetado());
-    }
-
-    @Test
-    void canceladosNaoDevemEntrarNoCalculo() {
-        mockResumo("300.00", "0.00", "0.00", "0.00", 1, 1);
-
-        FinanceiroService.ResumoFinanceiro resumo =
-                financeiroService.calcularResumo(LocalDate.now(), LocalDate.now());
-
-        assertEquals(new BigDecimal("300.00"), resumo.receitasRecebidas());
-        assertEquals(0, BigDecimal.ZERO.compareTo(resumo.despesasPagas()));
     }
 
     @Test
@@ -409,6 +420,221 @@ class FinanceiroServiceTest {
         mockResumo("0.00", "0.00", "0.00", "0.00", 0, 0);
 
         assertEquals("neutral", financeiroService.calcularResumo(LocalDate.now(), LocalDate.now()).taxaTone());
+    }
+
+    @Test
+    void deveAgregarReceitasRecebidasQuandoDespesasEstaoZeradas() {
+        mockResumo("300.00", "0.00", "0.00", "0.00", 1, 1);
+
+        FinanceiroService.ResumoFinanceiro resumo =
+                financeiroService.calcularResumo(LocalDate.now(), LocalDate.now());
+
+        assertEquals(new BigDecimal("300.00"), resumo.receitasRecebidas());
+        assertEquals(0, BigDecimal.ZERO.compareTo(resumo.despesasPagas()));
+    }
+
+    // -----------------------------------------------------------------------
+    // calcularInadimplencia
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deveRetornarZeroInadimplenciaQuandoNaoHaVencidos() {
+        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataCompetenciaBefore(
+                eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(BigDecimal.ZERO);
+        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataCompetenciaBefore(
+                eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(0L);
+        when(lancamentoFinanceiroRepository
+                .findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+                        eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(Optional.empty());
+
+        FinanceiroService.InadimplenciaResumo resumo = financeiroService.calcularInadimplencia();
+
+        assertFalse(resumo.temInadimplencia());
+        assertEquals("success", resumo.tone());
+        assertEquals(0L, resumo.maiorAtrasoDias());
+        assertEquals(BigDecimal.ZERO, resumo.totalVencido());
+    }
+
+    @Test
+    void deveToneWarningParaAtrasoDe7DiasOuMenos() {
+        LancamentoFinanceiroEntity atrasado = receitaPendenteVencidaHa(5);
+        mockInadimplencia(new BigDecimal("200.00"), 1L, atrasado);
+
+        FinanceiroService.InadimplenciaResumo resumo = financeiroService.calcularInadimplencia();
+
+        assertTrue(resumo.temInadimplencia());
+        assertEquals("warning", resumo.tone());
+    }
+
+    @Test
+    void deveToneDangerParaAtrasoAcimaDe7Dias() {
+        LancamentoFinanceiroEntity atrasado = receitaPendenteVencidaHa(8);
+        mockInadimplencia(new BigDecimal("150.00"), 1L, atrasado);
+
+        FinanceiroService.InadimplenciaResumo resumo = financeiroService.calcularInadimplencia();
+
+        assertTrue(resumo.temInadimplencia());
+        assertEquals("danger", resumo.tone());
+    }
+
+    @Test
+    void deveCalcularMaiorAtrasoDiasCorretamente() {
+        LancamentoFinanceiroEntity atrasado = receitaPendenteVencidaHa(15);
+        mockInadimplencia(new BigDecimal("300.00"), 2L, atrasado);
+
+        assertEquals(15L, financeiroService.calcularInadimplencia().maiorAtrasoDias());
+    }
+
+    // -----------------------------------------------------------------------
+    // listarContasAReceber
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deveClassificarLancamentoNoDiaComoAVencer() {
+        LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(0);
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l));
+
+        FinanceiroService.ContaReceberGrupo grupo = financeiroService.listarContasAReceber().grupos().get(0);
+
+        assertEquals(new BigDecimal("100.00"), grupo.aVencer());
+        assertEquals(BigDecimal.ZERO, grupo.totalVencido());
+    }
+
+    @Test
+    void deveClassificarAtraso3DiasNaFaixa1A7() {
+        LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(3);
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l));
+
+        FinanceiroService.ContaReceberGrupo grupo = financeiroService.listarContasAReceber().grupos().get(0);
+
+        assertEquals(new BigDecimal("100.00"), grupo.vencidoAte7());
+        assertEquals(BigDecimal.ZERO, grupo.aVencer());
+    }
+
+    @Test
+    void deveClassificarAtraso10DiasNaFaixa8A15() {
+        LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(10);
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l));
+
+        assertEquals(new BigDecimal("100.00"),
+                financeiroService.listarContasAReceber().grupos().get(0).vencido8A15());
+    }
+
+    @Test
+    void deveClassificarAtraso20DiasNaFaixa16A30() {
+        LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(20);
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l));
+
+        assertEquals(new BigDecimal("100.00"),
+                financeiroService.listarContasAReceber().grupos().get(0).vencido16A30());
+    }
+
+    @Test
+    void deveClassificarAtraso35DiasNaFaixaAcima30() {
+        LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(35);
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l));
+
+        assertEquals(new BigDecimal("100.00"),
+                financeiroService.listarContasAReceber().grupos().get(0).vencidoAcima30());
+    }
+
+    @Test
+    void deveAgruparDoisLancamentosDoMesmoPacienteEPlano() {
+        ClienteEntity paciente = cliente("Maria");
+        PlanoSessaoEntity meuPlano = plano(paciente, "Plano Mensal", "500.00", LocalDate.now());
+        LancamentoFinanceiroEntity l1 = receitaPendenteVencidaHa(paciente, meuPlano, 5, "100.00");
+        LancamentoFinanceiroEntity l2 = receitaPendenteVencidaHa(paciente, meuPlano, 10, "150.00");
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(l1, l2));
+
+        FinanceiroService.ContasAReceberView view = financeiroService.listarContasAReceber();
+
+        assertEquals(1, view.grupos().size());
+        assertEquals(new BigDecimal("250.00"), view.grupos().get(0).total());
+        assertEquals(2L, view.grupos().get(0).quantidade());
+    }
+
+    @Test
+    void deveOrdenarGruposMaisAtrasadosPrimeiro() {
+        ClienteEntity p1 = cliente("Ana");
+        ClienteEntity p2 = cliente("Bruno");
+        LancamentoFinanceiroEntity recente = receitaPendenteVencidaHa(p1, null, 3, "100.00");
+        LancamentoFinanceiroEntity antigo  = receitaPendenteVencidaHa(p2, null, 35, "200.00");
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
+                .thenReturn(List.of(recente, antigo));
+
+        List<FinanceiroService.ContaReceberGrupo> grupos = financeiroService.listarContasAReceber().grupos();
+
+        assertEquals("Bruno", grupos.get(0).paciente());
+        assertEquals("Ana",   grupos.get(1).paciente());
+    }
+
+    // -----------------------------------------------------------------------
+    // gerarRelatorioFaturamento
+    // -----------------------------------------------------------------------
+
+    @Test
+    void tipoAtendimentoDeveExtrairNomeAposColonEmDescricaoAvulsa() {
+        LancamentoFinanceiroEntity l = receitaPagaComDescricao("Sessão avulsa: Pilates", "Sessões avulsas", "90.00");
+        mockRelatorioFaturamento(List.of(l));
+
+        FinanceiroService.RelatorioFaturamento relatorio =
+                financeiroService.gerarRelatorioFaturamento(LocalDate.now(), LocalDate.now());
+
+        assertEquals(1, relatorio.porTipoAtendimento().size());
+        assertEquals("Pilates", relatorio.porTipoAtendimento().get(0).nome());
+    }
+
+    @Test
+    void tipoAtendimentoDeveUsarNomePlanoParaLancamentoComPlano() {
+        PlanoSessaoEntity p = plano(cliente("Ana"), "Fisio Mensal", "500.00", LocalDate.now());
+        LancamentoFinanceiroEntity l = receitaPagaComPlano(p, "500.00");
+        mockRelatorioFaturamento(List.of(l));
+
+        FinanceiroService.RelatorioFaturamento relatorio =
+                financeiroService.gerarRelatorioFaturamento(LocalDate.now(), LocalDate.now());
+
+        assertEquals("Plano: Fisio Mensal", relatorio.porTipoAtendimento().get(0).nome());
+    }
+
+    @Test
+    void tipoAtendimentoDeveUsarCategoriaComoFallback() {
+        LancamentoFinanceiroEntity l = receitaPagaComDescricao("Material clínico", "Insumos", "50.00");
+        mockRelatorioFaturamento(List.of(l));
+
+        FinanceiroService.RelatorioFaturamento relatorio =
+                financeiroService.gerarRelatorioFaturamento(LocalDate.now(), LocalDate.now());
+
+        assertEquals("Insumos", relatorio.porTipoAtendimento().get(0).nome());
+    }
+
+    @Test
+    void deveAgruparDoisLancamentosMesmoTipoAtendimento() {
+        LancamentoFinanceiroEntity l1 = receitaPagaComDescricao("Sessão avulsa: Pilates", "Sessões avulsas", "90.00");
+        LancamentoFinanceiroEntity l2 = receitaPagaComDescricao("Sessão avulsa: Pilates", "Sessões avulsas", "90.00");
+        mockRelatorioFaturamento(List.of(l1, l2));
+
+        FinanceiroService.RelatorioFaturamento relatorio =
+                financeiroService.gerarRelatorioFaturamento(LocalDate.now(), LocalDate.now());
+
+        assertEquals(1, relatorio.porTipoAtendimento().size());
+        assertEquals(2L, relatorio.porTipoAtendimento().get(0).quantidade());
+        assertEquals(new BigDecimal("180.00"), relatorio.porTipoAtendimento().get(0).total());
     }
 
     // -----------------------------------------------------------------------
@@ -500,6 +726,86 @@ class FinanceiroServiceTest {
                 .build();
         p.setId(UUID.randomUUID());
         return p;
+    }
+
+    private void mockInadimplencia(BigDecimal total, long quantidade, LancamentoFinanceiroEntity maisAntigo) {
+        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataCompetenciaBefore(
+                eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(total);
+        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataCompetenciaBefore(
+                eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(quantidade);
+        when(lancamentoFinanceiroRepository
+                .findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+                        eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
+                .thenReturn(Optional.of(maisAntigo));
+    }
+
+    private void mockRelatorioFaturamento(List<LancamentoFinanceiroEntity> receitasPagas) {
+        when(lancamentoFinanceiroRepository
+                .findByDataCompetenciaBetweenAndTipoAndStatusOrderByDataCompetenciaDescCreatedAtDesc(
+                        any(), any(),
+                        eq(TipoLancamentoFinanceiro.RECEITA),
+                        eq(StatusLancamentoFinanceiro.PAGO)))
+                .thenReturn(receitasPagas);
+        when(lancamentoFinanceiroRepository.agruparFaturamentoPorCategoria(any(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.agruparFaturamentoPorPlano(any(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.agruparFaturamentoPorProfissional(any(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(lancamentoFinanceiroRepository.agruparFaturamentoPorMetodoPagamento(any(), any(), any(), any()))
+                .thenReturn(List.of());
+    }
+
+    private LancamentoFinanceiroEntity receitaPendenteVencidaHa(int dias) {
+        return receitaPendenteVencidaHa(null, null, dias, "100.00");
+    }
+
+    private LancamentoFinanceiroEntity receitaPendenteVencidaHa(
+            ClienteEntity clienteArg, PlanoSessaoEntity planoArg, int dias, String valor) {
+        LocalDate vencimento = LocalDate.now(ZONA).minusDays(dias);
+        LancamentoFinanceiroEntity l = LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PENDENTE)
+                .descricao("Receita teste")
+                .categoria("Teste")
+                .valor(new BigDecimal(valor))
+                .dataCompetencia(vencimento.atStartOfDay(ZONA).toOffsetDateTime())
+                .cliente(clienteArg)
+                .planoSessao(planoArg)
+                .build();
+        l.setId(UUID.randomUUID());
+        return l;
+    }
+
+    private LancamentoFinanceiroEntity receitaPagaComDescricao(String descricao, String categoria, String valor) {
+        LancamentoFinanceiroEntity l = LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PAGO)
+                .descricao(descricao)
+                .categoria(categoria)
+                .valor(new BigDecimal(valor))
+                .dataCompetencia(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
+                .dataPagamento(OffsetDateTime.now(ZONA))
+                .build();
+        l.setId(UUID.randomUUID());
+        return l;
+    }
+
+    private LancamentoFinanceiroEntity receitaPagaComPlano(PlanoSessaoEntity planoArg, String valor) {
+        LancamentoFinanceiroEntity l = LancamentoFinanceiroEntity.builder()
+                .tipo(TipoLancamentoFinanceiro.RECEITA)
+                .status(StatusLancamentoFinanceiro.PAGO)
+                .descricao("Plano de tratamento: " + planoArg.getNomePlano())
+                .categoria("Planos de tratamento")
+                .valor(new BigDecimal(valor))
+                .dataCompetencia(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
+                .dataPagamento(OffsetDateTime.now(ZONA))
+                .planoSessao(planoArg)
+                .build();
+        l.setId(UUID.randomUUID());
+        return l;
     }
 
     private SessaoEntity sessaoAvulsa(String tipoAtendimento, BigDecimal valorAvulso) {

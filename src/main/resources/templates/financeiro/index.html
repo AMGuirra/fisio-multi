@@ -54,6 +54,11 @@
 
             <nav class="page-tabs" aria-label="Seções de Gestão">
                 <a th:href="@{/financeiro}" href="/financeiro" class="page-tab active"><i data-lucide="wallet"></i> Financeiro</a>
+                <a th:href="@{/financeiro/contas-a-receber}" href="/financeiro/contas-a-receber" class="page-tab">
+                    <i data-lucide="badge-dollar-sign"></i> Contas a Receber
+                    <span th:if="${inadimplencia != null and inadimplencia.quantidade() > 0}" class="tab-badge" th:text="${inadimplencia.quantidade()}">0</span>
+                </a>
+                <a th:href="@{/financeiro/relatorio-faturamento}" href="/financeiro/relatorio-faturamento" class="page-tab"><i data-lucide="bar-chart-3"></i> Faturamento</a>
                 <a th:href="@{/relatorios}" href="/relatorios" class="page-tab"><i data-lucide="file-text"></i> Relatórios</a>
             </nav>
 
@@ -137,6 +142,15 @@
                     </div>
                     <div class="metric-divider"></div>
                     <div class="metric-item">
+                        <span class="metric-label"><i data-lucide="alarm-clock"></i> Inadimplência</span>
+                        <span class="metric-value">
+                            <a th:href="@{/financeiro/contas-a-receber}" class="metric-badge"
+                               th:classappend="${'tone-' + inadimplencia.tone()}"
+                               th:text="${'R$ ' + #numbers.formatDecimal(inadimplencia.totalVencido(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</a>
+                        </span>
+                    </div>
+                    <div class="metric-divider"></div>
+                    <div class="metric-item">
                         <span class="metric-label"><i data-lucide="trending-up"></i> Saldo Projetado</span>
                         <span class="metric-value" th:text="${'R$ ' + #numbers.formatDecimal(resumo.saldoProjetado(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</span>
                     </div>
@@ -188,6 +202,12 @@
                                 <label for="categoria">Categoria</label>
                                 <input id="categoria" type="text" class="form-control" th:field="*{categoria}" maxlength="80" required>
                                 <p class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></p>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="profissional">Profissional</label>
+                                <input id="profissional" type="text" class="form-control" th:field="*{profissional}" maxlength="120" placeholder="Opcional">
+                                <p class="form-error" th:if="${#fields.hasErrors('profissional')}" th:errors="*{profissional}"></p>
                             </div>
 
                             <div class="form-field">
@@ -245,6 +265,10 @@
                                             <i data-lucide="user" class="financeiro-paciente-icon"></i>
                                             <span th:text="${lancamento.cliente.nomeCompleto}">Paciente</span>
                                         </p>
+                                        <p class="entity-meta" th:if="${lancamento.profissional != null and !#strings.isEmpty(lancamento.profissional)}">
+                                            <i data-lucide="stethoscope" class="financeiro-paciente-icon"></i>
+                                            <span th:text="${lancamento.profissional}">Profissional</span>
+                                        </p>
                                         <p class="entity-meta" th:text="${lancamento.categoria}">Categoria</p>
                                     </td>
                                     <td>
@@ -296,6 +320,7 @@
                                                     <option value="CARTAO_DEBITO">Cartão débito</option>
                                                     <option value="TRANSFERENCIA">Transferência</option>
                                                     <option value="CHEQUE">Cheque</option>
+                                                    <option value="CONVENIO">Convênio</option>
                                                     <option value="OUTRO">Outro</option>
                                                 </select>
                                                 <button type="submit" class="action-button success">
@@ -394,9 +419,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
 

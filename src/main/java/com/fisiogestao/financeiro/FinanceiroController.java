@@ -1,5 +1,6 @@
 package com.fisiogestao.financeiro;
 
+import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.financeiro.service.ReciboPdfService;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -32,6 +34,8 @@ public class FinanceiroController {
 
     private final FinanceiroService financeiroService;
     private final ReciboPdfService reciboPdfService;
+
+    public record FaturamentoBloco(String titulo, List<FinanceiroService.FaturamentoGrupo> itens) {}
 
     @GetMapping
     public String index(
@@ -48,6 +52,36 @@ public class FinanceiroController {
                 : null;
         prepararPagina(model, form, editar, periodoInicio, periodoFim);
         return "financeiro/index";
+    }
+
+    @GetMapping("/contas-a-receber")
+    public String contasAReceber(Model model) {
+        model.addAttribute("contasAReceber", financeiroService.listarContasAReceber());
+        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        return "financeiro/contas-a-receber";
+    }
+
+    @GetMapping("/relatorio-faturamento")
+    public String relatorioFaturamento(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
+            Model model
+    ) {
+        LocalDate periodoInicio = inicio != null ? inicio : LocalDate.now().withDayOfMonth(1);
+        LocalDate periodoFim = fim != null ? fim : LocalDate.now();
+        FinanceiroService.RelatorioFaturamento relatorio = financeiroService.gerarRelatorioFaturamento(periodoInicio, periodoFim);
+        model.addAttribute("relatorio", relatorio);
+        model.addAttribute("blocosFaturamento", List.of(
+                new FaturamentoBloco("Categoria / tipo", relatorio.porCategoria()),
+                new FaturamentoBloco("Plano", relatorio.porPlano()),
+                new FaturamentoBloco("Profissional", relatorio.porProfissional()),
+                new FaturamentoBloco("Método de pagamento", relatorio.porMetodoPagamento()),
+                new FaturamentoBloco("Tipo de atendimento", relatorio.porTipoAtendimento())
+        ));
+        model.addAttribute("periodoInicio", periodoInicio);
+        model.addAttribute("periodoFim", periodoFim);
+        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        return "financeiro/relatorio-faturamento";
     }
 
     @PostMapping("/lancamentos")
@@ -173,6 +207,7 @@ public class FinanceiroController {
         model.addAttribute("metodosPagamento", MetodoPagamento.values());
         model.addAttribute("lancamentos", financeiroService.listarNoPeriodo(periodoInicio, periodoFim));
         model.addAttribute("resumo", resumo);
+        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
         model.addAttribute("periodoInicio", periodoInicio);
         model.addAttribute("periodoFim", periodoFim);
         model.addAttribute("editMode", lancamentoEmEdicao != null);
@@ -191,8 +226,10 @@ public class FinanceiroController {
         form.setTipo(lancamento.getTipo());
         form.setDescricao(lancamento.getDescricao());
         form.setCategoria(lancamento.getCategoria());
+        form.setProfissional(lancamento.getProfissional());
         form.setValor(lancamento.getValor());
-        form.setDataCompetencia(lancamento.getDataCompetencia().toLocalDate());
+        form.setDataCompetencia(lancamento.getDataCompetencia()
+                .atZoneSameInstant(ClinicTimezoneHolder.zoneId()).toLocalDate());
         return form;
     }
 }

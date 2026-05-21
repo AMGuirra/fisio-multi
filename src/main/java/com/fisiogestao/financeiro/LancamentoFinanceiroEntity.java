@@ -63,6 +63,9 @@ public class LancamentoFinanceiroEntity extends BaseEntity {
     @JoinColumn(name = "plano_sessao_id")
     private PlanoSessaoEntity planoSessao;
 
+    @Column(length = 120)
+    private String profissional;
+
     /** Forma de pagamento registrada no momento da baixa (V32). */
     @Enumerated(EnumType.STRING)
     @Column(name = "metodo_pagamento", length = 30)

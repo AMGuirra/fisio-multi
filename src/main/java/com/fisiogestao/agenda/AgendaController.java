@@ -78,6 +78,7 @@ public class AgendaController {
             @Valid @ModelAttribute("planoAgendaForm") PlanoConsumoForm form,
             BindingResult bindingResult,
             @RequestParam(required = false, name = "agendaData") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate agendaData,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
@@ -86,7 +87,7 @@ public class AgendaController {
         }
 
         try {
-            planoSessaoService.criarViaCrud(form);
+            planoSessaoService.criarViaCrud(form, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento criado e selecionado para o agendamento.");
             return construirDestinoCalendario(dataOuHoje(agendaData));
         } catch (BusinessException ex) {
@@ -172,11 +173,12 @@ public class AgendaController {
     public String registrarFaltaFaturada(
             @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = dataOuHoje(data);
         try {
-            agendaService.registrarFaltaFaturada(id);
+            agendaService.registrarFaltaFaturada(id, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Sessão registrada como falta faturada.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -189,11 +191,12 @@ public class AgendaController {
             @PathVariable java.util.UUID id,
             @RequestParam(required = false) String observacoes,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
         LocalDate retorno = dataOuHoje(data);
         try {
-            agendaService.marcarComoRealizada(id, observacoes);
+            agendaService.marcarComoRealizada(id, observacoes, authentication != null ? authentication.getName() : "Equipe da clínica");
             redirectAttributes.addFlashAttribute("successMessage", "Sessão marcada como realizada.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());

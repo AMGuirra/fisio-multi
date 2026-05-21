@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Faturamento - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Relatório de Faturamento</h1>
+                    <p class="hero-subtitle">Receitas pagas por categoria, plano, profissional, método de pagamento e tipo de atendimento.</p>
+                </div>
+                <span class="hero-pill">Faturamento</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Seções de Gestão">
+                <a th:href="@{/financeiro}" href="/financeiro" class="page-tab"><i data-lucide="wallet"></i> Financeiro</a>
+                <a th:href="@{/financeiro/contas-a-receber}" href="/financeiro/contas-a-receber" class="page-tab">
+                    <i data-lucide="badge-dollar-sign"></i> Contas a Receber
+                    <span th:if="${inadimplencia.quantidade() > 0}" class="tab-badge" th:text="${inadimplencia.quantidade()}">0</span>
+                </a>
+                <a th:href="@{/financeiro/relatorio-faturamento}" href="/financeiro/relatorio-faturamento" class="page-tab active"><i data-lucide="bar-chart-3"></i> Faturamento</a>
+                <a th:href="@{/relatorios}" href="/relatorios" class="page-tab"><i data-lucide="file-text"></i> Relatórios</a>
+            </nav>
+
+            <div class="section-card period-filter-card">
+                <form method="get" th:action="@{/financeiro/relatorio-faturamento}" action="/financeiro/relatorio-faturamento" class="period-form">
+                    <span class="period-label">De</span>
+                    <input type="date" name="inicio" class="form-control" th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
+                    <span class="period-label">Até</span>
+                    <input type="date" name="fim" class="form-control" th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
+                    <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
+                </form>
+            </div>
+
+            <section class="summary-grid grid-5">
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="trending-up"></i></span>
+                    <p class="summary-label">Faturamento Pago</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(relatorio.resumo().total(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="receipt"></i></span>
+                    <p class="summary-label">Receitas Pagas</p>
+                    <p class="summary-value" th:text="${relatorio.resumo().quantidade()}">0</p>
+                </article>
+                <article class="summary-card receita-pendente">
+                    <span class="summary-icon"><i data-lucide="badge-dollar-sign"></i></span>
+                    <p class="summary-label">Ticket Médio</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(relatorio.resumo().ticketMedio(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card despesa-pendente">
+                    <span class="summary-icon"><i data-lucide="alarm-clock"></i></span>
+                    <p class="summary-label">Vencido Hoje</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(inadimplencia.totalVencido(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="calendar-range"></i></span>
+                    <p class="summary-label">Período</p>
+                    <p class="summary-value" th:text="${#temporals.format(relatorio.inicio(), 'dd/MM') + ' - ' + #temporals.format(relatorio.fim(), 'dd/MM')}">01/01 - 31/01</p>
+                </article>
+            </section>
+
+            <section class="finance-report-grid">
+                <article class="section-card" th:each="bloco : ${blocosFaturamento}">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="bar-chart-3"></i> <span th:text="${bloco.titulo()}">Categoria</span></h3>
+                    </header>
+                    <div class="section-body" th:if="${#lists.isEmpty(bloco.itens())}">
+                        <div class="empty-box">
+                            <i data-lucide="chart-no-axes-column"></i>
+                            <p>Sem receitas pagas no período.</p>
+                        </div>
+                    </div>
+                    <div class="data-table-wrap" th:unless="${#lists.isEmpty(bloco.itens())}">
+                        <table class="data-table compact">
+                            <thead>
+                                <tr>
+                                    <th>Grupo</th>
+                                    <th class="text-right">Qtd.</th>
+                                    <th class="text-right">Total</th>
+                                    <th class="text-right">Part.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${bloco.itens()}">
+                                    <td><p class="entity-name" th:text="${item.nome()}">Grupo</p></td>
+                                    <td class="text-right" th:text="${item.quantidade()}">0</td>
+                                    <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(item.total(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
+                                    <td class="text-right"><span class="metric-badge tone-neutral" th:text="${item.participacao()}">0,0%</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

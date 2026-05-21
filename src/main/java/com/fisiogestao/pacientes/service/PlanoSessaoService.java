@@ -99,6 +99,11 @@ public class PlanoSessaoService {
 
     @Transactional
     public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form) {
+        return criarViaCrud(form, null);
+    }
+
+    @Transactional
+    public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form, String profissionalResponsavel) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
 
         PlanoSessaoEntity plano = PlanoSessaoEntity.builder()
@@ -112,7 +117,7 @@ public class PlanoSessaoService {
                 .status(statusAjustado(form.getStatus(), 0, form.getSessoesContratadas(), form.getDataValidade()))
                 .build();
         PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
-        financeiroService.registrarReceitaPlano(salvo);
+        financeiroService.registrarReceitaPlano(salvo, profissionalResponsavel);
         auditService.recordCreate(
                 AuditModule.PLANOS,
                 "plano_sessao",

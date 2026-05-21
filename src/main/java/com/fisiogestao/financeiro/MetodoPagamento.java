@@ -7,6 +7,7 @@ public enum MetodoPagamento {
     CARTAO_DEBITO("Cartão de débito"),
     TRANSFERENCIA("Transferência bancária"),
     CHEQUE("Cheque"),
+    CONVENIO("Convênio"),
     OUTRO("Outro");
 
     private final String label;

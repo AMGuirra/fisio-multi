@@ -4643,3 +4643,27 @@ body[data-theme='dark'] .waitlist-action-danger {
     cursor: pointer;
     max-width: 140px;
 }
+
+.finance-report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.finance-report-grid .section-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+.metric-badge[href] {
+    text-decoration: none;
+}
+
+@media (max-width: 980px) {
+    .finance-report-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .finance-report-grid .section-card:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+}

@@ -183,6 +183,8 @@ class PageSmokeTest {
             "/configuracoes/clinica",
             "/configuracao/clinica",
             "/financeiro",
+            "/financeiro/contas-a-receber",
+            "/financeiro/relatorio-faturamento",
             "/lista-espera",
             "/pacientes",
             "/planos-consumo",

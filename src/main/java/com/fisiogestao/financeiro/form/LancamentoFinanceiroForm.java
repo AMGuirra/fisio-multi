@@ -27,6 +27,9 @@ public class LancamentoFinanceiroForm {
     @Size(max = 80)
     private String categoria;
 
+    @Size(max = 120)
+    private String profissional;
+
     @NotNull(message = "Informe o valor.")
     @DecimalMin(value = "0.01", message = "O valor deve ser positivo.")
     private BigDecimal valor;

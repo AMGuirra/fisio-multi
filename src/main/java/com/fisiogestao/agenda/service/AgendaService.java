@@ -461,6 +461,11 @@ public class AgendaService {
 
     @Transactional
     public SessaoEntity marcarComoRealizada(UUID sessaoId, String observacoes) {
+        return marcarComoRealizada(sessaoId, observacoes, null);
+    }
+
+    @Transactional
+    public SessaoEntity marcarComoRealizada(UUID sessaoId, String observacoes, String profissionalResponsavel) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));
         var snapshotAnterior = auditService.snapshotOf(sessao);
@@ -475,7 +480,7 @@ public class AgendaService {
         }
 
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
-            financeiroService.registrarReceitaAvulso(sessao);
+            financeiroService.registrarReceitaAvulso(sessao, profissionalResponsavel);
         }
 
         sessao.setStatus(SessaoStatus.REALIZADA);
@@ -501,6 +506,11 @@ public class AgendaService {
 
     @Transactional
     public SessaoEntity registrarFaltaFaturada(UUID sessaoId) {
+        return registrarFaltaFaturada(sessaoId, null);
+    }
+
+    @Transactional
+    public SessaoEntity registrarFaltaFaturada(UUID sessaoId, String profissionalResponsavel) {
         SessaoEntity sessao = buscarSessao(sessaoId);
         var snapshotAnterior = auditService.snapshotOf(sessao);
 
@@ -516,7 +526,7 @@ public class AgendaService {
             sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
-            financeiroService.registrarReceitaAvulso(sessao);
+            financeiroService.registrarReceitaAvulso(sessao, profissionalResponsavel);
         }
 
         sessao.setStatus(SessaoStatus.FALTA_FATURADA);

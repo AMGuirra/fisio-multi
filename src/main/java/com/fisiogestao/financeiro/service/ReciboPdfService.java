@@ -14,10 +14,13 @@ import com.lowagie.text.pdf.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class ReciboPdfService {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
+    @Transactional(readOnly = true)
     public byte[] gerarRecibo(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
                 .orElseThrow(() -> new BusinessException("Lançamento financeiro não encontrado."));
@@ -147,7 +151,7 @@ public class ReciboPdfService {
             pLabel.setSpacingAfter(4);
             celValor.addElement(pLabel);
 
-            String valorFormatado = "R$ " + String.format("%,.2f", lancamento.getValor())
+            String valorFormatado = "R$ " + String.format(Locale.US, "%,.2f", lancamento.getValor())
                     .replace(',', 'X').replace('.', ',').replace('X', '.');
             Paragraph pValor = new Paragraph(valorFormatado, fontValorGrande);
             celValor.addElement(pValor);
