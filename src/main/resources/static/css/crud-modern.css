@@ -4679,41 +4679,39 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .finance-table {
+    display: block;
+    width: 100%;
     min-width: 0;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
-.finance-table .finance-col-date {
-    width: 106px;
+.finance-table colgroup {
+    display: none;
 }
 
-.finance-table .finance-col-description {
-    width: auto;
+.finance-table thead,
+.finance-table tbody {
+    display: block;
 }
 
-.finance-table .finance-col-type {
-    width: 108px;
-}
-
-.finance-table .finance-col-status {
-    width: 118px;
-}
-
-.finance-table .finance-col-payment {
-    width: 126px;
-}
-
-.finance-table .finance-col-value {
-    width: 104px;
-}
-
-.finance-table .finance-col-actions {
-    width: 236px;
+.finance-table thead tr,
+.finance-table tbody tr {
+    display: grid;
+    grid-template-columns:
+        106px
+        minmax(360px, clamp(400px, 34vw, 560px))
+        96px
+        108px
+        126px
+        104px
+        minmax(220px, 1fr);
+    align-items: center;
 }
 
 .finance-table thead th,
 .finance-table tbody td {
     padding-inline: 12px;
+    min-width: 0;
 }
 
 .finance-table .entity-name,
