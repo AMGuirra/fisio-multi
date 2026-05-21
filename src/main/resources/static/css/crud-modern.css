@@ -1,7 +1,7 @@
 .crud-main {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 24px;
 }
 
 .crud-hero {
@@ -10,7 +10,7 @@
 
 .crud-layout {
     display: grid;
-    gap: 16px;
+    gap: 20px;
 }
 
 .crud-layout.two-column {
@@ -312,7 +312,7 @@
 }
 
 .section-head {
-    padding: 14px 16px;
+    padding: 18px 22px;
     border-bottom: 1px solid var(--stroke-soft);
     display: flex;
     align-items: center;
@@ -337,7 +337,7 @@
 }
 
 .section-body {
-    padding: 16px;
+    padding: 22px;
 }
 
 .section-block + .section-block {
@@ -471,7 +471,7 @@
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    gap: 16px;
 }
 
 .summary-card {
@@ -480,7 +480,7 @@
     border: 1px solid var(--stroke-soft);
     border-radius: 14px;
     box-shadow: var(--shadow-sm);
-    padding: 14px;
+    padding: 18px 20px;
     overflow: hidden;
 }
 
@@ -496,12 +496,12 @@
 }
 
 .summary-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 11px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .summary-label {
@@ -514,8 +514,8 @@
 }
 
 .summary-value {
-    margin: 4px 0 0;
-    font-size: clamp(1.15rem, 1.2vw, 1.5rem);
+    margin: 6px 0 0;
+    font-size: clamp(1.18rem, 1.2vw, 1.5rem);
     letter-spacing: -0.01em;
     font-weight: 760;
     color: var(--text-strong);
@@ -570,14 +570,14 @@
 
 /* ── Filtro de período ────────────────────────────────────────── */
 .period-filter-card {
-    padding: 14px 16px;
+    padding: 16px 22px;
 }
 
 .period-filter-bar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
 }
 
 .period-quick-btns {
@@ -731,8 +731,8 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
     min-width: 160px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 14px 20px;
+    gap: 6px;
+    padding: 18px 26px;
 }
 
 .metric-label {
@@ -760,7 +760,7 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
 
 .metric-divider {
     width: 1px;
-    height: 36px;
+    height: 42px;
     background: var(--stroke-soft);
     flex-shrink: 0;
 }
@@ -827,7 +827,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 .modern-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .form-grid {
@@ -1054,7 +1054,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     font-weight: 700;
     color: var(--text-soft);
     background: var(--bg-soft);
-    padding: 12px 14px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--stroke-soft);
     white-space: nowrap;
 }
@@ -1062,7 +1062,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 .data-table tbody td {
     font-size: 0.9rem;
     color: var(--text-body);
-    padding: 12px 14px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--stroke-soft);
     vertical-align: middle;
 }
@@ -1868,7 +1868,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
     white-space: nowrap;
 }
 

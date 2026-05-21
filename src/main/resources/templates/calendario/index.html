@@ -72,6 +72,30 @@
                 </div>
             </div>
 
+            <!-- Contadores do dia selecionado -->
+            <section class="summary-grid grid-4">
+                <article class="summary-card">
+                    <span class="summary-icon"><i data-lucide="calendar-days"></i></span>
+                    <p class="summary-label">Total do dia</p>
+                    <p class="summary-value" th:text="${resumoDia.total}">0</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="circle-check-big"></i></span>
+                    <p class="summary-label">Realizadas</p>
+                    <p class="summary-value" th:text="${resumoDia.realizadas}">0</p>
+                </article>
+                <article class="summary-card receita-pendente">
+                    <span class="summary-icon"><i data-lucide="clock"></i></span>
+                    <p class="summary-label">Agendadas</p>
+                    <p class="summary-value" th:text="${resumoDia.agendadas}">0</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="x-circle"></i></span>
+                    <p class="summary-label">Canceladas</p>
+                    <p class="summary-value" th:text="${resumoDia.canceladas}">0</p>
+                </article>
+            </section>
+
             <section class="agenda-mobile-shell" aria-label="Painel mobile da agenda">
                 <div class="agenda-mobile-summary">
                     <div class="agenda-mobile-summary-copy">

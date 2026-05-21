@@ -4,7 +4,6 @@ import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +17,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HojeController {
 
-    private final HojeService hojeService;
     private final AgendaService agendaService;
 
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("resumo", hojeService.resumoDeHoje());
-        return "hoje/index";
+    public String index() {
+        return "redirect:/calendario";
     }
 
     @PostMapping("/sessoes/{id}/realizar")
@@ -38,7 +35,7 @@ public class HojeController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/hoje";
+        return "redirect:/calendario";
     }
 
     @PostMapping("/sessoes/{id}/cancelar")
@@ -52,6 +49,6 @@ public class HojeController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/hoje";
+        return "redirect:/calendario";
     }
 }

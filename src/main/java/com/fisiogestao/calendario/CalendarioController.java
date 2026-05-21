@@ -2,6 +2,7 @@ package com.fisiogestao.calendario;
 
 import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
@@ -170,6 +171,12 @@ public class CalendarioController {
         List<BloqueioAgendaEntity> bloqueiosMes = agendaService.listarBloqueiosAgendaNoPeriodo(inicio, fim);
         List<SolicitacaoAgendamentoEntity> pendentes = solicitacaoAgendamentoService.listarPendentes();
 
+        long totalDia = sessoesDia.size();
+        long realizadasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.REALIZADA).count();
+        long agendadasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.AGENDADA).count();
+        long canceladasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.CANCELADA || s.getStatus() == SessaoStatus.FALTA_FATURADA).count();
+
+        model.addAttribute("resumoDia", new ResumoAgendaDia(totalDia, realizadasDia, agendadasDia, canceladasDia));
         model.addAttribute("mesSelecionado", mesSelecionado);
         model.addAttribute("mesAnterior", mesSelecionado.minusMonths(1));
         model.addAttribute("mesProximo", mesSelecionado.plusMonths(1));
@@ -308,6 +315,8 @@ public class CalendarioController {
                 })
                 .toList();
     }
+
+    public record ResumoAgendaDia(long total, long realizadas, long agendadas, long canceladas) {}
 
     public record CalendarioDiaView(
             LocalDate data,
