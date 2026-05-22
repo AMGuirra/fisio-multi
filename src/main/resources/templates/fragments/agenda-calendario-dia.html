@@ -70,6 +70,7 @@
                                               data-confirm-helper-message="O histórico e o consumo do plano serão atualizados automaticamente."
                                               data-confirm-action-label="Confirmar realização">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
                                         </form>
                                         <button th:if="${sessao.status.name() == 'AGENDADA'}"
@@ -92,6 +93,7 @@
                                               data-confirm-helper-message="O status voltará para agendada e a sessão ficará em aberto."
                                               data-confirm-action-label="Desfazer realização">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Desfazer realização</button>
                                         </form>
                                         <form th:if="${sessao.status.name() == 'CANCELADA'}"
@@ -105,6 +107,7 @@
                                               data-confirm-helper-message="O horário volta a ficar reservado e a sessão poderá ser realizada ou editada novamente."
                                               data-confirm-action-label="Voltar para pendente">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button ghost"><i data-lucide="undo-2"></i>Voltar para pendente</button>
                                         </form>
                                     </div>
@@ -130,6 +133,7 @@
                                               data-confirm-helper-message="Se houver consumo de plano reservado, ele será estornado automaticamente antes da exclusão."
                                               data-confirm-action-label="Excluir sessão">
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                             <button type="submit" class="action-button session-action-delete"><i data-lucide="trash-2"></i>Excluir</button>
                                         </form>
                                     </div>
@@ -141,6 +145,7 @@
                                           class="inline-form"
                                           hidden>
                                         <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                     </form>
                                     <form th:if="${sessao.status.name() != 'CANCELADA'}"
                                           th:id="${'sessao-cancelar-' + sessao.id}"
@@ -149,6 +154,7 @@
                                           class="inline-form"
                                           hidden>
                                         <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                     </form>
                                     <form th:if="${sessao.status.name() == 'AGENDADA'}"
                                           th:id="${'sessao-falta-faturada-' + sessao.id}"
@@ -157,6 +163,7 @@
                                           class="inline-form"
                                           hidden>
                                         <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                     </form>
                                     <form th:if="${sessao.status.name() == 'AGENDADA'}"
                                           th:id="${'sessao-falta-' + sessao.id}"
@@ -165,6 +172,7 @@
                                           class="inline-form"
                                           hidden>
                                         <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                     </form>
                                 </div>
                             </div>

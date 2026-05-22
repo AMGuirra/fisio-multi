@@ -313,6 +313,30 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void calendarioRenderizaAcoesDeSessaoComTokenCsrf() throws Exception {
+        mockMvc.perform(get("/calendario").param("data", agendaDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"sessao-falta-" + sessaoAgendaId + "\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"_csrf\"")));
+    }
+
+    @Test
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    void recepcaoPodeRegistrarFaltaSemCobranca() throws Exception {
+        mockMvc.perform(post("/agenda/sessoes/{id}/falta", sessaoAgendaId)
+                        .with(csrf())
+                        .param("data", agendaDate.toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/calendario?data=" + agendaDate));
+
+        SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
+                .orElseThrow(() -> new IllegalStateException("SessÃ£o de teste nÃ£o encontrada."));
+
+        org.junit.jupiter.api.Assertions.assertEquals(SessaoStatus.FALTA, sessao.getStatus());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void planosConsumoAbreModalDeAgendamentoAoSelecionarPaciente() throws Exception {
         mockMvc.perform(get("/planos-consumo")
                         .param("paciente", clienteAgenda.getId().toString())
