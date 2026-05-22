@@ -547,6 +547,35 @@ public class AgendaService {
     }
 
     @Transactional
+    public SessaoEntity registrarFaltaNaoFaturada(UUID sessaoId, String profissionalResponsavel) {
+        SessaoEntity sessao = buscarSessao(sessaoId);
+        var snapshotAnterior = auditService.snapshotOf(sessao);
+
+        if (sessao.getStatus() == SessaoStatus.FALTA) {
+            return sessao;
+        }
+        if (sessao.getStatus() != SessaoStatus.AGENDADA) {
+            throw new BusinessException("Somente sessões pendentes podem ser registradas como falta.");
+        }
+
+        sessao.setStatus(SessaoStatus.FALTA);
+        SessaoEntity salva = sessaoRepository.save(sessao);
+        auditService.recordManual(
+                AuditModule.AGENDA,
+                "sessao",
+                salva.getId().toString(),
+                auditService.describeOf(salva),
+                AuditActionType.NO_SHOW,
+                snapshotAnterior,
+                auditService.snapshotOf(salva),
+                null,
+                "Sessão registrada como falta — sem cobrança.",
+                AuditEventOrigin.MANUAL
+        );
+        return salva;
+    }
+
+    @Transactional
     public SessaoEntity reverterRealizacao(UUID sessaoId) {
         SessaoEntity sessao = sessaoRepository.findById(sessaoId)
                 .orElseThrow(() -> new BusinessException("Sessão não encontrada."));

@@ -453,7 +453,7 @@
                                     <td>
                                         <span class="chip"
                                               th:classappend="${sessao.status.name() == 'REALIZADA' ? ' status-completed' : (sessao.status.name() == 'CANCELADA' ? ' status-danger' : ' status-warning')}"
-                                              th:text="${sessao.status}">AGENDADA</span>
+                                              th:text="${sessao.status.name() == 'FALTA_FATURADA' ? 'Falta faturada' : (sessao.status.name() == 'FALTA' ? 'Falta' : sessao.status)}">AGENDADA</span>
                                     </td>
                                 </tr>
                                 </tbody>

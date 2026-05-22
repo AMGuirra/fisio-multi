@@ -174,7 +174,7 @@ public class CalendarioController {
         long totalDia = sessoesDia.size();
         long realizadasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.REALIZADA).count();
         long agendadasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.AGENDADA).count();
-        long canceladasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.CANCELADA || s.getStatus() == SessaoStatus.FALTA_FATURADA).count();
+        long canceladasDia = sessoesDia.stream().filter(s -> s.getStatus() == SessaoStatus.CANCELADA || s.getStatus() == SessaoStatus.FALTA_FATURADA || s.getStatus() == SessaoStatus.FALTA).count();
 
         model.addAttribute("resumoDia", new ResumoAgendaDia(totalDia, realizadasDia, agendadasDia, canceladasDia));
         model.addAttribute("mesSelecionado", mesSelecionado);

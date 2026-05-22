@@ -870,11 +870,11 @@
 
                 <li th:each="sessao : ${historicoSessoes}" class="timeline-item">
                     <div class="timeline-icon"
-                         th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? ' falta' : ' cancelada')}"
+                         th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' or sessao.status.name() == 'FALTA' ? ' falta' : ' cancelada')}"
                          aria-hidden="true">
                         <i th:if="${sessao.status.name() == 'REALIZADA'}" data-lucide="check"></i>
-                        <i th:if="${sessao.status.name() == 'FALTA_FATURADA'}" data-lucide="triangle-alert"></i>
-                        <i th:if="${sessao.status.name() != 'REALIZADA' and sessao.status.name() != 'FALTA_FATURADA'}" data-lucide="x"></i>
+                        <i th:if="${sessao.status.name() == 'FALTA_FATURADA' or sessao.status.name() == 'FALTA'}" data-lucide="triangle-alert"></i>
+                        <i th:if="${sessao.status.name() != 'REALIZADA' and sessao.status.name() != 'FALTA_FATURADA' and sessao.status.name() != 'FALTA'}" data-lucide="x"></i>
                     </div>
                     <article class="timeline-card">
                         <div class="timeline-main">
@@ -886,9 +886,9 @@
                                 <p class="timeline-meta" th:if="${sessao.tipoAtendimento != null and !#strings.isEmpty(sessao.tipoAtendimento)}" th:text="${sessao.tipoAtendimento}">Tipo</p>
                             </div>
                             <span class="portal-badge"
-                                  th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? ' falta' : ' cancelada')}"
-                                  th:title="${sessao.status.name() == 'FALTA_FATURADA' ? 'Horário reservado e debitado conforme política de cancelamento' : null}"
-                                  th:text="${sessao.status.name() == 'REALIZADA' ? 'Realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? 'Falta Faturada' : 'Cancelada')}">
+                                  th:classappend="${sessao.status.name() == 'REALIZADA' ? ' realizada' : (sessao.status.name() == 'FALTA_FATURADA' or sessao.status.name() == 'FALTA' ? ' falta' : ' cancelada')}"
+                                  th:title="${sessao.status.name() == 'FALTA_FATURADA' ? 'Horário reservado e debitado conforme política de cancelamento' : (sessao.status.name() == 'FALTA' ? 'Falta registrada sem cobrança' : null)}"
+                                  th:text="${sessao.status.name() == 'REALIZADA' ? 'Realizada' : (sessao.status.name() == 'FALTA_FATURADA' ? 'Falta Faturada' : (sessao.status.name() == 'FALTA' ? 'Falta' : 'Cancelada'))}">
                                 Realizada
                             </span>
                         </div>
@@ -903,7 +903,7 @@
                         </div>
 
                         <!-- Formulário EVA: só para REALIZADA ou FALTA_FATURADA sem feedback -->
-                        <details th:if="${sessao.feedbackEvaPaciente == null and (sessao.status.name() == 'REALIZADA' or sessao.status.name() == 'FALTA_FATURADA')}"
+                        <details th:if="${sessao.feedbackEvaPaciente == null and (sessao.status.name() == 'REALIZADA' or sessao.status.name() == 'FALTA_FATURADA' or sessao.status.name() == 'FALTA')}"
                                  class="eva-form-details">
                             <summary class="eva-form-summary">
                                 <i data-lucide="star"></i>

@@ -4,5 +4,6 @@ public enum SessaoStatus {
     AGENDADA,
     REALIZADA,
     CANCELADA,
-    FALTA_FATURADA
+    FALTA_FATURADA,
+    FALTA
 }

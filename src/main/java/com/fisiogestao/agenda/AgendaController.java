@@ -186,6 +186,24 @@ public class AgendaController {
         return construirDestinoCalendario(retorno);
     }
 
+    @PostMapping("/sessoes/{id}/falta")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    public String registrarFalta(
+            @PathVariable UUID id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes
+    ) {
+        LocalDate retorno = dataOuHoje(data);
+        try {
+            agendaService.registrarFaltaNaoFaturada(id, authentication != null ? authentication.getName() : "Equipe da clínica");
+            redirectAttributes.addFlashAttribute("successMessage", "Falta registrada sem cobrança.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return construirDestinoCalendario(retorno);
+    }
+
     @PostMapping("/sessoes/{id}/realizar")
     public String concluirSessao(
             @PathVariable java.util.UUID id,

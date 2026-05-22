@@ -38,6 +38,7 @@
         .timeline-dot.status-cancelada  { background: #dc2626; }
         .timeline-dot.status-agendada   { background: #2563eb; }
         .timeline-dot.status-falta_faturada { background: #d97706; }
+        .timeline-dot.status-falta         { background: #d97706; }
         .timeline-body { flex: 1; min-width: 0; }
         .timeline-paciente { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
         .timeline-meta { font-size: 0.8rem; color: var(--color-text-muted, #64748b); margin-bottom: 6px; }
@@ -62,6 +63,7 @@
         .chip.status-realizada    { background: #dcfce7; color: #166534; }
         .chip.status-cancelada    { background: #fee2e2; color: #991b1b; }
         .chip.status-falta_faturada { background: #fef3c7; color: #92400e; }
+        .chip.status-falta          { background: #fef3c7; color: #92400e; }
 
         /* ── pendências financeiras ───────────────────────────── */
         .pendencia-row {
@@ -215,7 +217,7 @@
                                         <span th:if="${item.sessao.tipoAtendimento == null or item.sessao.tipoAtendimento.blank}">Atendimento</span>
                                         <span> • </span>
                                         <span th:class="'chip status-' + ${item.sessao.status.name().toLowerCase()}"
-                                              th:text="${item.sessao.status.name()}">AGENDADA</span>
+                                              th:text="${item.sessao.status.name() == 'FALTA_FATURADA' ? 'Falta faturada' : (item.sessao.status.name() == 'FALTA' ? 'Falta' : item.sessao.status.name())}">AGENDADA</span>
                                     </div>
                                     <div class="timeline-actions">
                                         <form th:if="${item.podeMarcarRealizada}"

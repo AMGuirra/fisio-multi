@@ -48,8 +48,8 @@
                                 <div class="session-actions">
                                     <div class="session-actions-top">
                                         <span class="chip"
-                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : (sessao.status.name() == 'FALTA_FATURADA' ? 'status-warning' : 'status-danger'))}"
-                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : (sessao.status.name() == 'FALTA_FATURADA' ? 'FALTA FATURADA' : sessao.status.name())}">STATUS</span>
+                                              th:classappend="${sessao.status.name() == 'AGENDADA' ? 'status-warning' : (sessao.status.name() == 'REALIZADA' ? 'status-completed' : (sessao.status.name() == 'FALTA_FATURADA' or sessao.status.name() == 'FALTA' ? 'status-warning' : 'status-danger'))}"
+                                              th:text="${sessao.status.name() == 'AGENDADA' ? 'PENDENTE' : (sessao.status.name() == 'FALTA_FATURADA' ? 'FALTA FATURADA' : (sessao.status.name() == 'FALTA' ? 'FALTA' : sessao.status.name()))}">STATUS</span>
                                         <span class="chip status-success" th:if="${sessao.recorrencia != null or sessao.recorrenciaPai != null}">RECORRENTE</span>
                                         <a th:if="${sessao.status.name() != 'CANCELADA'}"
                                            href="javascript:void(0)"
@@ -72,19 +72,15 @@
                                             <input type="hidden" name="data" th:value="${dataSelecionada}">
                                             <button type="submit" class="action-button success"><i data-lucide="check"></i>Confirmar realização</button>
                                         </form>
-                                        <form th:if="${sessao.status.name() == 'AGENDADA'}"
-                                              th:action="@{/agenda/sessoes/{id}/falta-faturada(id=${sessao.id})}"
-                                              method="post"
-                                              class="inline-form"
-                                              data-confirm-modal
-                                              data-confirm-title="Registrar falta faturada?"
-                                              data-confirm-message="O paciente faltou, mas a sessão será cobrada normalmente."
-                                              data-confirm-helper-title="Crédito consumido, receita reconhecida"
-                                              data-confirm-helper-message="O plano de tratamento terá uma sessão descontada e o valor permanecerá vinculado ao faturamento da clínica."
-                                              data-confirm-action-label="Confirmar falta faturada">
-                                            <input type="hidden" name="data" th:value="${dataSelecionada}">
-                                            <button type="submit" class="action-button warning"><i data-lucide="user-x"></i>Falta faturada</button>
-                                        </form>
+                                        <button th:if="${sessao.status.name() == 'AGENDADA'}"
+                                                type="button"
+                                                class="action-button warning js-btn-registrar-falta"
+                                                th:attr="data-falta-faturada-form-id=${'sessao-falta-faturada-' + sessao.id},
+                                                         data-falta-form-id=${'sessao-falta-' + sessao.id},
+                                                         data-sessao-patient=${sessao.cliente.nomeCompleto},
+                                                         data-sessao-datetime=${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">
+                                            <i data-lucide="user-x"></i>Falta
+                                        </button>
                                         <form th:if="${sessao.status.name() == 'REALIZADA'}"
                                               th:action="@{/agenda/sessoes/{id}/reabrir(id=${sessao.id})}"
                                               method="post"
@@ -154,6 +150,22 @@
                                           hidden>
                                         <input type="hidden" name="data" th:value="${dataSelecionada}">
                                     </form>
+                                    <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                          th:id="${'sessao-falta-faturada-' + sessao.id}"
+                                          th:action="@{/agenda/sessoes/{id}/falta-faturada(id=${sessao.id})}"
+                                          method="post"
+                                          class="inline-form"
+                                          hidden>
+                                        <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                    </form>
+                                    <form th:if="${sessao.status.name() == 'AGENDADA'}"
+                                          th:id="${'sessao-falta-' + sessao.id}"
+                                          th:action="@{/agenda/sessoes/{id}/falta(id=${sessao.id})}"
+                                          method="post"
+                                          class="inline-form"
+                                          hidden>
+                                        <input type="hidden" name="data" th:value="${dataSelecionada}">
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -162,6 +174,41 @@
             </div>
         </article>
     </section>
+
+    <div id="faltaModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="faltaModalTitle" aria-describedby="faltaModalMessage">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="faltaModalTitle"><i data-lucide="user-x"></i> Registrar falta</h3>
+                        <p id="faltaModalSubtitle"></p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <p id="faltaModalMessage" style="margin-bottom: 1rem;">O paciente não compareceu à sessão. Deseja cobrar esta falta?</p>
+                    <div class="helper-card modal-helper-card">
+                        <div class="helper-copy">
+                            <h4>Falta faturada</h4>
+                            <p>O crédito do plano é consumido e a receita é reconhecida normalmente. Para sessões avulsas, um lançamento financeiro será criado.</p>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="action-button ghost" data-modal-close>Voltar</button>
+                        <button type="button" class="action-button ghost" id="faltaModalNaoAction">
+                            <i data-lucide="x"></i>Não cobrar
+                        </button>
+                        <button type="button" class="action-button warning" id="faltaModalSimAction">
+                            <i data-lucide="user-x"></i>Sim, cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="editarSessaoModal" class="app-modal" aria-hidden="true">
         <div class="app-modal-backdrop" data-modal-close></div>
@@ -307,6 +354,67 @@
 
     <script>
         (() => {
+            (() => {
+                const modal = document.getElementById('faltaModal');
+                const subtitle = document.getElementById('faltaModalSubtitle');
+                const simAction = document.getElementById('faltaModalSimAction');
+                const naoAction = document.getElementById('faltaModalNaoAction');
+
+                let faltaFaturadaForm = null;
+                let faltaForm = null;
+
+                const setOpen = (open) => {
+                    if (!modal) return;
+                    modal.classList.toggle('is-open', open);
+                    modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    document.body.classList.toggle('modal-open', open);
+                };
+
+                const close = () => {
+                    faltaFaturadaForm = null;
+                    faltaForm = null;
+                    setOpen(false);
+                };
+
+                document.querySelectorAll('.js-btn-registrar-falta').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const faltaFaturadaFormId = button.dataset.faltaFaturadaFormId;
+                        const faltaFormId = button.dataset.faltaFormId;
+                        faltaFaturadaForm = faltaFaturadaFormId ? document.getElementById(faltaFaturadaFormId) : null;
+                        faltaForm = faltaFormId ? document.getElementById(faltaFormId) : null;
+                        const patient = button.dataset.sessaoPatient || '';
+                        const datetime = button.dataset.sessaoDatetime || '';
+                        subtitle.textContent = datetime ? `${patient} • ${datetime}` : patient;
+                        setOpen(true);
+                        if (simAction) simAction.focus();
+                    });
+                });
+
+                if (simAction) {
+                    simAction.addEventListener('click', () => {
+                        const formToSubmit = faltaFaturadaForm;
+                        close();
+                        if (formToSubmit) HTMLFormElement.prototype.submit.call(formToSubmit);
+                    });
+                }
+
+                if (naoAction) {
+                    naoAction.addEventListener('click', () => {
+                        const formToSubmit = faltaForm;
+                        close();
+                        if (formToSubmit) HTMLFormElement.prototype.submit.call(formToSubmit);
+                    });
+                }
+
+                if (modal) {
+                    modal.querySelectorAll('[data-modal-close]').forEach((el) => el.addEventListener('click', close));
+                }
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && modal && modal.classList.contains('is-open')) close();
+                });
+            })();
+
             (() => {
                 const modal = document.getElementById('gerenciarStatusSessaoModal');
                 const subtitle = document.getElementById('gerenciarStatusSessaoModalSubtitle');
