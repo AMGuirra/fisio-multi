@@ -714,8 +714,8 @@ body.sidebar-open .sidebar-toggle-btn svg {
 
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
     margin-bottom: 22px;
 }
 
@@ -725,10 +725,10 @@ body.sidebar-open .sidebar-toggle-btn svg {
     border: 1px solid #d9e8e3;
     background: var(--bg-surface);
     box-shadow: var(--shadow-sm);
-    padding: 18px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
     overflow: hidden;
     transition: transform var(--ease-standard), box-shadow var(--ease-standard), border-color var(--ease-standard);
 }
@@ -736,10 +736,10 @@ body.sidebar-open .sidebar-toggle-btn svg {
 .metric-card::after {
     content: '';
     position: absolute;
-    top: -38px;
-    right: -26px;
-    width: 110px;
-    height: 110px;
+    top: -30px;
+    right: -22px;
+    width: 86px;
+    height: 86px;
     border-radius: 50%;
     opacity: 0.34;
 }
@@ -771,8 +771,8 @@ body.sidebar-open .sidebar-toggle-btn svg {
 }
 
 .metric-icon {
-    width: 46px;
-    height: 46px;
+    width: 38px;
+    height: 38px;
     border-radius: 999px;
     display: grid;
     place-items: center;
@@ -780,14 +780,14 @@ body.sidebar-open .sidebar-toggle-btn svg {
 
 .metric-label {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.74rem;
     color: var(--text-soft);
     font-weight: 600;
 }
 
 .metric-value {
     margin: 0;
-    font-size: clamp(1.2rem, 1.3vw, 1.7rem);
+    font-size: clamp(1.05rem, 1vw, 1.35rem);
     font-weight: 760;
     letter-spacing: -0.02em;
     color: var(--text-strong);

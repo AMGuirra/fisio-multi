@@ -853,7 +853,12 @@
                             <form th:if="${sv.cancelavel()}"
                                   th:action="@{/paciente/{token}/sessao/{sid}/cancelar(token=${token},sid=${sv.sessao().id})}"
                                   method="post"
-                                  data-confirm-message="Deseja cancelar esta sessão?">
+                                  data-confirm-modal
+                                  data-confirm-title="Cancelar sessao"
+                                  data-confirm-message="Deseja cancelar esta sessao?"
+                                  data-confirm-helper-title="Confirme o cancelamento"
+                                  data-confirm-helper-message="A clinica sera avisada e a sessao saira dos proximos atendimentos."
+                                  data-confirm-action-label="Cancelar sessao">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                 <button type="submit" class="portal-btn portal-btn-danger">
                                     <i data-lucide="x"></i>
@@ -1004,7 +1009,13 @@
             <div th:if="${naListaEspera and !listaEsperaEntradas.empty}">
                 <div th:each="entrada : ${listaEsperaEntradas}" th:if="${entrada.status.name() == 'AGUARDANDO'}" class="mt-3q">
                     <form th:action="@{/paciente/{token}/lista-espera/{eid}/cancelar(token=${token},eid=${entrada.id})}"
-                          method="post" data-confirm-message="Deseja sair da lista de espera?">
+                          method="post"
+                          data-confirm-modal
+                          data-confirm-title="Sair da lista de espera"
+                          data-confirm-message="Deseja sair da lista de espera?"
+                          data-confirm-helper-title="Confirme a saida"
+                          data-confirm-helper-message="Voce deixara de receber contatos de encaixe para novos horarios."
+                          data-confirm-action-label="Sair da lista">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                         <button type="submit" class="portal-btn portal-btn-secondary text-xs">
                             <i data-lucide="x"></i>
@@ -1191,7 +1202,10 @@
     </div>
 </div>
 
+<th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
 <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+<script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 <script>
     (() => {
         const modal = document.getElementById('agendamentoModal');
@@ -1298,14 +1312,6 @@
         document.querySelectorAll('[data-portal-modal-close]').forEach((button) => {
             button.addEventListener('click', fecharModal);
         });
-        document.querySelectorAll('form[data-confirm-message]').forEach((form) => {
-            form.addEventListener('submit', (event) => {
-                if (!window.confirm(form.dataset.confirmMessage)) {
-                    event.preventDefault();
-                }
-            });
-        });
-
         if (dataInput) {
             dataInput.addEventListener('change', () => carregarHorarios(dataInput.value));
         }

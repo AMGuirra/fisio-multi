@@ -166,7 +166,12 @@
                                 </button>
                             </form>
                             <form th:action="@{/lista-espera/{id}/cancelar(id=${entrada.id})}" method="post"
-                                  data-confirm-message="Remover paciente da lista de espera?">
+                                  data-confirm-modal
+                                  data-confirm-title="Remover da lista de espera"
+                                  data-confirm-message="Remover paciente da lista de espera?"
+                                  data-confirm-helper-title="Confirme antes de remover"
+                                  data-confirm-helper-message="O registro deixa de aparecer na fila ativa depois da confirmacao."
+                                  data-confirm-action-label="Remover">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                 <button type="submit" class="action-button waitlist-action-danger" title="Remover da lista">
                                     <i data-lucide="x"></i> Remover
@@ -179,13 +184,13 @@
         </main>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script>
         if (window.lucide) lucide.createIcons();
-        document.querySelectorAll('form[data-confirm-message]').forEach(f => {
-            f.addEventListener('submit', e => { if (!confirm(f.dataset.confirmMessage)) e.preventDefault(); });
-        });
     </script>
 </body>
 </html>

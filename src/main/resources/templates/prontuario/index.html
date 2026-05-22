@@ -541,8 +541,12 @@
                                 <form th:action="@{/prontuario/anexo/{id}/excluir(id=${anexo.id})}"
                                       method="post"
                                       class="d-inline"
-                                      th:attr="data-nome=${anexo.nomeOriginal}"
-                                      onsubmit="return confirm('Excluir o arquivo \'' + this.dataset.nome + '\'? Esta ação não pode ser desfeita.');">
+                                      th:attr="data-nome=${anexo.nomeOriginal}, data-confirm-message=|Excluir o arquivo '${anexo.nomeOriginal}'? Esta acao nao pode ser desfeita.|"
+                                      data-confirm-modal
+                                      data-confirm-title="Excluir arquivo"
+                                      data-confirm-helper-title="Exclusao definitiva"
+                                      data-confirm-helper-message="O anexo sera removido do prontuario depois da confirmacao."
+                                      data-confirm-action-label="Excluir">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                     <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
                                     <button type="submit" class="action-button ghost text-danger">
@@ -562,12 +566,13 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
-
-
 
 
 
