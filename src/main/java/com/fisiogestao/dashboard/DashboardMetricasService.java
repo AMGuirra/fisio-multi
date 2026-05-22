@@ -14,8 +14,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.Duration;
-import java.time.YearMonth;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,11 +79,18 @@ public class DashboardMetricasService {
             long totalSessoes
     ) {}
 
+    public record SessaoResumoDia(
+            String nomePaciente,
+            String horario,
+            String status
+    ) {}
+
     public record MetricasDashboard(
             List<OcupacaoMensal> ocupacaoMensal,
             List<ReceitaMensal> receitaMensal,
             RetencaoPlanos retencaoPlanos,
-            List<FrequenciaPaciente> rankingFrequencia
+            List<FrequenciaPaciente> rankingFrequencia,
+            List<SessaoResumoDia> sessoesDoDia
     ) {}
 
     /**
@@ -102,7 +112,8 @@ public class DashboardMetricasService {
                 consultarOcupacaoMensal(meses, inicioJanela),
                 consultarReceitaMensal(meses, inicioJanela),
                 consultarRetencaoPlanos(),
-                consultarRankingFrequencia(inicioJanela)
+                consultarRankingFrequencia(inicioJanela),
+                consultarSessoesDoDia()
         );
     }
 
@@ -264,6 +275,36 @@ public class DashboardMetricasService {
                     rs.getLong("total_sessoes")
             ));
         }, inicioJanela);
+        return resultado;
+    }
+
+    private List<SessaoResumoDia> consultarSessoesDoDia() {
+        LocalDate hoje = ClinicTimezoneHolder.today();
+        OffsetDateTime inicioDia = hoje.atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+        OffsetDateTime fimDia = hoje.plusDays(1).atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
+
+        String sql = """
+                SELECT c.nome_completo, s.data_hora_inicio, s.status
+                FROM sessao s
+                JOIN cliente c ON c.id = s.cliente_id
+                WHERE s.data_hora_inicio >= ?
+                  AND s.data_hora_inicio < ?
+                  AND s.status <> 'CANCELADA'
+                ORDER BY s.data_hora_inicio ASC
+                LIMIT 20
+                """;
+
+        List<SessaoResumoDia> resultado = new ArrayList<>();
+        jdbc.query(sql, (rs) -> {
+            OffsetDateTime dataHora = rs.getObject("data_hora_inicio", OffsetDateTime.class);
+            String horario = dataHora.atZoneSameInstant(ClinicTimezoneHolder.zoneId()).toLocalTime().format(fmt);
+            resultado.add(new SessaoResumoDia(
+                    rs.getString("nome_completo"),
+                    horario,
+                    rs.getString("status")
+            ));
+        }, inicioDia, fimDia);
         return resultado;
     }
 

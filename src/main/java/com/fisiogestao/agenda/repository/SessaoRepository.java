@@ -80,6 +80,9 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             @Param("de") OffsetDateTime de,
             @Param("ate") OffsetDateTime ate);
 
+    @Query("SELECT COUNT(s) FROM SessaoEntity s WHERE s.status <> 'CANCELADA' AND s.dataHoraInicio >= :inicio AND s.dataHoraInicio < :fim")
+    long countNaoCanceladasNoPeriodo(@Param("inicio") OffsetDateTime inicio, @Param("fim") OffsetDateTime fim);
+
     @Modifying
     @Query("DELETE FROM SessaoEntity s WHERE s.planoSessao.id = :planoId AND s.status = :status AND s.dataHoraInicio > :agora")
     int deletarFuturasPorPlanoEStatus(

@@ -236,6 +236,42 @@
             }).join('');
         };
 
+        const statusBadge = (status) => {
+            const map = {
+                AGENDADA: { label: 'Agendada', cls: 'session-badge--agendada' },
+                REALIZADA: { label: 'Realizada', cls: 'session-badge--realizada' },
+                FALTA: { label: 'Falta', cls: 'session-badge--falta' },
+                FALTA_FATURADA: { label: 'Falta Fat.', cls: 'session-badge--falta-faturada' }
+            };
+            const info = map[status] || { label: status, cls: '' };
+            return `<span class="session-badge ${info.cls}">${info.label}</span>`;
+        };
+
+        const renderAgendaHoje = (sessoes) => {
+            const list = document.getElementById('agendaHojeList');
+            const total = document.getElementById('agendaHojeTotal');
+            if (!list) {
+                return;
+            }
+
+            if (total) {
+                total.textContent = sessoes.length > 0 ? `${sessoes.length} sessão(ões)` : '0 sessões';
+            }
+
+            if (sessoes.length === 0) {
+                list.innerHTML = '<p class="analytics-empty">Nenhuma sessão para hoje.</p>';
+                return;
+            }
+
+            list.innerHTML = sessoes.map((s) => `
+                <div class="session-item">
+                    <span class="session-time">${s.horario}</span>
+                    <span class="session-patient">${s.nomePaciente}</span>
+                    ${statusBadge(s.status)}
+                </div>
+            `).join('');
+        };
+
         const carregarMetricasDashboard = async () => {
             const ocupacaoChart = document.getElementById('ocupacaoChart');
             const receitaChart = document.getElementById('receitaChart');
@@ -261,6 +297,9 @@
                 const receitas = data.receitaMensal || [];
                 const retencao = data.retencaoPlanos || {};
                 const frequencia = data.rankingFrequencia || [];
+                const sessoesDoDia = data.sessoesDoDia || [];
+
+                renderAgendaHoje(sessoesDoDia);
 
                 const ocupacaoMedia = ocupacao.length
                     ? ocupacao.reduce((total, item) => total + Number(item.taxaOcupacao || 0), 0) / ocupacao.length

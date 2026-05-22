@@ -123,6 +123,26 @@
                     <p class="metric-label">Sessões Hoje</p>
                 </a>
 
+                <a th:href="@{/calendario}" href="/calendario"
+                   class="metric-card metric-card-link metric-sessoes-mes"
+                   aria-label="Ver sessões do mês na agenda">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="calendar-range" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.sessoesDoMes()}">0</p>
+                    <p class="metric-label">Sessões do Mês</p>
+                </a>
+
+                <a th:href="@{/pacientes}" href="/pacientes"
+                   class="metric-card metric-card-link metric-novos"
+                   aria-label="Ver novos pacientes cadastrados este mês">
+                    <div class="metric-top">
+                        <span class="metric-icon"><i data-lucide="user-plus" aria-hidden="true"></i></span>
+                    </div>
+                    <p class="metric-value skeletonable" th:text="${summary.novosPacientesMes()}">0</p>
+                    <p class="metric-label">Novos Pacientes (mês)</p>
+                </a>
+
                 <a th:href="@{/solicitacoes}" href="/solicitacoes"
                    class="metric-card metric-card-link metric-pendencias"
                    aria-label="Abrir solicitações pendentes">
@@ -218,7 +238,7 @@
                 </article>
             </section>
 
-            <section class="panels-grid panels-grid-single" aria-label="Ranking de frequência">
+            <section class="panels-grid panels-grid-freq-agenda" aria-label="Frequência e agenda">
                 <article class="panel analytics-panel">
                     <header class="panel-head">
                         <h3 class="panel-title">
@@ -230,6 +250,21 @@
                     <div class="panel-body">
                         <div class="chart-bars chart-bars--names" id="frequenciaChart" aria-live="polite">
                             <p class="analytics-empty">Carregando indicadores...</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel analytics-panel">
+                    <header class="panel-head">
+                        <h3 class="panel-title">
+                            <i data-lucide="calendar-clock" aria-hidden="true"></i>
+                            Agenda de Hoje
+                        </h3>
+                        <span class="panel-kpi" id="agendaHojeTotal">--</span>
+                    </header>
+                    <div class="panel-body">
+                        <div class="session-list" id="agendaHojeList" aria-live="polite">
+                            <p class="analytics-empty">Carregando agenda...</p>
                         </div>
                     </div>
                 </article>

@@ -663,7 +663,10 @@ body.sidebar-open .sidebar-toggle-btn svg {
 }
 
 .dashboard-main {
-    padding: 24px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .hero-card {
@@ -671,14 +674,13 @@ body.sidebar-open .sidebar-toggle-btn svg {
     justify-content: space-between;
     align-items: center;
     gap: 18px;
-    padding: 22px 24px;
+    padding: 26px 28px;
     border-radius: var(--radius-lg);
     border: 1px solid #d3e3de;
     background:
         linear-gradient(112deg, rgba(15, 143, 122, 0.09), rgba(47, 111, 236, 0.07)),
         var(--bg-surface);
     box-shadow: var(--shadow-sm);
-    margin-bottom: 22px;
 }
 
 .hero-content {
@@ -714,9 +716,8 @@ body.sidebar-open .sidebar-toggle-btn svg {
 
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    gap: 14px;
 }
 
 .metric-card {
@@ -856,6 +857,89 @@ body.sidebar-open .sidebar-toggle-btn svg {
     background: rgba(15, 143, 122, 0.21);
 }
 
+.metric-card.metric-sessoes-mes .metric-icon {
+    background: var(--purple-100);
+    color: #6236bf;
+}
+
+.metric-card.metric-sessoes-mes::after {
+    background: rgba(123, 77, 217, 0.2);
+}
+
+.metric-card.metric-novos .metric-icon {
+    background: #fef0e0;
+    color: #b06010;
+}
+
+.metric-card.metric-novos::after {
+    background: rgba(176, 96, 16, 0.15);
+}
+
+/* --- Session list (Agenda de Hoje) --- */
+
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 340px;
+}
+
+.session-item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg-soft);
+    border: 1px solid var(--stroke-soft);
+}
+
+.session-time {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brand-600);
+    white-space: nowrap;
+}
+
+.session-patient {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.session-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.session-badge--agendada {
+    background: var(--blue-100);
+    color: #2454b4;
+}
+
+.session-badge--realizada {
+    background: var(--green-100);
+    color: var(--brand-700);
+}
+
+.session-badge--falta {
+    background: var(--red-100);
+    color: #a73535;
+}
+
+.session-badge--falta-faturada {
+    background: var(--yellow-100);
+    color: #987100;
+}
+
 .panels-grid {
     display: grid;
     grid-template-columns: 1.35fr 1fr;
@@ -866,11 +950,14 @@ body.sidebar-open .sidebar-toggle-btn svg {
     grid-template-columns: 1fr;
 }
 
+.panels-grid-freq-agenda {
+    grid-template-columns: 1.2fr 1fr;
+}
+
 .analytics-grid {
     display: grid;
     grid-template-columns: 1.15fr 1.15fr 0.8fr;
     gap: 16px;
-    margin-bottom: 22px;
 }
 
 .panel {
@@ -1471,6 +1558,16 @@ body[data-theme='dark'] .session-time {
     color: #9fe8d7;
 }
 
+body[data-theme='dark'] .session-item {
+    background: var(--bg-soft);
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .session-item .session-time {
+    background: transparent;
+    color: #9fe8d7;
+}
+
 body[data-theme='dark'] .date-control-nav:hover,
 body[data-theme='dark'] .date-control-nav:focus-visible {
     background: rgba(15, 143, 122, 0.18);
@@ -1510,7 +1607,8 @@ body[data-theme='dark'] .flash-message.warning {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .panels-grid {
+    .panels-grid,
+    .panels-grid-freq-agenda {
         grid-template-columns: 1fr;
     }
 
@@ -1559,6 +1657,7 @@ body[data-theme='dark'] .flash-message.warning {
 
     .dashboard-main {
         padding: 14px;
+        gap: 16px;
     }
 
     .app-footer {
