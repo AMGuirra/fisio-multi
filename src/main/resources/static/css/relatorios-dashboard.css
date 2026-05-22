@@ -682,3 +682,103 @@ body[data-theme='dark'] {
         gap: 10px;
     }
 }
+
+/* Harmonizacao final com o design system das paginas internas. */
+:root {
+    --report-kicker-color: var(--brand-700);
+    --report-highlight-border: var(--stroke-soft);
+    --report-highlight-bg: var(--bg-surface);
+    --report-period-border: var(--stroke-soft);
+    --report-period-bg: var(--bg-surface);
+    --report-period-shadow: var(--shadow-sm);
+    --report-kpi-border: var(--stroke-soft);
+    --report-kpi-bg: var(--bg-surface);
+    --report-chart-border: var(--stroke-soft);
+    --report-chart-bg: var(--bg-surface);
+    --report-chart-track-bg: var(--bg-soft);
+    --report-chart-track-border: var(--stroke-soft);
+    --report-donut-border: var(--stroke-soft);
+    --report-donut-bg: var(--bg-surface);
+    --report-donut-core-bg: var(--bg-surface);
+    --report-donut-core-shadow: inset 0 0 0 1px var(--stroke-soft);
+    --report-ranking-border: var(--stroke-soft);
+    --report-ranking-bg: var(--bg-surface);
+    --report-pill-success-bg: var(--color-background-success);
+    --report-pill-success-text: var(--color-text-success);
+    --report-pill-info-bg: var(--blue-100);
+    --report-pill-info-text: #2454b4;
+    --report-pill-warning-bg: var(--color-background-warning);
+    --report-pill-warning-text: var(--color-text-warning);
+    --report-pill-danger-bg: var(--color-background-danger);
+    --report-pill-danger-text: var(--color-text-danger);
+    --report-pill-neutral-bg: var(--bg-soft);
+    --report-pill-neutral-text: var(--text-body);
+}
+
+body[data-theme='dark'] {
+    --report-kicker-color: #9fe8d7;
+    --report-highlight-border: var(--stroke-soft);
+    --report-highlight-bg: rgba(12, 22, 28, 0.94);
+    --report-period-border: var(--stroke-soft);
+    --report-period-bg: rgba(12, 22, 28, 0.94);
+    --report-kpi-border: var(--stroke-soft);
+    --report-kpi-bg: rgba(12, 22, 28, 0.94);
+    --report-chart-border: var(--stroke-soft);
+    --report-chart-bg: rgba(12, 22, 28, 0.94);
+    --report-chart-track-bg: var(--bg-soft);
+    --report-chart-track-border: var(--stroke-soft);
+    --report-donut-border: var(--stroke-soft);
+    --report-donut-bg: rgba(12, 22, 28, 0.94);
+    --report-donut-core-bg: var(--bg-surface);
+    --report-ranking-border: var(--stroke-soft);
+    --report-ranking-bg: rgba(12, 22, 28, 0.94);
+    --report-pill-info-bg: rgba(33, 80, 179, 0.26);
+    --report-pill-info-text: #b9d1ff;
+}
+
+.report-highlight,
+.report-period-card,
+.report-kpi-card,
+.report-chart-block,
+.donut-card,
+.ranking-item {
+    border-radius: var(--app-card-radius, 14px);
+    border-color: var(--stroke-soft);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.report-highlight,
+.report-period-card,
+.report-chart-block,
+.donut-card,
+.ranking-item {
+    padding: 14px;
+}
+
+.report-kpi-card {
+    min-height: 150px;
+    padding: 16px;
+}
+
+.report-kpi-icon,
+.ranking-position {
+    border-radius: var(--app-control-radius, 11px);
+}
+
+.report-kpi-change,
+.report-pill,
+.finance-saldo {
+    min-height: 28px;
+    padding: 5px 10px;
+}
+
+body[data-theme='dark'] .report-highlight,
+body[data-theme='dark'] .report-period-card,
+body[data-theme='dark'] .report-kpi-card,
+body[data-theme='dark'] .report-chart-block,
+body[data-theme='dark'] .donut-card,
+body[data-theme='dark'] .ranking-item {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+}

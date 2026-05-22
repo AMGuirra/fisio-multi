@@ -166,3 +166,83 @@ body[data-theme='dark'] .info-icon.status-instabilidade { color: #f87171; }
         padding: 0.75rem;
     }
 }
+
+/* Harmonizacao com dashboard/crud-modern. */
+.current-status-card,
+.info-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--app-card-radius, 14px);
+    box-shadow: var(--shadow-sm);
+}
+
+.current-status-card {
+    padding: 18px;
+}
+
+.info-item {
+    padding: 14px;
+}
+
+.status-indicator,
+.info-icon {
+    border-radius: var(--app-control-radius, 11px);
+}
+
+.status-indicator {
+    min-height: 36px;
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.status-online,
+.info-icon.status-online {
+    background: var(--color-background-success);
+    color: var(--color-text-success);
+}
+
+.status-manutencao,
+.info-icon.status-manutencao {
+    background: var(--color-background-warning);
+    color: var(--color-text-warning);
+}
+
+.status-instabilidade,
+.info-icon.status-instabilidade {
+    background: var(--color-background-danger);
+    color: var(--color-text-danger);
+}
+
+.current-message {
+    color: var(--text-body);
+}
+
+.current-timestamp,
+.info-content p {
+    color: var(--text-soft);
+}
+
+.info-content strong {
+    color: var(--text-strong);
+}
+
+body[data-theme='dark'] .current-status-card,
+body[data-theme='dark'] .info-item {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .status-online,
+body[data-theme='dark'] .info-icon.status-online {
+    color: var(--color-text-success);
+}
+
+body[data-theme='dark'] .status-manutencao,
+body[data-theme='dark'] .info-icon.status-manutencao {
+    color: var(--color-text-warning);
+}
+
+body[data-theme='dark'] .status-instabilidade,
+body[data-theme='dark'] .info-icon.status-instabilidade {
+    color: var(--color-text-danger);
+}

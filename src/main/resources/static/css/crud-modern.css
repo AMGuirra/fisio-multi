@@ -468,6 +468,152 @@
     border-color: #f4dfa1;
 }
 
+/* Pagina Hoje: usa os mesmos tokens de cards, chips e acoes do CRUD. */
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--stroke-soft);
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-time {
+    min-width: 5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.timeline-time .hora-inicio {
+    font-size: 1rem;
+    font-weight: 650;
+    color: var(--text-strong);
+}
+
+.timeline-time .hora-fim,
+.timeline-meta,
+.pendencia-desc span {
+    color: var(--text-soft);
+}
+
+.timeline-time .hora-fim {
+    font-size: 0.75rem;
+}
+
+.timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+    background: var(--blue-500);
+}
+
+.timeline-dot.status-realizada { background: #16a34a; }
+.timeline-dot.status-cancelada { background: var(--red-500); }
+.timeline-dot.status-agendada { background: var(--blue-500); }
+.timeline-dot.status-falta_faturada,
+.timeline-dot.status-falta { background: var(--yellow-500); }
+
+.timeline-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline-paciente {
+    font-weight: 650;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.timeline-meta {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+}
+
+.timeline-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.timeline-item.passada .timeline-paciente {
+    opacity: 0.6;
+}
+
+.alert-strip {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.alert-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: opacity var(--ease-standard);
+}
+
+.alert-chip:hover {
+    opacity: 0.82;
+}
+
+.alert-chip.warn { background: var(--yellow-100); color: #8e6600; }
+.alert-chip.info { background: var(--blue-100); color: #2454b4; }
+.alert-chip.zero { background: var(--bg-soft); color: var(--text-soft); }
+
+.chip.status-agendada { background: var(--blue-100); color: #2454b4; }
+.chip.status-realizada { background: #dcfce7; color: #166534; }
+.chip.status-cancelada { background: var(--red-100); color: #991b1b; }
+.chip.status-falta_faturada,
+.chip.status-falta { background: var(--yellow-100); color: #8e6600; }
+
+.pendencia-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--stroke-soft);
+    font-size: 0.875rem;
+}
+
+.pendencia-row:last-child {
+    border-bottom: none;
+}
+
+.pendencia-desc {
+    flex: 1;
+    min-width: 0;
+}
+
+.pendencia-desc strong {
+    display: block;
+    font-weight: 650;
+}
+
+.pendencia-desc span {
+    font-size: 0.8rem;
+}
+
+.pendencia-valor {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

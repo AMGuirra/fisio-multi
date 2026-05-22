@@ -257,3 +257,105 @@
         justify-content: center;
     }
 }
+
+/* Harmonizacao com dashboard/crud-modern. */
+.audit-main {
+    gap: var(--app-page-gap, 18px);
+}
+
+.audit-toolbar-title,
+.audit-summary-value,
+.audit-detail-value {
+    color: var(--text-strong);
+}
+
+.audit-toolbar-text,
+.audit-summary-label,
+.audit-detail-label,
+.audit-empty,
+.audit-inline-meta {
+    color: var(--text-soft);
+}
+
+.audit-checkbox {
+    color: var(--text-body);
+}
+
+.audit-summary-card,
+.audit-detail-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--app-card-radius, 14px);
+    box-shadow: var(--shadow-sm);
+}
+
+.audit-summary-card {
+    padding: 16px 18px;
+}
+
+.audit-detail-item {
+    padding: 14px 16px;
+}
+
+.audit-action-badge,
+.audit-origin-badge,
+.audit-critical-badge {
+    min-height: 28px;
+    border-radius: 999px;
+}
+
+.audit-action-badge.status-success {
+    background: var(--color-background-success);
+    color: var(--color-text-success);
+}
+
+.audit-action-badge.status-info {
+    background: var(--blue-100);
+    color: #2454b4;
+}
+
+.audit-action-badge.status-warning {
+    background: var(--color-background-warning);
+    color: var(--color-text-warning);
+}
+
+.audit-action-badge.status-danger,
+.audit-critical-badge {
+    background: var(--color-background-danger);
+    color: var(--color-text-danger);
+}
+
+.audit-origin-badge {
+    background: var(--bg-soft);
+    color: var(--text-body);
+}
+
+.audit-payload-card {
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--app-card-radius, 14px);
+    background: var(--text-strong);
+    box-shadow: var(--shadow-sm);
+}
+
+.audit-back-link {
+    color: var(--brand-600);
+}
+
+.audit-back-link:hover {
+    color: var(--brand-700);
+}
+
+body[data-theme='dark'] .audit-summary-card,
+body[data-theme='dark'] .audit-detail-item {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .audit-action-badge.status-info {
+    background: rgba(33, 80, 179, 0.26);
+    color: #b9d1ff;
+}
+
+body[data-theme='dark'] .audit-payload-card {
+    background: #081116;
+}

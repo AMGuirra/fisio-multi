@@ -1239,3 +1239,350 @@ body[data-theme='dark'] .placeholder p {
     padding: 10px 12px;
   }
 }
+
+/* Padrao visual final do modulo, alinhado a dashboard/crud-modern. */
+.pc-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-page-gap, 18px);
+}
+
+.pc-shell .body {
+  grid-template-columns: minmax(260px, 280px) minmax(0, 1fr) minmax(280px, 340px);
+  align-items: stretch;
+}
+
+.pc-shell .col {
+  overflow: hidden;
+}
+
+.pc-shell .col,
+.pc-modal-dialog {
+  border-color: var(--stroke-soft);
+  border-radius: var(--app-card-radius, 14px);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.pc-shell .step-head {
+  min-height: 54px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--stroke-soft);
+}
+
+.pc-shell .step-head strong {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 740;
+}
+
+.pc-shell .step-head small,
+.pdob,
+.ctx-sub,
+.sess-time,
+.saldo-lbl,
+.acb-lbl,
+.pbar-meta,
+.tip,
+.empty-mini,
+.fld label {
+  color: var(--text-soft);
+}
+
+.searchbox,
+.fbtn,
+.tgl,
+.choice-card,
+.patient-ctx,
+.inline-feedback,
+.fld input,
+.fld select,
+.alert-box,
+.acb-box,
+.dot-s,
+.btn-save,
+.btn-av,
+.btn-ag,
+.btn-ghost {
+  border-radius: var(--app-control-radius, 11px);
+}
+
+.searchbox,
+.fld input,
+.fld select,
+.tgl,
+.choice-outline,
+.fbtn {
+  border-color: var(--stroke-soft);
+}
+
+.searchbox,
+.fld input,
+.fld select,
+.tgl,
+.choice-outline {
+  background: var(--bg-surface);
+  color: var(--text-strong);
+}
+
+.searchbox {
+  min-height: 44px;
+  margin: 12px;
+  padding: 10px 12px;
+}
+
+.filter-row {
+  gap: 8px;
+  margin: 0 12px 12px;
+}
+
+.fbtn {
+  min-height: 34px;
+  background: var(--bg-soft);
+  color: var(--text-body);
+  font-weight: 700;
+}
+
+.fbtn.on,
+.btn-save,
+.btn-ag {
+  background: linear-gradient(130deg, var(--brand-500), var(--brand-600));
+  border-color: var(--brand-500);
+  color: #ffffff;
+}
+
+.plist {
+  padding: 0 10px 12px;
+}
+
+.prow {
+  border-radius: 12px;
+  padding: 9px 8px;
+}
+
+.prow:hover {
+  background: var(--green-100);
+  border-color: var(--stroke-soft);
+}
+
+.prow.sel,
+.choice-primary,
+.patient-ctx {
+  background: linear-gradient(130deg, var(--brand-500), var(--brand-600));
+  border-color: var(--brand-600);
+  box-shadow: 0 10px 22px rgba(12, 122, 104, 0.22);
+}
+
+.av {
+  background: var(--green-100);
+  color: var(--brand-700);
+}
+
+.pname,
+.ctx-name,
+.saldo-num,
+.acb-val,
+.sess-name {
+  color: var(--text-strong);
+}
+
+.placeholder {
+  color: var(--text-soft);
+}
+
+.placeholder p {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.panel-body {
+  padding: 18px;
+}
+
+.toggle-wrap,
+.choice-grid,
+.pc-form,
+.two {
+  gap: 12px;
+}
+
+.btn-save,
+.btn-av,
+.btn-ag,
+.btn-ghost {
+  min-height: 44px;
+  font-weight: 700;
+}
+
+.btn-av {
+  background: #a16600;
+}
+
+.alert-danger {
+  background: var(--red-100);
+  border-color: #f3b9b9;
+  color: #8f3333;
+}
+
+.alert-warn,
+.acb-box {
+  background: var(--yellow-100);
+  border-color: #e7c878;
+  color: #805b00;
+}
+
+body[data-theme='dark'] .pc-shell .col,
+body[data-theme='dark'] .searchbox,
+body[data-theme='dark'] .fld input,
+body[data-theme='dark'] .fld select,
+body[data-theme='dark'] .tgl,
+body[data-theme='dark'] .choice-outline,
+body[data-theme='dark'] .pc-modal-dialog {
+  background: rgba(12, 22, 28, 0.94);
+  border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .fbtn {
+  background: var(--bg-soft);
+  color: var(--text-body);
+}
+
+body[data-theme='dark'] .placeholder p,
+body[data-theme='dark'] .pname,
+body[data-theme='dark'] .ctx-name,
+body[data-theme='dark'] .saldo-num,
+body[data-theme='dark'] .acb-val,
+body[data-theme='dark'] .sess-name {
+  color: var(--text-strong);
+}
+
+@media (max-width: 1200px) {
+  .pc-shell .body {
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  }
+
+  .pc-shell .col-consumo {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .pc-shell .body {
+    grid-template-columns: 1fr;
+  }
+
+  .pc-shell .col-consumo {
+    grid-column: auto;
+  }
+}
+
+/* Tokens finais do modulo: sem identidade paralela ao design system. */
+:root {
+  --g-primary: var(--brand-500);
+  --g-primary-dark: var(--brand-600);
+  --g-primary-lt: var(--color-background-success);
+  --g-primary-txt: var(--color-text-success);
+  --g-ctx-bg: var(--bg-soft);
+  --g-ctx-b: var(--stroke-soft);
+  --g-pbar-done: var(--brand-500);
+  --g-pbar-warn: var(--yellow-500);
+  --g-pbar-crit: var(--red-500);
+  --g-av-bg: var(--green-100);
+  --g-av-txt: var(--brand-700);
+  --g-tgl-plano-bg: var(--color-background-success);
+  --g-tgl-plano-b: var(--brand-500);
+  --g-tgl-plano-txt: var(--color-text-success);
+  --g-tgl-avulso-bg: var(--color-background-warning);
+  --g-tgl-avulso-b: var(--yellow-500);
+  --g-tgl-avulso-txt: var(--color-text-warning);
+  --g-badge-act-bg: var(--color-background-success);
+  --g-badge-act-txt: var(--color-text-success);
+  --g-badge-crit-bg: var(--color-background-danger);
+  --g-badge-crit-txt: var(--color-text-danger);
+  --g-mode-p-bg: var(--color-background-success);
+  --g-mode-p-txt: var(--color-text-success);
+  --g-mode-a-bg: var(--color-background-warning);
+  --g-mode-a-txt: var(--color-text-warning);
+  --g-step2-circle: var(--blue-100);
+  --g-step2-txt: #2454b4;
+  --g-step3-circle: var(--yellow-100);
+  --g-step3-txt: #8e6600;
+  --g-btn-avulso: #a16600;
+  --g-sel-row: var(--color-background-success);
+  --g-primary-shadow: rgba(12, 122, 104, 0.16);
+  --g-alert-bg: var(--color-background-danger);
+  --g-alert-b: var(--color-border-danger);
+  --g-alert-txt: var(--color-text-danger);
+  --g-warn-bg: var(--color-background-warning);
+  --g-warn-b: var(--color-border-warning);
+  --g-warn-txt: var(--color-text-warning);
+  --pc-card: var(--bg-surface);
+  --pc-text: var(--text-strong);
+  --pc-muted: var(--text-soft);
+  --pc-border: var(--stroke-soft);
+  --pc-input: var(--bg-surface);
+  --pc-panel-shadow: rgba(15, 23, 32, 0.06);
+}
+
+body[data-theme='dark'] {
+  --g-primary: var(--brand-500);
+  --g-primary-dark: #9fe8d7;
+  --g-ctx-bg: var(--bg-soft);
+  --g-ctx-b: var(--stroke-soft);
+  --g-av-bg: rgba(15, 143, 122, 0.22);
+  --g-av-txt: #9fe8d7;
+  --g-step2-circle: rgba(47, 111, 236, 0.18);
+  --g-step2-txt: #b9d1ff;
+  --g-step3-circle: rgba(209, 154, 16, 0.18);
+  --g-step3-txt: #ffe39b;
+  --pc-card: var(--bg-surface);
+  --pc-text: var(--text-strong);
+  --pc-muted: var(--text-soft);
+  --pc-border: var(--stroke-soft);
+  --pc-input: var(--bg-surface);
+}
+
+.pc-shell .col,
+.pc-modal-dialog,
+.patient-ctx,
+.choice-card,
+.tgl,
+.searchbox,
+.fld input,
+.fld select,
+.alert-box,
+.acb-box {
+  border-radius: var(--app-card-radius, 14px);
+}
+
+.searchbox,
+.fld input,
+.fld select,
+.tgl,
+.fbtn,
+.btn-save,
+.btn-av,
+.btn-ag,
+.btn-ghost,
+.pc-modal-close,
+.dot-s {
+  border-radius: var(--app-control-radius, 11px);
+}
+
+.btn-save,
+.btn-av,
+.btn-ag {
+  box-shadow: none;
+}
+
+.choice-card,
+.patient-ctx,
+.tgl,
+.searchbox,
+.fld input,
+.fld select,
+.alert-box,
+.acb-box,
+.sess-item {
+  border-color: var(--stroke-soft);
+}
