@@ -285,6 +285,7 @@ body[data-theme="dark"] {
   outline: 0;
   background: transparent;
   color: var(--pc-text);
+  font-family: inherit;
   font-size: .82rem;
 }
 
@@ -301,8 +302,9 @@ body[data-theme="dark"] {
   padding: 6px 4px;
   background: var(--color-background);
   color: var(--pc-muted);
+  font-family: inherit;
   font-size: .68rem;
-  font-weight: 700;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -368,7 +370,7 @@ body[data-theme="dark"] {
 .pname,
 .ctx-name {
   color: var(--pc-text);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .pname {
@@ -391,7 +393,7 @@ body[data-theme="dark"] {
   border-radius: 999px;
   padding: 3px 6px;
   font-size: .72rem;
-  font-weight: 650;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -511,7 +513,8 @@ body[data-theme="dark"] {
   color: var(--pc-muted);
   font-size: .72rem;
   text-transform: uppercase;
-  font-weight: 900;
+  font-weight: 800;
+  letter-spacing: 0.07em;
 }
 
 .top-zero {
@@ -539,6 +542,7 @@ body[data-theme="dark"] {
   text-align: left;
   border-radius: 8px;
   padding: 16px;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -550,7 +554,7 @@ body[data-theme="dark"] {
 .choice-title {
   color: inherit;
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .choice-sub {
@@ -584,6 +588,7 @@ body[data-theme="dark"] {
   background: var(--color-background);
   color: var(--pc-text);
   padding: 10px;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -593,7 +598,7 @@ body[data-theme="dark"] {
 }
 
 .tgl-lbl {
-  font-weight: 900;
+  font-weight: 800;
   font-size: .86rem;
 }
 
@@ -634,7 +639,7 @@ body[data-theme="dark"] {
 .fld label {
   color: var(--pc-muted);
   font-size: .72rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .fld input,
@@ -646,6 +651,7 @@ body[data-theme="dark"] {
   background: var(--pc-input);
   color: var(--pc-text);
   padding: 7px 9px;
+  font-family: inherit;
   font-size: .84rem;
 }
 
@@ -665,7 +671,8 @@ body[data-theme="dark"] {
   border-radius: 8px;
   min-height: 40px;
   padding: 0 12px;
-  font-weight: 900;
+  font-family: inherit;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -724,7 +731,7 @@ body[data-theme="dark"] {
 .acb-val {
   color: var(--pc-text);
   font-size: .78rem;
-  font-weight: 900;
+  font-weight: 700;
   text-align: right;
 }
 
@@ -762,7 +769,7 @@ body[data-theme="dark"] {
   place-items: center;
   border-radius: 8px;
   font-size: .72rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .ds-done {
@@ -957,7 +964,7 @@ body.modal-open {
 .acb-tl,
 .acb-tv {
   color: var(--g-tgl-avulso-txt);
-  font-weight: 900;
+  font-weight: 800;
 }
 
 @media (min-width: 768px) {
