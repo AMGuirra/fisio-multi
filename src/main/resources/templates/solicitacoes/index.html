@@ -56,14 +56,14 @@
 
             <nav class="page-tabs" aria-label="Seções da Agenda">
                 <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
-                <a th:href="@{/lista-espera}" class="page-tab">
+                <button type="button" class="page-tab active" data-tab-target="sol"><i data-lucide="calendar-plus"></i> Solicitações</button>
+                <button type="button" class="page-tab" data-tab-target="fila">
                     <i data-lucide="clock"></i> Lista de Espera
                     <span th:if="${aguardandoListaEspera > 0}" class="tab-badge" th:text="${aguardandoListaEspera}">0</span>
-                </a>
+                </button>
             </nav>
 
-            <div class="solicitacoes-content">
+            <div id="tab-sol" class="solicitacoes-content">
                 <div class="solicitacoes-flash-stack flash-stack" id="solicitacoesFlashStack">
                     <div th:if="${successMessage}" class="solicitacoes-flash success" data-auto-dismiss="true">
                         <i data-lucide="circle-check"></i>
@@ -297,7 +297,111 @@
                         </article>
                     </aside>
                 </section>
-            </div>
+            </div><!-- /tab-sol -->
+
+            <div id="tab-fila" hidden>
+                <section class="waitlist-metrics" aria-label="Resumo da fila de espera">
+                    <article class="waitlist-metric">
+                        <span class="waitlist-metric-icon"><i data-lucide="users-round"></i></span>
+                        <div>
+                            <p class="waitlist-metric-label">Aguardando</p>
+                            <strong th:text="${totalAguardando}">0</strong>
+                        </div>
+                    </article>
+                    <article class="waitlist-metric">
+                        <span class="waitlist-metric-icon"><i data-lucide="user-check"></i></span>
+                        <div>
+                            <p class="waitlist-metric-label">Com cadastro</p>
+                            <strong th:text="${totalComCadastro}">0</strong>
+                        </div>
+                    </article>
+                    <article class="waitlist-metric">
+                        <span class="waitlist-metric-icon"><i data-lucide="globe-2"></i></span>
+                        <div>
+                            <p class="waitlist-metric-label">Via formulário público</p>
+                            <strong th:text="${totalPublico}">0</strong>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="waitlist-panel" aria-labelledby="waitlistTitle">
+                    <div class="waitlist-panel-head">
+                        <div>
+                            <h2 id="waitlistTitle">Fila de pacientes</h2>
+                            <p>Ordenada por entrada mais antiga para facilitar a priorização.</p>
+                        </div>
+                        <span class="waitlist-count" th:text="${totalAguardando + ' aguardando'}">0 aguardando</span>
+                    </div>
+
+                    <div th:if="${entradas == null or entradas.empty}" class="waitlist-empty">
+                        <span class="waitlist-empty-icon"><i data-lucide="inbox"></i></span>
+                        <h3>Nenhum paciente aguardando agora</h3>
+                        <p>Quando alguém for adicionado à fila após uma solicitação negada, o registro aparece aqui.</p>
+                    </div>
+
+                    <div th:unless="${entradas == null or entradas.empty}" class="waitlist-list">
+                        <article th:each="entrada : ${entradas}" class="waitlist-item">
+                            <div class="waitlist-person">
+                                <span class="waitlist-avatar" th:text="${entrada.inicialExibicao}">P</span>
+                                <div class="waitlist-person-copy">
+                                    <h3 th:text="${entrada.nomeExibicao}">Nome do paciente</h3>
+                                    <p>
+                                        <i data-lucide="phone"></i>
+                                        <span th:text="${entrada.telefoneExibicao != null and !#strings.isEmpty(entrada.telefoneExibicao) ? entrada.telefoneExibicao : 'Sem telefone'}">Telefone</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="waitlist-details">
+                                <span class="waitlist-chip" th:switch="${entrada.periodoPreferido != null ? entrada.periodoPreferido.name() : 'QUALQUER'}">
+                                    <i data-lucide="sun"></i>
+                                    <span th:case="'MANHA'">Manhã</span>
+                                    <span th:case="'TARDE'">Tarde</span>
+                                    <span th:case="'NOITE'">Noite</span>
+                                    <span th:case="*">Qualquer período</span>
+                                </span>
+                                <span class="waitlist-chip">
+                                    <i data-lucide="calendar-days"></i>
+                                    <span th:text="${entrada.diasSemana != null and !#strings.isEmpty(entrada.diasSemana) ? entrada.diasSemana : 'Dias flexíveis'}">Dias flexíveis</span>
+                                </span>
+                                <span class="waitlist-chip muted">
+                                    <i data-lucide="timer"></i>
+                                    <span th:text="${'Desde ' + #temporals.format(entrada.createdAt, 'dd/MM/yyyy HH:mm')}">Desde 01/01/2026</span>
+                                </span>
+                            </div>
+
+                            <p class="waitlist-note" th:text="${entrada.observacoes != null and !#strings.isEmpty(entrada.observacoes) ? entrada.observacoes : 'Sem observações registradas.'}">Observações</p>
+
+                            <div class="waitlist-actions">
+                                <form th:action="@{/solicitacoes/fila/{id}/notificar(id=${entrada.id})}" method="post">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                    <button type="submit" class="action-button waitlist-action-success" title="Marcar como notificado">
+                                        <i data-lucide="bell"></i> Notificar
+                                    </button>
+                                </form>
+                                <form th:action="@{/solicitacoes/fila/{id}/converter(id=${entrada.id})}" method="post">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                    <button type="submit" class="action-button waitlist-action-primary" title="Converter em agendamento">
+                                        <i data-lucide="calendar-check"></i> Converter
+                                    </button>
+                                </form>
+                                <form th:action="@{/solicitacoes/fila/{id}/cancelar(id=${entrada.id})}" method="post"
+                                      data-confirm-modal
+                                      data-confirm-title="Remover da fila de espera"
+                                      data-confirm-message="Remover paciente da fila de espera?"
+                                      data-confirm-helper-title="Confirme antes de remover"
+                                      data-confirm-helper-message="O registro deixa de aparecer na fila ativa depois da confirmação."
+                                      data-confirm-action-label="Remover">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                    <button type="submit" class="action-button waitlist-action-danger" title="Remover da fila">
+                                        <i data-lucide="x"></i> Remover
+                                    </button>
+                                </form>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div><!-- /tab-fila -->
         </main>
 
         <!-- ════════════════════════════════════════════════════════════
@@ -1320,6 +1424,22 @@
                     : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.'
             );
         }
+    })();
+    </script>
+    <script>
+    (() => {
+        const tabs = document.querySelectorAll('[data-tab-target]');
+        const sections = { sol: document.getElementById('tab-sol'), fila: document.getElementById('tab-fila') };
+
+        const activateTab = target => {
+            tabs.forEach(b => b.classList.toggle('active', b.dataset.tabTarget === target));
+            Object.entries(sections).forEach(([k, el]) => { if (el) el.hidden = k !== target; });
+            if (window.lucide) lucide.createIcons({ nodes: [sections[target]] });
+        };
+
+        tabs.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.tabTarget)));
+
+        if (location.hash === '#lista-espera') activateTab('fila');
     })();
     </script>
 </body>

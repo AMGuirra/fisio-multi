@@ -39,7 +39,6 @@ class UserMenuAccessServiceTest {
                         AppMenuItem.DASHBOARD,
                         AppMenuItem.AGENDA,
                         AppMenuItem.SOLICITACOES,
-                        AppMenuItem.LISTA_ESPERA,
                         AppMenuItem.PLANOS_SESSOES,
                         AppMenuItem.PACIENTES,
                         AppMenuItem.AGENDAMENTO_ONLINE

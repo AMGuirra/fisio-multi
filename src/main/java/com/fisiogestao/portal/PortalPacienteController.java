@@ -17,10 +17,6 @@ import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
-import com.fisiogestao.listaespera.ListaEsperaEntity;
-import com.fisiogestao.listaespera.ListaEsperaService;
-import com.fisiogestao.listaespera.PeriodoPreferido;
-import com.fisiogestao.listaespera.StatusListaEspera;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
@@ -72,7 +68,6 @@ public class PortalPacienteController {
     private final AgendaService agendaService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
-    private final ListaEsperaService listaEsperaService;
     private final PacienteService pacienteService;
 
     private static final String SESS_PREFIX = "portalAutenticado_";
@@ -300,9 +295,6 @@ public class PortalPacienteController {
         model.addAttribute("faltasFaturadas", faltasFaturadas);
         model.addAttribute("recibos", recibos);
         model.addAttribute("horasMinimasCancelamento", HORAS_MINIMAS_CANCELAMENTO);
-        List<ListaEsperaEntity> listaEsperaEntradas = listaEsperaService.listarPorCliente(paciente.getId());
-        boolean naListaEspera = listaEsperaEntradas.stream()
-                .anyMatch(e -> e.getStatus() == StatusListaEspera.AGUARDANDO);
 
         List<SolicitacaoAgendamentoEntity> solicitacoes =
                 solicitacaoAgendamentoRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId());
@@ -310,9 +302,6 @@ public class PortalPacienteController {
         model.addAttribute("mapsUrl", buildMapsUrl(clinica));
         model.addAttribute("agendamentoForm", montarAgendamentoForm(paciente));
         model.addAttribute("solicitacoes", solicitacoes);
-        model.addAttribute("listaEsperaEntradas", listaEsperaEntradas);
-        model.addAttribute("periodoPreferidoOpcoes", PeriodoPreferido.values());
-        model.addAttribute("naListaEspera", naListaEspera);
 
         return "portal/index";
     }
@@ -392,49 +381,6 @@ public class PortalPacienteController {
         try {
             agendaService.cancelarSessao(sessaoId, "Cancelamento solicitado pelo paciente via portal.");
             redirectAttributes.addFlashAttribute("successMessage", "Sessao cancelada com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/paciente/" + token;
-    }
-
-    @PostMapping("/{token}/lista-espera/entrar")
-    public String entrarNaListaEspera(
-            @PathVariable UUID token,
-            @RequestParam(value = "periodo", required = false) PeriodoPreferido periodo,
-            @RequestParam(value = "diasSemana", required = false) String diasSemana,
-            @RequestParam(value = "observacoes", required = false) String observacoes,
-            RedirectAttributes redirectAttributes) {
-
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) {
-            return "redirect:/paciente/" + token;
-        }
-
-        try {
-            listaEsperaService.entrarNaFila(paciente, periodo, diasSemana, observacoes);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Você entrou na lista de espera! Entraremos em contato quando houver uma vaga.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/paciente/" + token;
-    }
-
-    @PostMapping("/{token}/lista-espera/{entradaId}/cancelar")
-    public String sairDaListaEspera(
-            @PathVariable UUID token,
-            @PathVariable UUID entradaId,
-            RedirectAttributes redirectAttributes) {
-
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) {
-            return "redirect:/paciente/" + token;
-        }
-
-        try {
-            listaEsperaService.cancelarPeloPaciente(entradaId, paciente.getId());
-            redirectAttributes.addFlashAttribute("successMessage", "Você saiu da lista de espera.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

@@ -54,6 +54,14 @@ public class SolicitacoesController {
         model.addAttribute("totalGeral", resumo.totalGeral());
         model.addAttribute("taxaAprovacao", resumo.taxaAprovacao());
         model.addAttribute("aprovacaoForm", new AprovacaoSolicitacaoForm());
+
+        var entradas = listaEsperaService.listarAguardando();
+        long totalComCadastro = entradas.stream().filter(e -> e.getCliente() != null).count();
+        model.addAttribute("entradas", entradas);
+        model.addAttribute("totalAguardando", entradas.size());
+        model.addAttribute("totalComCadastro", totalComCadastro);
+        model.addAttribute("totalPublico", entradas.size() - totalComCadastro);
+
         return "solicitacoes/index";
     }
 
@@ -157,5 +165,43 @@ public class SolicitacoesController {
             redirectAttributes.addFlashAttribute("errorMessage", "Não foi possível excluir a solicitação.");
         }
         return "redirect:/solicitacoes";
+    }
+
+    // ── Fila de espera ────────────────────────────────────────────────────────
+
+    @PostMapping("/fila/{id}/notificar")
+    public String filaNotificar(@PathVariable UUID id, RedirectAttributes ra) {
+        try {
+            listaEsperaService.notificar(id);
+            ra.addFlashAttribute("successMessage", "Paciente marcado como notificado.");
+        } catch (BusinessException ex) {
+            ra.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/solicitacoes#lista-espera";
+    }
+
+    @PostMapping("/fila/{id}/converter")
+    public String filaConverter(@PathVariable UUID id, RedirectAttributes ra) {
+        try {
+            var entrada = listaEsperaService.converter(id);
+            ra.addFlashAttribute("successMessage", entrada.getNomeExibicao() + " convertido. Use o botão + para criar a sessão.");
+            if (entrada.getCliente() != null) {
+                return "redirect:/calendario?clienteId=" + entrada.getCliente().getId();
+            }
+        } catch (BusinessException ex) {
+            ra.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/solicitacoes#lista-espera";
+    }
+
+    @PostMapping("/fila/{id}/cancelar")
+    public String filaCancelar(@PathVariable UUID id, RedirectAttributes ra) {
+        try {
+            listaEsperaService.cancelar(id);
+            ra.addFlashAttribute("successMessage", "Entrada removida da fila de espera.");
+        } catch (BusinessException ex) {
+            ra.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/solicitacoes#lista-espera";
     }
 }
