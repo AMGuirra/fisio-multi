@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Solicitação recebida', ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">Recebemos sua solicitação de agendamento. A equipe vai conferir a agenda e confirmar o atendimento em breve.</p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;">Solicitado</div>
+        <div style="font-size:24px;font-weight:800;color:#18323a;margin-top:6px;" th:text="${data}">01/01/2026</div>
+        <div style="color:#4f6670;margin-top:2px;">às <strong th:text="${hora}">10:00</strong></div>
+    </div>
+
+    <p style="margin:0 0 28px;color:#4f6670;"><strong>Observações:</strong> <span th:text="${observacoes}">Sem observações adicionais.</span></p>
+
+    <hr style="border:none;border-top:1px solid #e4efec;margin:0 0 24px;">
+
+    <p style="margin:0 0 14px;font-weight:700;color:#18323a;">Seu portal de acompanhamento está pronto</p>
+    <p style="margin:0 0 18px;color:#4f6670;">Acompanhe o status do agendamento, suas sessões e planos diretamente pelo portal. Guarde os dados abaixo:</p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:24px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;margin-bottom:10px;">Dados de acesso</div>
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <td style="padding:5px 0;color:#4f6670;font-size:14px;width:70px;">Login</td>
+                <td style="padding:5px 0;font-weight:700;color:#18323a;font-size:14px;" th:text="${nomePaciente}">Nome</td>
+            </tr>
+            <tr>
+                <td style="padding:5px 0;color:#4f6670;font-size:14px;">Senha</td>
+                <td style="padding:5px 0;font-weight:700;color:#18323a;font-size:14px;letter-spacing:.06em;" th:text="${senha}">****</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px;">
+        <a th:href="${portalUrl}" href="#"
+           style="display:inline-block;background:#0f8f7a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:16px;">
+            Acessar meu portal
+        </a>
+    </div>
+
+    <p style="margin:0;font-size:12px;color:#65808a;word-break:break-all;" th:text="${portalUrl}">https://...</p>
+</section>
+</body>
+</html>

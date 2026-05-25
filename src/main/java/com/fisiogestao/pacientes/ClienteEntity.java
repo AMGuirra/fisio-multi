@@ -73,6 +73,9 @@ public class ClienteEntity extends BaseEntity {
     @Builder.Default
     private UUID portalToken = UUID.randomUUID();
 
+    @Column(name = "senha_portal", length = 72)
+    private String senhaPortal;
+
     public String getEnderecoCompleto() {
         StringBuilder builder = new StringBuilder();
         appendEndereco(builder, rua);

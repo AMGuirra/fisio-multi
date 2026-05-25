@@ -1,0 +1,1 @@
+ALTER TABLE cliente ADD COLUMN IF NOT EXISTS senha_portal VARCHAR(72);

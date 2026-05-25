@@ -4,6 +4,7 @@ import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -43,16 +44,28 @@ public class AgendamentoOnlineController {
             @Valid @ModelAttribute("form") AgendamentoOnlineForm form,
             BindingResult bindingResult,
             Model model,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            HttpSession session
     ) {
+        validarSenha(form, bindingResult);
+
         if (bindingResult.hasErrors()) {
             prepararPagina(model, form);
             return "publico/agendamento-online";
         }
 
         try {
-            solicitacaoAgendamentoService.criarSolicitacaoPublica(form);
-            redirectAttributes.addFlashAttribute("successMessage", "Sua solicitação foi registrada com sucesso.");
+            var solicitacao = solicitacaoAgendamentoService.criarSolicitacaoPublica(form);
+            var cliente = solicitacao.getCliente();
+
+            if (cliente != null) {
+                session.setAttribute("portalAutenticado_" + cliente.getPortalToken(), Boolean.TRUE);
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Solicitação enviada! Acesse o portal abaixo para acompanhar o status.");
+                return "redirect:/paciente/" + cliente.getPortalToken();
+            }
+
+            redirectAttributes.addFlashAttribute("successMessage", "Sua solicitação foi enviada com sucesso.");
             return "redirect:/agendamento-online/sucesso";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
@@ -64,6 +77,20 @@ public class AgendamentoOnlineController {
     @GetMapping("/sucesso")
     public String sucesso() {
         return "publico/agendamento-online-sucesso";
+    }
+
+    private void validarSenha(AgendamentoOnlineForm form, BindingResult bindingResult) {
+        String senha = form.getSenha();
+        if (senha == null || senha.isBlank()) {
+            return;
+        }
+        if (!senha.matches(".*\\d.*")) {
+            bindingResult.rejectValue("senha", "senha.semNumero", "A senha deve conter pelo menos 1 número.");
+        }
+        String confirmar = form.getConfirmarSenha();
+        if (confirmar == null || !confirmar.equals(senha)) {
+            bindingResult.rejectValue("confirmarSenha", "senha.naoConfere", "As senhas não coincidem.");
+        }
     }
 
     private void prepararPagina(Model model, AgendamentoOnlineForm form) {

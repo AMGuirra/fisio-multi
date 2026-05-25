@@ -188,18 +188,29 @@ public class SolicitacaoAgendamentoService {
         AgendaService.IntervaloAgenda intervalo = agendaService.montarIntervalo(form.getData(), horario);
         agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
-        ClienteEntity clienteExistente = pacienteService.buscarPorCpfTelefoneOuEmail(
-                form.getCpf(),
-                form.getTelefone(),
-                form.getEmail())
-                .orElse(null);
+        PacienteForm pacienteForm = new PacienteForm();
+        pacienteForm.setNomeCompleto(form.getNomePaciente() != null ? form.getNomePaciente().strip() : null);
+        pacienteForm.setTelefone(form.getTelefone());
+        pacienteForm.setEmail(form.getEmail());
+        pacienteForm.setCpf(form.getCpf());
+        ClienteEntity clienteExistente = pacienteService.localizarOuCriar(
+                pacienteForm,
+                AuditEventOrigin.ONLINE,
+                "Atualização automática via agendamento online.",
+                "Paciente criado automaticamente via agendamento online.");
+
+        boolean primeiroAcesso = clienteExistente.getSenhaPortal() == null
+                || clienteExistente.getSenhaPortal().isBlank();
+
+        if (form.getSenha() != null && !form.getSenha().isBlank()) {
+            pacienteService.definirSenhaPortal(clienteExistente.getId(), form.getSenha());
+        }
 
         DadosEndereco endereco = resolverEnderecoSolicitacao(form, clienteExistente);
         String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
 
         SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
-                .nomePaciente(resolverTexto(form.getNomePaciente(),
-                        clienteExistente != null ? clienteExistente.getNomeCompleto() : null))
+                .nomePaciente(clienteExistente.getNomeCompleto())
                 .telefone(form.getTelefone().replaceAll("\\D", ""))
                 .email(texto(form.getEmail()))
                 .cpf(normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos."))
@@ -235,7 +246,11 @@ public class SolicitacaoAgendamentoService {
                 .build();
         horarioBloqueadoRepository.save(bloqueio);
 
-        agendamentoEmailNotificationService.notificarAguardandoConfirmacao(salva);
+        if (primeiroAcesso && form.getSenha() != null && !form.getSenha().isBlank()) {
+            agendamentoEmailNotificationService.notificarPrimeiroAcesso(salva, form.getSenha());
+        } else {
+            agendamentoEmailNotificationService.notificarAguardandoConfirmacao(salva);
+        }
         return salva;
     }
 
@@ -679,7 +694,9 @@ public class SolicitacaoAgendamentoService {
 
     private void validarFormularioPublico(AgendamentoOnlineForm form) {
         String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
-        normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos.");
+        if (form.getCpf() != null && !form.getCpf().isBlank()) {
+            normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos.");
+        }
         if ("DOMICILIO".equals(localAtendimento)) {
             String rua = resolverTexto(form.getRua(), null);
             String numero = resolverTexto(form.getNumero(), null);

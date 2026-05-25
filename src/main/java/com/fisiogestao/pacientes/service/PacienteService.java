@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class PacienteService {
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
+    private final PasswordEncoder passwordEncoder;
 
     // Flags de compatibilidade de schema: validadas uma vez na inicialização pelo SchemaCompatibilityValidator.
     // Mantidas aqui como fallback para chamadas que ocorram antes do validator terminar (ex: testes).
@@ -315,6 +317,24 @@ public class PacienteService {
                 AuditEventOrigin.MANUAL
         );
         return novoToken;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void definirSenhaPortal(UUID clienteId, String senhaRaw) {
+        ClienteEntity cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new BusinessException("Paciente não encontrado ao definir senha."));
+        cliente.setSenhaPortal(passwordEncoder.encode(senhaRaw));
+        clienteRepository.save(cliente);
+    }
+
+    public boolean verificarSenhaPortal(ClienteEntity cliente, String senhaRaw) {
+        if (cliente.getSenhaPortal() == null || cliente.getSenhaPortal().isBlank()) {
+            return true;
+        }
+        if (senhaRaw == null || senhaRaw.isBlank()) {
+            return false;
+        }
+        return passwordEncoder.matches(senhaRaw, cliente.getSenhaPortal());
     }
 
     @Transactional

@@ -31,8 +31,7 @@ public class AgendamentoOnlineForm {
     @Size(max = 20)
     private String telefone;
 
-    @NotBlank(message = "Informe o CPF.")
-    @Size(min = 11, max = 14, message = "Informe um CPF válido.")
+    @Size(max = 14, message = "Informe um CPF válido.")
     private String cpf;
 
     @Email(message = "Informe um e-mail válido.")
@@ -62,4 +61,10 @@ public class AgendamentoOnlineForm {
 
     @Size(max = 2000)
     private String observacoes;
+
+    @NotBlank(message = "Crie uma senha para acessar o portal.")
+    @Size(min = 4, message = "A senha deve ter pelo menos 4 caracteres.")
+    private String senha;
+
+    private String confirmarSenha;
 }

@@ -21,8 +21,12 @@ import com.fisiogestao.listaespera.ListaEsperaEntity;
 import com.fisiogestao.listaespera.ListaEsperaService;
 import com.fisiogestao.listaespera.PeriodoPreferido;
 import com.fisiogestao.listaespera.StatusListaEspera;
+import com.fisiogestao.pacientes.service.PacienteService;
+import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
+import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -66,14 +70,63 @@ public class PortalPacienteController {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AgendaService agendaService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
+    private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final ListaEsperaService listaEsperaService;
+    private final PacienteService pacienteService;
+
+    private static final String SESS_PREFIX = "portalAutenticado_";
+
+    @GetMapping("/{token}/login")
+    public String loginForm(@PathVariable UUID token, Model model) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) return "portal/token-invalido";
+        if (paciente.getSenhaPortal() == null || paciente.getSenhaPortal().isBlank()) {
+            return "redirect:/paciente/" + token;
+        }
+        model.addAttribute("token", token);
+        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
+        return "portal/login";
+    }
+
+    @PostMapping("/{token}/login")
+    public String loginSubmit(
+            @PathVariable UUID token,
+            @RequestParam String senha,
+            Model model,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) return "portal/token-invalido";
+
+        if (pacienteService.verificarSenhaPortal(paciente, senha)) {
+            session.setAttribute(SESS_PREFIX + token, Boolean.TRUE);
+            return "redirect:/paciente/" + token;
+        }
+
+        model.addAttribute("token", token);
+        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
+        model.addAttribute("erroSenha", "Senha incorreta. Tente novamente.");
+        return "portal/login";
+    }
+
+    @GetMapping("/{token}/sair")
+    public String sair(@PathVariable UUID token, HttpSession session) {
+        session.removeAttribute(SESS_PREFIX + token);
+        return "redirect:/paciente/" + token + "/login";
+    }
 
     @GetMapping("/{token}")
-    public String portal(@PathVariable UUID token, Model model) {
+    public String portal(@PathVariable UUID token, Model model, HttpSession session) {
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
 
         if (paciente == null) {
             return "portal/token-invalido";
+        }
+
+        if (paciente.getSenhaPortal() != null && !paciente.getSenhaPortal().isBlank()
+                && !Boolean.TRUE.equals(session.getAttribute(SESS_PREFIX + token))) {
+            return "redirect:/paciente/" + token + "/login";
         }
 
         ConfiguracaoClinicaEntity clinica = configuracaoClinicaRepository
@@ -158,8 +211,12 @@ public class PortalPacienteController {
         boolean naListaEspera = listaEsperaEntradas.stream()
                 .anyMatch(e -> e.getStatus() == StatusListaEspera.AGUARDANDO);
 
+        List<SolicitacaoAgendamentoEntity> solicitacoes =
+                solicitacaoAgendamentoRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId());
+
         model.addAttribute("mapsUrl", buildMapsUrl(clinica));
         model.addAttribute("agendamentoForm", montarAgendamentoForm(paciente));
+        model.addAttribute("solicitacoes", solicitacoes);
         model.addAttribute("listaEsperaEntradas", listaEsperaEntradas);
         model.addAttribute("periodoPreferidoOpcoes", PeriodoPreferido.values());
         model.addAttribute("naListaEspera", naListaEspera);

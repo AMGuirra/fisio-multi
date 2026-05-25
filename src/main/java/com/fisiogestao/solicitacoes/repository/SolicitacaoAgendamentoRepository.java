@@ -56,4 +56,6 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
     Optional<SolicitacaoAgendamentoEntity> findByIdAndStatus(UUID id, SolicitacaoStatus status);
 
     boolean existsByClienteId(UUID clienteId);
+
+    List<SolicitacaoAgendamentoEntity> findByClienteIdOrderByCreatedAtDesc(UUID clienteId);
 }

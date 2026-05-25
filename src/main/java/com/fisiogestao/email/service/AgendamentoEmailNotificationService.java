@@ -3,17 +3,20 @@ package com.fisiogestao.email.service;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.email.EmailLogType;
+import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,9 @@ public class AgendamentoEmailNotificationService {
 
     private final SystemEmailService systemEmailService;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
+
+    @Value("${app.base-url:http://localhost:8081}")
+    private String appBaseUrl;
 
     public void notificarAguardandoConfirmacao(SolicitacaoAgendamentoEntity solicitacao) {
         if (!possuiEmail(solicitacao.getEmail())) {
@@ -155,6 +161,71 @@ public class AgendamentoEmailNotificationService {
                 null,
                 null
         );
+    }
+
+    public void notificarPrimeiroAcesso(SolicitacaoAgendamentoEntity solicitacao, String senhaEmTexto) {
+        if (!possuiEmail(solicitacao.getEmail())) {
+            return;
+        }
+        try {
+            var configuracao = configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()
+                    .orElseThrow(() -> new BusinessException("Configure a clínica antes de enviar notificações."));
+            ZoneId zoneId = ZoneId.of(configuracao.getTimezoneId());
+            String portalUrl = appBaseUrl + "/paciente/" + solicitacao.getCliente().getPortalToken();
+            systemEmailService.send(EmailRequest.builder()
+                    .type(EmailLogType.AGENDAMENTO_PRIMEIRO_ACESSO)
+                    .subject("Solicitação recebida + acesse seu portal")
+                    .to(solicitacao.getEmail())
+                    .templateName("email/agendamento-primeiro-acesso")
+                    .templateId("email/agendamento-primeiro-acesso")
+                    .entityType("agendamento")
+                    .entityId(solicitacao.getId())
+                    .triggeredBy("sistema")
+                    .templateVariables(Map.of(
+                            "nomePaciente", solicitacao.getNomePaciente(),
+                            "data", solicitacao.getDataHoraInicio().atZoneSameInstant(zoneId).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            "hora", solicitacao.getDataHoraInicio().atZoneSameInstant(zoneId).format(DateTimeFormatter.ofPattern("HH:mm")),
+                            "local", configuracao.getNomeClinica(),
+                            "observacoes", texto(solicitacao.getObservacoes(), "Sem observações adicionais."),
+                            "portalUrl", portalUrl,
+                            "senha", senhaEmTexto,
+                            "nomeClinica", configuracao.getNomeClinica()
+                    ))
+                    .build());
+        } catch (BusinessException ex) {
+            log.warn("Notificação de e-mail não enviada (configuração ausente): {}", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Falha inesperada ao enviar e-mail de primeiro acesso para {}: {}", solicitacao.getEmail(), ex.getMessage(), ex);
+        }
+    }
+
+    public void notificarAcessoPortal(ClienteEntity paciente, String senhaEmTexto) {
+        if (!possuiEmail(paciente.getEmail())) {
+            return;
+        }
+        String portalUrl = appBaseUrl + "/paciente/" + paciente.getPortalToken();
+        try {
+            var configuracao = configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc().orElse(null);
+            String nomeClinica = configuracao != null ? configuracao.getNomeClinica() : "FisioGestao";
+            systemEmailService.send(EmailRequest.builder()
+                    .type(EmailLogType.PORTAL_ACESSO)
+                    .subject("Acesse seu portal de acompanhamento")
+                    .to(paciente.getEmail())
+                    .templateName("email/portal-acesso-paciente")
+                    .templateId("email/portal-acesso-paciente")
+                    .entityType("cliente")
+                    .entityId(paciente.getId())
+                    .triggeredBy("sistema")
+                    .templateVariables(Map.of(
+                            "nomePaciente", paciente.getNomeCompleto(),
+                            "portalUrl", portalUrl,
+                            "senha", senhaEmTexto,
+                            "nomeClinica", nomeClinica
+                    ))
+                    .build());
+        } catch (Exception ex) {
+            log.error("Falha ao enviar e-mail de acesso ao portal para {}: {}", paciente.getEmail(), ex.getMessage(), ex);
+        }
     }
 
     private void enviar(

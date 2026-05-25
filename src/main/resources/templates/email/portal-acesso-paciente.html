@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Seu portal de acompanhamento', ~{::section})}">
+<section>
+    <p style="margin:0 0 16px;">Olá, <strong th:text="${nomePaciente}">Paciente</strong>.</p>
+    <p style="margin:0 0 22px;color:#4f6670;">
+        Sua conta no portal de acompanhamento foi criada. Guarde as informações abaixo para acessar seu portal sempre que quiser.
+    </p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;margin-bottom:10px;">Seus dados de acesso</div>
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <td style="padding:6px 0;color:#4f6670;font-size:14px;width:80px;">Login</td>
+                <td style="padding:6px 0;font-weight:700;color:#18323a;font-size:14px;" th:text="${nomePaciente}">Nome do Paciente</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;color:#4f6670;font-size:14px;">Senha</td>
+                <td style="padding:6px 0;font-weight:700;color:#18323a;font-size:14px;letter-spacing:.06em;" th:text="${senha}">****</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align:center;margin:28px 0 20px;">
+        <a th:href="${portalUrl}" href="#"
+           style="display:inline-block;background:#0f8f7a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:16px;">
+            Acessar meu portal
+        </a>
+    </div>
+
+    <p style="margin:0 0 8px;color:#4f6670;font-size:13px;">
+        Ou copie e cole este endereço no seu navegador:
+    </p>
+    <p style="margin:0;font-size:12px;word-break:break-all;color:#0f8f7a;" th:text="${portalUrl}">https://...</p>
+
+    <hr style="border:none;border-top:1px solid #e4efec;margin:24px 0;">
+    <p style="margin:0;font-size:13px;color:#65808a;">
+        Guarde este e-mail para acessar seu portal quando precisar. Em caso de dúvidas, entre em contato com a clínica.
+    </p>
+</section>
+</body>
+</html>

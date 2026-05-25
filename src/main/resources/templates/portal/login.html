@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar no Portal - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="pub-body pub-centered">
+    <div class="pub-success-card" style="max-width:420px;">
+        <div class="pub-header-icon" style="margin:0 auto 20px;">
+            <i data-lucide="lock-keyhole"></i>
+        </div>
+        <h1 class="pub-success-title" style="font-size:1.4rem;">Acesse seu portal</h1>
+        <p class="pub-success-text" style="margin-bottom:6px;">
+            Olá, <strong th:text="${#strings.substringBefore(nomePaciente, ' ')}">Paciente</strong>.
+            Insira sua senha para continuar.
+        </p>
+
+        <div th:if="${erroSenha}" class="pub-alert pub-alert-danger" style="margin:16px 0 8px;">
+            <i data-lucide="triangle-alert"></i>
+            <span th:text="${erroSenha}"></span>
+        </div>
+
+        <form th:action="@{/paciente/{token}/login(token=${token})}" method="post" style="margin-top:20px;text-align:left;">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+            <div class="pub-form-group">
+                <label class="pub-label" for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" class="pub-control"
+                       placeholder="Sua senha" autofocus autocomplete="current-password" required>
+            </div>
+
+            <button type="submit" class="pub-btn-primary" style="margin-top:8px;">
+                <i data-lucide="log-in"></i>
+                Entrar
+            </button>
+        </form>
+
+        <p style="margin-top:20px;font-size:13px;color:#6b7280;text-align:center;">
+            Não lembra a senha? Entre em contato com a clínica pelo WhatsApp.
+        </p>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script>
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
