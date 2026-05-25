@@ -1,20 +1,28 @@
 package com.fisiogestao.pacientes.service;
 
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auth.PasswordPolicy;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.config.ClinicTimezoneHolder;
+import com.fisiogestao.email.EmailLogType;
+import com.fisiogestao.email.service.EmailRequest;
+import com.fisiogestao.email.service.SystemEmailService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
+import com.fisiogestao.portal.PacientePasswordResetTokenEntity;
+import com.fisiogestao.portal.PacientePasswordResetTokenRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,8 +34,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,6 +59,13 @@ public class PacienteService {
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
+    private final PacientePasswordResetTokenRepository pacientePasswordResetTokenRepository;
+    private final SystemEmailService systemEmailService;
+
+    @Value("${app.base-url:http://localhost:8083}")
+    private String baseUrl;
+
+    private static final int RESET_TOKEN_TTL_MINUTES = 60;
 
     // Flags de compatibilidade de schema: validadas uma vez na inicialização pelo SchemaCompatibilityValidator.
     // Mantidas aqui como fallback para chamadas que ocorram antes do validator terminar (ex: testes).
@@ -335,6 +356,141 @@ public class PacienteService {
             return false;
         }
         return passwordEncoder.matches(senhaRaw, cliente.getSenhaPortal());
+    }
+
+    @Transactional
+    public void solicitarResetSenhaPaciente(String email, String requestIp, String userAgent, String requestBaseUrl) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+        clienteRepository.findFirstByEmailIgnoreCase(email.trim().toLowerCase()).ifPresent(cliente -> {
+            if (!Boolean.TRUE.equals(cliente.getAtivo())) {
+                return;
+            }
+            String rawToken = gerarTokenSeguro();
+            String tokenHash = hashToken(rawToken);
+            OffsetDateTime agora = ClinicTimezoneHolder.now();
+
+            pacientePasswordResetTokenRepository.findByClienteIdAndUsedAtIsNull(cliente.getId())
+                    .forEach(t -> t.setUsedAt(agora));
+
+            PacientePasswordResetTokenEntity entity = PacientePasswordResetTokenEntity.builder()
+                    .cliente(cliente)
+                    .tokenHash(tokenHash)
+                    .expiresAt(agora.plusMinutes(RESET_TOKEN_TTL_MINUTES))
+                    .requestedIp(requestIp)
+                    .requestedUserAgent(userAgent != null && userAgent.length() > 512 ? userAgent.substring(0, 512) : userAgent)
+                    .build();
+            pacientePasswordResetTokenRepository.save(entity);
+
+            String link = montarLinkResetPaciente(rawToken, requestBaseUrl);
+            systemEmailService.send(
+                    EmailRequest.builder()
+                            .type(EmailLogType.RESET_SENHA_PACIENTE)
+                            .subject("Recuperação de senha - Portal do Paciente")
+                            .to(cliente.getEmail())
+                            .templateName("email/reset-senha-paciente")
+                            .templateId("reset-senha-paciente")
+                            .entityType("cliente")
+                            .entityId(cliente.getId())
+                            .triggeredBy("sistema")
+                            .templateVariables(Map.of(
+                                    "nomePaciente", cliente.getNomeCompleto(),
+                                    "linkRedefinicao", link,
+                                    "expiraEm", entity.getExpiresAt(),
+                                    "baseUrl", sanitizeBaseUrl(requestBaseUrl) != null ? sanitizeBaseUrl(requestBaseUrl) : baseUrl
+                            ))
+                            .build()
+            );
+            log.debug("E-mail de reset de senha do portal enviado para cliente {}.", cliente.getId());
+        });
+    }
+
+    @Transactional
+    public void redefinirSenhaPaciente(String rawToken, String novaSenha, String confirmacaoSenha) {
+        String senhaNormalizada = PasswordPolicy.normalize(novaSenha, true);
+        String confirmacaoNormalizada = confirmacaoSenha == null ? null : confirmacaoSenha.trim();
+
+        if (!senhaNormalizada.equals(confirmacaoNormalizada)) {
+            throw new BusinessException("A confirmação da senha não confere.");
+        }
+
+        if (rawToken == null || rawToken.isBlank()) {
+            throw new BusinessException("O link de redefinição é inválido.");
+        }
+
+        String hash = hashToken(rawToken);
+        PacientePasswordResetTokenEntity token = pacientePasswordResetTokenRepository.findByTokenHash(hash)
+                .orElseThrow(() -> new BusinessException("O link de redefinição é inválido ou já expirou."));
+
+        if (!token.ativoEm(ClinicTimezoneHolder.now())) {
+            throw new BusinessException("O link de redefinição é inválido ou já expirou.");
+        }
+
+        ClienteEntity cliente = token.getCliente();
+        cliente.setSenhaPortal(passwordEncoder.encode(senhaNormalizada));
+        OffsetDateTime redefinicao = ClinicTimezoneHolder.now();
+        token.setUsedAt(redefinicao);
+        clienteRepository.save(cliente);
+        pacientePasswordResetTokenRepository.save(token);
+
+        auditService.recordManual(
+                AuditModule.PACIENTES,
+                "cliente",
+                cliente.getId().toString(),
+                cliente.getNomeCompleto(),
+                AuditActionType.RESET_PASSWORD,
+                Map.of("senhaRedefinida", false),
+                Map.of("senhaRedefinida", true, "senhaRedefinidaEm", redefinicao),
+                null,
+                "Senha do portal redefinida pelo fluxo de recuperação.",
+                AuditEventOrigin.ONLINE
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public boolean tokenResetPacienteValido(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) return false;
+        try {
+            String hash = hashToken(rawToken);
+            return pacientePasswordResetTokenRepository.findByTokenHash(hash)
+                    .map(t -> t.ativoEm(ClinicTimezoneHolder.now()))
+                    .orElse(false);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private String gerarTokenSeguro() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String hashToken(String rawToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (Exception ex) {
+            throw new BusinessException("Não foi possível validar o token de redefinição.");
+        }
+    }
+
+    private String montarLinkResetPaciente(String rawToken, String requestBaseUrl) {
+        String effective = sanitizeBaseUrl(requestBaseUrl);
+        if (effective == null) effective = sanitizeBaseUrl(baseUrl);
+        if (effective == null) effective = "http://localhost:8083";
+        return effective + "/paciente/resetar-senha?token=" + rawToken;
+    }
+
+    private String sanitizeBaseUrl(String candidate) {
+        if (candidate == null || candidate.isBlank()) return null;
+        String normalized = candidate.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized.isBlank() ? null : normalized;
     }
 
     @Transactional

@@ -26,6 +26,7 @@ import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
@@ -114,6 +115,98 @@ public class PortalPacienteController {
     public String sair(@PathVariable UUID token, HttpSession session) {
         session.removeAttribute(SESS_PREFIX + token);
         return "redirect:/paciente/" + token + "/login";
+    }
+
+    @GetMapping("/{token}/esqueci-minha-senha")
+    public String esqueciSenhaForm(@PathVariable UUID token, Model model) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) return "portal/token-invalido";
+        model.addAttribute("token", token);
+        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
+        return "portal/esqueci-senha-portal";
+    }
+
+    @PostMapping("/{token}/esqueci-minha-senha")
+    public String esqueciSenhaSubmit(
+            @PathVariable UUID token,
+            @RequestParam(required = false) String email,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) return "portal/token-invalido";
+        pacienteService.solicitarResetSenhaPaciente(
+                email,
+                request.getRemoteAddr(),
+                request.getHeader("User-Agent"),
+                resolveBaseUrl(request)
+        );
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir a senha.");
+        return "redirect:/paciente/" + token + "/esqueci-minha-senha";
+    }
+
+    @GetMapping("/resetar-senha")
+    public String resetarSenhaForm(@RequestParam(name = "token", required = false) String resetToken, Model model) {
+        model.addAttribute("resetToken", resetToken);
+        model.addAttribute("tokenValido", pacienteService.tokenResetPacienteValido(resetToken));
+        return "portal/resetar-senha-portal";
+    }
+
+    @PostMapping("/resetar-senha")
+    public String resetarSenhaSubmit(
+            @RequestParam(name = "token", required = false) String resetToken,
+            @RequestParam(required = false) String novaSenha,
+            @RequestParam(required = false) String confirmacaoSenha,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            pacienteService.redefinirSenhaPaciente(resetToken, novaSenha, confirmacaoSenha);
+            redirectAttributes.addFlashAttribute("successMessage", "Senha redefinida com sucesso. Faça login para continuar.");
+            return "redirect:/paciente/resetar-senha";
+        } catch (BusinessException ex) {
+            model.addAttribute("resetToken", resetToken);
+            model.addAttribute("tokenValido", pacienteService.tokenResetPacienteValido(resetToken));
+            model.addAttribute("errorMessage", ex.getMessage());
+            return "portal/resetar-senha-portal";
+        }
+    }
+
+    private String resolveBaseUrl(HttpServletRequest request) {
+        String forwardedProto = headerFirstValue(request, "X-Forwarded-Proto");
+        String forwardedHost = headerFirstValue(request, "X-Forwarded-Host");
+        String forwardedPort = headerFirstValue(request, "X-Forwarded-Port");
+        if (forwardedHost == null && isAmbiguousLocalRequest(request)) return null;
+        String scheme = forwardedProto != null ? forwardedProto : request.getScheme();
+        String host = forwardedHost != null ? forwardedHost : request.getServerName();
+        int port = parsePort(forwardedPort, request.getServerPort());
+        String normalizedHost = host;
+        if (normalizedHost != null && normalizedHost.contains(",")) {
+            normalizedHost = normalizedHost.split(",")[0].trim();
+        }
+        if (normalizedHost != null && normalizedHost.contains(":")) {
+            return scheme + "://" + normalizedHost;
+        }
+        boolean defaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
+                || ("https".equalsIgnoreCase(scheme) && port == 443);
+        return defaultPort ? scheme + "://" + normalizedHost : scheme + "://" + normalizedHost + ":" + port;
+    }
+
+    private String headerFirstValue(HttpServletRequest request, String headerName) {
+        String value = request.getHeader(headerName);
+        if (value == null || value.isBlank()) return null;
+        return value.split(",")[0].trim();
+    }
+
+    private int parsePort(String forwardedPort, int defaultPort) {
+        if (forwardedPort == null || forwardedPort.isBlank()) return defaultPort;
+        try { return Integer.parseInt(forwardedPort.trim()); } catch (NumberFormatException ex) { return defaultPort; }
+    }
+
+    private boolean isAmbiguousLocalRequest(HttpServletRequest request) {
+        String host = request.getServerName();
+        return ("localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host)) && request.getServerPort() == 80;
     }
 
     @GetMapping("/{token}")

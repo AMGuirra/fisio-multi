@@ -40,7 +40,8 @@
         </form>
 
         <p style="margin-top:20px;font-size:13px;color:#6b7280;text-align:center;">
-            Não lembra a senha? Entre em contato com a clínica pelo WhatsApp.
+            <a th:href="@{/paciente/{token}/esqueci-minha-senha(token=${token})}"
+               style="color:#0f8f7a;text-decoration:none;">Esqueci minha senha</a>
         </p>
     </div>
 

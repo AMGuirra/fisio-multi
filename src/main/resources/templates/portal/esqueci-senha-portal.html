@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar senha - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="pub-body pub-centered">
+    <div class="pub-success-card" style="max-width:420px;">
+        <div class="pub-header-icon" style="margin:0 auto 20px;">
+            <i data-lucide="mail"></i>
+        </div>
+        <h1 class="pub-success-title" style="font-size:1.4rem;">Recuperar senha</h1>
+        <p class="pub-success-text" style="margin-bottom:6px;">
+            Informe o e-mail cadastrado para receber as instruções de redefinição de senha.
+        </p>
+
+        <div th:if="${successMessage}" class="pub-alert pub-alert-success" style="margin:16px 0 8px;">
+            <i data-lucide="circle-check"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <form th:if="${successMessage == null}"
+              th:action="@{/paciente/{token}/esqueci-minha-senha(token=${token})}"
+              method="post" style="margin-top:20px;text-align:left;">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+            <div class="pub-form-group">
+                <label class="pub-label" for="email">E-mail</label>
+                <input type="email" id="email" name="email" class="pub-control"
+                       placeholder="seu@email.com" autofocus autocomplete="email" required>
+            </div>
+
+            <button type="submit" class="pub-btn-primary" style="margin-top:8px;">
+                <i data-lucide="send"></i>
+                Enviar instruções
+            </button>
+        </form>
+
+        <p style="margin-top:20px;font-size:13px;text-align:center;">
+            <a th:href="@{/paciente/{token}/login(token=${token})}" style="color:#0f8f7a;text-decoration:none;">
+                &larr; Voltar para o login
+            </a>
+        </p>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script>
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
