@@ -139,6 +139,47 @@ public class FinanceiroService {
             List<ContaReceberGrupo> grupos
     ) {}
 
+    public record ContasAPagarResumo(
+            BigDecimal total,
+            BigDecimal totalVencido,
+            BigDecimal totalAVencer,
+            long quantidade,
+            long gruposCount
+    ) {}
+
+    public record ContaPagarGrupo(
+            String categoria,
+            String descricao,
+            BigDecimal total,
+            BigDecimal aVencer,
+            BigDecimal vencidoAte7,
+            BigDecimal vencido8A15,
+            BigDecimal vencido16A30,
+            BigDecimal vencidoAcima30,
+            long quantidade,
+            LocalDate vencimentoMaisAntigo,
+            long maiorAtrasoDias
+    ) {
+        public BigDecimal totalVencido() {
+            return vencidoAte7.add(vencido8A15).add(vencido16A30).add(vencidoAcima30);
+        }
+
+        public String agingTone() {
+            if (maiorAtrasoDias > 30) {
+                return "danger";
+            }
+            if (maiorAtrasoDias > 0) {
+                return "warning";
+            }
+            return "success";
+        }
+    }
+
+    public record ContasAPagarView(
+            ContasAPagarResumo resumo,
+            List<ContaPagarGrupo> grupos
+    ) {}
+
     public record FaturamentoResumo(
             BigDecimal total,
             long quantidade,
@@ -257,6 +298,52 @@ public class FinanceiroService {
         return new ContasAReceberView(
                 new ContasAReceberResumo(total, totalVencido, totalAVencer, quantidade, grupos.size()),
                 grupos
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public ContasAPagarView listarContasAPagar() {
+        List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
+                .findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                        TipoLancamentoFinanceiro.DESPESA,
+                        StatusLancamentoFinanceiro.PENDENTE
+                );
+        LocalDate hoje = ClinicTimezoneHolder.today();
+        Map<String, ContaPagarAcumulador> acumulados = new LinkedHashMap<>();
+
+        for (LancamentoFinanceiroEntity lancamento : pendentes) {
+            String categoria = textoOuPadrao(lancamento.getCategoria(), "Sem categoria");
+            String descricao = textoOuPadrao(lancamento.getDescricao(), "Sem descricao");
+            String chave = categoria + "|" + descricao;
+            acumulados.computeIfAbsent(chave, ignored -> new ContaPagarAcumulador(categoria, descricao))
+                    .adicionar(lancamento, hoje);
+        }
+
+        List<ContaPagarGrupo> grupos = acumulados.values().stream()
+                .map(ContaPagarAcumulador::toGrupo)
+                .sorted(Comparator
+                        .comparing(ContaPagarGrupo::maiorAtrasoDias, Comparator.reverseOrder())
+                        .thenComparing(ContaPagarGrupo::vencimentoMaisAntigo, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(ContaPagarGrupo::categoria)
+                        .thenComparing(ContaPagarGrupo::descricao))
+                .toList();
+
+        BigDecimal total = somarGruposAPagar(grupos, ContaPagarGrupo::total);
+        BigDecimal totalVencido = somarGruposAPagar(grupos, ContaPagarGrupo::totalVencido);
+        BigDecimal totalAVencer = somarGruposAPagar(grupos, ContaPagarGrupo::aVencer);
+        long quantidade = grupos.stream().mapToLong(ContaPagarGrupo::quantidade).sum();
+
+        return new ContasAPagarView(
+                new ContasAPagarResumo(total, totalVencido, totalAVencer, quantidade, grupos.size()),
+                grupos
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public long contarContasAPagarPendentes() {
+        return lancamentoFinanceiroRepository.countByTipoAndStatus(
+                TipoLancamentoFinanceiro.DESPESA,
+                StatusLancamentoFinanceiro.PENDENTE
         );
     }
 
@@ -545,6 +632,16 @@ public class FinanceiroService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    private static BigDecimal somarGruposAPagar(
+            List<ContaPagarGrupo> grupos,
+            Function<ContaPagarGrupo, BigDecimal> extractor
+    ) {
+        return grupos.stream()
+                .map(extractor)
+                .map(FinanceiroService::valorSeguro)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private static List<FaturamentoGrupo> mapearTexto(
             List<LancamentoFinanceiroRepository.TotalPorTextoProjection> projections,
             BigDecimal totalGeral
@@ -691,6 +788,66 @@ public class FinanceiroService {
             return new ContaReceberGrupo(
                     paciente,
                     plano,
+                    total,
+                    aVencer,
+                    vencidoAte7,
+                    vencido8A15,
+                    vencido16A30,
+                    vencidoAcima30,
+                    quantidade,
+                    vencimentoMaisAntigo,
+                    maiorAtrasoDias
+            );
+        }
+    }
+
+    private static final class ContaPagarAcumulador {
+        private final String categoria;
+        private final String descricao;
+        private BigDecimal total = BigDecimal.ZERO;
+        private BigDecimal aVencer = BigDecimal.ZERO;
+        private BigDecimal vencidoAte7 = BigDecimal.ZERO;
+        private BigDecimal vencido8A15 = BigDecimal.ZERO;
+        private BigDecimal vencido16A30 = BigDecimal.ZERO;
+        private BigDecimal vencidoAcima30 = BigDecimal.ZERO;
+        private long quantidade;
+        private LocalDate vencimentoMaisAntigo;
+        private long maiorAtrasoDias;
+
+        private ContaPagarAcumulador(String categoria, String descricao) {
+            this.categoria = categoria;
+            this.descricao = descricao;
+        }
+
+        private void adicionar(LancamentoFinanceiroEntity lancamento, LocalDate hoje) {
+            BigDecimal valor = valorSeguro(lancamento.getValor());
+            LocalDate vencimento = dataCompetenciaLocal(lancamento);
+            long atraso = atrasoEmDias(lancamento, hoje);
+
+            total = total.add(valor);
+            quantidade++;
+            if (vencimentoMaisAntigo == null || vencimento.isBefore(vencimentoMaisAntigo)) {
+                vencimentoMaisAntigo = vencimento;
+            }
+            maiorAtrasoDias = Math.max(maiorAtrasoDias, atraso);
+
+            if (atraso <= 0) {
+                aVencer = aVencer.add(valor);
+            } else if (atraso <= 7) {
+                vencidoAte7 = vencidoAte7.add(valor);
+            } else if (atraso <= 15) {
+                vencido8A15 = vencido8A15.add(valor);
+            } else if (atraso <= 30) {
+                vencido16A30 = vencido16A30.add(valor);
+            } else {
+                vencidoAcima30 = vencidoAcima30.add(valor);
+            }
+        }
+
+        private ContaPagarGrupo toGrupo() {
+            return new ContaPagarGrupo(
+                    categoria,
+                    descricao,
                     total,
                     aVencer,
                     vencidoAte7,

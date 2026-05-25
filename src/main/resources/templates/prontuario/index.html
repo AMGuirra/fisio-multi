@@ -122,7 +122,8 @@
                 </article>
             </section>
 
-            <section class="section-card">
+            <div class="prontuario-patient-grid">
+            <section class="section-card prontuario-patient-picker">
                 <header class="section-head">
                     <h3 class="section-title"><i data-lucide="filter"></i> Paciente</h3>
                 </header>
@@ -144,7 +145,7 @@
                 </div>
             </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado == null}">
+            <section class="section-card prontuario-patient-context" th:if="${pacienteSelecionado == null}">
                 <div class="section-body">
                     <div class="empty-box">
                         <i data-lucide="clipboard-list"></i>
@@ -153,7 +154,7 @@
                 </div>
             </section>
 
-            <section class="section-card" th:if="${pacienteSelecionado != null}">
+            <section class="section-card prontuario-patient-context" th:if="${pacienteSelecionado != null}">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="user-round-check"></i> Paciente em Foco</h3>
@@ -193,6 +194,7 @@
                     </div>
                 </div>
             </section>
+            </div>
 
             <section class="crud-layout two-column" th:if="${pacienteSelecionado != null}">
                 <article class="section-card" id="novoRegistroSoap">
@@ -573,6 +575,5 @@
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>
-
 
 

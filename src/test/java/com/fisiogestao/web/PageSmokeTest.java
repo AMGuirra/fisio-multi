@@ -184,6 +184,7 @@ class PageSmokeTest {
             "/configuracao/clinica",
             "/financeiro",
             "/financeiro/contas-a-receber",
+            "/financeiro/contas-a-pagar",
             "/financeiro/relatorio-faturamento",
             "/lista-espera",
             "/pacientes",

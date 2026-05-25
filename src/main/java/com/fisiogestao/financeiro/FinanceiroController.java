@@ -58,7 +58,16 @@ public class FinanceiroController {
     public String contasAReceber(Model model) {
         model.addAttribute("contasAReceber", financeiroService.listarContasAReceber());
         model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
         return "financeiro/contas-a-receber";
+    }
+
+    @GetMapping("/contas-a-pagar")
+    public String contasAPagar(Model model) {
+        model.addAttribute("contasAPagar", financeiroService.listarContasAPagar());
+        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
+        return "financeiro/contas-a-pagar";
     }
 
     @GetMapping("/relatorio-faturamento")
@@ -81,6 +90,7 @@ public class FinanceiroController {
         model.addAttribute("periodoInicio", periodoInicio);
         model.addAttribute("periodoFim", periodoFim);
         model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
         return "financeiro/relatorio-faturamento";
     }
 
@@ -208,6 +218,7 @@ public class FinanceiroController {
         model.addAttribute("lancamentos", financeiroService.listarNoPeriodo(periodoInicio, periodoFim));
         model.addAttribute("resumo", resumo);
         model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
         model.addAttribute("periodoInicio", periodoInicio);
         model.addAttribute("periodoFim", periodoFim);
         model.addAttribute("editMode", lancamentoEmEdicao != null);

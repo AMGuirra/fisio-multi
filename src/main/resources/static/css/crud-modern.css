@@ -838,6 +838,12 @@
     }
 }
 
+@media (max-width: 900px) {
+    .prontuario-patient-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 640px) {
     .summary-grid.grid-5 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1411,6 +1417,26 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     align-items: stretch;
 }
 
+.prontuario-patient-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+.prontuario-patient-grid > .section-card {
+    min-width: 0;
+}
+
+.prontuario-patient-picker .section-body,
+.prontuario-patient-context .section-body {
+    height: 100%;
+}
+
+.prontuario-patient-context .patient-spotlight {
+    grid-template-columns: 1fr;
+}
+
 .patient-spotlight-copy {
     display: grid;
     gap: 6px;
@@ -1420,6 +1446,12 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
+}
+
+.prontuario-patient-context .patient-spotlight-stats {
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 2px;
 }
 
 .patient-spotlight-stat {

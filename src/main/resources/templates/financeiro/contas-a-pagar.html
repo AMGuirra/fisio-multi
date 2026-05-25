@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contas a Pagar - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+                <div class="header-copy">
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuario</h2>
+                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de marco de 2026</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-clock skeletonable" id="liveClock">00:00</div>
+            </div>
+        </header>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Contas a Pagar</h1>
+                    <p class="hero-subtitle">Acompanhe despesas pendentes por categoria e lancamento, com aging de atraso para priorizar pagamentos.</p>
+                </div>
+                <span class="hero-pill" th:text="${contasAPagar.resumo().totalVencido().signum() > 0 ? contasAPagar.resumo().quantidade() + ' pendente(s)' : 'Em dia'}">Em dia</span>
+            </section>
+
+            <nav class="page-tabs" aria-label="Secoes de Gestao">
+                <a th:href="@{/financeiro}" href="/financeiro" class="page-tab"><i data-lucide="wallet"></i> Financeiro</a>
+                <a th:href="@{/financeiro/contas-a-receber}" href="/financeiro/contas-a-receber" class="page-tab">
+                    <i data-lucide="badge-dollar-sign"></i> Contas a Receber
+                    <span th:if="${inadimplencia.quantidade() > 0}" class="tab-badge" th:text="${inadimplencia.quantidade()}">0</span>
+                </a>
+                <a th:href="@{/financeiro/contas-a-pagar}" href="/financeiro/contas-a-pagar" class="page-tab active">
+                    <i data-lucide="receipt"></i> Contas a Pagar
+                    <span th:if="${contasAPagarPendentes > 0}" class="tab-badge" th:text="${contasAPagarPendentes}">0</span>
+                </a>
+                <a th:href="@{/financeiro/relatorio-faturamento}" href="/financeiro/relatorio-faturamento" class="page-tab"><i data-lucide="bar-chart-3"></i> Faturamento</a>
+                <a th:href="@{/relatorios}" href="/relatorios" class="page-tab"><i data-lucide="file-text"></i> Relatorios</a>
+            </nav>
+
+            <section class="summary-grid grid-5">
+                <article class="summary-card despesa-pendente">
+                    <span class="summary-icon"><i data-lucide="hand-coins"></i></span>
+                    <p class="summary-label">Total a Pagar</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(contasAPagar.resumo().total(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card despesa">
+                    <span class="summary-icon"><i data-lucide="alarm-clock"></i></span>
+                    <p class="summary-label">Vencido</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(contasAPagar.resumo().totalVencido(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="calendar-check"></i></span>
+                    <p class="summary-label">A Vencer</p>
+                    <p class="summary-value" th:text="${'R$ ' + #numbers.formatDecimal(contasAPagar.resumo().totalAVencer(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</p>
+                </article>
+                <article class="summary-card saldo">
+                    <span class="summary-icon"><i data-lucide="receipt-text"></i></span>
+                    <p class="summary-label">Titulos</p>
+                    <p class="summary-value" th:text="${contasAPagar.resumo().quantidade()}">0</p>
+                </article>
+                <article class="summary-card despesa-pendente">
+                    <span class="summary-icon"><i data-lucide="layers"></i></span>
+                    <p class="summary-label">Categoria/Lancamento</p>
+                    <p class="summary-value" th:text="${contasAPagar.resumo().gruposCount()}">0</p>
+                </article>
+            </section>
+
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="list-checks"></i> Aging de contas a pagar</h3>
+                        <p class="section-subtitle">Valores agrupados por categoria e descricao do lancamento.</p>
+                    </div>
+                </header>
+
+                <div class="section-body" th:if="${#lists.isEmpty(contasAPagar.grupos())}">
+                    <div class="empty-box">
+                        <i data-lucide="circle-check-big"></i>
+                        <p>Nenhuma despesa pendente no momento.</p>
+                    </div>
+                </div>
+
+                <div class="data-table-wrap" th:unless="${#lists.isEmpty(contasAPagar.grupos())}">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Categoria / lancamento</th>
+                                <th>Mais antigo</th>
+                                <th class="text-right">A vencer</th>
+                                <th class="text-right">1-7 dias</th>
+                                <th class="text-right">8-15 dias</th>
+                                <th class="text-right">16-30 dias</th>
+                                <th class="text-right">+30 dias</th>
+                                <th class="text-right">Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="grupo : ${contasAPagar.grupos()}">
+                                <td>
+                                    <p class="entity-name" th:text="${grupo.categoria()}">Categoria</p>
+                                    <p class="entity-meta" th:text="${grupo.descricao()}">Lancamento</p>
+                                </td>
+                                <td th:text="${#temporals.format(grupo.vencimentoMaisAntigo(), 'dd/MM/yyyy')}">01/01/2026</td>
+                                <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.aVencer(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
+                                <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.vencidoAte7(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
+                                <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.vencido8A15(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
+                                <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.vencido16A30(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
+                                <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.vencidoAcima30(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
+                                <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(grupo.total(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
+                                <td>
+                                    <span class="metric-badge"
+                                          th:classappend="${'tone-' + grupo.agingTone()}"
+                                          th:text="${grupo.maiorAtrasoDias() > 0 ? grupo.maiorAtrasoDias() + ' dia(s)' : 'A vencer'}">A vencer</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </main>
+
+        <footer class="app-footer">&copy; 2026 FisioGestao - Sistema de Gestao para Clinicas de Fisioterapia</footer>
+    </div>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+</body>
+</html>

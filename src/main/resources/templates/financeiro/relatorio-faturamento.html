@@ -45,6 +45,10 @@
                     <i data-lucide="badge-dollar-sign"></i> Contas a Receber
                     <span th:if="${inadimplencia.quantidade() > 0}" class="tab-badge" th:text="${inadimplencia.quantidade()}">0</span>
                 </a>
+                <a th:href="@{/financeiro/contas-a-pagar}" href="/financeiro/contas-a-pagar" class="page-tab">
+                    <i data-lucide="receipt"></i> Contas a Pagar
+                    <span th:if="${contasAPagarPendentes != null and contasAPagarPendentes > 0}" class="tab-badge" th:text="${contasAPagarPendentes}">0</span>
+                </a>
                 <a th:href="@{/financeiro/relatorio-faturamento}" href="/financeiro/relatorio-faturamento" class="page-tab active"><i data-lucide="bar-chart-3"></i> Faturamento</a>
                 <a th:href="@{/relatorios}" href="/relatorios" class="page-tab"><i data-lucide="file-text"></i> Relatórios</a>
             </nav>
