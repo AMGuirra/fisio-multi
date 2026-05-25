@@ -742,10 +742,12 @@ body[data-theme='dark'] {
 .report-chart-block,
 .donut-card,
 .ranking-item {
-    border-radius: var(--app-card-radius, 14px);
+    border-radius: var(--kpi-card-radius, var(--app-card-radius, 14px));
     border-color: var(--stroke-soft);
-    background: var(--bg-surface);
-    box-shadow: var(--shadow-sm);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 252, 251, 0.82) 100%),
+        var(--bg-surface);
+    box-shadow: var(--kpi-card-shadow, var(--shadow-sm));
 }
 
 .report-highlight,
@@ -756,14 +758,67 @@ body[data-theme='dark'] {
     padding: 14px;
 }
 
+.report-highlight-strip,
+.report-kpi-grid {
+    gap: var(--kpi-card-gap, 14px);
+}
+
+.report-highlight {
+    min-width: 0;
+    min-height: 70px;
+}
+
+.report-highlight strong,
+.report-period-label,
+.report-kpi-title {
+    color: var(--text-soft);
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+.report-highlight span,
+.report-period-card strong,
+.report-kpi-value {
+    color: var(--text-strong);
+    font-size: clamp(1.18rem, 1.15vw, 1.45rem);
+    font-weight: 780;
+    letter-spacing: 0;
+    line-height: 1.12;
+}
+
+.report-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+
 .report-kpi-card {
-    min-height: 150px;
-    padding: 16px;
+    min-height: var(--kpi-card-min-height, 126px);
+    padding: var(--kpi-card-padding, 16px);
+    gap: 8px;
+}
+
+.report-kpi-card::after {
+    width: 82px;
+    height: 82px;
+    top: -28px;
+    right: -22px;
 }
 
 .report-kpi-icon,
 .ranking-position {
     border-radius: var(--app-control-radius, 11px);
+}
+
+.report-kpi-icon {
+    width: var(--kpi-icon-size, 38px);
+    height: var(--kpi-icon-size, 38px);
+}
+
+.report-kpi-icon svg {
+    width: 19px;
+    height: 19px;
 }
 
 .report-kpi-change,

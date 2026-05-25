@@ -5071,3 +5071,293 @@ body[data-theme='dark'] .waitlist-action-danger {
         grid-column: auto;
     }
 }
+
+/* Shared KPI cards: dashboard, agenda, pacientes, solicitacoes, fila e prontuario. */
+:root {
+    --kpi-card-min: 168px;
+    --kpi-card-gap: 14px;
+    --kpi-card-min-height: 126px;
+    --kpi-card-padding: 16px;
+    --kpi-card-radius: var(--app-card-radius, 14px);
+    --kpi-card-border: var(--stroke-soft);
+    --kpi-card-shadow: 0 10px 24px rgba(15, 23, 32, 0.06);
+    --kpi-card-shadow-hover: 0 16px 32px rgba(15, 23, 32, 0.1);
+    --kpi-icon-size: 38px;
+}
+
+.metrics-grid,
+.summary-grid,
+.waitlist-metrics,
+.workflow-strip {
+    gap: var(--kpi-card-gap);
+}
+
+.metrics-grid,
+.summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--kpi-card-min), 100%), 1fr));
+}
+
+.summary-grid.grid-4,
+.agenda-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--kpi-card-min), 100%), 1fr));
+    justify-content: stretch;
+}
+
+.waitlist-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+
+.workflow-strip {
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+
+.metric-card,
+.summary-card,
+.waitlist-metric,
+.workflow-step {
+    position: relative;
+    min-width: 0;
+    min-height: var(--kpi-card-min-height);
+    border: 1px solid var(--kpi-card-border);
+    border-radius: var(--kpi-card-radius);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 252, 251, 0.82) 100%),
+        var(--bg-surface);
+    box-shadow: var(--kpi-card-shadow);
+    overflow: hidden;
+}
+
+.metric-card,
+.summary-card,
+.waitlist-metric {
+    padding: var(--kpi-card-padding);
+}
+
+.metric-card::after,
+.summary-card::after {
+    width: 82px;
+    height: 82px;
+    top: -28px;
+    right: -22px;
+    opacity: 0.2;
+}
+
+.metric-card-link:hover,
+.metric-card-link:focus-visible {
+    border-color: var(--stroke-strong);
+    box-shadow: var(--kpi-card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.metric-top,
+.summary-icon,
+.waitlist-metric-icon {
+    width: var(--kpi-icon-size);
+    height: var(--kpi-icon-size);
+    flex: 0 0 var(--kpi-icon-size);
+}
+
+.metric-top {
+    align-items: flex-start;
+}
+
+.metric-icon,
+.summary-icon,
+.waitlist-metric-icon {
+    width: var(--kpi-icon-size);
+    height: var(--kpi-icon-size);
+    border-radius: 12px;
+}
+
+.metric-icon svg,
+.summary-icon svg,
+.waitlist-metric-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+.metric-card .metric-label,
+.summary-label,
+.waitlist-metric-label,
+.solicitacoes-page .metric-label {
+    color: var(--text-soft);
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+.metric-card .metric-value,
+.summary-value,
+.waitlist-metric strong,
+.solicitacoes-page .metric-value {
+    color: var(--text-strong);
+    font-size: clamp(1.18rem, 1.15vw, 1.45rem);
+    font-weight: 780;
+    letter-spacing: 0;
+    line-height: 1.12;
+}
+
+.summary-value-compact {
+    font-size: clamp(1rem, 1vw, 1.18rem);
+    line-height: 1.2;
+}
+
+.summary-card,
+.metric-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.summary-icon {
+    margin-bottom: 4px;
+}
+
+.agenda-summary-grid .summary-card {
+    min-height: var(--kpi-card-min-height);
+    padding: var(--kpi-card-padding);
+}
+
+.agenda-summary-grid .summary-value {
+    font-size: clamp(1.18rem, 1.15vw, 1.45rem);
+}
+
+.waitlist-metric {
+    align-items: center;
+    gap: 12px;
+}
+
+.waitlist-metric strong {
+    margin-top: 3px;
+}
+
+.solicitacoes-page .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: var(--kpi-card-gap);
+}
+
+.solicitacoes-page .metric-card {
+    min-height: var(--kpi-card-min-height);
+    justify-content: flex-start;
+    gap: 8px;
+    border-radius: var(--kpi-card-radius);
+    box-shadow: var(--kpi-card-shadow);
+}
+
+.solicitacoes-page .metric-card::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(15, 143, 122, 0.14);
+}
+
+.solicitacoes-page .metric-value {
+    margin: 8px 0 2px;
+}
+
+.solicitacoes-page .metric-value.pending {
+    color: #8a6400;
+}
+
+.solicitacoes-page .metric-value.approved,
+.solicitacoes-page .metric-value.total {
+    color: var(--brand-700);
+}
+
+.solicitacoes-page .metric-value.denied {
+    color: #ad4040;
+}
+
+.solicitacoes-page .metric-subtext {
+    margin-top: auto;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+}
+
+.workflow-step {
+    padding: 16px;
+    box-shadow: var(--kpi-card-shadow);
+}
+
+.workflow-step.is-current {
+    border-color: rgba(15, 143, 122, 0.28);
+    background:
+        linear-gradient(145deg, rgba(15, 143, 122, 0.08), rgba(47, 111, 236, 0.05)),
+        var(--bg-surface);
+}
+
+.metrics-strip-card {
+    border-radius: var(--kpi-card-radius);
+    box-shadow: var(--kpi-card-shadow);
+}
+
+.metrics-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+}
+
+.metric-item {
+    min-height: 84px;
+    padding: 16px;
+    justify-content: center;
+}
+
+.metric-divider {
+    display: none;
+}
+
+.metrics-strip .metric-label {
+    color: var(--text-soft);
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+}
+
+.metrics-strip .metric-value {
+    color: var(--text-strong);
+    font-size: clamp(1rem, 1vw, 1.18rem);
+    font-weight: 760;
+}
+
+body[data-theme='dark'] .metric-card,
+body[data-theme='dark'] .summary-card,
+body[data-theme='dark'] .waitlist-metric,
+body[data-theme='dark'] .workflow-step,
+body[data-theme='dark'] .solicitacoes-page .metric-card,
+body[data-theme='dark'] .metrics-strip-card {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+    box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 1440px) {
+    .metrics-grid {
+        --kpi-card-min: 180px;
+    }
+
+    .summary-grid {
+        --kpi-card-min: 260px;
+    }
+
+    .dashboard-main .metrics-grid {
+        --kpi-card-min: 168px;
+    }
+}
+
+@media (max-width: 760px) {
+    :root {
+        --kpi-card-min-height: 112px;
+        --kpi-card-padding: 14px;
+    }
+
+    .metrics-grid,
+    .summary-grid,
+    .waitlist-metrics,
+    .workflow-strip,
+    .solicitacoes-page .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
