@@ -78,22 +78,26 @@
                 </div>
 
                 <section class="metrics-grid">
-                    <article class="metric-card">
+                    <article class="metric-card metric-pendencias">
+                        <span class="metric-corner-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
                         <p class="metric-label">Pendentes</p>
                         <p class="metric-value pending" th:text="${totalPendentes}">0</p>
                         <p class="metric-subtext">aguardando ação</p>
                     </article>
-                    <article class="metric-card">
+                    <article class="metric-card metric-saldo">
+                        <span class="metric-corner-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
                         <p class="metric-label">Aprovadas (mês)</p>
                         <p class="metric-value approved" th:text="${totalAprovadas}">0</p>
                         <p class="metric-subtext">agendamentos gerados</p>
                     </article>
-                    <article class="metric-card">
+                    <article class="metric-card metric-despesa">
+                        <span class="metric-corner-icon"><i data-lucide="calendar-x" aria-hidden="true"></i></span>
                         <p class="metric-label">Negadas (mês)</p>
                         <p class="metric-value denied" th:text="${totalNegadas}">0</p>
                         <p class="metric-subtext">pedidos recusados</p>
                     </article>
-                    <article class="metric-card">
+                    <article class="metric-card metric-mensagens">
+                        <span class="metric-corner-icon"><i data-lucide="inbox" aria-hidden="true"></i></span>
                         <p class="metric-label">Total recebido</p>
                         <p class="metric-value total" th:text="${totalGeral}">0</p>
                         <p class="metric-subtext">este mês</p>

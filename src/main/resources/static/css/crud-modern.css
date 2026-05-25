@@ -5286,6 +5286,36 @@ body[data-theme='dark'] .waitlist-action-danger {
     background: rgba(15, 143, 122, 0.14);
 }
 
+.solicitacoes-page .metric-corner-icon {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 1;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    color: var(--brand-700);
+}
+
+.solicitacoes-page .metric-corner-icon svg {
+    width: 19px;
+    height: 19px;
+    stroke-width: 2.3;
+}
+
+.solicitacoes-page .metric-pendencias .metric-corner-icon {
+    color: #8a6400;
+}
+
+.solicitacoes-page .metric-despesa .metric-corner-icon {
+    color: #ad4040;
+}
+
+.solicitacoes-page .metric-mensagens .metric-corner-icon {
+    color: #6236bf;
+}
+
 .solicitacoes-page .metric-value {
     margin: 8px 0 2px;
 }
