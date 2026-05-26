@@ -1252,6 +1252,21 @@ body[data-theme='dark'] .placeholder p {
     position: relative;
     grid-template-columns: var(--col1-w, 260px) minmax(0, 1fr) var(--col3-w, 320px);
     align-items: stretch;
+    height: calc(100vh - 210px);
+  }
+
+  /* col-pacientes: plist usa flex para crescer e rolar */
+  .pc-shell .step-head,
+  .pc-shell .col-pacientes .searchbox,
+  .pc-shell .col-pacientes .filter-row {
+    flex-shrink: 0;
+  }
+
+  .pc-shell .plist {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    max-height: none;
   }
 }
 
