@@ -260,6 +260,53 @@
                 }
             }
         });
+
+        // --- Reconciliação de consumo ---
+
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('.btn-reconciliar');
+            if (!btn) return;
+            document.getElementById('reconciliarNaoReg').textContent = btn.dataset.naoReg;
+            document.getElementById('reconciliarAtual').textContent = btn.dataset.atual;
+            document.getElementById('reconciliarCorreto').textContent = btn.dataset.correto;
+            document.getElementById('reconciliarPacienteId').value = btn.dataset.pacienteId;
+            document.getElementById('reconciliarForm').action =
+                `/planos-consumo/${btn.dataset.planoId}/reconciliar`;
+            const modal = document.getElementById('reconciliarModal');
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-reconciliar-modal-close]')) {
+                const modal = document.getElementById('reconciliarModal');
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        });
+
+        document.addEventListener('submit', async (event) => {
+            const form = event.target.closest('#reconciliarForm');
+            if (!form) return;
+            event.preventDefault();
+            const modal = document.getElementById('reconciliarModal');
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken},
+                body: new FormData(form)
+            });
+            const html = await res.text();
+            atualizarPaineis(html, 'PLANO');
+            const selRow = document.querySelector('.prow.sel');
+            if (selRow) {
+                const saldo = document.querySelector('#c3b .saldo-num')?.textContent?.replace(/\s+/g, '');
+                const badge = selRow.querySelector('.pbadge');
+                if (badge && saldo) badge.textContent = saldo;
+            }
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>

@@ -1586,3 +1586,46 @@ body[data-theme='dark'] {
 .sess-item {
   border-color: var(--stroke-soft);
 }
+
+/* --- Reconciliação de consumo --- */
+
+.reconciliar-aviso {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.reconciliar-aviso span {
+  flex: 1 1 100%;
+}
+
+.btn-reconciliar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--g-warn-b, #d4a000);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-reconciliar:hover {
+  background: var(--g-warn-b, #d4a000);
+  color: #fff;
+}
+
+.pc-modal-body {
+  margin-bottom: 18px;
+}
+
+.pc-modal-body p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--text-body);
+  line-height: 1.5;
+}

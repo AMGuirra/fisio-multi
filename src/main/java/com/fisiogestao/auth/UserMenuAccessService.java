@@ -214,6 +214,7 @@ public class UserMenuAccessService {
             case FISIOTERAPEUTA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
+                    AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.RELATORIOS
@@ -221,6 +222,7 @@ public class UserMenuAccessService {
             case RECEPCAO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,
+                    AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
                     AppMenuItem.PLANOS_SESSOES,
                     AppMenuItem.PACIENTES,

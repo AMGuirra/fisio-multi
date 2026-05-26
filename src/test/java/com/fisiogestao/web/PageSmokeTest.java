@@ -182,11 +182,11 @@ class PageSmokeTest {
             "/configuracao/email",
             "/configuracoes/clinica",
             "/configuracao/clinica",
+            "/bloqueios",
             "/financeiro",
             "/financeiro/contas-a-receber",
             "/financeiro/contas-a-pagar",
             "/financeiro/relatorio-faturamento",
-            "/lista-espera",
             "/pacientes",
             "/planos-consumo",
             "/prontuario",
@@ -202,16 +202,16 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void rotaLegadaDeBloqueiosRedirecionaParaConfiguracaoClinica() throws Exception {
+    void paginaDeBloqueiosRenderizaSeparada() throws Exception {
         mockMvc.perform(get("/bloqueios"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/configuracoes/clinica"));
+                .andExpect(status().isOk());
     }
 
     @ParameterizedTest
     @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     @ValueSource(strings = {
             "/calendario",
+            "/bloqueios",
             "/solicitacoes",
             "/pacientes",
             "/planos-consumo"

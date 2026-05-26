@@ -89,4 +89,40 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             @Param("planoId") UUID planoId,
             @Param("status") SessaoStatus status,
             @Param("agora") OffsetDateTime agora);
+
+    // --- Reconciliação de consumo ---
+
+    @Query("""
+            SELECT COUNT(s) FROM SessaoEntity s
+            WHERE s.planoSessao.id = :planoId
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+              AND s.planoConsumoRegistrado = false
+            """)
+    long countNaoRegistradasPorPlano(@Param("planoId") UUID planoId);
+
+    @Query("""
+            SELECT COUNT(s) FROM SessaoEntity s
+            WHERE s.planoSessao.id = :planoId
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+            """)
+    long countContabilizaveisPorPlano(@Param("planoId") UUID planoId);
+
+    @Modifying
+    @Query("""
+            UPDATE SessaoEntity s
+            SET s.planoConsumoRegistrado = true
+            WHERE s.planoSessao.id = :planoId
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+              AND s.planoConsumoRegistrado = false
+            """)
+    int marcarComoRegistradasPorPlano(@Param("planoId") UUID planoId);
 }

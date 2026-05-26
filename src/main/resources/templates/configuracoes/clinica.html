@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuração Operacional da Clínica - FisioGestao</title>
+    <title>ConfiguraÃ§Ã£o Operacional da ClÃ­nica - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,9 @@
             <div class="header-right">
                 <div class="header-clock skeletonable" id="liveClock"></div>
                 <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuÃ¡rio">
                         <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">UsuÃ¡rio</span>
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
@@ -47,21 +47,21 @@
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
-                    <h1 class="hero-title">Configuração Operacional da Clínica</h1>
-                    <p class="hero-subtitle">Defina expediente, duração padrão das sessões, canais oficiais e bloqueios de horários em uma única página de governança operacional.</p>
+                    <h1 class="hero-title">ConfiguraÃ§Ã£o Operacional da ClÃ­nica</h1>
+                    <p class="hero-subtitle">Defina expediente, duraÃ§Ã£o padrÃ£o das sessÃµes, canais oficiais em uma Ãºnica pÃ¡gina de governanÃ§a operacional.</p>
                 </div>
                 <div class="hero-actions">
-                    <span class="hero-pill">Clínica</span>
+                    <span class="hero-pill">ClÃ­nica</span>
                     <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal público</a>
+                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal pÃºblico</a>
                 </div>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções Administrativas">
-                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab active"><i data-lucide="building-2"></i> Config. Clínica</a>
+            <nav class="page-tabs" aria-label="SeÃ§Ãµes Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab active"><i data-lucide="building-2"></i> Config. ClÃ­nica</a>
                 <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
-                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
-                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> UsuÃ¡rios</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> FunÃ§Ãµes</a>
                 <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
                 <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
@@ -71,31 +71,26 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <nav class="page-tabs" aria-label="Seções da Configuração Operacional">
-                <a href="#secao-operacao" class="page-tab"><i data-lucide="building-2"></i> Dados da operação</a>
-                <a href="#secao-bloqueios" class="page-tab"><i data-lucide="calendar-x-2"></i> Bloqueios de horários</a>
-            </nav>
-
             <section class="workflow-strip">
                 <article class="workflow-step is-complete">
                     <span class="workflow-step-number">1</span>
                     <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Estruture a operação</p>
-                        <p class="workflow-step-text">Defina nome, fuso e expediente da clínica para unificar toda a agenda.</p>
+                        <p class="workflow-step-label">Estruture a operaÃ§Ã£o</p>
+                        <p class="workflow-step-text">Defina nome, fuso e expediente da clÃ­nica para unificar toda a agenda.</p>
                     </div>
                 </article>
                 <article class="workflow-step is-current">
                     <span class="workflow-step-number">2</span>
                     <div class="workflow-step-copy">
                         <p class="workflow-step-label">Padronize o atendimento</p>
-                        <p class="workflow-step-text">Configure duração das sessões, almoço e dias úteis com o mesmo padrão da equipe.</p>
+                        <p class="workflow-step-text">Configure duraÃ§Ã£o das sessÃµes, almoÃ§o e dias Ãºteis com o mesmo padrÃ£o da equipe.</p>
                     </div>
                 </article>
                 <article class="workflow-step">
                     <span class="workflow-step-number">3</span>
                     <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Controle indisponibilidades</p>
-                        <p class="workflow-step-text">Cadastre bloqueios por data ou faixa de horário, mantendo agenda e portal alinhados.</p>
+                        <p class="workflow-step-label">Revise a operaÃ§Ã£o</p>
+                        <p class="workflow-step-text">Mantenha os dados da clÃ­nica consistentes para a agenda e o portal.</p>
                     </div>
                 </article>
             </section>
@@ -105,13 +100,13 @@
                     <span class="summary-icon"><i data-lucide="clock-3"></i></span>
                     <p class="summary-label">Expediente</p>
                     <p class="summary-value summary-value-compact"
-                       th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' às ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Não definido'}">
-                        Não definido
+                       th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' Ã s ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'NÃ£o definido'}">
+                        NÃ£o definido
                     </p>
                 </article>
                 <article class="summary-card receita">
                     <span class="summary-icon"><i data-lucide="timer"></i></span>
-                    <p class="summary-label">Sessão padrão</p>
+                    <p class="summary-label">SessÃ£o padrÃ£o</p>
                     <p class="summary-value"
                        th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' min' : '0 min'}">
                         0 min
@@ -130,7 +125,7 @@
             <section id="secao-operacao" class="crud-layout two-column">
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="building-2"></i> Dados da operação</h3>
+                        <h3 class="section-title"><i data-lucide="building-2"></i> Dados da operaÃ§Ã£o</h3>
                     </header>
                     <div class="section-body">
                         <form th:action="@{/configuracoes/clinica}" th:object="${configuracaoClinicaForm}" method="post" class="modern-form">
@@ -139,12 +134,12 @@
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="nomeClinica">Nome da clínica</label>
+                                    <label for="nomeClinica">Nome da clÃ­nica</label>
                                     <input id="nomeClinica" type="text" class="form-control" th:field="*{nomeClinica}" maxlength="150" required>
                                     <p class="form-error" th:if="${#fields.hasErrors('nomeClinica')}" th:errors="*{nomeClinica}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="timezoneId">Fuso horário</label>
+                                    <label for="timezoneId">Fuso horÃ¡rio</label>
                                     <select id="timezoneId" class="form-select" th:field="*{timezoneId}" required>
                                         <option value="">Selecione...</option>
                                         <option th:each="timezone : ${timezonesClinica}" th:value="${timezone.id}" th:text="${timezone.label + ' (' + timezone.id + ')'}">Campo Grande</option>
@@ -165,7 +160,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('horarioFechamento')}" th:errors="*{horarioFechamento}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="duracaoSessaoMinutos">Duração da sessão</label>
+                                    <label for="duracaoSessaoMinutos">DuraÃ§Ã£o da sessÃ£o</label>
                                     <input id="duracaoSessaoMinutos" type="number" min="15" max="240" step="5" class="form-control" th:field="*{duracaoSessaoMinutos}" required>
                                     <p class="form-error" th:if="${#fields.hasErrors('duracaoSessaoMinutos')}" th:errors="*{duracaoSessaoMinutos}"></p>
                                 </div>
@@ -173,34 +168,34 @@
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="horarioInicioAlmoco">Início do almoço</label>
+                                    <label for="horarioInicioAlmoco">InÃ­cio do almoÃ§o</label>
                                     <input id="horarioInicioAlmoco" type="time" class="form-control" th:field="*{horarioInicioAlmoco}">
                                     <p class="helper-text">Opcional. Preencha junto com o fim para bloquear esse intervalo.</p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="horarioFimAlmoco">Fim do almoço</label>
+                                    <label for="horarioFimAlmoco">Fim do almoÃ§o</label>
                                     <input id="horarioFimAlmoco" type="time" class="form-control" th:field="*{horarioFimAlmoco}">
                                 </div>
                             </div>
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="telefoneWhatsapp">Telefone / WhatsApp da clínica</label>
+                                    <label for="telefoneWhatsapp">Telefone / WhatsApp da clÃ­nica</label>
                                     <input id="telefoneWhatsapp" type="text" class="form-control" th:field="*{telefoneWhatsapp}" maxlength="20" placeholder="(65) 99999-9999">
-                                    <p class="helper-text">Usado como destino padrão nas notificações internas da fila de WhatsApp.</p>
+                                    <p class="helper-text">Usado como destino padrÃ£o nas notificaÃ§Ãµes internas da fila de WhatsApp.</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('telefoneWhatsapp')}" th:errors="*{telefoneWhatsapp}"></p>
                                 </div>
                                 <div class="form-field">
                                     <label for="emailContato">E-mail de contato</label>
                                     <input id="emailContato" type="email" class="form-control" th:field="*{emailContato}" maxlength="120" placeholder="contato@clinica.com">
-                                    <p class="helper-text">Apoia o portal público e comunicações operacionais.</p>
+                                    <p class="helper-text">Apoia o portal pÃºblico e comunicaÃ§Ãµes operacionais.</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('emailContato')}" th:errors="*{emailContato}"></p>
                                 </div>
                             </div>
 
                             <div class="section-divider">
-                                <span><i data-lucide="map-pin"></i> Endereço da clínica</span>
-                                <p class="helper-text">Usado no botão "Como Chegar" do portal do paciente.</p>
+                                <span><i data-lucide="map-pin"></i> EndereÃ§o da clÃ­nica</span>
+                                <p class="helper-text">Usado no botÃ£o "Como Chegar" do portal do paciente.</p>
                             </div>
 
                             <div class="form-grid form-grid-two">
@@ -210,7 +205,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('logradouro')}" th:errors="*{logradouro}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="numero">Número</label>
+                                    <label for="numero">NÃºmero</label>
                                     <input id="numero" type="text" class="form-control" th:field="*{numero}" maxlength="20" placeholder="Ex: 123">
                                     <p class="form-error" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></p>
                                 </div>
@@ -219,7 +214,7 @@
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
                                     <label for="complemento">Complemento</label>
-                                    <input id="complemento" type="text" class="form-control" th:field="*{complemento}" maxlength="100" placeholder="Ex: Sala 5, 2º andar">
+                                    <input id="complemento" type="text" class="form-control" th:field="*{complemento}" maxlength="100" placeholder="Ex: Sala 5, 2Âº andar">
                                     <p class="form-error" th:if="${#fields.hasErrors('complemento')}" th:errors="*{complemento}"></p>
                                 </div>
                                 <div class="form-field">
@@ -236,7 +231,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                                 </div>
                                 <div class="form-field clinica-endereco-btn">
-                                    <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereço pelo CEP">
+                                    <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereÃ§o pelo CEP">
                                         <i data-lucide="search"></i>Buscar CEP
                                     </button>
                                 </div>
@@ -269,9 +264,9 @@
                             </div>
 
                             <div class="form-actions">
-                                <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuração</button>
+                                <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuraÃ§Ã£o</button>
                                 <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
+                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal pÃºblico</a>
                             </div>
                         </form>
                     </div>
@@ -286,19 +281,19 @@
                             <div class="helper-card">
                                 <div class="helper-copy">
                                     <h4>Agenda interna</h4>
-                                    <p>Os horários disponíveis, o almoço e a duração padrão das sessões saem desta configuração.</p>
+                                    <p>Os horÃ¡rios disponÃ­veis, o almoÃ§o e a duraÃ§Ã£o padrÃ£o das sessÃµes saem desta configuraÃ§Ã£o.</p>
                                 </div>
                             </div>
                             <div class="helper-card mt-12">
                                 <div class="helper-copy">
                                     <h4>Agendamento online</h4>
-                                    <p>O portal público usa o mesmo expediente, evitando conflito entre o que a recepção vê e o que o paciente agenda.</p>
+                                    <p>O portal pÃºblico usa o mesmo expediente, evitando conflito entre o que a recepÃ§Ã£o vÃª e o que o paciente agenda.</p>
                                 </div>
                             </div>
                             <div class="helper-card mt-12">
                                 <div class="helper-copy">
                                     <h4>Bloqueios oficiais</h4>
-                                    <p>Bloqueios cadastrados nesta página valem para a agenda interna e para o agendamento online — sem conflito entre os canais.</p>
+                                    <p>Bloqueios cadastrados nesta pÃ¡gina valem para a agenda interna e para o agendamento online â€” sem conflito entre os canais.</p>
                                 </div>
                             </div>
                         </div>
@@ -306,35 +301,35 @@
 
                     <article class="section-card">
                         <header class="section-head">
-                            <h3 class="section-title"><i data-lucide="clipboard-list"></i> Resumo rápido</h3>
+                            <h3 class="section-title"><i data-lucide="clipboard-list"></i> Resumo rÃ¡pido</h3>
                         </header>
                         <div class="section-body">
                             <div class="timeline-list">
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.nomeClinica != null and !#strings.isEmpty(configuracaoClinicaForm.nomeClinica) ? configuracaoClinicaForm.nomeClinica : 'Clínica sem nome definido'}">Clínica</p>
-                                        <p class="entity-meta">Identificação principal exibida nos fluxos operacionais</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.nomeClinica != null and !#strings.isEmpty(configuracaoClinicaForm.nomeClinica) ? configuracaoClinicaForm.nomeClinica : 'ClÃ­nica sem nome definido'}">ClÃ­nica</p>
+                                        <p class="entity-meta">IdentificaÃ§Ã£o principal exibida nos fluxos operacionais</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' às ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Expediente não informado'}">07:00 às 19:00</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' Ã s ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Expediente nÃ£o informado'}">07:00 Ã s 19:00</p>
                                         <p class="entity-meta">Janela base de funcionamento</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' minutos por sessão' : 'Duração não informada'}">60 minutos por sessão</p>
-                                        <p class="entity-meta">Padrão usado para os slots livres da agenda</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' minutos por sessÃ£o' : 'DuraÃ§Ã£o nÃ£o informada'}">60 minutos por sessÃ£o</p>
+                                        <p class="entity-meta">PadrÃ£o usado para os slots livres da agenda</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item" th:if="${configuracaoClinicaForm.cidade != null and !#strings.isEmpty(configuracaoClinicaForm.cidade)}">
                                     <div>
                                         <p class="entity-name"
-                                           th:text="${(configuracaoClinicaForm.logradouro != null and !#strings.isEmpty(configuracaoClinicaForm.logradouro) ? configuracaoClinicaForm.logradouro + (configuracaoClinicaForm.numero != null and !#strings.isEmpty(configuracaoClinicaForm.numero) ? ', ' + configuracaoClinicaForm.numero : '') + ' — ' : '') + configuracaoClinicaForm.cidade + (configuracaoClinicaForm.estado != null and !#strings.isEmpty(configuracaoClinicaForm.estado) ? '/' + configuracaoClinicaForm.estado : '')}">
-                                            Endereço da clínica
+                                           th:text="${(configuracaoClinicaForm.logradouro != null and !#strings.isEmpty(configuracaoClinicaForm.logradouro) ? configuracaoClinicaForm.logradouro + (configuracaoClinicaForm.numero != null and !#strings.isEmpty(configuracaoClinicaForm.numero) ? ', ' + configuracaoClinicaForm.numero : '') + ' â€” ' : '') + configuracaoClinicaForm.cidade + (configuracaoClinicaForm.estado != null and !#strings.isEmpty(configuracaoClinicaForm.estado) ? '/' + configuracaoClinicaForm.estado : '')}">
+                                            EndereÃ§o da clÃ­nica
                                         </p>
-                                        <p class="entity-meta">Usado no botão "Como Chegar" do portal do paciente</p>
+                                        <p class="entity-meta">Usado no botÃ£o "Como Chegar" do portal do paciente</p>
                                     </div>
                                 </div>
                             </div>
@@ -343,246 +338,9 @@
                 </div>
             </section>
 
-            <section id="secao-bloqueios" class="hero-card crud-hero section-bloqueios-spacer">
-                <div class="hero-content">
-                    <h2 class="hero-title">Bloqueio de Horários</h2>
-                    <p class="hero-subtitle">Cadastre indisponibilidades da clínica com segurança, sem conflitos com agenda interna e agendamento online.</p>
-                </div>
-                <span class="hero-pill">Operação clínica</span>
-            </section>
-
-            <section class="summary-grid">
-                <article class="summary-card saldo">
-                    <div class="summary-icon"><i data-lucide="rows-3"></i></div>
-                    <p class="summary-label">Registros Encontrados</p>
-                    <p class="summary-value" th:text="${resumoBloqueios.total}">0</p>
-                </article>
-                <article class="summary-card receita">
-                    <div class="summary-icon"><i data-lucide="shield-check"></i></div>
-                    <p class="summary-label">Ativos</p>
-                    <p class="summary-value" th:text="${resumoBloqueios.ativos}">0</p>
-                </article>
-                <article class="summary-card despesa">
-                    <div class="summary-icon"><i data-lucide="sun-medium"></i></div>
-                    <p class="summary-label">Dia Inteiro</p>
-                    <p class="summary-value" th:text="${resumoBloqueios.diaInteiro}">0</p>
-                </article>
-            </section>
-
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros e Navegação</h3>
-                    <div class="form-actions">
-                        <a th:href="@{/calendario(data=${bloqueioForm.dataInicial})}" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir Agenda e Calendário</a>
-                    </div>
-                </header>
-                <div class="section-body">
-                    <form th:action="@{/configuracoes/clinica}" th:object="${filtroForm}" method="get" class="modern-form">
-                        <div class="form-grid form-grid-two form-grid-three">
-                            <div class="form-field">
-                                <label for="filtroDataInicial">Período inicial</label>
-                                <input id="filtroDataInicial" type="date" th:field="*{dataInicial}" class="form-control">
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroDataFinal">Período final</label>
-                                <input id="filtroDataFinal" type="date" th:field="*{dataFinal}" class="form-control">
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroMotivo">Motivo</label>
-                                <input id="filtroMotivo" type="text" th:field="*{motivo}" class="form-control" placeholder="Buscar por motivo">
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroStatus">Status</label>
-                                <select id="filtroStatus" th:field="*{status}" class="form-select">
-                                    <option value="">Todos</option>
-                                    <option th:each="item : ${T(com.fisiogestao.agenda.BloqueioAgendaStatus).values()}" th:value="${item}" th:text="${item}">ATIVO</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroTipo">Tipo</label>
-                                <select id="filtroTipo" th:field="*{tipo}" class="form-select">
-                                    <option value="">Todos</option>
-                                    <option value="DIA_INTEIRO">Dia inteiro</option>
-                                    <option value="POR_HORARIO">Por horário</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label for="filtroPeriodo">Janela</label>
-                                <select id="filtroPeriodo" th:field="*{periodo}" class="form-select">
-                                    <option value="FUTUROS">Futuros</option>
-                                    <option value="PASSADOS">Passados</option>
-                                    <option value="TODOS">Todos</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <label class="checkbox-inline">
-                                <input type="checkbox" th:field="*{apenasAtivos}">
-                                Mostrar apenas ativos
-                            </label>
-                            <button type="submit" class="action-button primary"><i data-lucide="search"></i>Aplicar filtros</button>
-                            <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <section class="crud-layout form-table">
-                <article class="section-card">
-                    <header class="section-head">
-                        <div>
-                            <h3 class="section-title"><i data-lucide="calendar-plus"></i><span th:text="${editMode ? 'Editar bloqueio' : 'Novo bloqueio'}">Novo bloqueio</span></h3>
-                            <p class="section-subtitle" th:text="${editMode ? 'Atualize um bloqueio futuro ou do grupo selecionado.' : 'Cadastre bloqueios por data, período e motivo com validação centralizada.'}">Formulário</p>
-                        </div>
-                        <a th:if="${editMode}" th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="action-button ghost"><i data-lucide="x"></i>Cancelar edição</a>
-                    </header>
-                    <div class="section-body">
-                        <form th:action="${editMode} ? @{/configuracoes/clinica/bloqueios/{id}/editar(id=${editingId})} : @{/configuracoes/clinica/bloqueios}" th:object="${bloqueioForm}" method="post" class="modern-form" id="bloqueioFormPrincipal">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="dataInicial">Data inicial</label>
-                                    <input id="dataInicial" type="date" th:field="*{dataInicial}" class="form-control" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataInicial')}" th:errors="*{dataInicial}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="dataFinal">Data final</label>
-                                    <input id="dataFinal" type="date" th:field="*{dataFinal}" class="form-control" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataFinal')}" th:errors="*{dataFinal}"></p>
-                                </div>
-                            </div>
-
-                            <div class="form-field">
-                                <label class="checkbox-inline">
-                                    <input id="bloqueioDiaInteiro" type="checkbox" th:field="*{bloqueioDiaInteiro}">
-                                    Bloquear dia inteiro
-                                </label>
-                            </div>
-
-                            <div class="form-grid form-grid-two" id="horariosGrid">
-                                <div class="form-field">
-                                    <label for="horaInicio">Hora inicial</label>
-                                    <input id="horaInicio" type="time" th:field="*{horaInicio}" class="form-control">
-                                    <p class="form-error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="horaFim">Hora final</label>
-                                    <input id="horaFim" type="time" th:field="*{horaFim}" class="form-control">
-                                    <p class="form-error" th:if="${#fields.hasErrors('horaFim')}" th:errors="*{horaFim}"></p>
-                                </div>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="motivo">Motivo</label>
-                                <input id="motivo" type="text" th:field="*{motivo}" class="form-control" maxlength="255" placeholder="Ex: manutenção, reunião geral, evento externo" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="observacao">Observação</label>
-                                <textarea id="observacao" th:field="*{observacao}" class="form-control" rows="4" maxlength="2000" placeholder="Detalhes opcionais para apoio operacional e consulta no calendário."></textarea>
-                                <p class="form-error" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="action-button primary"><i data-lucide="save"></i><span th:text="${editMode ? 'Salvar alterações' : 'Salvar bloqueio'}">Salvar bloqueio</span></button>
-                                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar formulário</a>
-                            </div>
-                        </form>
-
-                        <div class="section-block" th:if="${editMode and bloqueiosRelacionados != null and !bloqueiosRelacionados.empty}">
-                            <h4 class="mini-title">Ocorrências do grupo</h4>
-                            <div class="timeline-list">
-                                <div class="timeline-item" th:each="item : ${bloqueiosRelacionados}">
-                                    <div>
-                                        <strong th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy')}">01/04/2026</strong>
-                                        <p class="muted-copy" th:text="${item.diaInteiro ? 'Dia inteiro' : (#temporals.format(item.dataHoraInicio, 'HH:mm') + ' às ' + #temporals.format(item.dataHoraFim, 'HH:mm'))}">Dia inteiro</p>
-                                    </div>
-                                    <span class="chip" th:classappend="${item.cancelado ? ' status-danger' : ' status-success'}" th:text="${item.status}">ATIVO</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="section-card">
-                    <header class="section-head">
-                        <div>
-                            <h3 class="section-title"><i data-lucide="list-checks"></i> Bloqueios cadastrados</h3>
-                            <p class="section-subtitle">Listagem consolidada para apoio administrativo e auditoria operacional.</p>
-                        </div>
-                    </header>
-                    <div class="section-body" th:if="${bloqueios == null or bloqueios.empty}">
-                        <div class="empty-box">
-                            <i data-lucide="calendar-search"></i>
-                            <p>Nenhum bloqueio encontrado com os filtros atuais.</p>
-                        </div>
-                    </div>
-                    <div class="section-body" th:unless="${bloqueios == null or bloqueios.empty}">
-                        <div class="data-table-wrap">
-                            <table class="data-table">
-                                <thead>
-                                <tr>
-                                    <th>Período</th>
-                                    <th>Tipo</th>
-                                    <th>Motivo</th>
-                                    <th>Status</th>
-                                    <th>Origem</th>
-                                    <th>Criado por</th>
-                                    <th class="text-right">Ações</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="bloqueio : ${bloqueios}">
-                                    <td>
-                                        <strong th:text="${#temporals.format(bloqueio.dataHoraInicio, 'dd/MM/yyyy')}">01/04/2026</strong>
-                                        <p class="entity-meta" th:text="${bloqueio.diaInteiro ? 'Dia inteiro' : (#temporals.format(bloqueio.dataHoraInicio, 'HH:mm') + ' às ' + #temporals.format(bloqueio.dataHoraFim, 'HH:mm'))}">Dia inteiro</p>
-                                    </td>
-                                    <td>
-                                        <span class="chip" th:classappend="${bloqueio.diaInteiro ? ' status-warning' : ' status-approved'}" th:text="${bloqueio.diaInteiro ? 'Dia inteiro' : 'Por horário'}">Dia inteiro</span>
-                                    </td>
-                                    <td>
-                                        <strong th:text="${bloqueio.motivo}">Motivo</strong>
-                                        <p class="entity-meta" th:text="${bloqueio.observacao != null ? bloqueio.observacao : 'Sem observações complementares.'}">Observação</p>
-                                    </td>
-                                    <td>
-                                        <span class="chip" th:classappend="${bloqueio.cancelado ? ' status-danger' : ' status-success'}" th:text="${bloqueio.status}">ATIVO</span>
-                                    </td>
-                                    <td>
-                                        <span class="entity-meta" th:text="${bloqueio.origem}">MANUAL</span>
-                                    </td>
-                                    <td>
-                                        <span class="entity-meta" th:text="${bloqueio.criadoPor != null ? bloqueio.criadoPor : 'sistema'}">sistema</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="table-actions">
-                                            <a th:if="${!bloqueio.cancelado}" th:href="@{/configuracoes/clinica(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
-                                            <form th:if="${!bloqueio.cancelado}"
-                                                  th:action="@{/configuracoes/clinica/bloqueios/{id}/cancelar(id=${bloqueio.id})}"
-                                                  method="post"
-                                                  class="inline-form"
-                                                  data-confirm-modal
-                                                  data-confirm-title="Cancelar bloqueio?"
-                                                  data-confirm-message="Deseja realmente cancelar este bloqueio?"
-                                                  data-confirm-helper-title="O bloqueio deixará de valer"
-                                                  data-confirm-helper-message="A agenda poderá voltar a considerar esse período como disponível."
-                                                  data-confirm-action-label="Cancelar bloqueio">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                                <button type="submit" class="action-button danger"><i data-lucide="trash-2"></i>Cancelar</button>
-                                            </form>
-                                            <span th:if="${bloqueio.cancelado}" class="entity-meta">Histórico</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </article>
-            </section>
         </main>
 
-        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+        <footer class="app-footer">Â© 2026 FisioGestao - Sistema de GestÃ£o para ClÃ­nicas de Fisioterapia</footer>
     </div>
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
@@ -590,32 +348,6 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
-    <script>
-        (() => {
-            const checkbox = document.getElementById('bloqueioDiaInteiro');
-            const horariosGrid = document.getElementById('horariosGrid');
-            const horaInicio = document.getElementById('horaInicio');
-            const horaFim = document.getElementById('horaFim');
-
-            if (!checkbox || !horariosGrid || !horaInicio || !horaFim) {
-                return;
-            }
-
-            const syncState = () => {
-                const diaInteiro = checkbox.checked;
-                horariosGrid.classList.toggle('is-disabled', diaInteiro);
-                horaInicio.disabled = diaInteiro;
-                horaFim.disabled = diaInteiro;
-                if (diaInteiro) {
-                    horaInicio.value = '';
-                    horaFim.value = '';
-                }
-            };
-
-            checkbox.addEventListener('change', syncState);
-            syncState();
-        })();
-    </script>
     <script>
         (() => {
             const cepInput     = document.getElementById('cep');
@@ -643,29 +375,29 @@
             const buscar = async () => {
                 const cep = cepInput.value.replace(/\D/g, '');
                 if (cep.length !== 8) {
-                    setFeedback('Digite um CEP válido com 8 dígitos.', true);
+                    setFeedback('Digite um CEP vÃ¡lido com 8 dÃ­gitos.', true);
                     return;
                 }
 
                 btnBuscar.disabled = true;
-                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscando…';
+                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscandoâ€¦';
                 if (window.lucide) lucide.createIcons();
                 setFeedback('', false);
 
                 try {
                     const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                    if (!res.ok) throw new Error('Falha na requisição');
+                    if (!res.ok) throw new Error('Falha na requisiÃ§Ã£o');
                     const data = await res.json();
-                    if (data.erro) throw new Error('CEP não encontrado');
+                    if (data.erro) throw new Error('CEP nÃ£o encontrado');
 
                     if (logradouro)  logradouro.value  = data.logradouro || '';
                     if (bairroInput) bairroInput.value = data.bairro     || '';
                     if (cidadeInput) cidadeInput.value = data.localidade  || '';
                     if (estadoInput) estadoInput.value = (data.uf        || '').toUpperCase();
 
-                    setFeedback('Endereço preenchido com sucesso.', false);
+                    setFeedback('EndereÃ§o preenchido com sucesso.', false);
                 } catch (e) {
-                    setFeedback(e.message === 'CEP não encontrado' ? 'CEP não encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
+                    setFeedback(e.message === 'CEP nÃ£o encontrado' ? 'CEP nÃ£o encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
                 } finally {
                     btnBuscar.disabled = false;
                     btnBuscar.innerHTML = '<i data-lucide="search"></i>Buscar';
@@ -679,3 +411,4 @@
     </script>
 </body>
 </html>
+

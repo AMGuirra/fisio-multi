@@ -224,6 +224,57 @@
             <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
         </div>
 
+        <div th:if="${reconciliacaoPreview != null
+                         and reconciliacaoPreview.possuiDiscrepancia
+                         and plano.status == 'ATIVO'}"
+             class="alert-box alert-warn reconciliar-aviso">
+            <i data-lucide="wrench" aria-hidden="true"></i>
+            <span>Contador desatualizado: mostra
+                <strong th:text="${reconciliacaoPreview.sessoesConsumidasAtual}">0</strong>
+                sessao(oes) consumida(s), mas deveriam ser
+                <strong th:text="${reconciliacaoPreview.sessoesConsumidasCorreto}">N</strong>.
+            </span>
+            <button type="button"
+                    class="btn-reconciliar"
+                    th:attr="data-plano-id=${plano.id},
+                             data-paciente-id=${paciente.id},
+                             data-atual=${reconciliacaoPreview.sessoesConsumidasAtual},
+                             data-correto=${reconciliacaoPreview.sessoesConsumidasCorreto},
+                             data-nao-reg=${reconciliacaoPreview.sessoesNaoRegistradas}">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>Ajustar Consumo
+            </button>
+        </div>
+
+        <div id="reconciliarModal" class="pc-modal" aria-hidden="true">
+            <button type="button" class="pc-modal-backdrop" data-reconciliar-modal-close aria-label="Fechar"></button>
+            <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="reconciliarModalTitle">
+                <div class="pc-modal-head">
+                    <div>
+                        <p class="pc-modal-kicker">Ajuste de consumo</p>
+                        <h2 id="reconciliarModalTitle">Reconciliar Plano</h2>
+                    </div>
+                    <button type="button" class="pc-modal-close" data-reconciliar-modal-close aria-label="Fechar">
+                        <i data-lucide="x" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="pc-modal-body">
+                    <p>Foram encontradas <strong id="reconciliarNaoReg">N</strong> sessao(oes)
+                       realizada(s) sem registro no contador.</p>
+                    <p>O contador sera corrigido de <strong id="reconciliarAtual">0</strong>
+                       para <strong id="reconciliarCorreto">N</strong> sessao(oes).</p>
+                    <p style="font-size:.8rem;color:var(--text-muted)">Nenhum e-mail sera enviado ao paciente.</p>
+                </div>
+                <form id="reconciliarForm" method="post" class="pc-modal-actions">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <input type="hidden" name="pacienteId" id="reconciliarPacienteId">
+                    <button type="button" class="btn-ghost" data-reconciliar-modal-close>Cancelar</button>
+                    <button type="submit" class="btn-save">
+                        <i data-lucide="refresh-cw" aria-hidden="true"></i>Confirmar Ajuste
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <button type="button" class="btn-ag" id="openAgendamentoSessaoModal">
             <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessao
         </button>

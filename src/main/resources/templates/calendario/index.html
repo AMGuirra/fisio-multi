@@ -341,7 +341,7 @@
                                         <div class="request-actions">
                                             <span class="chip status-warning" th:if="${bloqueio.diaInteiro}">Dia inteiro</span>
                                             <span class="chip status-success" th:text="${bloqueio.status}">ATIVO</span>
-                                            <a th:href="@{/configuracoes/clinica(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
+                                            <a th:href="@{/bloqueios(editar=${bloqueio.id})}" class="action-button ghost"><i data-lucide="square-pen"></i>Editar</a>
                                         </div>
                                     </div>
                                 </article>
@@ -412,6 +412,5 @@
     </script>
 </body>
 </html>
-
 
 

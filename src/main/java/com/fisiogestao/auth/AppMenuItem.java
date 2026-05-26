@@ -9,7 +9,7 @@ public enum AppMenuItem {
     DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard", "/api/dashboard")),
     AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
-    BLOQUEIOS("Bloqueios",           "/configuracoes/clinica#secao-bloqueios", "calendar-x-2", false, false, false, false, MenuSection.AGENDA, List.of("/bloqueios")),
+    BLOQUEIOS("Bloqueios",           "/bloqueios",            "calendar-x-2",      false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes", "/lista-espera")),
     LISTA_ESPERA("Lista de Espera", "/lista-espera",        "clock",               false, false, true,  false, MenuSection.AGENDA, List.of("/lista-espera")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
@@ -130,7 +130,7 @@ public enum AppMenuItem {
             case CALENDARIO:
                 return "Alias legado do modulo unificado da agenda.";
             case BLOQUEIOS:
-                return "Item legado: bloqueios agora ficam dentro da Configuracao Operacional da Clinica.";
+                return "Permite cadastrar indisponibilidades e bloqueios de horarios da agenda.";
             case SOLICITACOES:
                 return "Centraliza pedidos de agendamento e outras solicitacoes recebidas.";
             case PACIENTES:
@@ -184,6 +184,7 @@ public enum AppMenuItem {
         return List.of(
                 DASHBOARD,
                 AGENDA,
+                BLOQUEIOS,
                 SOLICITACOES,
                 PACIENTES,
                 PLANOS_SESSOES,

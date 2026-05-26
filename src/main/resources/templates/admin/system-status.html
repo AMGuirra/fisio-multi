@@ -132,78 +132,80 @@
                 </div>
             </section>
 
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="settings"></i> Alterar Status</h3>
-                </header>
-                <div class="section-body">
-                    <form th:action="@{/admin/system-status}" method="post" class="modern-form" id="formStatusSistema">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <div class="form-field">
-                            <label for="status">Status do Sistema</label>
-                            <select id="status" name="status" class="form-select" required>
-                                <option th:each="type : ${statusTypes}" 
-                                        th:value="${type}" 
-                                        th:text="${type.label}"
-                                        th:selected="${type == statusAtual.status}">
-                                    Status
-                                </option>
-                            </select>
-                            <p class="helper-text">Selecione o status que será exibido no topo do sistema para todos os usuários.</p>
-                        </div>
-
-                        <div class="form-field">
-                            <label for="mensagem">Mensagem Personalizada</label>
-                            <textarea id="mensagem" name="mensagem" class="form-control" rows="3" 
-                                      th:text="${statusAtual.mensagem}"
-                                      placeholder="Ex: Sistema em manutenção programada até 22:00"></textarea>
-                            <p class="helper-text">Mensagem opcional que será exibida junto com o status. Seja claro e objetivo.</p>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="save"></i>
-                                Salvar Alterações
-                            </button>
-                            <a th:href="@{/dashboard}" class="action-button ghost">
-                                <i data-lucide="arrow-left"></i>
-                                Voltar ao Dashboard
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="info"></i> Informações</h3>
-                </header>
-                <div class="section-body">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-icon status-online"><i data-lucide="check-circle"></i></span>
-                            <div class="info-content">
-                                <strong>Online</strong>
-                                <p>Sistema operando normalmente. Verde indica que tudo está funcionando.</p>
+            <div class="two-col-layout">
+                <section class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="settings"></i> Alterar Status</h3>
+                    </header>
+                    <div class="section-body">
+                        <form th:action="@{/admin/system-status}" method="post" class="modern-form" id="formStatusSistema">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="form-field">
+                                <label for="status">Status do Sistema</label>
+                                <select id="status" name="status" class="form-select" required>
+                                    <option th:each="type : ${statusTypes}"
+                                            th:value="${type}"
+                                            th:text="${type.label}"
+                                            th:selected="${type == statusAtual.status}">
+                                        Status
+                                    </option>
+                                </select>
+                                <p class="helper-text">Selecione o status que será exibido no topo do sistema para todos os usuários.</p>
                             </div>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-icon status-manutencao"><i data-lucide="wrench"></i></span>
-                            <div class="info-content">
-                                <strong>Manutenção</strong>
-                                <p>Sistema em manutenção. Amarelo indica que existem intervenções planejadas.</p>
+
+                            <div class="form-field">
+                                <label for="mensagem">Mensagem Personalizada</label>
+                                <textarea id="mensagem" name="mensagem" class="form-control" rows="3"
+                                          th:text="${statusAtual.mensagem}"
+                                          placeholder="Ex: Sistema em manutenção programada até 22:00"></textarea>
+                                <p class="helper-text">Mensagem opcional que será exibida junto com o status. Seja claro e objetivo.</p>
                             </div>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-icon status-instabilidade"><i data-lucide="alert-triangle"></i></span>
-                            <div class="info-content">
-                                <strong>Instabilidade</strong>
-                                <p>Sistema com problemas. Vermelho indica falhas ou indisponibilidade parcial.</p>
+
+                            <div class="form-actions">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="save"></i>
+                                    Salvar Alterações
+                                </button>
+                                <a th:href="@{/dashboard}" class="action-button ghost">
+                                    <i data-lucide="arrow-left"></i>
+                                    Voltar ao Dashboard
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="info"></i> Informações</h3>
+                    </header>
+                    <div class="section-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-icon status-online"><i data-lucide="check-circle"></i></span>
+                                <div class="info-content">
+                                    <strong>Online</strong>
+                                    <p>Sistema operando normalmente. Verde indica que tudo está funcionando.</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-icon status-manutencao"><i data-lucide="wrench"></i></span>
+                                <div class="info-content">
+                                    <strong>Manutenção</strong>
+                                    <p>Sistema em manutenção. Amarelo indica que existem intervenções planejadas.</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-icon status-instabilidade"><i data-lucide="alert-triangle"></i></span>
+                                <div class="info-content">
+                                    <strong>Instabilidade</strong>
+                                    <p>Sistema com problemas. Vermelho indica falhas ou indisponibilidade parcial.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>

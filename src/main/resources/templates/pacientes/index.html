@@ -81,74 +81,43 @@
                 </article>
             </section>
 
-            <section class="crud-layout form-table">
+            <section class="crud-layout">
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="user-round-plus"></i> Novo Paciente</h3>
-                    </header>
-                    <div class="section-body">
-                        <form th:action="@{/pacientes}" th:object="${pacienteForm}" method="post" class="modern-form">
-                            <div class="form-field">
-                                <label for="nomeCompleto">Nome completo</label>
-                                <input id="nomeCompleto" type="text" class="form-control" th:field="*{nomeCompleto}" maxlength="160" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('nomeCompleto')}" th:errors="*{nomeCompleto}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="telefone">Telefone</label>
-                                <input id="telefone" type="text" class="form-control" th:field="*{telefone}" maxlength="20" placeholder="(00) 00000-0000">
-                                <p class="form-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="email">E-mail</label>
-                                <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="120" placeholder="paciente@email.com">
-                                <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="dataNascimento">Data de nascimento</label>
-                                <input id="dataNascimento" type="date" class="form-control" th:field="*{dataNascimento}">
-                                <p class="form-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="observacoes">Observações</label>
-                                <textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}" maxlength="2000"></textarea>
-                                <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
-                            </div>
-
-                            <button type="submit" class="action-button primary">
-                                <i data-lucide="save"></i>
-                                Cadastrar Paciente
-                            </button>
-                        </form>
-                    </div>
-                </article>
-
-                <article class="section-card">
-                    <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="list"></i> Pacientes Cadastrados</h3>
-                        <p class="section-subtitle" th:text="${pacientesPage.totalElements + ' registros'}">0 registros</p>
+                        <div>
+                            <h3 class="section-title"><i data-lucide="list"></i> Pacientes Cadastrados</h3>
+                            <p class="section-subtitle" th:text="${pacientesPage.totalElements + ' registros'}">0 registros</p>
+                        </div>
+                        <button type="button" class="action-button primary" id="openNewPacienteModal">
+                            <i data-lucide="user-round-plus"></i>
+                            Novo Paciente
+                        </button>
                     </header>
 
                     <!-- Barra de busca -->
                     <div class="section-body pb-0">
-                        <form method="get" th:action="@{/pacientes}" class="search-bar">
-                            <input type="text"
-                                   name="busca"
-                                   th:value="${busca}"
-                                   placeholder="Buscar por nome, CPF, telefone ou e-mail…"
-                                   class="form-control">
-                            <button type="submit" class="action-button ghost">
-                                <i data-lucide="search"></i> Buscar
+                        <form method="get" th:action="@{/pacientes}" class="search-bar-modern" id="searchForm">
+                            <div class="search-input-wrap">
+                                <span class="search-input-icon"><i data-lucide="search"></i></span>
+                                <input type="text"
+                                       id="searchInput"
+                                       name="busca"
+                                       th:value="${busca}"
+                                       placeholder="Buscar por nome, CPF, telefone ou e-mail…"
+                                       class="search-input"
+                                       autocomplete="off">
+                                <a th:if="${busca != null and !#strings.isEmpty(busca)}"
+                                   th:href="@{/pacientes}"
+                                   class="search-clear-btn"
+                                   title="Limpar busca"
+                                   aria-label="Limpar busca">
+                                    <i data-lucide="x"></i>
+                                </a>
+                            </div>
+                            <button type="submit" class="search-submit-btn">
+                                <i data-lucide="search"></i>
+                                <span>Buscar</span>
                             </button>
-                            <a th:if="${busca != null and !#strings.isEmpty(busca)}"
-                               th:href="@{/pacientes}"
-                               class="action-button ghost"
-                               title="Limpar busca">
-                                <i data-lucide="x"></i>
-                            </a>
                         </form>
                     </div>
 
@@ -284,6 +253,60 @@
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
+    <!-- Modal de cadastro de novo paciente -->
+    <div id="newPacienteModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-new-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="newPacienteModalTitle">
+            <div class="app-modal-card app-modal-card-lg">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="newPacienteModalTitle">Novo Paciente</h3>
+                        <p>Preencha os dados para cadastrar um novo paciente.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-new-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form th:action="@{/pacientes}" th:object="${pacienteForm}" method="post" class="modern-form">
+                        <div class="form-field">
+                            <label for="nomeCompleto">Nome completo</label>
+                            <input id="nomeCompleto" type="text" class="form-control" th:field="*{nomeCompleto}" maxlength="160" required>
+                            <p class="form-error" th:if="${#fields.hasErrors('nomeCompleto')}" th:errors="*{nomeCompleto}"></p>
+                        </div>
+                        <div class="form-field">
+                            <label for="telefone">Telefone</label>
+                            <input id="telefone" type="text" class="form-control" th:field="*{telefone}" maxlength="20" placeholder="(00) 00000-0000">
+                            <p class="form-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+                        </div>
+                        <div class="form-field">
+                            <label for="email">E-mail</label>
+                            <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="120" placeholder="paciente@email.com">
+                            <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                        </div>
+                        <div class="form-field">
+                            <label for="dataNascimento">Data de nascimento</label>
+                            <input id="dataNascimento" type="date" class="form-control" th:field="*{dataNascimento}">
+                            <p class="form-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}"></p>
+                        </div>
+                        <div class="form-field">
+                            <label for="observacoes">Observações</label>
+                            <textarea id="observacoes" class="form-control" rows="3" th:field="*{observacoes}" maxlength="2000"></textarea>
+                            <p class="form-error" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-new-modal-close>Cancelar</button>
+                            <button type="submit" class="action-button primary">
+                                <i data-lucide="save"></i>
+                                Cadastrar Paciente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de edição de paciente -->
     <div id="editPacienteModal" class="app-modal" aria-hidden="true">
         <div class="app-modal-backdrop" data-edit-modal-close></div>
@@ -376,6 +399,36 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script>
+    (function () {
+        var newModal = document.getElementById('newPacienteModal');
+
+        function openNewModal() {
+            newModal.setAttribute('aria-hidden', 'false');
+            newModal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeNewModal() {
+            newModal.setAttribute('aria-hidden', 'true');
+            newModal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('openNewPacienteModal').addEventListener('click', openNewModal);
+
+        document.querySelectorAll('[data-new-modal-close]').forEach(function (el) {
+            el.addEventListener('click', closeNewModal);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && newModal.classList.contains('is-open')) { closeNewModal(); }
+        });
+
+        // Re-abre o modal se o servidor retornou erros de validação
+        var hasFormErrors = newModal.querySelector('.form-error') !== null;
+        if (hasFormErrors) { openNewModal(); }
+    })();
+    </script>
     <script>
     (function () {
         var modal = document.getElementById('editPacienteModal');

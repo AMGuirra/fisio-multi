@@ -84,69 +84,17 @@
 
             <!-- ═══ ABA: USUÁRIOS ═══ -->
             <div data-tab-panel="usuarios">
-                <section class="crud-layout form-table">
-                    <article class="section-card">
-                        <header class="section-head">
-                            <h3 class="section-title">
-                                <i data-lucide="user-round-plus"></i>
-                                <span th:text="${editMode} ? 'Editar Usuário' : 'Novo Usuário'">Novo Usuário</span>
-                            </h3>
-                        </header>
-                        <div class="section-body">
-                            <form th:action="${editMode} ? @{/usuarios/{id}/editar(id=${editingUserId})} : @{/usuarios/novo}"
-                                  th:object="${usuarioForm}"
-                                  method="post"
-                                  class="modern-form">
-                                <div class="form-grid form-grid-two">
-                                    <div class="form-field">
-                                        <label for="nome">Nome</label>
-                                        <input id="nome" type="text" class="form-control" th:field="*{nome}" maxlength="160" placeholder="Nome completo" required>
-                                        <p class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="username">Usuário</label>
-                                        <input id="username" type="text" class="form-control" th:field="*{username}" maxlength="40" required>
-                                        <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="email">E-mail</label>
-                                        <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="160" placeholder="usuario@clinica.com" required>
-                                        <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-                                    </div>
-                                </div>
-                                <div class="form-grid form-grid-two">
-                                    <div class="form-field">
-                                        <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
-                                        <input id="password" type="password" class="form-control" th:field="*{password}" maxlength="120" th:attr="required=${!editMode}">
-                                        <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
-                                        <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="role">Tipo</label>
-                                        <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
-                                            <option th:each="tipo : ${tiposUsuario}" th:value="${tipo}" th:title="${tipo.description}" th:text="${tipo.label}">Administrador</option>
-                                        </select>
-                                        <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
-                                    </div>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="action-button primary">
-                                        <i data-lucide="save"></i>
-                                        <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
-                                    </button>
-                                    <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
-                                        <i data-lucide="x"></i>
-                                        Cancelar edição
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </article>
-
+                <section class="crud-layout">
                     <article class="section-card">
                         <header class="section-head">
                             <h3 class="section-title"><i data-lucide="users"></i> Usuários Cadastrados</h3>
-                            <p class="section-subtitle" th:text="${usuarios != null ? usuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                            <div class="section-head-actions">
+                                <p class="section-subtitle" th:text="${usuarios != null ? usuarios.size() + ' registros' : '0 registros'}">0 registros</p>
+                                <button type="button" class="action-button primary" data-user-modal-open>
+                                    <i data-lucide="user-round-plus"></i>
+                                    <span th:text="${editMode} ? 'Abrir Edição' : 'Novo Usuário'">Novo Usuário</span>
+                                </button>
+                            </div>
                         </header>
                         <div class="section-body" th:if="${usuarios.empty}">
                             <div class="empty-box">
@@ -221,6 +169,82 @@
                         </div>
                     </article>
                 </section>
+
+                <div id="usuarioFormModal"
+                     class="app-modal"
+                     aria-hidden="true"
+                     th:attr="data-open-on-load=${editMode or userFormModalOpen}">
+                    <div class="app-modal-backdrop" data-user-modal-close></div>
+                    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="usuarioFormModalTitle">
+                        <div class="app-modal-card">
+                            <header class="app-modal-header">
+                                <div class="app-modal-title-block">
+                                    <h3 id="usuarioFormModalTitle" th:text="${editMode} ? 'Editar Usuário' : 'Novo Usuário'">Novo Usuário</h3>
+                                    <p th:text="${editMode} ? 'Atualize os dados de acesso deste usuário.' : 'Cadastre um novo usuário para acessar o sistema.'">Cadastre um novo usuário para acessar o sistema.</p>
+                                </div>
+                                <a th:if="${editMode}" th:href="@{/usuarios}" class="app-modal-close" aria-label="Fechar modal">
+                                    <i data-lucide="x"></i>
+                                </a>
+                                <button th:unless="${editMode}" type="button" class="app-modal-close" data-user-modal-close aria-label="Fechar modal">
+                                    <i data-lucide="x"></i>
+                                </button>
+                            </header>
+                            <div class="app-modal-body">
+                                <form th:action="${editMode} ? @{/usuarios/{id}/editar(id=${editingUserId})} : @{/usuarios/novo}"
+                                      th:object="${usuarioForm}"
+                                      method="post"
+                                      class="modern-form">
+                                    <div class="form-grid form-grid-two">
+                                        <div class="form-field">
+                                            <label for="nome">Nome</label>
+                                            <input id="nome" type="text" class="form-control" th:field="*{nome}" maxlength="160" placeholder="Nome completo" required>
+                                            <p class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="username">Usuário</label>
+                                            <input id="username" type="text" class="form-control" th:field="*{username}" maxlength="40" required>
+                                            <p class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="email">E-mail</label>
+                                            <input id="email" type="email" class="form-control" th:field="*{email}" maxlength="160" placeholder="usuario@clinica.com" required>
+                                            <p class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid form-grid-two">
+                                        <div class="form-field">
+                                            <label for="password" th:text="${editMode} ? 'Nova senha (opcional)' : 'Senha'">Senha</label>
+                                            <input id="password" type="password" class="form-control" th:field="*{password}" maxlength="120" th:attr="required=${!editMode}">
+                                            <p class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                                            <p class="entity-meta" th:if="${editMode}">Preencha apenas se quiser trocar a senha.</p>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="role">Tipo</label>
+                                            <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
+                                                <option th:each="tipo : ${tiposUsuario}" th:value="${tipo}" th:title="${tipo.description}" th:text="${tipo.label}">Administrador</option>
+                                            </select>
+                                            <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>
+                                        </div>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <a th:if="${editMode}" th:href="@{/usuarios}" class="action-button ghost">
+                                            <i data-lucide="x"></i>
+                                            Cancelar edição
+                                        </a>
+                                        <button th:unless="${editMode}" type="button" class="action-button ghost" data-user-modal-close>
+                                            <i data-lucide="x"></i>
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" class="action-button primary">
+                                            <i data-lucide="save"></i>
+                                            <span th:text="${editMode} ? 'Salvar Alterações' : 'Cadastrar Usuário'">Cadastrar Usuário</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ═══ ABA: FUNÇÕES ═══ -->
@@ -333,6 +357,32 @@
                 });
             });
 
+            // ── User form modal ──
+            const userModal = document.getElementById('usuarioFormModal');
+            const userModalOpeners = document.querySelectorAll('[data-user-modal-open]');
+            const userModalClosers = document.querySelectorAll('[data-user-modal-close]');
+            const setUserModalOpen = (open) => {
+                if (!userModal) return;
+                userModal.classList.toggle('is-open', open);
+                userModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                document.body.classList.toggle('modal-open', open);
+                if (open) {
+                    const firstField = userModal.querySelector('input, select, textarea, button, a');
+                    if (firstField) firstField.focus();
+                }
+            };
+
+            userModalOpeners.forEach((button) => button.addEventListener('click', () => setUserModalOpen(true)));
+            userModalClosers.forEach((element) => element.addEventListener('click', () => setUserModalOpen(false)));
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && userModal && userModal.classList.contains('is-open')) {
+                    setUserModalOpen(false);
+                }
+            });
+            if (userModal && userModal.dataset.openOnLoad === 'true') {
+                setUserModalOpen(true);
+            }
+
             // ── Tab switching ──
             const main = document.querySelector('[data-active-tab]');
             if (!main) return;
@@ -361,4 +411,3 @@
     </script>
 </body>
 </html>
-

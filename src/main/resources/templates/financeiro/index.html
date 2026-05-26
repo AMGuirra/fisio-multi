@@ -81,17 +81,20 @@
                         <button type="button" class="period-quick-btn" data-periodo="ano">Este ano</button>
                     </div>
                     <form method="get" th:action="@{/financeiro}" action="/financeiro" class="period-form" id="periodForm">
-                        <span class="period-label">De</span>
-                        <div class="period-input-group">
-                            <input type="date" id="periodoInicioInput" name="inicio" class="form-control"
-                                   aria-label="Data de início do período"
-                                   th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
-                        </div>
-                        <span class="period-label">Até</span>
-                        <div class="period-input-group">
-                            <input type="date" id="periodoFimInput" name="fim" class="form-control"
-                                   aria-label="Data de fim do período"
-                                   th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
+                        <div class="period-date-range">
+                            <span class="period-label">De</span>
+                            <div class="period-input-group">
+                                <input type="date" id="periodoInicioInput" name="inicio" class="form-control"
+                                       aria-label="Data de início do período"
+                                       th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
+                            </div>
+                            <span class="period-sep">—</span>
+                            <span class="period-label">Até</span>
+                            <div class="period-input-group">
+                                <input type="date" id="periodoFimInput" name="fim" class="form-control"
+                                       aria-label="Data de fim do período"
+                                       th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
+                            </div>
                         </div>
                         <button type="submit" class="action-button primary">
                             <i data-lucide="search"></i>

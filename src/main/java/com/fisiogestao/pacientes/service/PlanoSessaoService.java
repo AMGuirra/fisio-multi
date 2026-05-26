@@ -15,6 +15,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.dto.ReconciliacaoPreviewDTO;
 import com.fisiogestao.pacientes.form.PlanoConsumoForm;
 import com.fisiogestao.pacientes.form.PlanoSessaoForm;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
@@ -413,6 +414,31 @@ public class PlanoSessaoService {
             return false;
         }
         return plano.getSessoesConsumidas() < plano.getSessoesContratadas();
+    }
+
+    @Transactional(readOnly = true)
+    public ReconciliacaoPreviewDTO previewReconciliacao(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
+        int atual = plano.getSessoesConsumidas() == null ? 0 : plano.getSessoesConsumidas();
+        int correto = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);
+        int naoRegistradas = (int) sessaoRepository.countNaoRegistradasPorPlano(planoId);
+        return new ReconciliacaoPreviewDTO(planoId, atual, correto, naoRegistradas, atual != correto);
+    }
+
+    @Transactional
+    public void executarReconciliacao(UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
+        if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
+            throw new BusinessException("Não é possível reconciliar um plano cancelado.");
+        }
+        sessaoRepository.marcarComoRegistradasPorPlano(planoId);
+        int correto = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);
+        plano.setSessoesConsumidas(correto);
+        plano.setStatus(statusAjustado(plano.getStatus(), correto,
+                plano.getSessoesContratadas(), plano.getDataValidade()));
+        planoSessaoRepository.save(plano);
     }
 
     private void validarPeriodo(LocalDate dataInicio, LocalDate dataValidade) {

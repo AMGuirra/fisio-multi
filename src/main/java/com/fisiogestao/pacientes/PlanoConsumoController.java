@@ -179,6 +179,31 @@ public class PlanoConsumoController {
         return "redirect:/planos-consumo?pacienteId=" + pacienteId;
     }
 
+    @PostMapping("/{planoId}/reconciliar")
+    public String reconciliar(
+            @PathVariable UUID planoId,
+            @RequestParam UUID pacienteId,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
+    ) {
+        try {
+            planoSessaoService.executarReconciliacao(planoId);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", "Consumo ajustado com sucesso.");
+                adicionarContextoPaciente(pacienteId, "PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            return "redirect:/planos-consumo?pacienteId=" + pacienteId;
+        } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            return "redirect:/planos-consumo?pacienteId=" + pacienteId;
+        }
+    }
+
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
         PacienteListaDTO paciente = planoService.buscarResumoDTO(pacienteId);
         PlanoResumoDTO plano = planoService.buscarPlanoPorPaciente(pacienteId);
@@ -192,6 +217,10 @@ public class PlanoConsumoController {
         model.addAttribute("resumoAvulso", sessaoConsumoService.resumoAvulso(pacienteId));
         model.addAttribute("hoje", LocalDate.now());
         model.addAttribute("agendamentoSessaoModalOpen", false);
+        if (plano != null) {
+            model.addAttribute("reconciliacaoPreview",
+                    planoSessaoService.previewReconciliacao(plano.id()));
+        }
     }
 
     private String normalizarModo(String modoSolicitado, boolean possuiPlano) {

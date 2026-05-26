@@ -581,6 +581,116 @@ body[data-theme='dark'] {
     flex-shrink: 0;
 }
 
+/* ── Barra de busca moderna ──────────────────────────────────────── */
+.search-bar-modern {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.search-input-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-icon {
+    position: absolute;
+    left: 0.875rem;
+    display: flex;
+    align-items: center;
+    color: var(--text-muted, #9ca3af);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.search-input-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.search-input {
+    width: 100%;
+    height: 2.625rem;
+    padding: 0 2.75rem 0 2.5rem;
+    border: 1.5px solid var(--border-color, #e5e7eb);
+    border-radius: 0.625rem;
+    background: var(--surface-card, #fff);
+    font-size: var(--text-sm, 0.875rem);
+    color: var(--text-body, #374151);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted, #9ca3af);
+}
+
+.search-input:focus {
+    border-color: var(--accent, #2563eb);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #2563eb) 14%, transparent);
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    color: var(--text-muted, #9ca3af);
+    transition: background 0.15s, color 0.15s;
+    text-decoration: none;
+}
+
+.search-clear-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.search-clear-btn:hover {
+    background: var(--surface-hover, #f3f4f6);
+    color: var(--text-body, #374151);
+}
+
+.search-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 2.625rem;
+    padding: 0 1.125rem;
+    border: none;
+    border-radius: 0.625rem;
+    background: var(--accent, #2563eb);
+    color: #fff;
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.search-submit-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.search-submit-btn:hover {
+    background: color-mix(in srgb, var(--accent, #2563eb) 85%, #000);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent, #2563eb) 35%, transparent);
+}
+
+.search-submit-btn:active {
+    background: color-mix(in srgb, var(--accent, #2563eb) 75%, #000);
+    box-shadow: none;
+}
+
 /* ── 13. Modal overlay ───────────────────────────────────────────── */
 .app-modal-card-lg {
     max-width: 560px;

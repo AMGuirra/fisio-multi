@@ -68,6 +68,7 @@ public class UserManagementController {
         if (bindingResult.hasErrors()) {
             prepararPagina(model, form, "usuarios");
             model.addAttribute("editMode", false);
+            model.addAttribute("userFormModalOpen", true);
             return "usuarios/index";
         }
 
@@ -86,6 +87,7 @@ public class UserManagementController {
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("editMode", false);
+            model.addAttribute("userFormModalOpen", true);
             prepararPagina(model, form, "usuarios");
             return "usuarios/index";
         }
@@ -176,6 +178,9 @@ public class UserManagementController {
         model.addAttribute("activeTab", activeTab != null ? activeTab : "usuarios");
         if (!model.containsAttribute("editMode")) {
             model.addAttribute("editMode", false);
+        }
+        if (!model.containsAttribute("userFormModalOpen")) {
+            model.addAttribute("userFormModalOpen", false);
         }
     }
 

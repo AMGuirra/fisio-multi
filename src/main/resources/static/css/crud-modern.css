@@ -336,6 +336,14 @@
     color: var(--text-soft);
 }
 
+.section-head-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .section-body {
     padding: 22px;
 }
@@ -751,72 +759,116 @@
 
 /* ── Filtro de período ────────────────────────────────────────── */
 .period-filter-card {
-    padding: 16px 22px;
+    padding: 14px 20px;
 }
 
 .period-filter-bar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 10px;
 }
 
 .period-quick-btns {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: wrap;
+    background: var(--bg-soft);
+    border: 1px solid var(--stroke-soft);
+    border-radius: 10px;
+    padding: 4px;
 }
 
 .period-quick-btn {
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--stroke-soft);
-    background: var(--bg-soft);
-    color: var(--text-body);
+    padding: 5px 13px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-soft);
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.18s, border-color 0.18s;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
     font-family: inherit;
+    white-space: nowrap;
 }
 
-.period-quick-btn:hover,
+.period-quick-btn:hover {
+    background: var(--bg-base);
+    color: var(--text-body);
+}
+
 .period-quick-btn.active {
     background: var(--brand-500);
-    border-color: var(--brand-500);
     color: #fff;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 .period-form {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 0;
     margin-left: auto;
+    background: var(--bg-soft);
+    border: 1px solid var(--stroke-soft);
+    border-radius: 10px;
+    padding: 4px 4px 4px 12px;
+    flex-wrap: nowrap;
+}
+
+.period-date-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .period-input-group {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
-    color: var(--text-soft);
-    font-weight: 600;
+    gap: 5px;
 }
 
 .period-input-group .form-control {
-    padding: 6px 10px;
+    padding: 5px 8px;
     font-size: 0.82rem;
-    width: auto;
+    width: 128px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 7px;
+    background: var(--bg-base);
+    color: var(--text-body);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.period-input-group .form-control:focus {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(var(--brand-500-rgb, 22,163,74), 0.15);
+    outline: none;
+}
+
+.period-sep {
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: var(--stroke-strong);
+    font-size: 0.75rem;
 }
 
 .period-label {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: var(--text-soft);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0 4px;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+}
+
+.period-form .action-button.primary {
+    margin-left: 8px;
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    gap: 5px;
 }
 
 @media (max-width: 1024px) {
@@ -881,16 +933,29 @@
 }
 
 body[data-theme='dark'] .period-quick-btn {
-    background: var(--bg-soft);
-    border-color: var(--stroke-soft);
+    background: transparent;
+    color: var(--text-soft);
+}
+
+body[data-theme='dark'] .period-quick-btn:hover {
+    background: var(--bg-base);
     color: var(--text-body);
 }
 
-body[data-theme='dark'] .period-quick-btn:hover,
 body[data-theme='dark'] .period-quick-btn.active {
     background: var(--brand-500);
-    border-color: var(--brand-500);
     color: #fff;
+}
+
+body[data-theme='dark'] .period-form {
+    background: var(--bg-soft);
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .period-input-group .form-control {
+    background: var(--bg-base);
+    border-color: var(--stroke-soft);
+    color: var(--text-body);
 }
 
 body[data-theme='dark'] .summary-card.receita-pendente .summary-icon {
