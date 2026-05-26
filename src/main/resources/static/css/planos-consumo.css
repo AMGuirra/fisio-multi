@@ -1247,9 +1247,45 @@ body[data-theme='dark'] .placeholder p {
   gap: var(--app-page-gap, 18px);
 }
 
-.pc-shell .body {
-  grid-template-columns: minmax(260px, 280px) minmax(0, 1fr) minmax(280px, 340px);
-  align-items: stretch;
+@media (min-width: 1201px) {
+  .pc-shell .body {
+    position: relative;
+    grid-template-columns: var(--col1-w, 260px) minmax(0, 1fr) var(--col3-w, 320px);
+    align-items: stretch;
+  }
+}
+
+.col-resizer {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
+  z-index: 20;
+  transform: translateX(-50%);
+  border-radius: 4px;
+}
+
+@media (min-width: 1201px) {
+  .col-resizer {
+    display: block;
+  }
+}
+
+.col-resizer::after {
+  content: '';
+  position: absolute;
+  inset: 10% 6px;
+  border-radius: 3px;
+  background: transparent;
+  transition: background 0.18s;
+}
+
+.col-resizer:hover::after,
+.col-resizer.is-dragging::after {
+  background: var(--brand-500, #0c7a68);
+  opacity: 0.55;
 }
 
 .pc-shell .col {

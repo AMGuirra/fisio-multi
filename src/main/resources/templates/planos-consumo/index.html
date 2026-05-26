@@ -200,8 +200,91 @@
             });
         });
 
+        function initColumnResizers() {
+            const body = document.querySelector('.pc-shell .body');
+            if (!body) return;
+
+            const DEFAULTS = { col1: 260, col3: 320 };
+            const MIN_W = 180, MIN_COL2 = 260;
+            let col1W = DEFAULTS.col1, col3W = DEFAULTS.col3;
+
+            const h1 = document.createElement('div');
+            const h2 = document.createElement('div');
+            h1.className = 'col-resizer';
+            h2.className = 'col-resizer';
+            h1.setAttribute('aria-hidden', 'true');
+            h2.setAttribute('aria-hidden', 'true');
+            h1.title = 'Arraste para redimensionar';
+            h2.title = 'Arraste para redimensionar';
+            body.appendChild(h1);
+            body.appendChild(h2);
+
+            function positionHandles() {
+                if (window.innerWidth <= 1200) {
+                    h1.style.display = 'none';
+                    h2.style.display = 'none';
+                    return;
+                }
+                h1.style.display = '';
+                h2.style.display = '';
+                const col1El = body.querySelector('.col-pacientes');
+                const col3El = body.querySelector('.col-consumo');
+                if (!col1El || !col3El) return;
+                const bodyRect = body.getBoundingClientRect();
+                const col1Rect = col1El.getBoundingClientRect();
+                const col3Rect = col3El.getBoundingClientRect();
+                h1.style.left = (col1Rect.right - bodyRect.left + 8) + 'px';
+                h2.style.left = (col3Rect.left - bodyRect.left - 8) + 'px';
+            }
+
+            function startDrag(handle, isCol1, startEvt) {
+                if (window.innerWidth <= 1200) return;
+                startEvt.preventDefault();
+                handle.classList.add('is-dragging');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                const startX = startEvt.clientX;
+                const startW = isCol1 ? col1W : col3W;
+
+                const onMove = (e) => {
+                    const dx = isCol1 ? e.clientX - startX : startX - e.clientX;
+                    const bodyW = body.getBoundingClientRect().width;
+                    const otherW = isCol1 ? col3W : col1W;
+                    const maxW = bodyW - otherW - MIN_COL2 - 32;
+                    const newW = Math.max(MIN_W, Math.min(maxW, startW + dx));
+                    if (isCol1) {
+                        col1W = newW;
+                        body.style.setProperty('--col1-w', newW + 'px');
+                    } else {
+                        col3W = newW;
+                        body.style.setProperty('--col3-w', newW + 'px');
+                    }
+                    positionHandles();
+                };
+
+                const onUp = () => {
+                    handle.classList.remove('is-dragging');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                };
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            }
+
+            h1.addEventListener('mousedown', e => startDrag(h1, true, e));
+            h2.addEventListener('mousedown', e => startDrag(h2, false, e));
+
+            requestAnimationFrame(positionHandles);
+            window.addEventListener('resize', positionHandles);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
+            initColumnResizers();
             const preselected = document.querySelector('.prow.sel');
             if (preselected && !document.getElementById('card-configuracao')) {
                 selecionarPaciente(preselected);
