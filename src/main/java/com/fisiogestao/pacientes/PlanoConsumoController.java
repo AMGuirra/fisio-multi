@@ -294,7 +294,10 @@ public class PlanoConsumoController {
         model.addAttribute("plano", plano);
         model.addAttribute("modo", modo);
         model.addAttribute("planosList", planoService.listarPorPaciente(pacienteId));
-        model.addAttribute("historico", plano != null
+        // Quando o usuário seleciona explicitamente um plano do histórico, filtra as sessões
+        // pelo plano escolhido. No fluxo automático usa historicoPorPaciente para manter
+        // compatibilidade com dados antigos onde sessões podem ter plano_sessao_id divergente.
+        model.addAttribute("historico", planoIdForcado != null
                 ? sessaoConsumoService.historicoPorPlano(plano.id())
                 : sessaoConsumoService.historicoPorPaciente(pacienteId));
         model.addAttribute("historicoAvulso", sessaoConsumoService.historicoAvulsoPorPaciente(pacienteId));
