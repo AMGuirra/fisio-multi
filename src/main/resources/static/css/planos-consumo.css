@@ -1254,6 +1254,14 @@ body[data-theme='dark'] .placeholder p {
 
 .pc-shell .col {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-shell .panel-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .pc-shell .col,
