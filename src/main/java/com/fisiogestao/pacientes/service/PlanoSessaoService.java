@@ -207,6 +207,7 @@ public class PlanoSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(plano);
 
+        desvincularRenovacoesDoPlano(plano.getId());
         desvincularSessoesDoPlano(plano.getId());
         limparLancamentosDoPlano(plano.getId());
 
@@ -223,6 +224,32 @@ public class PlanoSessaoService {
                 AuditEventOrigin.MANUAL
         );
         planoSessaoRepository.delete(plano);
+    }
+
+    private void desvincularRenovacoesDoPlano(UUID planoId) {
+        List<PlanoSessaoEntity> planosRenovados = planoSessaoRepository.findByPlanoAnteriorId(planoId);
+        if (planosRenovados.isEmpty()) {
+            return;
+        }
+
+        for (PlanoSessaoEntity renovado : planosRenovados) {
+            var snapshotAnterior = auditService.snapshotOf(renovado);
+            renovado.setPlanoAnterior(null);
+            PlanoSessaoEntity salvo = planoSessaoRepository.save(renovado);
+            auditService.recordManual(
+                    AuditModule.PLANOS,
+                    "plano_sessao",
+                    salvo.getId().toString(),
+                    salvo.getNomePlano(),
+                    AuditActionType.UPDATE,
+                    snapshotAnterior,
+                    auditService.snapshotOf(salvo),
+                    null,
+                    "Desvinculacao de plano anterior antes da exclusao.",
+                    AuditEventOrigin.MANUAL
+            );
+        }
+        planoSessaoRepository.flush();
     }
 
     private void desvincularSessoesDoPlano(UUID planoId) {

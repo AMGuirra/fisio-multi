@@ -196,15 +196,28 @@ public class PlanoConsumoController {
             @PathVariable UUID id,
             @RequestParam(name = "paciente", required = false) UUID pacienteId,
             @RequestParam(name = "pacienteId", required = false) UUID pacienteIdNovo,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
     ) {
+        UUID pacienteDestino = pacienteIdNovo != null ? pacienteIdNovo : pacienteId;
         try {
             planoSessaoService.excluir(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento excluído com sucesso.");
+            if (isAjax(requestedWith) && pacienteDestino != null) {
+                model.addAttribute("successMessage", "Plano de tratamento excluido com sucesso.");
+                adicionarContextoPaciente(pacienteDestino, "PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Plano de tratamento excluido com sucesso.");
         } catch (BusinessException ex) {
+            if (isAjax(requestedWith) && pacienteDestino != null) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteDestino, "PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return construirDestinoLegado(pacienteIdNovo != null ? pacienteIdNovo : pacienteId);
+        return construirDestinoLegado(pacienteDestino);
     }
 
     @PostMapping("/{pacienteId}/avulso")

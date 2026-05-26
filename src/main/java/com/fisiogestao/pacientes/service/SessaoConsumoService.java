@@ -40,7 +40,7 @@ public class SessaoConsumoService {
         return sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(pacienteId).stream()
                 .filter(sessao -> sessao.getTipoAgendamento() == TipoAgendamento.PLANO)
                 .limit(8)
-                .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA))
+                .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA, procedimento(sessao), sessao.getObservacoes(), sessao.getFeedbackEvaPaciente(), sessao.getFeedbackObsPaciente()))
                 .toList();
     }
 
@@ -48,7 +48,7 @@ public class SessaoConsumoService {
     public List<SessaoHistoricoDTO> historicoPorPlano(UUID planoId) {
         return sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(planoId).stream()
                 .limit(8)
-                .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA))
+                .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA, procedimento(sessao), sessao.getObservacoes(), sessao.getFeedbackEvaPaciente(), sessao.getFeedbackObsPaciente()))
                 .toList();
     }
 

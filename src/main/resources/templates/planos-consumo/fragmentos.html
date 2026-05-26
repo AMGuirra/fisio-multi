@@ -172,6 +172,17 @@
                               th:classappend="'phist-' + ${#strings.toLowerCase(item.status)}"
                               th:text="${item.status == 'ATIVO'} ? 'Ativo' : (${item.status == 'CONCLUIDO'} ? 'Concluído' : (${item.status == 'EXPIRADO'} ? 'Expirado' : 'Cancelado'))">Ativo</span>
                     </div>
+                    <form th:action="@{/planos-consumo/{id}/excluir(id=${item.id})}"
+                          method="post"
+                          class="plano-delete-form"
+                          onclick="event.stopPropagation()"
+                          th:attr="data-plano-nome=${item.nomePlano}">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                        <input type="hidden" name="pacienteId" th:value="${paciente.id}">
+                        <button type="submit" class="btn-icon-danger" title="Excluir plano" aria-label="Excluir plano">
+                            <i data-lucide="trash-2" aria-hidden="true"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -265,7 +276,17 @@
 
         <div class="divider">Histórico de sessões</div>
         <div th:if="${#lists.isEmpty(historico)}" class="empty-mini">Nenhuma sessão registrada.</div>
-        <div th:each="sess : ${historico}" class="sess-item">
+        <div th:each="sess : ${historico}"
+             class="sess-item sess-item-clickable"
+             role="button"
+             tabindex="0"
+             th:attr="data-descricao=${sess.descricao},
+                      data-data-hora=${sess.dataHoraFormatada},
+                      data-realizada=${sess.realizada},
+                      data-tipo=${sess.tipoAtendimento},
+                      data-obs=${sess.observacoes},
+                      data-eva=${sess.feedbackEva},
+                      data-feedback-obs=${sess.feedbackObs}">
             <div class="sds" th:classappend="${sess.realizada} ? ' sd-ok' : ' sd-pend'"></div>
             <div>
                 <div class="sess-name" th:text="${sess.descricao}">Sessão realizada</div>
@@ -322,6 +343,25 @@
                         <i data-lucide="refresh-cw" aria-hidden="true"></i>Confirmar Ajuste
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <div id="sessaoDetalheModal" class="pc-modal" aria-hidden="true">
+            <button type="button" class="pc-modal-backdrop" data-sessao-detalhe-modal-close aria-label="Fechar"></button>
+            <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sessaoDetalheModalTitle">
+                <div class="pc-modal-head">
+                    <div>
+                        <p class="pc-modal-kicker">Histórico</p>
+                        <h2 id="sessaoDetalheModalTitle">Detalhes da sessão</h2>
+                    </div>
+                    <button type="button" class="pc-modal-close" data-sessao-detalhe-modal-close aria-label="Fechar">
+                        <i data-lucide="x" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="pc-modal-body" id="sessaoDetalheBody"></div>
+                <div class="pc-modal-actions">
+                    <button type="button" class="btn-ghost" data-sessao-detalhe-modal-close>Fechar</button>
+                </div>
             </div>
         </div>
 

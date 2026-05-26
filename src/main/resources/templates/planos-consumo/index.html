@@ -369,6 +369,117 @@
             }
         });
 
+        document.addEventListener('submit', async (event) => {
+            const form = event.target.closest('#c2b form.plano-delete-form');
+            if (!form) return;
+            event.preventDefault();
+            event.stopPropagation();
+
+            const nomePlano = form.dataset.planoNome || 'este plano';
+            if (!confirm(`Excluir ${nomePlano}? As sessões vinculadas serão mantidas como avulsas.`)) {
+                return;
+            }
+
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken},
+                body: new FormData(form)
+            });
+            const html = await res.text();
+            atualizarPaineis(html, 'PLANO');
+
+            const selRow = document.querySelector('.prow.sel');
+            const badge = selRow?.querySelector('.pbadge');
+            const saldo = document.querySelector('#c3b .saldo-num')?.textContent?.replace(/\s+/g, '');
+            if (selRow && badge) {
+                if (saldo) {
+                    selRow.dataset.plan = 'plano';
+                    badge.textContent = saldo;
+                    badge.classList.remove('pb-none');
+                    badge.classList.add('pb-act');
+                } else {
+                    selRow.dataset.plan = 'sem';
+                    badge.textContent = 'Sem plano';
+                    badge.classList.remove('pb-act', 'pb-crit');
+                    badge.classList.add('pb-none');
+                    document.getElementById('c2s').textContent = rotuloModo('ESCOLHA');
+                }
+            }
+        });
+
+        // --- Detalhe de sessão ---
+
+        function setSessaoDetalheModalOpen(open) {
+            const modal = document.getElementById('sessaoDetalheModal');
+            if (!modal) return;
+            modal.classList.toggle('is-open', open);
+            modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+            document.body.classList.toggle('modal-open', open);
+        }
+
+        document.addEventListener('click', (event) => {
+            const item = event.target.closest('.sess-item-clickable');
+            if (!item) return;
+            const body = document.getElementById('sessaoDetalheBody');
+            if (!body) return;
+
+            const descricao  = item.dataset.descricao  || '';
+            const dataHora   = item.dataset.dataHora   || '';
+            const realizada  = item.dataset.realizada  === 'true';
+            const tipo       = item.dataset.tipo       || '';
+            const obs        = item.dataset.obs        || '';
+            const eva        = item.dataset.eva        || '';
+            const feedbackObs = item.dataset.feedbackObs || '';
+
+            function row(label, value) {
+                const el = document.createElement('div');
+                el.className = 'acb-row';
+                const lbl = document.createElement('span');
+                lbl.className = 'acb-lbl';
+                lbl.textContent = label;
+                const val = document.createElement('span');
+                val.className = 'acb-val';
+                val.textContent = value;
+                el.append(lbl, val);
+                return el;
+            }
+
+            body.innerHTML = '';
+
+            const statusWrap = document.createElement('div');
+            statusWrap.className = 'sess-detalhe-status';
+            const dot = document.createElement('div');
+            dot.className = 'sds ' + (realizada ? 'sd-ok' : 'sd-pend');
+            const lbl = document.createElement('strong');
+            lbl.textContent = descricao;
+            statusWrap.append(dot, lbl);
+            body.appendChild(statusWrap);
+
+            const box = document.createElement('div');
+            box.className = 'acb-box';
+            box.appendChild(row('Data / hora', dataHora));
+            if (tipo) box.appendChild(row('Tipo de atendimento', tipo));
+            if (obs)  box.appendChild(row('Observações', obs));
+            if (eva)  box.appendChild(row('Feedback EVA', eva + ' / 10'));
+            if (feedbackObs) box.appendChild(row('Comentário do paciente', feedbackObs));
+            body.appendChild(box);
+
+            setSessaoDetalheModalOpen(true);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-sessao-detalhe-modal-close]')) {
+                setSessaoDetalheModalOpen(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            const modal = document.getElementById('sessaoDetalheModal');
+            if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
+                setSessaoDetalheModalOpen(false);
+            }
+        });
+
         // --- Reconciliação de consumo ---
 
         document.addEventListener('click', (event) => {

@@ -826,6 +826,34 @@ body[data-theme="dark"] {
 
 .sess-arr {
   color: var(--pc-muted);
+  transition: color .15s;
+}
+
+.sess-item-clickable {
+  cursor: pointer;
+}
+
+.sess-item-clickable:hover .sess-arr,
+.sess-item-clickable:focus-visible .sess-arr {
+  color: var(--g-primary);
+}
+
+.sess-item-clickable:focus-visible {
+  outline: 2px solid var(--g-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sess-detalhe-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sess-detalhe-status strong {
+  font-size: .85rem;
+  color: var(--pc-text);
 }
 
 .btn-ag {
@@ -1836,3 +1864,31 @@ body[data-theme='dark'] {
 .phist-expirado  { background: #fef3c7; color: #92400e; }
 .phist-cancelado { background: #f3f4f6; color: #6b7280; }
 
+.plano-delete-form {
+  flex-shrink: 0;
+}
+
+.btn-icon-danger {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff;
+  color: #b91c1c;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.btn-icon-danger:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
+.btn-icon-danger svg {
+  width: 15px;
+  height: 15px;
+}
