@@ -88,6 +88,29 @@ class UserMenuAccessServiceTest {
     }
 
     @Test
+    void sidebarAdminExibeBloqueiosAbaixoDeConfiguracaoClinica() {
+        List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
+                UserRole.ADMIN,
+                "/bloqueios"
+        );
+
+        List<String> labels = itens.stream()
+                .filter(item -> !item.section())
+                .map(UserMenuAccessService.SidebarNavItem::label)
+                .toList();
+
+        int indiceConfigClinica = labels.stream()
+                .filter(label -> label.startsWith("Config. Cl"))
+                .findFirst()
+                .map(labels::indexOf)
+                .orElse(-1);
+        int indiceBloqueios = labels.indexOf("Bloqueios");
+
+        assertTrue(indiceConfigClinica >= 0);
+        assertEquals(indiceConfigClinica + 1, indiceBloqueios);
+    }
+
+    @Test
     void perfilFinanceiroIncluiSubmenusFinanceirosPorPadrao() {
         when(permissionRepository.findByRoleOrderByMenuKeyAsc(UserRole.FINANCEIRO)).thenReturn(List.of());
 
