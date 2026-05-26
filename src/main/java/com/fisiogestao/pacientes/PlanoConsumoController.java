@@ -217,8 +217,9 @@ public class PlanoConsumoController {
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
         PacienteListaDTO paciente = planoService.buscarResumoDTO(pacienteId);
         PlanoResumoDTO plano = planoService.buscarPlanoPorPaciente(pacienteId);
-        // Se não há plano ATIVO, mostra o mais recente CONCLUIDO/EXPIRADO para que o admin possa editá-lo
-        if (plano == null && !"AVULSO".equals(modoSolicitado) && !"CRIAR_PLANO".equals(modoSolicitado)) {
+        // Só faz fallback para plano inativo quando o fluxo já é PLANO (ex: após reconciliação ou salvar).
+        // Em ESCOLHA/CRIAR_PLANO/AVULSO, mantém o comportamento original para não bloquear criação de novo plano.
+        if (plano == null && "PLANO".equals(modoSolicitado)) {
             plano = planoService.buscarUltimoPlanoIncluindoInativos(pacienteId);
         }
         String modo = normalizarModo(modoSolicitado, plano != null);
