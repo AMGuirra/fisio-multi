@@ -75,6 +75,11 @@ public class SessaoConsumoService {
                 .orElse(new ResumoAvulsoDTO(null, null, null, dinheiro(BigDecimal.ZERO)));
     }
 
+    @Transactional(readOnly = true)
+    public int countAgendadasPorPlano(UUID planoId) {
+        return (int) sessaoRepository.countAgendadasPorPlano(planoId);
+    }
+
     @Transactional
     public void registrarAvulso(UUID pacienteId, AtendimentoAvulsoFormDTO form, String usuario) {
         AgendaManualForm agenda = new AgendaManualForm();

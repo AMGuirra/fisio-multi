@@ -789,6 +789,12 @@ body[data-theme="dark"] {
   border: 1px dashed var(--g-pbar-warn);
 }
 
+.ds-agendada {
+  background: var(--g-dot-warn-bg);
+  color: var(--g-dot-warn-txt);
+  border: 1px solid var(--g-pbar-warn);
+}
+
 .sess-item {
   display: grid;
   grid-template-columns: 10px 1fr auto;

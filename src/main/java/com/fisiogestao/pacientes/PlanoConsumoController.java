@@ -307,6 +307,8 @@ public class PlanoConsumoController {
         if (plano != null) {
             model.addAttribute("reconciliacaoPreview",
                     planoSessaoService.previewReconciliacao(plano.id()));
+            model.addAttribute("sessoesAgendadas",
+                    sessaoConsumoService.countAgendadasPorPlano(plano.id()));
         }
     }
 

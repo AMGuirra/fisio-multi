@@ -126,6 +126,13 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             """)
     int marcarComoRegistradasPorPlano(@Param("planoId") UUID planoId);
 
+    @Query("""
+            SELECT COUNT(s) FROM SessaoEntity s
+            WHERE s.planoSessao.id = :planoId
+              AND s.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+            """)
+    long countAgendadasPorPlano(@Param("planoId") UUID planoId);
+
     // Sessões de plano do paciente no período sem vínculo ao plano (órfãs)
     @Query("""
             SELECT COUNT(s) FROM SessaoEntity s

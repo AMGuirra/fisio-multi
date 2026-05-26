@@ -259,7 +259,7 @@
         <div class="dots-grid">
             <div th:each="i : ${#numbers.sequence(1, plano.totalSessoes)}"
                  class="dot-s"
-                 th:classappend="${i <= plano.sessoesUsadas} ? ' ds-done' : (${plano.sessoesRestantes <= 2} ? ' ds-warn' : ' ds-rem')"
+                 th:classappend="${i <= plano.sessoesUsadas} ? ' ds-done' : (${sessoesAgendadas != null and i <= plano.sessoesUsadas + sessoesAgendadas} ? ' ds-agendada' : ' ds-rem')"
                  th:text="${i <= plano.sessoesUsadas} ? '✓' : ${i}">1</div>
         </div>
 
@@ -276,7 +276,7 @@
 
         <div th:if="${reconciliacaoPreview != null
                          and reconciliacaoPreview.possuiDiscrepancia
-                         and plano.status == 'ATIVO'}"
+                         and plano.status != 'CANCELADO'}"
              class="alert-box alert-warn reconciliar-aviso">
             <i data-lucide="wrench" aria-hidden="true"></i>
             <span>Contador desatualizado: mostra
