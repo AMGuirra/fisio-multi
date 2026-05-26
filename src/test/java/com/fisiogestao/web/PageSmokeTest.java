@@ -224,7 +224,6 @@ class PageSmokeTest {
     @ParameterizedTest
     @WithMockUser(username = "admin", roles = "ADMIN")
     @ValueSource(strings = {
-            "/hoje|/calendario",
             "/lista-espera|/solicitacoes#lista-espera"
     })
     void atalhosDaSidebarRedirecionamParaDestinoEsperado(String pathAndRedirect) throws Exception {
@@ -238,7 +237,6 @@ class PageSmokeTest {
     @ParameterizedTest
     @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     @ValueSource(strings = {
-            "/hoje|/calendario",
             "/lista-espera|/solicitacoes#lista-espera"
     })
     void recepcaoPodeAcessarAtalhosPadraoDaSidebar(String pathAndRedirect) throws Exception {

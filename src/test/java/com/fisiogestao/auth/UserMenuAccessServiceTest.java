@@ -38,7 +38,6 @@ class UserMenuAccessServiceTest {
         assertEquals(
                 EnumSet.of(
                         AppMenuItem.DASHBOARD,
-                        AppMenuItem.HOJE,
                         AppMenuItem.AGENDA,
                         AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
@@ -56,7 +55,7 @@ class UserMenuAccessServiceTest {
     }
 
     @Test
-    void sidebarAdminExibeHojeEListaDeEspera() {
+    void sidebarAdminExibeListaDeEspera() {
         List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
                 UserRole.ADMIN,
                 "/lista-espera"
@@ -67,7 +66,6 @@ class UserMenuAccessServiceTest {
                 .map(UserMenuAccessService.SidebarNavItem::label)
                 .toList();
 
-        assertTrue(labels.contains("Hoje"));
         assertTrue(labels.contains("Lista de Espera"));
     }
 

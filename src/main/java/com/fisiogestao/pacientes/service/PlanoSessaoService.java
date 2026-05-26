@@ -422,6 +422,13 @@ public class PlanoSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         int atual = plano.getSessoesConsumidas() == null ? 0 : plano.getSessoesConsumidas();
         int correto = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);
+        // Inclui sessões de plano do paciente no período sem vínculo ao plano (órfãs)
+        if (plano.getDataInicio() != null && plano.getDataValidade() != null) {
+            OffsetDateTime inicio = plano.getDataInicio().atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+            OffsetDateTime fim = plano.getDataValidade().atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC);
+            correto += (int) sessaoRepository.countOrfasRealizadasNoPeriodo(
+                    plano.getCliente().getId(), inicio, fim);
+        }
         int naoRegistradas = (int) sessaoRepository.countNaoRegistradasPorPlano(planoId);
         return new ReconciliacaoPreviewDTO(planoId, atual, correto, naoRegistradas, atual != correto);
     }
@@ -432,6 +439,12 @@ public class PlanoSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
             throw new BusinessException("Não é possível reconciliar um plano cancelado.");
+        }
+        // Vincula sessões órfãs do período ao plano antes de contabilizar
+        if (plano.getDataInicio() != null && plano.getDataValidade() != null) {
+            OffsetDateTime inicio = plano.getDataInicio().atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+            OffsetDateTime fim = plano.getDataValidade().atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC);
+            sessaoRepository.vincularOrfasAoPlano(planoId, plano.getCliente().getId(), inicio, fim);
         }
         sessaoRepository.marcarComoRegistradasPorPlano(planoId);
         int correto = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);

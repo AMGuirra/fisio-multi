@@ -125,4 +125,40 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
               AND s.planoConsumoRegistrado = false
             """)
     int marcarComoRegistradasPorPlano(@Param("planoId") UUID planoId);
+
+    // Sessões de plano do paciente no período sem vínculo ao plano (órfãs)
+    @Query("""
+            SELECT COUNT(s) FROM SessaoEntity s
+            WHERE s.cliente.id = :clienteId
+              AND s.tipoAgendamento = com.fisiogestao.agenda.TipoAgendamento.PLANO
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+              AND s.planoSessao IS NULL
+              AND s.dataHoraInicio >= :inicio
+              AND s.dataHoraInicio <= :fim
+            """)
+    long countOrfasRealizadasNoPeriodo(
+            @Param("clienteId") UUID clienteId,
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim);
+
+    @Modifying
+    @Query(value = """
+            UPDATE sessao
+               SET plano_sessao_id = :planoId,
+                   plano_consumo_registrado = false
+             WHERE cliente_id = :clienteId
+               AND tipo_agendamento = 'PLANO'
+               AND status IN ('REALIZADA', 'FALTA_FATURADA')
+               AND plano_sessao_id IS NULL
+               AND data_hora_inicio >= :inicio
+               AND data_hora_inicio <= :fim
+            """, nativeQuery = true)
+    int vincularOrfasAoPlano(
+            @Param("planoId") UUID planoId,
+            @Param("clienteId") UUID clienteId,
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim);
 }

@@ -5,13 +5,11 @@ import java.util.List;
 import java.util.Optional;
 
 public enum AppMenuItem {
-    HOJE("Hoje",                      "/hoje",                "sun",                 false, false, true,  false, MenuSection.NONE,   List.of("/hoje")),
     DASHBOARD("Dashboard",           "/dashboard",           "layout-dashboard",    false, false, true,  false, MenuSection.NONE,   List.of("/", "/dashboard", "/api/dashboard")),
     AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/bloqueios",            "calendar-x-2",      false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
     SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
-    LISTA_ESPERA("Lista de Espera", "/lista-espera",        "clock",               false, false, true,  false, MenuSection.AGENDA, List.of("/lista-espera")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
     PLANOS_SESSOES("Planos de Tratamentos", "/planos-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/planos-consumo")),
     PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
@@ -123,8 +121,6 @@ public enum AppMenuItem {
         switch (this) {
             case DASHBOARD:
                 return "Mostra o painel geral com os principais indicadores e atalhos do sistema.";
-            case HOJE:
-                return "Exibe a linha do tempo do dia com sessões, pendências financeiras e alertas de ação imediata.";
             case AGENDA:
                 return "Permite acompanhar o calendario mensal e organizar as sessoes do dia em uma unica tela.";
             case CALENDARIO:
@@ -155,8 +151,6 @@ public enum AppMenuItem {
                 return "Configura envio de e-mails e parametros de comunicacao.";
             case AUDITORIA:
                 return "Permite consultar o historico de acoes realizadas no sistema.";
-            case LISTA_ESPERA:
-                return "Gerencia pacientes aguardando um horario disponivel para agendamento.";
             case AGENDAMENTO_ONLINE:
                 return "Disponibiliza o link e o acesso ao agendamento online da clinica.";
             default:
@@ -183,11 +177,9 @@ public enum AppMenuItem {
     public static List<AppMenuItem> sidebarPrincipais() {
         return List.of(
                 DASHBOARD,
-                HOJE,
                 AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
-                LISTA_ESPERA,
                 PACIENTES,
                 PLANOS_SESSOES,
                 PRONTUARIO,

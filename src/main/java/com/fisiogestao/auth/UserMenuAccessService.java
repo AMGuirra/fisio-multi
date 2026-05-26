@@ -213,36 +213,29 @@ public class UserMenuAccessService {
             case ADMIN -> EnumSet.allOf(AppMenuItem.class);
             case FISIOTERAPEUTA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
-                    AppMenuItem.HOJE,
                     AppMenuItem.AGENDA,
                     AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.LISTA_ESPERA,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.RELATORIOS
             );
             case RECEPCAO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
-                    AppMenuItem.HOJE,
                     AppMenuItem.AGENDA,
                     AppMenuItem.BLOQUEIOS,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.LISTA_ESPERA,
                     AppMenuItem.PLANOS_SESSOES,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.AGENDAMENTO_ONLINE
             );
             case ASSESSORIA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
-                    AppMenuItem.HOJE,
                     AppMenuItem.SOLICITACOES,
-                    AppMenuItem.LISTA_ESPERA,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.RELATORIOS
             );
             case FINANCEIRO -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
-                    AppMenuItem.HOJE,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.FINANCEIRO,
                     AppMenuItem.RELATORIOS
