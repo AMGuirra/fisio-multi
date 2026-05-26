@@ -125,6 +125,7 @@
         function rotuloModo(modo) {
             if (modo === 'PLANO') return 'Débito de sessão no plano';
             if (modo === 'CRIAR_PLANO') return 'Criação de plano';
+            if (modo === 'RENOVAR') return 'Renovação de plano';
             if (modo === 'AVULSO') return 'Cobrança avulsa';
             return 'Escolha a modalidade';
         }
@@ -139,8 +140,9 @@
             if (window.lucide) lucide.createIcons();
         }
 
-        async function carregarPaciente(pacienteId, modo) {
-            const url = `/planos-consumo/${pacienteId}/selecionar?modo=${modo}`;
+        async function carregarPaciente(pacienteId, modo, planoId) {
+            let url = `/planos-consumo/${pacienteId}/selecionar?modo=${modo}`;
+            if (planoId) url += `&planoId=${planoId}`;
             try {
                 const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
                 if (!res.ok) {
@@ -150,6 +152,29 @@
                 atualizarPaineis(await res.text(), modo);
             } catch (err) {
                 document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Falha de conexão. Recarregue a página.</p></div>';
+            }
+        }
+
+        async function selecionarPlano(pacienteId, planoId) {
+            await carregarPaciente(pacienteId, 'PLANO', planoId);
+        }
+
+        async function iniciarRenovacao(planoId) {
+            const selRow = document.querySelector('.prow.sel');
+            if (!selRow) return;
+            await carregarPaciente(selRow.dataset.id, 'RENOVAR', planoId);
+        }
+
+        function toggleHistoricoPlanos(btn) {
+            const list = btn.nextElementSibling;
+            const chevron = btn.querySelector('.phist-chevron');
+            const hidden = list.hasAttribute('hidden');
+            if (hidden) {
+                list.removeAttribute('hidden');
+                chevron && chevron.style.setProperty('transform', 'rotate(180deg)');
+            } else {
+                list.setAttribute('hidden', '');
+                chevron && chevron.style.setProperty('transform', '');
             }
         }
 

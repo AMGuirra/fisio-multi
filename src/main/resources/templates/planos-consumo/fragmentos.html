@@ -76,11 +76,17 @@
         </div>
     </div>
 
-    <div th:if="${modo == 'PLANO' or modo == 'CRIAR_PLANO'}">
-        <div class="divider" th:text="${modo == 'CRIAR_PLANO'} ? 'Dados do novo plano' : 'Dados do plano'">Dados do plano</div>
-        <form th:action="@{/planos-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
+    <div th:if="${modo == 'PLANO' or modo == 'CRIAR_PLANO' or modo == 'RENOVAR'}">
+        <div class="divider"
+             th:text="${modo == 'CRIAR_PLANO'} ? 'Dados do novo plano' : (${modo == 'RENOVAR'} ? 'Renovar plano' : 'Dados do plano')">Dados do plano</div>
+        <form th:action="${modo == 'RENOVAR'}
+                            ? @{/planos-consumo/{pid}/renovar/{rid}(pid=${paciente.id},rid=${plano.id})}
+                            : (${modo == 'CRIAR_PLANO'}
+                                ? @{/planos-consumo/{id}/novo-plano(id=${paciente.id})}
+                                : @{/planos-consumo/{id}/plano(id=${paciente.id})})"
+              method="post" class="pc-form">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-            <input type="hidden" name="planoId" th:if="${plano != null}" th:value="${plano.id}">
+            <input type="hidden" name="planoId" th:if="${plano != null and modo == 'PLANO'}" th:value="${plano.id}">
             <div class="fld">
                 <label>Tipo de plano</label>
                 <select name="tipoPlano">
@@ -96,7 +102,7 @@
                 </div>
                 <div class="fld">
                     <label>Sessões restantes</label>
-                    <input class="ro" readonly th:value="${plano?.sessoesRestantes ?: 0}">
+                    <input class="ro" readonly th:value="${modo == 'RENOVAR' or modo == 'CRIAR_PLANO'} ? 0 : ${plano?.sessoesRestantes ?: 0}">
                 </div>
             </div>
             <div class="fld">
@@ -106,14 +112,14 @@
             <div class="two">
                 <div class="fld">
                     <label>Início da vigência</label>
-                    <input type="date" name="inicioVigencia" th:value="${plano?.inicioVigencia}">
+                    <input type="date" name="inicioVigencia" th:value="${modo == 'RENOVAR'} ? '' : ${plano?.inicioVigencia}">
                 </div>
                 <div class="fld">
                     <label>Fim da vigência</label>
-                    <input type="date" name="fimVigencia" th:value="${plano?.fimVigencia}">
+                    <input type="date" name="fimVigencia" th:value="${modo == 'RENOVAR'} ? '' : ${plano?.fimVigencia}">
                 </div>
             </div>
-            <div class="fld">
+            <div class="fld" th:if="${modo == 'PLANO'}">
                 <label>Status</label>
                 <select name="status">
                     <option value="ATIVO" th:selected="${plano == null or plano.status == 'ATIVO'}">Ativo</option>
@@ -124,9 +130,51 @@
             </div>
             <button type="submit" class="btn-save">
                 <i data-lucide="save" aria-hidden="true"></i>
-                <span th:text="${modo == 'CRIAR_PLANO'} ? 'Criar Plano' : 'Salvar Plano'">Salvar Plano</span>
+                <span th:text="${modo == 'CRIAR_PLANO'} ? 'Criar Plano' : (${modo == 'RENOVAR'} ? 'Confirmar Renovação' : 'Salvar Plano')">Salvar Plano</span>
             </button>
         </form>
+
+        <div th:if="${modo == 'PLANO'}" class="plano-acoes-secundarias">
+            <button type="button" class="btn-sec" onclick="iniciarFluxo('CRIAR_PLANO')">
+                <i data-lucide="package-plus" aria-hidden="true"></i>Criar Novo Plano
+            </button>
+            <button type="button" class="btn-sec btn-renovar"
+                    th:if="${plano != null and (plano.status == 'EXPIRADO' or plano.status == 'CONCLUIDO')}"
+                    th:attr="onclick='iniciarRenovacao(\'' + ${plano.id} + '\''  + ')'">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>Renovar Plano
+            </button>
+        </div>
+
+        <div th:if="${modo == 'RENOVAR'}" class="plano-acoes-secundarias">
+            <button type="button" class="btn-ghost" onclick="setModo('PLANO')">
+                <i data-lucide="arrow-left" aria-hidden="true"></i>Voltar
+            </button>
+        </div>
+
+        <div th:if="${planosList != null and !#lists.isEmpty(planosList)}" class="plano-hist-section">
+            <button type="button" class="plano-hist-toggle" onclick="toggleHistoricoPlanos(this)">
+                <i data-lucide="history" aria-hidden="true"></i>
+                <span>Histórico de planos (<span th:text="${#lists.size(planosList)}">0</span>)</span>
+                <i data-lucide="chevron-down" class="phist-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="plano-hist-list" hidden>
+                <div th:each="item : ${planosList}"
+                     class="plano-hist-item"
+                     th:classappend="${plano != null and plano.id == item.id} ? ' phist-active' : ''"
+                     th:attr="onclick='selecionarPlano(\'' + ${paciente.id} + '\', \'' + ${item.id} + '\')'">
+                    <div class="phist-info">
+                        <span class="phist-nome" th:text="${item.nomePlano}">Plano de 10 Sessões</span>
+                        <span class="phist-datas" th:text="${item.dataInicioFormatada() + ' – ' + item.dataValidadeFormatada()}">01/01/2026 – 31/03/2026</span>
+                    </div>
+                    <div class="phist-right">
+                        <span class="phist-sessoes" th:text="${item.sessoesConsumidas + '/' + item.sessoesContratadas}">8/10</span>
+                        <span class="phist-status"
+                              th:classappend="'phist-' + ${#strings.toLowerCase(item.status)}"
+                              th:text="${item.status == 'ATIVO'} ? 'Ativo' : (${item.status == 'CONCLUIDO'} ? 'Concluído' : (${item.status == 'EXPIRADO'} ? 'Expirado' : 'Cancelado'))">Ativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div th:if="${modo == 'AVULSO'}">

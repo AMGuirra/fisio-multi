@@ -5,6 +5,7 @@ import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.dto.PacienteListaDTO;
 import com.fisiogestao.pacientes.dto.PlanoFormDTO;
+import com.fisiogestao.pacientes.dto.PlanoListItemDTO;
 import com.fisiogestao.pacientes.dto.PlanoResumoDTO;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -70,6 +72,14 @@ public class PlanoService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public List<PlanoListItemDTO> listarPorPaciente(UUID clienteId) {
+        return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId).stream()
+                .filter(p -> p.getStatus() != PlanoSessaoStatus.CANCELADO)
+                .map(this::paraListItem)
+                .toList();
+    }
+
     @Transactional
     public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form) {
         ClienteEntity paciente = pacienteService.buscarPorId(pacienteId);
@@ -78,15 +88,10 @@ public class PlanoService {
             plano = planoSessaoRepository.findById(form.getPlanoId())
                     .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         } else {
-            plano = planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                    .filter(item -> item.getStatus() == PlanoSessaoStatus.ATIVO)
-                    .findFirst()
-                    .orElseGet(() -> {
-                        PlanoSessaoEntity novo = new PlanoSessaoEntity();
-                        novo.setCliente(paciente);
-                        novo.setSessoesConsumidas(0);
-                        return novo;
-                    });
+            // Sem planoId explícito: cria sempre um novo plano
+            plano = new PlanoSessaoEntity();
+            plano.setCliente(paciente);
+            plano.setSessoesConsumidas(0);
         }
 
         int total = form.getTotalSessoes() > 0 ? form.getTotalSessoes() : totalPorTipo(form.getTipoPlano());
@@ -98,10 +103,30 @@ public class PlanoService {
         plano.setNomePlano(rotuloPlano(form.getTipoPlano(), total));
         plano.setSessoesContratadas(total);
         plano.setValorTotal(form.getValorTotal() == null ? BigDecimal.ZERO : form.getValorTotal());
-        plano.setDataInicio(form.getInicioVigencia() == null ? java.time.LocalDate.now() : form.getInicioVigencia());
+        plano.setDataInicio(form.getInicioVigencia() == null ? LocalDate.now() : form.getInicioVigencia());
         plano.setDataValidade(form.getFimVigencia());
         plano.setStatus(status(form.getStatus(), plano, total));
         return planoSessaoRepository.save(plano);
+    }
+
+    @Transactional
+    public PlanoSessaoEntity renovarPlano(UUID planoAnteriorId, PlanoFormDTO form) {
+        PlanoSessaoEntity anterior = planoSessaoRepository.findById(planoAnteriorId)
+                .orElseThrow(() -> new BusinessException("Plano anterior não encontrado."));
+        ClienteEntity paciente = anterior.getCliente();
+
+        int total = form.getTotalSessoes() > 0 ? form.getTotalSessoes() : valorSeguro(anterior.getSessoesContratadas());
+        PlanoSessaoEntity novo = new PlanoSessaoEntity();
+        novo.setCliente(paciente);
+        novo.setPlanoAnterior(anterior);
+        novo.setSessoesConsumidas(0);
+        novo.setNomePlano(rotuloPlano(form.getTipoPlano() != null ? form.getTipoPlano() : anterior.getNomePlano(), total));
+        novo.setSessoesContratadas(total);
+        novo.setValorTotal(form.getValorTotal() != null ? form.getValorTotal() : (anterior.getValorTotal() != null ? anterior.getValorTotal() : BigDecimal.ZERO));
+        novo.setDataInicio(form.getInicioVigencia() != null ? form.getInicioVigencia() : LocalDate.now());
+        novo.setDataValidade(form.getFimVigencia());
+        novo.setStatus(PlanoSessaoStatus.ATIVO);
+        return planoSessaoRepository.save(novo);
     }
 
     public PlanoResumoDTO paraPlanoResumo(PlanoSessaoEntity plano) {
@@ -121,6 +146,22 @@ public class PlanoService {
                 plano.getDataInicio(),
                 plano.getDataValidade(),
                 plano.getStatus() == null ? PlanoSessaoStatus.ATIVO.name() : plano.getStatus().name()
+        );
+    }
+
+    private PlanoListItemDTO paraListItem(PlanoSessaoEntity plano) {
+        int total = valorSeguro(plano.getSessoesContratadas());
+        int usadas = valorSeguro(plano.getSessoesConsumidas());
+        return new PlanoListItemDTO(
+                plano.getId(),
+                plano.getNomePlano(),
+                plano.getStatus() == null ? PlanoSessaoStatus.ATIVO.name() : plano.getStatus().name(),
+                plano.getDataInicio(),
+                plano.getDataValidade(),
+                total,
+                usadas,
+                Math.max(0, total - usadas),
+                dinheiro(plano.getValorTotal())
         );
     }
 

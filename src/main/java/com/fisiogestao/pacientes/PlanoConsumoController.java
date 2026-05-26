@@ -59,9 +59,10 @@ public class PlanoConsumoController {
     public String selecionarPaciente(
             @PathVariable UUID pacienteId,
             @RequestParam(defaultValue = "PLANO") String modo,
+            @RequestParam(name = "planoId", required = false) UUID planoId,
             Model model
     ) {
-        adicionarContextoPaciente(pacienteId, modo, model);
+        adicionarContextoPaciente(pacienteId, modo, planoId, model);
         return "planos-consumo/fragmentos :: configuracao-e-consumo";
     }
 
@@ -95,6 +96,62 @@ public class PlanoConsumoController {
             if (isAjax(requestedWith)) {
                 model.addAttribute("errorMessage", ex.getMessage());
                 adicionarContextoPaciente(pacienteId, "CRIAR_PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/planos-consumo?pacienteId=" + pacienteId;
+    }
+
+    @PostMapping("/{pacienteId}/novo-plano")
+    public String novoPlano(
+            @PathVariable UUID pacienteId,
+            @ModelAttribute PlanoFormDTO form,
+            RedirectAttributes redirectAttributes,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
+    ) {
+        try {
+            form.setPlanoId(null);
+            PlanoSessaoEntity salvo = planoService.salvarOuAtualizar(pacienteId, form);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", "Novo plano criado com sucesso.");
+                adicionarContextoPaciente(pacienteId, "PLANO", salvo.getId(), model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Novo plano criado com sucesso.");
+        } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "CRIAR_PLANO", model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/planos-consumo?pacienteId=" + pacienteId;
+    }
+
+    @PostMapping("/{pacienteId}/renovar/{planoAnteriorId}")
+    public String renovarPlano(
+            @PathVariable UUID pacienteId,
+            @PathVariable UUID planoAnteriorId,
+            @ModelAttribute PlanoFormDTO form,
+            RedirectAttributes redirectAttributes,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model
+    ) {
+        try {
+            PlanoSessaoEntity salvo = planoService.renovarPlano(planoAnteriorId, form);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", "Plano renovado com sucesso.");
+                adicionarContextoPaciente(pacienteId, "PLANO", salvo.getId(), model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Plano renovado com sucesso.");
+        } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "PLANO", model);
                 return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -215,19 +272,31 @@ public class PlanoConsumoController {
     }
 
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
+        adicionarContextoPaciente(pacienteId, modoSolicitado, null, model);
+    }
+
+    private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, UUID planoIdForcado, Model model) {
         PacienteListaDTO paciente = planoService.buscarResumoDTO(pacienteId);
-        PlanoResumoDTO plano = planoService.buscarPlanoPorPaciente(pacienteId);
-        // Só faz fallback para plano inativo quando o fluxo já é PLANO (ex: após reconciliação ou salvar).
-        // Em ESCOLHA/CRIAR_PLANO/AVULSO, mantém o comportamento original para não bloquear criação de novo plano.
-        if (plano == null && "PLANO".equals(modoSolicitado)) {
-            plano = planoService.buscarUltimoPlanoIncluindoInativos(pacienteId);
+        PlanoResumoDTO plano;
+        if (planoIdForcado != null) {
+            plano = planoService.buscarPlanoPorId(planoIdForcado);
+        } else {
+            plano = planoService.buscarPlanoPorPaciente(pacienteId);
+            // Só faz fallback para plano inativo quando o fluxo já é PLANO (ex: após reconciliação ou salvar).
+            // Em ESCOLHA/CRIAR_PLANO/AVULSO, mantém o comportamento original para não bloquear criação de novo plano.
+            if (plano == null && "PLANO".equals(modoSolicitado)) {
+                plano = planoService.buscarUltimoPlanoIncluindoInativos(pacienteId);
+            }
         }
         String modo = normalizarModo(modoSolicitado, plano != null);
 
         model.addAttribute("paciente", paciente);
         model.addAttribute("plano", plano);
         model.addAttribute("modo", modo);
-        model.addAttribute("historico", sessaoConsumoService.historicoPorPaciente(pacienteId));
+        model.addAttribute("planosList", planoService.listarPorPaciente(pacienteId));
+        model.addAttribute("historico", plano != null
+                ? sessaoConsumoService.historicoPorPlano(plano.id())
+                : sessaoConsumoService.historicoPorPaciente(pacienteId));
         model.addAttribute("historicoAvulso", sessaoConsumoService.historicoAvulsoPorPaciente(pacienteId));
         model.addAttribute("resumoAvulso", sessaoConsumoService.resumoAvulso(pacienteId));
         model.addAttribute("hoje", LocalDate.now());
@@ -244,6 +313,9 @@ public class PlanoConsumoController {
         }
         if ("CRIAR_PLANO".equals(modoSolicitado)) {
             return "CRIAR_PLANO";
+        }
+        if ("RENOVAR".equals(modoSolicitado) && possuiPlano) {
+            return "RENOVAR";
         }
         if (!possuiPlano) {
             return "ESCOLHA";

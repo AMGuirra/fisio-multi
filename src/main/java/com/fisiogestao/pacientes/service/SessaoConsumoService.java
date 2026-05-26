@@ -45,6 +45,14 @@ public class SessaoConsumoService {
     }
 
     @Transactional(readOnly = true)
+    public List<SessaoHistoricoDTO> historicoPorPlano(UUID planoId) {
+        return sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(planoId).stream()
+                .limit(8)
+                .map(sessao -> new SessaoHistoricoDTO(descricao(sessao), sessao.getDataHoraInicio().format(DATA_HORA), sessao.getStatus() == SessaoStatus.REALIZADA))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<AtendimentoAvulsoDTO> historicoAvulsoPorPaciente(UUID pacienteId) {
         return sessoesAvulsas(pacienteId).stream()
                 .limit(6)

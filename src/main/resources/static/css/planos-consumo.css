@@ -1688,3 +1688,145 @@ body[data-theme='dark'] {
   color: var(--text-body);
   line-height: 1.5;
 }
+
+/* ── Ações secundárias (Criar Novo Plano / Renovar) ── */
+.plano-acoes-secundarias {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid var(--g-border, #dde3e0);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+
+.btn-sec:hover {
+  border-color: var(--g-primary, #1a7a5e);
+  color: var(--g-primary, #1a7a5e);
+  background: var(--g-primary-bg, #edf7f3);
+}
+
+.btn-sec svg { width: 14px; height: 14px; }
+
+.btn-renovar {
+  border-color: var(--g-warn-b, #d4a000);
+  color: var(--g-warn-b, #d4a000);
+}
+
+.btn-renovar:hover {
+  background: var(--g-warn-b, #d4a000);
+  color: #fff;
+  border-color: var(--g-warn-b, #d4a000);
+}
+
+/* ── Histórico de planos (colapsável) ── */
+.plano-hist-section {
+  margin-top: 14px;
+  border: 1px solid var(--g-border, #dde3e0);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.plano-hist-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--g-surface, #f5f8f7);
+  border: none;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-body);
+  text-align: left;
+}
+
+.plano-hist-toggle:hover { background: var(--g-surface-hover, #edf2f0); }
+
+.plano-hist-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.plano-hist-toggle span { flex: 1; }
+
+.phist-chevron { transition: transform .2s; }
+
+.plano-hist-list { padding: 4px 0; }
+
+.plano-hist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  border-top: 1px solid var(--g-border, #dde3e0);
+  transition: background .12s;
+}
+
+.plano-hist-item:first-child { border-top: none; }
+
+.plano-hist-item:hover { background: var(--g-surface, #f5f8f7); }
+
+.plano-hist-item.phist-active { background: var(--g-primary-bg, #edf7f3); }
+
+.phist-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.phist-nome {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phist-datas {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.phist-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.phist-sessoes {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.phist-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.phist-ativo   { background: #d1fae5; color: #065f46; }
+.phist-concluido { background: #dbeafe; color: #1e40af; }
+.phist-expirado  { background: #fef3c7; color: #92400e; }
+.phist-cancelado { background: #f3f4f6; color: #6b7280; }
+

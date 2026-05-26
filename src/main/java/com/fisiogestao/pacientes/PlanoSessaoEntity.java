@@ -33,6 +33,10 @@ public class PlanoSessaoEntity extends BaseEntity {
     @JoinColumn(name = "cliente_id", nullable = false)
     private ClienteEntity cliente;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "plano_anterior_id")
+    private PlanoSessaoEntity planoAnterior;
+
     @Column(name = "nome_plano", nullable = false, length = 120)
     private String nomePlano;
 
