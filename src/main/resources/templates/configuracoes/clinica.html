@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConfiguraÃ§Ã£o Operacional da ClÃ­nica - FisioGestao</title>
+    <title>Configuração Operacional da Clínica - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,9 @@
             <div class="header-right">
                 <div class="header-clock skeletonable" id="liveClock"></div>
                 <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuÃ¡rio">
+                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
                         <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">UsuÃ¡rio</span>
+                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
                         <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
                     </button>
                     <div class="user-menu-panel" role="menu">
@@ -47,21 +47,21 @@
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
                 <div class="hero-content">
-                    <h1 class="hero-title">ConfiguraÃ§Ã£o Operacional da ClÃ­nica</h1>
-                    <p class="hero-subtitle">Defina expediente, duraÃ§Ã£o padrÃ£o das sessÃµes, canais oficiais em uma Ãºnica pÃ¡gina de governanÃ§a operacional.</p>
+                    <h1 class="hero-title">Configuração Operacional da Clínica</h1>
+                    <p class="hero-subtitle">Defina expediente, duração padrão das sessões, canais oficiais em uma única página de governança operacional.</p>
                 </div>
                 <div class="hero-actions">
-                    <span class="hero-pill">ClÃ­nica</span>
+                    <span class="hero-pill">Clínica</span>
                     <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal pÃºblico</a>
+                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal público</a>
                 </div>
             </section>
 
-            <nav class="page-tabs" aria-label="SeÃ§Ãµes Administrativas">
-                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab active"><i data-lucide="building-2"></i> Config. ClÃ­nica</a>
+            <nav class="page-tabs" aria-label="Seções Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab active"><i data-lucide="building-2"></i> Config. Clínica</a>
                 <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
-                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> UsuÃ¡rios</a>
-                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> FunÃ§Ãµes</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
                 <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
                 <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
@@ -75,22 +75,22 @@
                 <article class="workflow-step is-complete">
                     <span class="workflow-step-number">1</span>
                     <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Estruture a operaÃ§Ã£o</p>
-                        <p class="workflow-step-text">Defina nome, fuso e expediente da clÃ­nica para unificar toda a agenda.</p>
+                        <p class="workflow-step-label">Estruture a operação</p>
+                        <p class="workflow-step-text">Defina nome, fuso e expediente da clínica para unificar toda a agenda.</p>
                     </div>
                 </article>
                 <article class="workflow-step is-current">
                     <span class="workflow-step-number">2</span>
                     <div class="workflow-step-copy">
                         <p class="workflow-step-label">Padronize o atendimento</p>
-                        <p class="workflow-step-text">Configure duraÃ§Ã£o das sessÃµes, almoÃ§o e dias Ãºteis com o mesmo padrÃ£o da equipe.</p>
+                        <p class="workflow-step-text">Configure duração das sessões, almoço e dias úteis com o mesmo padrão da equipe.</p>
                     </div>
                 </article>
                 <article class="workflow-step">
                     <span class="workflow-step-number">3</span>
                     <div class="workflow-step-copy">
-                        <p class="workflow-step-label">Revise a operaÃ§Ã£o</p>
-                        <p class="workflow-step-text">Mantenha os dados da clÃ­nica consistentes para a agenda e o portal.</p>
+                        <p class="workflow-step-label">Revise a operação</p>
+                        <p class="workflow-step-text">Mantenha os dados da clínica consistentes para a agenda e o portal.</p>
                     </div>
                 </article>
             </section>
@@ -100,13 +100,13 @@
                     <span class="summary-icon"><i data-lucide="clock-3"></i></span>
                     <p class="summary-label">Expediente</p>
                     <p class="summary-value summary-value-compact"
-                       th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' Ã s ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'NÃ£o definido'}">
-                        NÃ£o definido
+                       th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' às ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Não definido'}">
+                        Não definido
                     </p>
                 </article>
                 <article class="summary-card receita">
                     <span class="summary-icon"><i data-lucide="timer"></i></span>
-                    <p class="summary-label">SessÃ£o padrÃ£o</p>
+                    <p class="summary-label">Sessão padrão</p>
                     <p class="summary-value"
                        th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' min' : '0 min'}">
                         0 min
@@ -125,7 +125,7 @@
             <section id="secao-operacao" class="crud-layout two-column">
                 <article class="section-card">
                     <header class="section-head">
-                        <h3 class="section-title"><i data-lucide="building-2"></i> Dados da operaÃ§Ã£o</h3>
+                        <h3 class="section-title"><i data-lucide="building-2"></i> Dados da operação</h3>
                     </header>
                     <div class="section-body">
                         <form th:action="@{/configuracoes/clinica}" th:object="${configuracaoClinicaForm}" method="post" class="modern-form">
@@ -134,12 +134,12 @@
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="nomeClinica">Nome da clÃ­nica</label>
+                                    <label for="nomeClinica">Nome da clínica</label>
                                     <input id="nomeClinica" type="text" class="form-control" th:field="*{nomeClinica}" maxlength="150" required>
                                     <p class="form-error" th:if="${#fields.hasErrors('nomeClinica')}" th:errors="*{nomeClinica}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="timezoneId">Fuso horÃ¡rio</label>
+                                    <label for="timezoneId">Fuso horário</label>
                                     <select id="timezoneId" class="form-select" th:field="*{timezoneId}" required>
                                         <option value="">Selecione...</option>
                                         <option th:each="timezone : ${timezonesClinica}" th:value="${timezone.id}" th:text="${timezone.label + ' (' + timezone.id + ')'}">Campo Grande</option>
@@ -160,7 +160,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('horarioFechamento')}" th:errors="*{horarioFechamento}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="duracaoSessaoMinutos">DuraÃ§Ã£o da sessÃ£o</label>
+                                    <label for="duracaoSessaoMinutos">Duração da sessão</label>
                                     <input id="duracaoSessaoMinutos" type="number" min="15" max="240" step="5" class="form-control" th:field="*{duracaoSessaoMinutos}" required>
                                     <p class="form-error" th:if="${#fields.hasErrors('duracaoSessaoMinutos')}" th:errors="*{duracaoSessaoMinutos}"></p>
                                 </div>
@@ -168,34 +168,34 @@
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="horarioInicioAlmoco">InÃ­cio do almoÃ§o</label>
+                                    <label for="horarioInicioAlmoco">Início do almoço</label>
                                     <input id="horarioInicioAlmoco" type="time" class="form-control" th:field="*{horarioInicioAlmoco}">
                                     <p class="helper-text">Opcional. Preencha junto com o fim para bloquear esse intervalo.</p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="horarioFimAlmoco">Fim do almoÃ§o</label>
+                                    <label for="horarioFimAlmoco">Fim do almoço</label>
                                     <input id="horarioFimAlmoco" type="time" class="form-control" th:field="*{horarioFimAlmoco}">
                                 </div>
                             </div>
 
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
-                                    <label for="telefoneWhatsapp">Telefone / WhatsApp da clÃ­nica</label>
+                                    <label for="telefoneWhatsapp">Telefone / WhatsApp da clínica</label>
                                     <input id="telefoneWhatsapp" type="text" class="form-control" th:field="*{telefoneWhatsapp}" maxlength="20" placeholder="(65) 99999-9999">
-                                    <p class="helper-text">Usado como destino padrÃ£o nas notificaÃ§Ãµes internas da fila de WhatsApp.</p>
+                                    <p class="helper-text">Usado como destino padrão nas notificações internas da fila de WhatsApp.</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('telefoneWhatsapp')}" th:errors="*{telefoneWhatsapp}"></p>
                                 </div>
                                 <div class="form-field">
                                     <label for="emailContato">E-mail de contato</label>
                                     <input id="emailContato" type="email" class="form-control" th:field="*{emailContato}" maxlength="120" placeholder="contato@clinica.com">
-                                    <p class="helper-text">Apoia o portal pÃºblico e comunicaÃ§Ãµes operacionais.</p>
+                                    <p class="helper-text">Apoia o portal público e comunicações operacionais.</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('emailContato')}" th:errors="*{emailContato}"></p>
                                 </div>
                             </div>
 
                             <div class="section-divider">
-                                <span><i data-lucide="map-pin"></i> EndereÃ§o da clÃ­nica</span>
-                                <p class="helper-text">Usado no botÃ£o "Como Chegar" do portal do paciente.</p>
+                                <span><i data-lucide="map-pin"></i> Endereço da clínica</span>
+                                <p class="helper-text">Usado no botão "Como Chegar" do portal do paciente.</p>
                             </div>
 
                             <div class="form-grid form-grid-two">
@@ -205,7 +205,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('logradouro')}" th:errors="*{logradouro}"></p>
                                 </div>
                                 <div class="form-field">
-                                    <label for="numero">NÃºmero</label>
+                                    <label for="numero">Número</label>
                                     <input id="numero" type="text" class="form-control" th:field="*{numero}" maxlength="20" placeholder="Ex: 123">
                                     <p class="form-error" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></p>
                                 </div>
@@ -214,7 +214,7 @@
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
                                     <label for="complemento">Complemento</label>
-                                    <input id="complemento" type="text" class="form-control" th:field="*{complemento}" maxlength="100" placeholder="Ex: Sala 5, 2Âº andar">
+                                    <input id="complemento" type="text" class="form-control" th:field="*{complemento}" maxlength="100" placeholder="Ex: Sala 5, 2º andar">
                                     <p class="form-error" th:if="${#fields.hasErrors('complemento')}" th:errors="*{complemento}"></p>
                                 </div>
                                 <div class="form-field">
@@ -231,7 +231,7 @@
                                     <p class="form-error" th:if="${#fields.hasErrors('cep')}" th:errors="*{cep}"></p>
                                 </div>
                                 <div class="form-field clinica-endereco-btn">
-                                    <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereÃ§o pelo CEP">
+                                    <button type="button" id="btnBuscarCep" class="action-button ghost" title="Buscar endereço pelo CEP">
                                         <i data-lucide="search"></i>Buscar CEP
                                     </button>
                                 </div>
@@ -264,9 +264,9 @@
                             </div>
 
                             <div class="form-actions">
-                                <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuraÃ§Ã£o</button>
+                                <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuração</button>
                                 <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal pÃºblico</a>
+                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
                             </div>
                         </form>
                     </div>
@@ -281,19 +281,19 @@
                             <div class="helper-card">
                                 <div class="helper-copy">
                                     <h4>Agenda interna</h4>
-                                    <p>Os horÃ¡rios disponÃ­veis, o almoÃ§o e a duraÃ§Ã£o padrÃ£o das sessÃµes saem desta configuraÃ§Ã£o.</p>
+                                    <p>Os horários disponíveis, o almoço e a duração padrão das sessões saem desta configuração.</p>
                                 </div>
                             </div>
                             <div class="helper-card mt-12">
                                 <div class="helper-copy">
                                     <h4>Agendamento online</h4>
-                                    <p>O portal pÃºblico usa o mesmo expediente, evitando conflito entre o que a recepÃ§Ã£o vÃª e o que o paciente agenda.</p>
+                                    <p>O portal público usa o mesmo expediente, evitando conflito entre o que a recepção vê e o que o paciente agenda.</p>
                                 </div>
                             </div>
                             <div class="helper-card mt-12">
                                 <div class="helper-copy">
                                     <h4>Bloqueios oficiais</h4>
-                                    <p>Bloqueios cadastrados nesta pÃ¡gina valem para a agenda interna e para o agendamento online â€” sem conflito entre os canais.</p>
+                                    <p>Bloqueios cadastrados nesta página valem para a agenda interna e para o agendamento online — sem conflito entre os canais.</p>
                                 </div>
                             </div>
                         </div>
@@ -301,35 +301,35 @@
 
                     <article class="section-card">
                         <header class="section-head">
-                            <h3 class="section-title"><i data-lucide="clipboard-list"></i> Resumo rÃ¡pido</h3>
+                            <h3 class="section-title"><i data-lucide="clipboard-list"></i> Resumo rápido</h3>
                         </header>
                         <div class="section-body">
                             <div class="timeline-list">
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.nomeClinica != null and !#strings.isEmpty(configuracaoClinicaForm.nomeClinica) ? configuracaoClinicaForm.nomeClinica : 'ClÃ­nica sem nome definido'}">ClÃ­nica</p>
-                                        <p class="entity-meta">IdentificaÃ§Ã£o principal exibida nos fluxos operacionais</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.nomeClinica != null and !#strings.isEmpty(configuracaoClinicaForm.nomeClinica) ? configuracaoClinicaForm.nomeClinica : 'Clínica sem nome definido'}">Clínica</p>
+                                        <p class="entity-meta">Identificação principal exibida nos fluxos operacionais</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' Ã s ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Expediente nÃ£o informado'}">07:00 Ã s 19:00</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.horarioAbertura != null and configuracaoClinicaForm.horarioFechamento != null ? #temporals.format(configuracaoClinicaForm.horarioAbertura, 'HH:mm') + ' às ' + #temporals.format(configuracaoClinicaForm.horarioFechamento, 'HH:mm') : 'Expediente não informado'}">07:00 às 19:00</p>
                                         <p class="entity-meta">Janela base de funcionamento</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item">
                                     <div>
-                                        <p class="entity-name" th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' minutos por sessÃ£o' : 'DuraÃ§Ã£o nÃ£o informada'}">60 minutos por sessÃ£o</p>
-                                        <p class="entity-meta">PadrÃ£o usado para os slots livres da agenda</p>
+                                        <p class="entity-name" th:text="${configuracaoClinicaForm.duracaoSessaoMinutos != null ? configuracaoClinicaForm.duracaoSessaoMinutos + ' minutos por sessão' : 'Duração não informada'}">60 minutos por sessão</p>
+                                        <p class="entity-meta">Padrão usado para os slots livres da agenda</p>
                                     </div>
                                 </div>
                                 <div class="timeline-item" th:if="${configuracaoClinicaForm.cidade != null and !#strings.isEmpty(configuracaoClinicaForm.cidade)}">
                                     <div>
                                         <p class="entity-name"
-                                           th:text="${(configuracaoClinicaForm.logradouro != null and !#strings.isEmpty(configuracaoClinicaForm.logradouro) ? configuracaoClinicaForm.logradouro + (configuracaoClinicaForm.numero != null and !#strings.isEmpty(configuracaoClinicaForm.numero) ? ', ' + configuracaoClinicaForm.numero : '') + ' â€” ' : '') + configuracaoClinicaForm.cidade + (configuracaoClinicaForm.estado != null and !#strings.isEmpty(configuracaoClinicaForm.estado) ? '/' + configuracaoClinicaForm.estado : '')}">
-                                            EndereÃ§o da clÃ­nica
+                                           th:text="${(configuracaoClinicaForm.logradouro != null and !#strings.isEmpty(configuracaoClinicaForm.logradouro) ? configuracaoClinicaForm.logradouro + (configuracaoClinicaForm.numero != null and !#strings.isEmpty(configuracaoClinicaForm.numero) ? ', ' + configuracaoClinicaForm.numero : '') + ' — ' : '') + configuracaoClinicaForm.cidade + (configuracaoClinicaForm.estado != null and !#strings.isEmpty(configuracaoClinicaForm.estado) ? '/' + configuracaoClinicaForm.estado : '')}">
+                                            Endereço da clínica
                                         </p>
-                                        <p class="entity-meta">Usado no botÃ£o "Como Chegar" do portal do paciente</p>
+                                        <p class="entity-meta">Usado no botão "Como Chegar" do portal do paciente</p>
                                     </div>
                                 </div>
                             </div>
@@ -340,7 +340,7 @@
 
         </main>
 
-        <footer class="app-footer">Â© 2026 FisioGestao - Sistema de GestÃ£o para ClÃ­nicas de Fisioterapia</footer>
+        <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
@@ -375,29 +375,29 @@
             const buscar = async () => {
                 const cep = cepInput.value.replace(/\D/g, '');
                 if (cep.length !== 8) {
-                    setFeedback('Digite um CEP vÃ¡lido com 8 dÃ­gitos.', true);
+                    setFeedback('Digite um CEP válido com 8 dígitos.', true);
                     return;
                 }
 
                 btnBuscar.disabled = true;
-                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscandoâ€¦';
+                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscando…';
                 if (window.lucide) lucide.createIcons();
                 setFeedback('', false);
 
                 try {
                     const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                    if (!res.ok) throw new Error('Falha na requisiÃ§Ã£o');
+                    if (!res.ok) throw new Error('Falha na requisição');
                     const data = await res.json();
-                    if (data.erro) throw new Error('CEP nÃ£o encontrado');
+                    if (data.erro) throw new Error('CEP não encontrado');
 
                     if (logradouro)  logradouro.value  = data.logradouro || '';
                     if (bairroInput) bairroInput.value = data.bairro     || '';
                     if (cidadeInput) cidadeInput.value = data.localidade  || '';
                     if (estadoInput) estadoInput.value = (data.uf        || '').toUpperCase();
 
-                    setFeedback('EndereÃ§o preenchido com sucesso.', false);
+                    setFeedback('Endereço preenchido com sucesso.', false);
                 } catch (e) {
-                    setFeedback(e.message === 'CEP nÃ£o encontrado' ? 'CEP nÃ£o encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
+                    setFeedback(e.message === 'CEP não encontrado' ? 'CEP não encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
                 } finally {
                     btnBuscar.disabled = false;
                     btnBuscar.innerHTML = '<i data-lucide="search"></i>Buscar';
@@ -411,4 +411,3 @@
     </script>
 </body>
 </html>
-

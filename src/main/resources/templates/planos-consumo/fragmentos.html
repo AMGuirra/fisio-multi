@@ -50,12 +50,12 @@
             <button type="button" class="choice-card choice-primary" onclick="iniciarFluxo('CRIAR_PLANO')">
                 <i data-lucide="package-plus" aria-hidden="true"></i>
                 <span class="choice-title">Criar Plano</span>
-                <span class="choice-sub">Cadastre sessoes, valor e validade antes de usar saldo.</span>
+                <span class="choice-sub">Cadastre sessões, valor e validade antes de usar saldo.</span>
             </button>
             <button type="button" class="choice-card choice-outline" onclick="iniciarFluxo('AVULSO')">
                 <i data-lucide="coins" aria-hidden="true"></i>
                 <span class="choice-title">Atendimento Avulso</span>
-                <span class="choice-sub">Registre uma cobranca pontual sem plano ativo.</span>
+                <span class="choice-sub">Registre uma cobrança pontual sem plano ativo.</span>
             </button>
         </div>
     </div>
@@ -71,7 +71,7 @@
             <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
                 <i data-lucide="coins" aria-hidden="true"></i>
                 <span class="tgl-lbl">Avulso</span>
-                <span class="tgl-sub">Cobranca unica</span>
+                <span class="tgl-sub">Cobrança única</span>
             </button>
         </div>
     </div>
@@ -83,18 +83,18 @@
             <div class="fld">
                 <label>Tipo de plano</label>
                 <select name="tipoPlano">
-                    <option value="PLANO_10" th:selected="${plano == null or plano.totalSessoes == 10}">Plano de 10 Sessoes</option>
-                    <option value="PLANO_5" th:selected="${plano != null and plano.totalSessoes == 5}">Plano de 5 Sessoes</option>
-                    <option value="PLANO_20" th:selected="${plano != null and plano.totalSessoes == 20}">Plano de 20 Sessoes</option>
+                    <option value="PLANO_10" th:selected="${plano == null or plano.totalSessoes == 10}">Plano de 10 sessões</option>
+                    <option value="PLANO_5" th:selected="${plano != null and plano.totalSessoes == 5}">Plano de 5 sessões</option>
+                    <option value="PLANO_20" th:selected="${plano != null and plano.totalSessoes == 20}">Plano de 20 sessões</option>
                 </select>
             </div>
             <div class="two">
                 <div class="fld">
-                    <label>No. de sessoes</label>
+                    <label>Nº de sessões</label>
                     <input type="number" name="totalSessoes" min="1" th:value="${plano?.totalSessoes ?: 10}">
                 </div>
                 <div class="fld">
-                    <label>Sessoes restantes</label>
+                    <label>Sessões restantes</label>
                     <input class="ro" readonly th:value="${plano?.sessoesRestantes ?: 0}">
                 </div>
             </div>
@@ -104,11 +104,11 @@
             </div>
             <div class="two">
                 <div class="fld">
-                    <label>Inicio vigencia</label>
+                    <label>Início da vigência</label>
                     <input type="date" name="inicioVigencia" th:value="${plano?.inicioVigencia}">
                 </div>
                 <div class="fld">
-                    <label>Fim vigencia</label>
+                    <label>Fim da vigência</label>
                     <input type="date" name="fimVigencia" th:value="${plano?.fimVigencia}">
                 </div>
             </div>
@@ -136,7 +136,7 @@
                 <select name="procedimento">
                     <option value="Fisioterapia geral">Fisioterapia geral</option>
                     <option value="RPG">RPG</option>
-                    <option value="Pilates clinico">Pilates clinico</option>
+                    <option value="Pilates clínico">Pilates clínico</option>
                     <option value="Acupuntura">Acupuntura</option>
                 </select>
             </div>
@@ -146,7 +146,7 @@
                     <input type="date" name="dataAtendimento" th:value="${hoje}">
                 </div>
                 <div class="fld">
-                    <label>Horario</label>
+                    <label>Horário</label>
                     <select name="horario">
                         <option value="08:00">08:00</option><option value="09:00">09:00</option>
                         <option value="10:00">10:00</option><option value="14:00">14:00</option>
@@ -162,16 +162,16 @@
                     <label>Pagamento</label>
                     <select name="formaPagamento">
                         <option value="PIX">PIX</option>
-                        <option value="CARTAO">Cartao</option>
+                        <option value="CARTAO">Cartão</option>
                         <option value="DINHEIRO">Dinheiro</option>
                     </select>
                 </div>
             </div>
             <div class="fld">
-                <label>Observacoes (opcional)</label>
+                <label>Observações (opcional)</label>
                 <input type="text" name="observacoes" placeholder="Ex: pagou na chegada">
             </div>
-            <button type="submit" class="btn-av"><i data-lucide="calendar-plus" aria-hidden="true"></i>Registrar Atendimento Avulso</button>
+            <button type="submit" class="btn-av"><i data-lucide="calendar-plus" aria-hidden="true"></i>Registrar atendimento avulso</button>
         </form>
     </div>
 </div>
@@ -179,12 +179,12 @@
 <div th:fragment="card-consumo" id="card-consumo">
     <div th:if="${modo == 'ESCOLHA'}" class="placeholder compact">
         <i data-lucide="list-checks" aria-hidden="true"></i>
-        <p>Escolha criar um plano ou registrar um atendimento avulso para acompanhar o historico aqui.</p>
+        <p>Escolha criar um plano ou registrar um atendimento avulso para acompanhar o histórico aqui.</p>
     </div>
 
     <div th:if="${modo == 'CRIAR_PLANO'}" class="placeholder compact">
         <i data-lucide="package-plus" aria-hidden="true"></i>
-        <p>Depois de salvar o plano, o saldo de sessoes fica disponivel nesta coluna.</p>
+        <p>Depois de salvar o plano, o saldo de sessões fica disponível nesta coluna.</p>
     </div>
 
     <div th:if="${modo == 'PLANO' and plano != null}">
@@ -194,17 +194,17 @@
         </div>
         <div th:if="${plano.sessoesRestantes > 1 and plano.sessoesRestantes <= 3}" class="alert-box alert-warn">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
-            <span th:text="${plano.sessoesRestantes}">2</span> sessoes restantes. Considere renovar o plano.
+            <span th:text="${plano.sessoesRestantes}">2</span> sessões restantes. Considere renovar o plano.
         </div>
 
         <div class="saldo-hdr">
-            <span class="saldo-lbl">Saldo de sessoes</span>
+            <span class="saldo-lbl">Saldo de sessões</span>
             <span class="saldo-num" th:text="${plano.sessoesUsadas + ' / ' + plano.totalSessoes}">8 / 10</span>
         </div>
         <div class="pbar-bg">
             <div class="pbar-fill" th:style="'width:' + ${plano.percentualUso} + '%;background:' + ${plano.corBarra}"></div>
         </div>
-        <div class="pbar-meta" th:text="${plano.sessoesRestantes + ' sessao(oes) restante(s) · ' + plano.percentualUso + '% consumido'}">2 sessoes restantes</div>
+        <div class="pbar-meta" th:text="${plano.sessoesRestantes + ' sessão(ões) restante(s) · ' + plano.percentualUso + '% consumido'}">2 sessões restantes</div>
 
         <div class="dots-grid">
             <div th:each="i : ${#numbers.sequence(1, plano.totalSessoes)}"
@@ -213,12 +213,12 @@
                  th:text="${i <= plano.sessoesUsadas} ? '✓' : ${i}">1</div>
         </div>
 
-        <div class="divider">Historico de sessoes</div>
-        <div th:if="${#lists.isEmpty(historico)}" class="empty-mini">Nenhuma sessao registrada.</div>
+        <div class="divider">Histórico de sessões</div>
+        <div th:if="${#lists.isEmpty(historico)}" class="empty-mini">Nenhuma sessão registrada.</div>
         <div th:each="sess : ${historico}" class="sess-item">
             <div class="sds" th:classappend="${sess.realizada} ? ' sd-ok' : ' sd-pend'"></div>
             <div>
-                <div class="sess-name" th:text="${sess.descricao}">Sessao realizada</div>
+                <div class="sess-name" th:text="${sess.descricao}">Sessão realizada</div>
                 <div class="sess-time" th:text="${sess.dataHoraFormatada}">03/05/2026 · 09h00</div>
             </div>
             <i data-lucide="chevron-right" class="sess-arr" aria-hidden="true"></i>
@@ -231,7 +231,7 @@
             <i data-lucide="wrench" aria-hidden="true"></i>
             <span>Contador desatualizado: mostra
                 <strong th:text="${reconciliacaoPreview.sessoesConsumidasAtual}">0</strong>
-                sessao(oes) consumida(s), mas deveriam ser
+                sessão(ões) consumida(s), mas deveriam ser
                 <strong th:text="${reconciliacaoPreview.sessoesConsumidasCorreto}">N</strong>.
             </span>
             <button type="button"
@@ -241,7 +241,7 @@
                              data-atual=${reconciliacaoPreview.sessoesConsumidasAtual},
                              data-correto=${reconciliacaoPreview.sessoesConsumidasCorreto},
                              data-nao-reg=${reconciliacaoPreview.sessoesNaoRegistradas}">
-                <i data-lucide="refresh-cw" aria-hidden="true"></i>Ajustar Consumo
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>Ajustar consumo
             </button>
         </div>
 
@@ -251,17 +251,17 @@
                 <div class="pc-modal-head">
                     <div>
                         <p class="pc-modal-kicker">Ajuste de consumo</p>
-                        <h2 id="reconciliarModalTitle">Reconciliar Plano</h2>
+                        <h2 id="reconciliarModalTitle">Reconciliar plano</h2>
                     </div>
                     <button type="button" class="pc-modal-close" data-reconciliar-modal-close aria-label="Fechar">
                         <i data-lucide="x" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="pc-modal-body">
-                    <p>Foram encontradas <strong id="reconciliarNaoReg">N</strong> sessao(oes)
+                    <p>Foram encontradas <strong id="reconciliarNaoReg">N</strong> sessão(ões)
                        realizada(s) sem registro no contador.</p>
                     <p>O contador sera corrigido de <strong id="reconciliarAtual">0</strong>
-                       para <strong id="reconciliarCorreto">N</strong> sessao(oes).</p>
+                       para <strong id="reconciliarCorreto">N</strong> sessão(ões).</p>
                     <p style="font-size:.8rem;color:var(--text-muted)">Nenhum e-mail sera enviado ao paciente.</p>
                 </div>
                 <form id="reconciliarForm" method="post" class="pc-modal-actions">
@@ -276,7 +276,7 @@
         </div>
 
         <button type="button" class="btn-ag" id="openAgendamentoSessaoModal">
-            <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessao
+            <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessão
         </button>
 
         <div id="agendamentoSessaoModal"
@@ -287,7 +287,7 @@
             <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="agendamentoSessaoModalTitle">
                 <div class="pc-modal-head">
                     <div>
-                        <p class="pc-modal-kicker">Nova sessao</p>
+                        <p class="pc-modal-kicker">Nova sessão</p>
                         <h2 id="agendamentoSessaoModalTitle">Agendar pelo plano</h2>
                     </div>
                     <button type="button" class="pc-modal-close" data-agendamento-modal-close aria-label="Fechar">
@@ -301,7 +301,7 @@
                     </div>
                     <div>
                         <strong th:text="${paciente.nomeCompleto}">Paciente</strong>
-                        <span th:text="${plano.tipoPlano + ' - ' + plano.sessoesRestantes + ' sessoes restantes'}">Plano</span>
+                        <span th:text="${plano.tipoPlano + ' - ' + plano.sessoesRestantes + ' sessões restantes'}">Plano</span>
                     </div>
                 </div>
 
@@ -317,7 +317,7 @@
                             <input type="date" name="data" th:value="${hoje}" required>
                         </div>
                         <div class="fld">
-                            <label>Horario</label>
+                            <label>Horário</label>
                             <input type="time" name="horario" value="08:00" step="900" required>
                         </div>
                     </div>
@@ -327,13 +327,13 @@
                         <select name="tipoAtendimento">
                             <option value="Fisioterapia geral">Fisioterapia geral</option>
                             <option value="RPG">RPG</option>
-                            <option value="Pilates clinico">Pilates clinico</option>
+                            <option value="Pilates clínico">Pilates clínico</option>
                             <option value="Acupuntura">Acupuntura</option>
                         </select>
                     </div>
 
                     <div class="fld">
-                        <label>Observacoes</label>
+                        <label>Observações</label>
                         <input type="text" name="observacoes" maxlength="2000" placeholder="Opcional">
                     </div>
 

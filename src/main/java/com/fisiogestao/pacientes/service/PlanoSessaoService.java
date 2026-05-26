@@ -368,7 +368,7 @@ public class PlanoSessaoService {
     @Transactional(readOnly = true)
     public void notificarConsumoPlano(UUID planoId, int quantidade, String motivo) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
-                .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado."));
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         if (pacienteEmailNotificationService != null) {
             pacienteEmailNotificationService.notificarConsumoPlano(plano, quantidade, motivo);
         }

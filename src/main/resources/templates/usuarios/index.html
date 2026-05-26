@@ -220,7 +220,7 @@
                                         </div>
                                         <div class="form-field">
                                             <label for="role">Tipo</label>
-                                            <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opcao para ver a descricao da funcao.">
+                                            <select id="role" class="form-select" th:field="*{role}" required title="Passe o mouse sobre uma opção para ver a descrição da função.">
                                                 <option th:each="tipo : ${tiposUsuario}" th:value="${tipo}" th:title="${tipo.description}" th:text="${tipo.label}">Administrador</option>
                                             </select>
                                             <p class="form-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></p>

@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -37,9 +38,11 @@ class UserMenuAccessServiceTest {
         assertEquals(
                 EnumSet.of(
                         AppMenuItem.DASHBOARD,
+                        AppMenuItem.HOJE,
                         AppMenuItem.AGENDA,
                         AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
+                        AppMenuItem.LISTA_ESPERA,
                         AppMenuItem.PLANOS_SESSOES,
                         AppMenuItem.PACIENTES,
                         AppMenuItem.AGENDAMENTO_ONLINE
@@ -50,6 +53,22 @@ class UserMenuAccessServiceTest {
         ArgumentCaptor<List<UserRoleMenuPermissionEntity>> captor = ArgumentCaptor.forClass(List.class);
         verify(permissionRepository).saveAll(captor.capture());
         assertEquals(menus.size(), captor.getValue().size());
+    }
+
+    @Test
+    void sidebarAdminExibeHojeEListaDeEspera() {
+        List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
+                UserRole.ADMIN,
+                "/lista-espera"
+        );
+
+        List<String> labels = itens.stream()
+                .filter(item -> !item.section())
+                .map(UserMenuAccessService.SidebarNavItem::label)
+                .toList();
+
+        assertTrue(labels.contains("Hoje"));
+        assertTrue(labels.contains("Lista de Espera"));
     }
 
     @Test

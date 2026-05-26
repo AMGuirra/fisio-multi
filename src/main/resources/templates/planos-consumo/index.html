@@ -23,7 +23,7 @@
             <div class="header-left">
                 <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
                 <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuario</h2>
+                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
                     <p class="header-date skeletonable" id="headerFullDate">Quarta-feira, 13 de maio de 2026</p>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                             <span class="step-num">1</span>
                             <div>
                                 <strong>Selecione o Paciente</strong>
-                                <small>Busca e filtro rapido</small>
+                                <small>Busca e filtro rápido</small>
                             </div>
                         </div>
 
@@ -79,8 +79,8 @@
                         <div class="step-head">
                             <span class="step-num step-2">2</span>
                             <div>
-                                <strong>Configure o Atendimento</strong>
-                                <small id="c2s" th:text="${paciente != null and modo == 'PLANO' ? 'Debito de sessao no plano' : (paciente != null and modo == 'CRIAR_PLANO' ? 'Criacao de plano' : (paciente != null and modo == 'AVULSO' ? 'Cobranca avulsa' : (paciente != null ? 'Escolha a modalidade' : 'Aguardando paciente')))}">Aguardando paciente</small>
+                                <strong>Configure o atendimento</strong>
+                                <small id="c2s" th:text="${paciente != null and modo == 'PLANO' ? 'Débito de sessão no plano' : (paciente != null and modo == 'CRIAR_PLANO' ? 'Criação de plano' : (paciente != null and modo == 'AVULSO' ? 'Cobrança avulsa' : (paciente != null ? 'Escolha a modalidade' : 'Aguardando paciente')))}">Aguardando paciente</small>
                             </div>
                         </div>
                         <div id="c2b" class="panel-body">
@@ -99,13 +99,13 @@
                             <span class="step-num step-3">3</span>
                             <div>
                                 <strong>Acompanhe o Consumo</strong>
-                                <small>Saldo e historico</small>
+                                <small>Saldo e histórico</small>
                             </div>
                         </div>
                         <div id="c3b" class="panel-body">
                             <div th:if="${paciente == null}" class="placeholder compact">
                                 <i data-lucide="chart-no-axes-column-increasing" aria-hidden="true"></i>
-                                <p>O consumo aparece aqui apos a selecao.</p>
+                                <p>O consumo aparece aqui após a seleção.</p>
                             </div>
                             <th:block th:if="${paciente != null}">
                                 <div th:replace="~{planos-consumo/fragmentos :: card-consumo}"></div>
@@ -123,9 +123,9 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
 
         function rotuloModo(modo) {
-            if (modo === 'PLANO') return 'Debito de sessao no plano';
-            if (modo === 'CRIAR_PLANO') return 'Criacao de plano';
-            if (modo === 'AVULSO') return 'Cobranca avulsa';
+            if (modo === 'PLANO') return 'Débito de sessão no plano';
+            if (modo === 'CRIAR_PLANO') return 'Criação de plano';
+            if (modo === 'AVULSO') return 'Cobrança avulsa';
             return 'Escolha a modalidade';
         }
 
@@ -149,7 +149,7 @@
                 }
                 atualizarPaineis(await res.text(), modo);
             } catch (err) {
-                document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Falha de conexao. Recarregue a pagina.</p></div>';
+                document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Falha de conexão. Recarregue a página.</p></div>';
             }
         }
 

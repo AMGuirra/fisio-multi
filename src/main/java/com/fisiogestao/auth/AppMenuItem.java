@@ -10,7 +10,7 @@ public enum AppMenuItem {
     AGENDA("Agenda",                 "/calendario",          "calendar-days",       false, false, true,  false, MenuSection.AGENDA, List.of("/agenda", "/calendario")),
     CALENDARIO("Calendário",         "/calendario",          "calendar-range",      false, false, false, false, MenuSection.AGENDA, List.of("/calendario")),
     BLOQUEIOS("Bloqueios",           "/bloqueios",            "calendar-x-2",      false, false, true,  false, MenuSection.AGENDA, List.of("/bloqueios")),
-    SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes", "/lista-espera")),
+    SOLICITACOES("Solicitações",     "/solicitacoes",        "calendar-plus",       false, false, true,  false, MenuSection.AGENDA, List.of("/solicitacoes", "/api/solicitacoes")),
     LISTA_ESPERA("Lista de Espera", "/lista-espera",        "clock",               false, false, true,  false, MenuSection.AGENDA, List.of("/lista-espera")),
     PACIENTES("Pacientes",           "/pacientes",           "stethoscope",         false, false, true,  false, MenuSection.CLINICO, List.of("/pacientes")),
     PLANOS_SESSOES("Planos de Tratamentos", "/planos-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/planos-consumo")),
@@ -183,9 +183,11 @@ public enum AppMenuItem {
     public static List<AppMenuItem> sidebarPrincipais() {
         return List.of(
                 DASHBOARD,
+                HOJE,
                 AGENDA,
                 BLOQUEIOS,
                 SOLICITACOES,
+                LISTA_ESPERA,
                 PACIENTES,
                 PLANOS_SESSOES,
                 PRONTUARIO,

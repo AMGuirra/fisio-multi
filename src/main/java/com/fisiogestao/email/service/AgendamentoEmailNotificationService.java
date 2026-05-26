@@ -157,7 +157,7 @@ public class AgendamentoEmailNotificationService {
                 sessao.getCliente().getNomeCompleto(),
                 sessao.getDataHoraInicio(),
                 motivo,
-                texto(profissional, "Equipe da clÃ­nica"),
+                texto(profissional, "Equipe da clínica"),
                 null,
                 null
         );
