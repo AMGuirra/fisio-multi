@@ -43,6 +43,13 @@ public class PlanoService {
     }
 
     @Transactional(readOnly = true)
+    public PlanoResumoDTO buscarPlanoPorId(UUID planoId) {
+        return planoSessaoRepository.findById(planoId)
+                .map(this::paraPlanoResumo)
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
     public PlanoResumoDTO buscarPlanoPorPaciente(UUID pacienteId) {
         return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
                 .filter(plano -> plano.getStatus() == PlanoSessaoStatus.ATIVO)
@@ -54,18 +61,33 @@ public class PlanoService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public PlanoResumoDTO buscarUltimoPlanoIncluindoInativos(UUID pacienteId) {
+        return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
+                .filter(plano -> plano.getStatus() != PlanoSessaoStatus.CANCELADO)
+                .findFirst()
+                .map(this::paraPlanoResumo)
+                .orElse(null);
+    }
+
     @Transactional
     public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form) {
         ClienteEntity paciente = pacienteService.buscarPorId(pacienteId);
-        PlanoSessaoEntity plano = planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                .filter(item -> item.getStatus() == PlanoSessaoStatus.ATIVO)
-                .findFirst()
-                .orElseGet(() -> {
-                    PlanoSessaoEntity novo = new PlanoSessaoEntity();
-                    novo.setCliente(paciente);
-                    novo.setSessoesConsumidas(0);
-                    return novo;
-                });
+        PlanoSessaoEntity plano;
+        if (form.getPlanoId() != null) {
+            plano = planoSessaoRepository.findById(form.getPlanoId())
+                    .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
+        } else {
+            plano = planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
+                    .filter(item -> item.getStatus() == PlanoSessaoStatus.ATIVO)
+                    .findFirst()
+                    .orElseGet(() -> {
+                        PlanoSessaoEntity novo = new PlanoSessaoEntity();
+                        novo.setCliente(paciente);
+                        novo.setSessoesConsumidas(0);
+                        return novo;
+                    });
+        }
 
         int total = form.getTotalSessoes() > 0 ? form.getTotalSessoes() : totalPorTipo(form.getTipoPlano());
         if (plano.getSessoesConsumidas() != null && plano.getSessoesConsumidas() > total) {

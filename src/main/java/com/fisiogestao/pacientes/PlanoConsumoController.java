@@ -191,6 +191,16 @@ public class PlanoConsumoController {
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Consumo ajustado com sucesso.");
                 adicionarContextoPaciente(pacienteId, "PLANO", model);
+                // buscarPlanoPorPaciente só retorna planos ATIVO; se a reconciliação
+                // mudou o status para CONCLUIDO/EXPIRADO, o plano sumia da tela.
+                // Aqui garantimos que o plano reconciliado sempre seja exibido.
+                PlanoResumoDTO planoReconciliado = planoService.buscarPlanoPorId(planoId);
+                if (planoReconciliado != null) {
+                    model.addAttribute("plano", planoReconciliado);
+                    model.addAttribute("modo", "PLANO");
+                    model.addAttribute("reconciliacaoPreview",
+                            planoSessaoService.previewReconciliacao(planoId));
+                }
                 return "planos-consumo/fragmentos :: configuracao-e-consumo";
             }
             return "redirect:/planos-consumo?pacienteId=" + pacienteId;
@@ -207,6 +217,10 @@ public class PlanoConsumoController {
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
         PacienteListaDTO paciente = planoService.buscarResumoDTO(pacienteId);
         PlanoResumoDTO plano = planoService.buscarPlanoPorPaciente(pacienteId);
+        // Se não há plano ATIVO, mostra o mais recente CONCLUIDO/EXPIRADO para que o admin possa editá-lo
+        if (plano == null && !"AVULSO".equals(modoSolicitado) && !"CRIAR_PLANO".equals(modoSolicitado)) {
+            plano = planoService.buscarUltimoPlanoIncluindoInativos(pacienteId);
+        }
         String modo = normalizarModo(modoSolicitado, plano != null);
 
         model.addAttribute("paciente", paciente);

@@ -80,6 +80,7 @@
         <div class="divider" th:text="${modo == 'CRIAR_PLANO'} ? 'Dados do novo plano' : 'Dados do plano'">Dados do plano</div>
         <form th:action="@{/planos-consumo/{id}/plano(id=${paciente.id})}" method="post" class="pc-form">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <input type="hidden" name="planoId" th:if="${plano != null}" th:value="${plano.id}">
             <div class="fld">
                 <label>Tipo de plano</label>
                 <select name="tipoPlano">
@@ -116,6 +117,7 @@
                 <label>Status</label>
                 <select name="status">
                     <option value="ATIVO" th:selected="${plano == null or plano.status == 'ATIVO'}">Ativo</option>
+                    <option value="CONCLUIDO" th:selected="${plano != null and plano.status == 'CONCLUIDO'}">Concluído</option>
                     <option value="EXPIRADO" th:selected="${plano != null and plano.status == 'EXPIRADO'}">Suspenso</option>
                     <option value="CANCELADO" th:selected="${plano != null and plano.status == 'CANCELADO'}">Encerrado</option>
                 </select>
