@@ -14,6 +14,9 @@ public enum AppMenuItem {
     PLANOS_SESSOES("Planos de Tratamentos", "/planos-consumo", "package-open",    false, false, true,  false, MenuSection.CLINICO, List.of("/planos-consumo")),
     PRONTUARIO("Prontuário",         "/prontuario",          "clipboard-pen-line",  false, false, true,  false, MenuSection.CLINICO, List.of("/prontuario")),
     FINANCEIRO("Financeiro",         "/financeiro",          "wallet",              false, false, true,  false, MenuSection.GESTAO,  List.of("/financeiro")),
+    CONTAS_RECEBER("Contas a Receber", "/financeiro/contas-a-receber", "badge-dollar-sign", false, false, true, false, MenuSection.GESTAO, List.of("/financeiro/contas-a-receber")),
+    CONTAS_PAGAR("Contas a Pagar",   "/financeiro/contas-a-pagar", "receipt",       false, false, true,  false, MenuSection.GESTAO,  List.of("/financeiro/contas-a-pagar")),
+    FATURAMENTO("Faturamento",       "/financeiro/relatorio-faturamento", "bar-chart-3", false, false, true, false, MenuSection.GESTAO, List.of("/financeiro/relatorio-faturamento")),
     RELATORIOS("Relatórios",         "/relatorios",          "file-text",           false, false, true,  false, MenuSection.GESTAO,  List.of("/relatorios")),
     CONFIG_CLINICA("Config. Clínica",  "/configuracoes/clinica", "building-2",      false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/clinica", "/configuracao/clinica")),
     SYSTEM_STATUS("Status do Sistema", "/admin/system-status",   "monitor-check",   false, false, false, true,  MenuSection.ADMIN,   List.of("/admin/system-status")),
@@ -137,6 +140,12 @@ public enum AppMenuItem {
                 return "Da acesso ao registro clinico e evolucao dos atendimentos.";
             case FINANCEIRO:
                 return "Controla lancamentos, recebimentos, despesas e fluxo financeiro.";
+            case CONTAS_RECEBER:
+                return "Exibe receitas pendentes e vencidas para acompanhamento de cobrancas.";
+            case CONTAS_PAGAR:
+                return "Exibe despesas pendentes e vencidas para controle de pagamentos.";
+            case FATURAMENTO:
+                return "Apresenta o relatorio de faturamento por periodo e agrupamentos financeiros.";
             case RELATORIOS:
                 return "Reune relatorios e consultas gerenciais do sistema.";
             case CONFIG_CLINICA:
@@ -162,6 +171,9 @@ public enum AppMenuItem {
         if (currentPath == null || currentPath.isBlank()) {
             return false;
         }
+        if (this == FINANCEIRO) {
+            return "/financeiro".equals(currentPath) || currentPath.startsWith("/financeiro/lancamentos");
+        }
         return pathPrefixes.stream().anyMatch(prefix -> matchesPrefix(currentPath, prefix));
     }
 
@@ -184,6 +196,9 @@ public enum AppMenuItem {
                 PLANOS_SESSOES,
                 PRONTUARIO,
                 FINANCEIRO,
+                CONTAS_RECEBER,
+                CONTAS_PAGAR,
+                FATURAMENTO,
                 RELATORIOS,
                 CONFIG_CLINICA,
                 SYSTEM_STATUS,

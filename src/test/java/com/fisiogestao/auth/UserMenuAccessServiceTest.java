@@ -69,6 +69,37 @@ class UserMenuAccessServiceTest {
     }
 
     @Test
+    void sidebarAdminExibeSubmenusFinanceiros() {
+        List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
+                UserRole.ADMIN,
+                "/financeiro/contas-a-receber"
+        );
+
+        List<String> labels = itens.stream()
+                .filter(item -> !item.section())
+                .map(UserMenuAccessService.SidebarNavItem::label)
+                .toList();
+
+        assertTrue(labels.contains("Financeiro"));
+        assertTrue(labels.contains("Contas a Receber"));
+        assertTrue(labels.contains("Contas a Pagar"));
+        assertTrue(labels.contains("Faturamento"));
+        assertTrue(labels.stream().anyMatch(label -> label.startsWith("Relat")));
+    }
+
+    @Test
+    void perfilFinanceiroIncluiSubmenusFinanceirosPorPadrao() {
+        when(permissionRepository.findByRoleOrderByMenuKeyAsc(UserRole.FINANCEIRO)).thenReturn(List.of());
+
+        EnumSet<AppMenuItem> menus = userMenuAccessService.listarMenusLiberados(UserRole.FINANCEIRO);
+
+        assertTrue(menus.contains(AppMenuItem.FINANCEIRO));
+        assertTrue(menus.contains(AppMenuItem.CONTAS_RECEBER));
+        assertTrue(menus.contains(AppMenuItem.CONTAS_PAGAR));
+        assertTrue(menus.contains(AppMenuItem.FATURAMENTO));
+    }
+
+    @Test
     void deveTratarPermissaoLegadaDeCalendarioComoAgendaUnificada() {
         when(permissionRepository.findByRoleOrderByMenuKeyAsc(UserRole.RECEPCAO)).thenReturn(List.of(
                 UserRoleMenuPermissionEntity.builder().role(UserRole.RECEPCAO).menuKey(AppMenuItem.CALENDARIO).build()

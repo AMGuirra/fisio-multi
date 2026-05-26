@@ -238,6 +238,9 @@ public class UserMenuAccessService {
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.PACIENTES,
                     AppMenuItem.FINANCEIRO,
+                    AppMenuItem.CONTAS_RECEBER,
+                    AppMenuItem.CONTAS_PAGAR,
+                    AppMenuItem.FATURAMENTO,
                     AppMenuItem.RELATORIOS
             );
         };
