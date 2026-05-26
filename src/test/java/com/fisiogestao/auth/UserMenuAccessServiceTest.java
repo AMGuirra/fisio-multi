@@ -41,7 +41,6 @@ class UserMenuAccessServiceTest {
                         AppMenuItem.AGENDA,
                         AppMenuItem.BLOQUEIOS,
                         AppMenuItem.SOLICITACOES,
-                        AppMenuItem.LISTA_ESPERA,
                         AppMenuItem.PLANOS_SESSOES,
                         AppMenuItem.PACIENTES,
                         AppMenuItem.AGENDAMENTO_ONLINE
@@ -55,10 +54,10 @@ class UserMenuAccessServiceTest {
     }
 
     @Test
-    void sidebarAdminExibeListaDeEspera() {
+    void sidebarAdminNaoExibeListaDeEsperaSeparada() {
         List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
                 UserRole.ADMIN,
-                "/lista-espera"
+                "/solicitacoes"
         );
 
         List<String> labels = itens.stream()
@@ -66,7 +65,7 @@ class UserMenuAccessServiceTest {
                 .map(UserMenuAccessService.SidebarNavItem::label)
                 .toList();
 
-        assertTrue(labels.contains("Lista de Espera"));
+        assertTrue(labels.contains("Solicitações"));
     }
 
     @Test

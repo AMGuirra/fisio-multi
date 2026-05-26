@@ -58,6 +58,12 @@
                 <span class="hero-pill">Operação clínica</span>
             </section>
 
+            <nav class="page-tabs" aria-label="Seções da Agenda">
+                <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
+                <a th:href="@{/bloqueios}" class="page-tab active"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/solicitacoes}" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+            </nav>
+
             <section class="summary-grid">
                 <article class="summary-card saldo">
                     <div class="summary-icon"><i data-lucide="rows-3"></i></div>
@@ -328,4 +334,3 @@
     </script>
 </body>
 </html>
-

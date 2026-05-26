@@ -4259,7 +4259,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 
 .solicitacoes-page .solicitacoes-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-columns: 280px minmax(0, 1fr);
     gap: 16px;
     align-items: flex-start;
 }
@@ -4270,6 +4270,15 @@ body[data-theme='dark'] .waitlist-action-danger {
     flex-direction: column;
     gap: 16px;
     min-width: 0;
+}
+
+.solicitacoes-page .solicitacoes-main {
+    grid-column: 2;
+}
+
+.solicitacoes-page .solicitacoes-sidebar {
+    grid-column: 1;
+    grid-row: 1;
 }
 
 .solicitacoes-page .sol-card-header {
@@ -4898,6 +4907,12 @@ body[data-theme='dark'] .waitlist-action-danger {
     .solicitacoes-page .metrics-grid,
     .solicitacoes-page .solicitacoes-grid {
         grid-template-columns: 1fr;
+    }
+
+    .solicitacoes-page .solicitacoes-main,
+    .solicitacoes-page .solicitacoes-sidebar {
+        grid-column: auto;
+        grid-row: auto;
     }
 
     .solicitacoes-page .req-item {

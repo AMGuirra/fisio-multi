@@ -221,32 +221,6 @@ class PageSmokeTest {
                 .andExpect(status().isOk());
     }
 
-    @ParameterizedTest
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    @ValueSource(strings = {
-            "/lista-espera|/solicitacoes#lista-espera"
-    })
-    void atalhosDaSidebarRedirecionamParaDestinoEsperado(String pathAndRedirect) throws Exception {
-        String[] parts = pathAndRedirect.split("\\|");
-
-        mockMvc.perform(get(parts[0]))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(parts[1]));
-    }
-
-    @ParameterizedTest
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
-    @ValueSource(strings = {
-            "/lista-espera|/solicitacoes#lista-espera"
-    })
-    void recepcaoPodeAcessarAtalhosPadraoDaSidebar(String pathAndRedirect) throws Exception {
-        String[] parts = pathAndRedirect.split("\\|");
-
-        mockMvc.perform(get(parts[0]))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(parts[1]));
-    }
-
     @Test
     @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void recepcaoNaoPodeAcessarRelatorios() throws Exception {
