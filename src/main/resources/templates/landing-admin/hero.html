@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero — Landing Page · FisioGestão</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+<div class="app-shell">
+    <header class="app-header dashboard-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title">Hero da Landing Page</h2>
+                <p class="header-context">Título, subtítulo, CTAs e estatísticas.</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary">
+                <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar
+            </a>
+        </div>
+    </header>
+
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:800px;">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <form th:action="@{/admin/landing/hero}" method="post" class="form-card">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+            <div class="form-section-title">Texto principal</div>
+
+            <div class="form-group">
+                <label class="form-label">Badge (etiqueta do topo)</label>
+                <input type="text" name="hero.badge" class="form-control"
+                       th:value="${cfg['hero.badge']}" maxlength="80" placeholder="Software especializado em fisioterapia">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Título <span class="required">*</span></label>
+                <input type="text" name="hero.titulo" class="form-control" required
+                       th:value="${cfg['hero.titulo']}" maxlength="100" placeholder="Gestão clínica que trabalha com você">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Subtítulo</label>
+                <textarea name="hero.subtitulo" class="form-control" rows="3" maxlength="400"
+                          th:text="${cfg['hero.subtitulo']}" placeholder="Descrição curta do sistema..."></textarea>
+            </div>
+
+            <div class="form-section-title" style="margin-top:var(--space-xl)">Botões de ação (CTAs)</div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label">CTA Primário (texto)</label>
+                    <input type="text" name="hero.cta_primario" class="form-control"
+                           th:value="${cfg['hero.cta_primario']}" maxlength="60">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CTA Primário (link)</label>
+                    <input type="text" name="hero.cta_primario_link" class="form-control"
+                           th:value="${cfg['hero.cta_primario_link']}" maxlength="200" placeholder="#funcionalidades">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CTA Secundário (texto)</label>
+                    <input type="text" name="hero.cta_secundario" class="form-control"
+                           th:value="${cfg['hero.cta_secundario']}" maxlength="60">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CTA Secundário (link)</label>
+                    <input type="text" name="hero.cta_secundario_link" class="form-control"
+                           th:value="${cfg['hero.cta_secundario_link']}" maxlength="200" placeholder="/login">
+                </div>
+            </div>
+
+            <div class="form-section-title" style="margin-top:var(--space-xl)">Estatísticas (4 números)</div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label">Stat 1 — Valor</label>
+                    <input type="text" name="hero.stat1_valor" class="form-control" th:value="${cfg['hero.stat1_valor']}" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 1 — Rótulo</label>
+                    <input type="text" name="hero.stat1_label" class="form-control" th:value="${cfg['hero.stat1_label']}" maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 2 — Valor</label>
+                    <input type="text" name="hero.stat2_valor" class="form-control" th:value="${cfg['hero.stat2_valor']}" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 2 — Rótulo</label>
+                    <input type="text" name="hero.stat2_label" class="form-control" th:value="${cfg['hero.stat2_label']}" maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 3 — Valor</label>
+                    <input type="text" name="hero.stat3_valor" class="form-control" th:value="${cfg['hero.stat3_valor']}" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 3 — Rótulo</label>
+                    <input type="text" name="hero.stat3_label" class="form-control" th:value="${cfg['hero.stat3_label']}" maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 4 — Valor</label>
+                    <input type="text" name="hero.stat4_valor" class="form-control" th:value="${cfg['hero.stat4_valor']}" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stat 4 — Rótulo</label>
+                    <input type="text" name="hero.stat4_label" class="form-control" th:value="${cfg['hero.stat4_label']}" maxlength="40">
+                </div>
+            </div>
+
+            <div style="display:flex;gap:var(--space-md);margin-top:var(--space-xl)">
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="save" style="width:15px;height:15px;"></i> Salvar alterações
+                </button>
+                <a th:href="@{/admin/landing}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script th:src="@{/js/vendor/lucide.min.js}"></script>
+<script>lucide.createIcons();</script>
+<script th:src="@{/js/dashboard-modern.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seções — Landing Page · FisioGestão</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        .sec-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--stroke-soft);border-radius:var(--radius-md);padding:var(--space-md) var(--space-lg);margin-bottom:var(--space-sm);}
+        .sec-row__title{font-weight:700;color:var(--text-strong);font-size:var(--text-base);}
+        .sec-row__desc{font-size:var(--text-sm);color:var(--text-soft);}
+        .toggle-sw{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
+        .toggle-sw input{opacity:0;width:0;height:0;}
+        .toggle-sl{position:absolute;inset:0;background:var(--stroke-strong);border-radius:999px;cursor:pointer;transition:background var(--ease-standard);}
+        .toggle-sl::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform var(--ease-standard);}
+        .toggle-sw input:checked+.toggle-sl{background:var(--brand-500);}
+        .toggle-sw input:checked+.toggle-sl::before{transform:translateX(20px);}
+    </style>
+</head>
+<body class="dashboard-app">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+<div class="app-shell">
+    <header class="app-header dashboard-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title">Visibilidade das Seções</h2>
+                <p class="header-context">Ative ou desative seções da landing page.</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        </div>
+    </header>
+
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:680px;">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <form th:action="@{/admin/landing/secoes}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">Como Funciona</div><div class="sec-row__desc">Timeline de 4 passos de onboarding.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.como_funciona" value="true" th:checked="${cfg['secao.como_funciona'] == null or cfg['secao.como_funciona'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">Funcionalidades</div><div class="sec-row__desc">Mini-mockups da Agenda, Painel e Portal.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.funcionalidades" value="true" th:checked="${cfg['secao.funcionalidades'] == null or cfg['secao.funcionalidades'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">Benefícios</div><div class="sec-row__desc">Cards com os diferenciais do sistema.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.beneficios" value="true" th:checked="${cfg['secao.beneficios'] == null or cfg['secao.beneficios'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">Depoimentos</div><div class="sec-row__desc">Avaliações de fisioterapeutas.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.depoimentos" value="true" th:checked="${cfg['secao.depoimentos'] == null or cfg['secao.depoimentos'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">Planos e Preços</div><div class="sec-row__desc">Tabela comparativa de planos.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.planos" value="true" th:checked="${cfg['secao.planos'] == null or cfg['secao.planos'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div class="sec-row">
+                <div><div class="sec-row__title">FAQ</div><div class="sec-row__desc">Perguntas frequentes com accordion.</div></div>
+                <label class="toggle-sw"><input type="checkbox" name="secao.faq" value="true" th:checked="${cfg['secao.faq'] == null or cfg['secao.faq'] == 'true'}"><span class="toggle-sl"></span></label>
+            </div>
+
+            <div style="margin-top:var(--space-xl)">
+                <button type="submit" class="btn btn-primary"><i data-lucide="save" style="width:15px;height:15px;"></i> Salvar</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script th:src="@{/js/vendor/lucide.min.js}"></script>
+<script>lucide.createIcons();</script>
+<script th:src="@{/js/dashboard-modern.js}" defer></script>
+</body>
+</html>

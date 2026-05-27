@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page — Gerenciador · FisioGestão</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+<div class="app-shell">
+    <header class="app-header dashboard-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Menu" aria-expanded="true"><i data-lucide="panel-left"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title">Landing Page</h2>
+                <p class="header-context">Gerencie o conteúdo exibido na página pública.</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/" target="_blank" class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;gap:6px;">
+                <i data-lucide="external-link" style="width:14px;height:14px;"></i> Ver landing page
+            </a>
+        </div>
+    </header>
+
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+
+        <!-- Flash message -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <!-- Cards de seção -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-lg);">
+
+            <!-- Hero -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(15,143,122,.12);color:var(--brand-500)"><i data-lucide="sparkles"></i></div>
+                    <div>
+                        <div class="stat-card-label">Hero</div>
+                        <div class="stat-card-value" style="font-size:var(--text-sm);font-weight:500;color:var(--text-soft)">Título, subtítulo e CTAs</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/hero}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Editar Hero</a>
+                </div>
+            </div>
+
+            <!-- Seções -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(47,111,236,.12);color:var(--blue-500)"><i data-lucide="eye"></i></div>
+                    <div>
+                        <div class="stat-card-label">Visibilidade</div>
+                        <div class="stat-card-value" style="font-size:var(--text-sm);font-weight:500;color:var(--text-soft)">Ativar/desativar seções</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/secoes}" class="btn btn-sm btn-secondary" style="width:100%;justify-content:center;">Gerenciar Seções</a>
+                </div>
+            </div>
+
+            <!-- Depoimentos -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(15,143,122,.12);color:var(--brand-500)"><i data-lucide="message-square-quote"></i></div>
+                    <div>
+                        <div class="stat-card-label">Depoimentos</div>
+                        <div class="stat-card-value" th:text="${totalDepos + ' cadastrados'}">3 cadastrados</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/testemunhos}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Gerenciar</a>
+                </div>
+            </div>
+
+            <!-- Planos -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(209,154,16,.12);color:var(--yellow-500)"><i data-lucide="receipt-text"></i></div>
+                    <div>
+                        <div class="stat-card-label">Planos e Preços</div>
+                        <div class="stat-card-value" th:text="${totalPlanos + ' planos'}">3 planos</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/planos}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Gerenciar</a>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(47,111,236,.12);color:var(--blue-500)"><i data-lucide="circle-help"></i></div>
+                    <div>
+                        <div class="stat-card-label">FAQ</div>
+                        <div class="stat-card-value" th:text="${totalFaqs + ' perguntas'}">6 perguntas</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/faq}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Gerenciar</a>
+                </div>
+            </div>
+
+            <!-- Benefícios -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(15,143,122,.12);color:var(--brand-500)"><i data-lucide="star"></i></div>
+                    <div>
+                        <div class="stat-card-label">Benefícios</div>
+                        <div class="stat-card-value" th:text="${totalBeneficios + ' cards'}">6 cards</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/beneficios}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Gerenciar</a>
+                </div>
+            </div>
+
+            <!-- Steps -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon" style="background:rgba(209,154,16,.12);color:var(--yellow-500)"><i data-lucide="list-ordered"></i></div>
+                    <div>
+                        <div class="stat-card-label">Como Funciona</div>
+                        <div class="stat-card-value" th:text="${totalSteps + ' passos'}">4 passos</div>
+                    </div>
+                </div>
+                <div style="margin-top:var(--space-md)">
+                    <a th:href="@{/admin/landing/steps}" class="btn btn-sm btn-primary" style="width:100%;justify-content:center;">Gerenciar</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/vendor/lucide.min.js}"></script>
+<script>lucide.createIcons();</script>
+<script th:src="@{/js/dashboard-modern.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benefícios — Landing Page · FisioGestão</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+<div class="app-shell">
+    <header class="app-header dashboard-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title">Benefícios</h2>
+                <p class="header-context">Cards de benefícios exibidos na landing page.</p>
+            </div>
+        </div>
+        <div class="header-right" style="display:flex;gap:var(--space-sm);">
+            <button type="button" class="btn btn-primary" onclick="abrirModalNovo()"><i data-lucide="plus" style="width:15px;height:15px;"></i> Novo benefício</button>
+            <a th:href="@{/admin/landing}" class="btn btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        </div>
+    </header>
+
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <p class="helper-text" style="margin-bottom:var(--space-md)">
+            <strong>Cor:</strong> 1 = Verde, 2 = Azul, 3 = Amarelo. O ícone é escolhido pela lista predefinida.
+        </p>
+
+        <div class="table-cards-wrapper">
+            <table class="crud-table">
+                <thead><tr><th>Ícone</th><th>Título</th><th>Cor</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody>
+                    <tr th:each="b : ${lista}" th:classappend="${!b.ativo} ? ' row-inactive' : ''">
+                        <td data-label="Ícone">
+                            <span class="badge badge-secondary" th:text="${b.icone}">BELL</span>
+                        </td>
+                        <td data-label="Título">
+                            <strong th:text="${b.titulo}">Título</strong>
+                            <div style="font-size:var(--text-xs);color:var(--text-soft);margin-top:2px" th:text="${#strings.abbreviate(b.descricao, 60)}"></div>
+                        </td>
+                        <td data-label="Cor">
+                            <span th:if="${b.cor == 1}" class="badge badge-success">Verde</span>
+                            <span th:if="${b.cor == 2}" class="badge" style="background:var(--blue-100,#dbeafe);color:var(--blue-700,#1d4ed8)">Azul</span>
+                            <span th:if="${b.cor == 3}" class="badge" style="background:var(--yellow-100,#fef9c3);color:var(--yellow-700,#a16207)">Amarelo</span>
+                        </td>
+                        <td data-label="Ordem" th:text="${b.ordem}">0</td>
+                        <td data-label="Status">
+                            <span th:if="${b.ativo}" class="badge badge-success">Ativo</span>
+                            <span th:unless="${b.ativo}" class="badge badge-secondary">Inativo</span>
+                        </td>
+                        <td data-label="Ações" style="white-space:nowrap">
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                    th:attr="data-id=${b.id},data-icone=${b.icone},data-cor=${b.cor},data-titulo=${b.titulo},data-descricao=${b.descricao},data-ordem=${b.ordem}"
+                                    onclick="abrirModalEditar(this)">
+                                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                            </button>
+                            <form th:action="@{'/admin/landing/beneficios/' + ${b.id} + '/alternar'}" method="post" style="display:inline">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${b.ativo ? 'eye-off' : 'eye'}" style="width:13px;height:13px;"></i></button>
+                            </form>
+                            <form th:action="@{'/admin/landing/beneficios/' + ${b.id} + '/excluir'}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Remover este benefício?')">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(lista)}"><td colspan="6" style="text-align:center;color:var(--text-soft);padding:var(--space-xl)">Nenhum benefício cadastrado.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- Modal Novo -->
+<div id="modalNovo" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:560px;width:100%">
+        <div class="modal-header"><h3 class="modal-title">Novo benefício</h3><button type="button" class="modal-close" onclick="fecharModalNovo()">&times;</button></div>
+        <form th:action="@{/admin/landing/beneficios/novo}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                    <div class="form-group">
+                        <label class="form-label">Ícone *</label>
+                        <select name="icone" class="form-control" required>
+                            <option th:each="ic : ${icones}" th:value="${ic}" th:text="${ic}">BELL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cor</label>
+                        <select name="cor" class="form-control">
+                            <option value="1">Verde</option>
+                            <option value="2">Azul</option>
+                            <option value="3">Amarelo</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="titulo" class="form-control" required maxlength="120">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Descrição *</label>
+                        <textarea name="descricao" class="form-control" rows="3" required maxlength="500"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" name="ordem" class="form-control" value="0" min="0" max="99">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalNovo()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div id="modalEditar" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:560px;width:100%">
+        <div class="modal-header"><h3 class="modal-title">Editar benefício</h3><button type="button" class="modal-close" onclick="fecharModalEditar()">&times;</button></div>
+        <form id="formEditar" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                    <div class="form-group">
+                        <label class="form-label">Ícone *</label>
+                        <select id="eIcone" name="icone" class="form-control" required>
+                            <option th:each="ic : ${icones}" th:value="${ic}" th:text="${ic}">BELL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cor</label>
+                        <select id="eCor" name="cor" class="form-control">
+                            <option value="1">Verde</option>
+                            <option value="2">Azul</option>
+                            <option value="3">Amarelo</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Título *</label>
+                        <input type="text" id="eTitulo" name="titulo" class="form-control" required maxlength="120">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Descrição *</label>
+                        <textarea id="eDescricao" name="descricao" class="form-control" rows="3" required maxlength="500"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" id="eOrdem" name="ordem" class="form-control" min="0" max="99">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalEditar()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/vendor/lucide.min.js}"></script>
+<script>
+    lucide.createIcons();
+    function abrirModalNovo(){document.getElementById('modalNovo').style.display='flex';}
+    function fecharModalNovo(){document.getElementById('modalNovo').style.display='none';}
+    function abrirModalEditar(btn){
+        var d=btn.dataset;
+        document.getElementById('formEditar').action='/admin/landing/beneficios/'+d.id+'/editar';
+        document.getElementById('eIcone').value=d.icone||'BELL';
+        document.getElementById('eCor').value=d.cor||'1';
+        document.getElementById('eTitulo').value=d.titulo||'';
+        document.getElementById('eDescricao').value=d.descricao||'';
+        document.getElementById('eOrdem').value=d.ordem||0;
+        document.getElementById('modalEditar').style.display='flex';
+    }
+    function fecharModalEditar(){document.getElementById('modalEditar').style.display='none';}
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){fecharModalNovo();fecharModalEditar();}});
+</script>
+<script th:src="@{/js/dashboard-modern.js}" defer></script>
+</body>
+</html>

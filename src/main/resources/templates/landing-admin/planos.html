@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos — Landing Page · FisioGestão</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app">
+<button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
+<th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+<div class="app-shell">
+    <header class="app-header dashboard-header">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title">Planos e Preços</h2>
+                <p class="header-context">Gerencie os planos exibidos na landing page.</p>
+            </div>
+        </div>
+        <div class="header-right" style="display:flex;gap:var(--space-sm);">
+            <button type="button" class="btn btn-primary" onclick="abrirModalNovo()"><i data-lucide="plus" style="width:15px;height:15px;"></i> Novo plano</button>
+            <a th:href="@{/admin/landing}" class="btn btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        </div>
+    </header>
+
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <p class="helper-text" style="margin-bottom:var(--space-md)">
+            <strong>Recursos:</strong> uma linha por recurso. Prefixo <code>+</code> = incluído, <code>-</code> = não incluído.
+        </p>
+
+        <div class="table-cards-wrapper">
+            <table class="crud-table">
+                <thead><tr><th>Nome</th><th>Preço</th><th>Destaque</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody>
+                    <tr th:each="p : ${lista}" th:classappend="${!p.ativo} ? ' row-inactive' : ''">
+                        <td data-label="Nome">
+                            <strong th:text="${p.nome}">Nome</strong>
+                            <span th:if="${p.destaque}" class="badge badge-success" style="margin-left:4px">Destaque</span>
+                        </td>
+                        <td data-label="Preço">
+                            R$ <span th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                            <span th:text="${p.periodo}" style="color:var(--text-soft);font-size:var(--text-xs)">/mês</span>
+                        </td>
+                        <td data-label="Destaque">
+                            <span th:if="${p.destaque}">⭐ <span th:text="${p.badgeTexto}"></span></span>
+                            <span th:unless="${p.destaque}" style="color:var(--text-soft)">—</span>
+                        </td>
+                        <td data-label="Ordem" th:text="${p.ordem}">0</td>
+                        <td data-label="Status">
+                            <span th:if="${p.ativo}" class="badge badge-success">Ativo</span>
+                            <span th:unless="${p.ativo}" class="badge badge-secondary">Inativo</span>
+                        </td>
+                        <td data-label="Ações" style="white-space:nowrap">
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                    th:attr="data-id=${p.id},data-nome=${p.nome},data-descricao=${p.descricao},data-preco=${p.preco},data-periodo=${p.periodo},data-recursos=${p.recursos},data-destaque=${p.destaque},data-badge=${p.badgeTexto},data-ctatexto=${p.ctaTexto},data-ctalink=${p.ctaLink},data-ordem=${p.ordem}"
+                                    onclick="abrirModalEditar(this)">
+                                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                            </button>
+                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/alternar'}" method="post" style="display:inline">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${p.ativo ? 'eye-off' : 'eye'}" style="width:13px;height:13px;"></i></button>
+                            </form>
+                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/excluir'}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Remover este plano?')">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(lista)}"><td colspan="6" style="text-align:center;color:var(--text-soft);padding:var(--space-xl)">Nenhum plano cadastrado.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- Modal Novo -->
+<div id="modalNovo" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:640px;width:100%">
+        <div class="modal-header"><h3 class="modal-title">Novo plano</h3><button type="button" class="modal-close" onclick="fecharModalNovo()">&times;</button></div>
+        <form th:action="@{/admin/landing/planos/novo}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome *</label><input type="text" name="nome" class="form-control" required maxlength="100"></div>
+                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição</label><input type="text" name="descricao" class="form-control" maxlength="200"></div>
+                    <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" name="preco" class="form-control" required min="0" step="0.01" placeholder="97.00"></div>
+                    <div class="form-group"><label class="form-label">Período</label><input type="text" name="periodo" class="form-control" value="/mês" maxlength="30"></div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Recursos (um por linha, + incluído / - não incluído)</label>
+                        <textarea name="recursos" class="form-control" rows="6" placeholder="+Agenda inteligente&#10;+Até 50 pacientes&#10;-Relatórios avançados"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Plano em destaque?</label>
+                        <select name="destaque" class="form-control"><option value="false">Não</option><option value="true">Sim</option></select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Badge (ex: Mais popular)</label><input type="text" name="badgeTexto" class="form-control" maxlength="60"></div>
+                    <div class="form-group"><label class="form-label">Texto do botão *</label><input type="text" name="ctaTexto" class="form-control" required value="Começar agora" maxlength="80"></div>
+                    <div class="form-group"><label class="form-label">Link do botão *</label><input type="text" name="ctaLink" class="form-control" required value="/login" maxlength="200"></div>
+                    <div class="form-group"><label class="form-label">Ordem</label><input type="number" name="ordem" class="form-control" value="0" min="0" max="99"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalNovo()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div id="modalEditar" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:640px;width:100%">
+        <div class="modal-header"><h3 class="modal-title">Editar plano</h3><button type="button" class="modal-close" onclick="fecharModalEditar()">&times;</button></div>
+        <form id="formEditar" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome *</label><input type="text" id="eNome" name="nome" class="form-control" required maxlength="100"></div>
+                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição</label><input type="text" id="eDesc" name="descricao" class="form-control" maxlength="200"></div>
+                    <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" id="ePreco" name="preco" class="form-control" required min="0" step="0.01"></div>
+                    <div class="form-group"><label class="form-label">Período</label><input type="text" id="ePeriodo" name="periodo" class="form-control" maxlength="30"></div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Recursos</label>
+                        <textarea id="eRecursos" name="recursos" class="form-control" rows="6"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Plano em destaque?</label>
+                        <select id="eDestaque" name="destaque" class="form-control"><option value="false">Não</option><option value="true">Sim</option></select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Badge</label><input type="text" id="eBadge" name="badgeTexto" class="form-control" maxlength="60"></div>
+                    <div class="form-group"><label class="form-label">Texto do botão *</label><input type="text" id="eCtaTexto" name="ctaTexto" class="form-control" required maxlength="80"></div>
+                    <div class="form-group"><label class="form-label">Link do botão *</label><input type="text" id="eCtaLink" name="ctaLink" class="form-control" required maxlength="200"></div>
+                    <div class="form-group"><label class="form-label">Ordem</label><input type="number" id="eOrdem" name="ordem" class="form-control" min="0" max="99"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalEditar()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/vendor/lucide.min.js}"></script>
+<script>
+    lucide.createIcons();
+    function abrirModalNovo(){document.getElementById('modalNovo').style.display='flex';}
+    function fecharModalNovo(){document.getElementById('modalNovo').style.display='none';}
+    function abrirModalEditar(btn){
+        var d=btn.dataset;
+        document.getElementById('formEditar').action='/admin/landing/planos/'+d.id+'/editar';
+        document.getElementById('eNome').value=d.nome||'';
+        document.getElementById('eDesc').value=d.descricao||'';
+        document.getElementById('ePreco').value=d.preco||0;
+        document.getElementById('ePeriodo').value=d.periodo||'/mês';
+        document.getElementById('eRecursos').value=d.recursos||'';
+        document.getElementById('eDestaque').value=d.destaque==='true'?'true':'false';
+        document.getElementById('eBadge').value=d.badge||'';
+        document.getElementById('eCtaTexto').value=d.ctatexto||'Começar agora';
+        document.getElementById('eCtaLink').value=d.ctalink||'/login';
+        document.getElementById('eOrdem').value=d.ordem||0;
+        document.getElementById('modalEditar').style.display='flex';
+    }
+    function fecharModalEditar(){document.getElementById('modalEditar').style.display='none';}
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){fecharModalNovo();fecharModalEditar();}});
+</script>
+<script th:src="@{/js/dashboard-modern.js}" defer></script>
+</body>
+</html>
