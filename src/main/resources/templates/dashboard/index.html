@@ -217,22 +217,34 @@
 
                 <article class="panel analytics-panel">
                     <header class="panel-head">
-                        <h3 class="panel-title">
-                            <i data-lucide="repeat-2" aria-hidden="true"></i>
-                            Retencao de planos
-                        </h3>
+                        <div class="panel-head-info">
+                            <h3 class="panel-title">
+                                <i data-lucide="repeat-2" aria-hidden="true"></i>
+                                Retenção de planos
+                            </h3>
+                            <span class="panel-subtitle" id="retencaoBase">Base indisponível</span>
+                        </div>
                     </header>
                     <div class="panel-body">
-                        <div class="retention-grid">
-                            <div class="retention-metric">
-                                <span class="retention-value" id="taxaConversao">--%</span>
-                                <span class="retention-label">Conversao para planos</span>
+                        <div class="dash-metrics">
+                            <div class="dash-metric-row">
+                                <div class="dash-metric-row__header">
+                                    <span class="dash-metric-row__label">Conversão para planos</span>
+                                    <span class="dash-metric-row__value" id="taxaConversao">--%</span>
+                                </div>
+                                <div class="dash-progress" role="progressbar" aria-label="Taxa de conversão para planos">
+                                    <div class="dash-progress__fill dash-progress__fill--brand" id="taxaConversaoBar" style="width:0%"></div>
+                                </div>
                             </div>
-                            <div class="retention-metric">
-                                <span class="retention-value" id="taxaRenovacao">--%</span>
-                                <span class="retention-label">Renovacao de planos</span>
+                            <div class="dash-metric-row">
+                                <div class="dash-metric-row__header">
+                                    <span class="dash-metric-row__label">Renovação de planos</span>
+                                    <span class="dash-metric-row__value" id="taxaRenovacao">--%</span>
+                                </div>
+                                <div class="dash-progress" role="progressbar" aria-label="Taxa de renovação de planos">
+                                    <div class="dash-progress__fill dash-progress__fill--blue" id="taxaRenovacaoBar" style="width:0%"></div>
+                                </div>
                             </div>
-                            <div class="retention-footnote" id="retencaoBase">Base indisponivel</div>
                         </div>
                     </div>
                 </article>
@@ -241,11 +253,13 @@
             <section class="panels-grid panels-grid-freq-agenda" aria-label="Frequência e agenda">
                 <article class="panel analytics-panel">
                     <header class="panel-head">
-                        <h3 class="panel-title">
-                            <i data-lucide="users" aria-hidden="true"></i>
-                            Pacientes mais frequentes
-                        </h3>
-                        <span class="panel-kpi">Últimos 12 meses</span>
+                        <div class="panel-head-info">
+                            <h3 class="panel-title">
+                                <i data-lucide="users" aria-hidden="true"></i>
+                                Pacientes mais frequentes
+                            </h3>
+                            <span class="panel-subtitle">Últimos 12 meses</span>
+                        </div>
                     </header>
                     <div class="panel-body">
                         <div class="chart-bars chart-bars--names" id="frequenciaChart" aria-live="polite">
@@ -256,15 +270,28 @@
 
                 <article class="panel analytics-panel">
                     <header class="panel-head">
-                        <h3 class="panel-title">
-                            <i data-lucide="calendar-clock" aria-hidden="true"></i>
-                            Agenda de Hoje
-                        </h3>
+                        <div class="panel-head-info">
+                            <h3 class="panel-title">
+                                <i data-lucide="calendar-clock" aria-hidden="true"></i>
+                                Agenda de Hoje
+                            </h3>
+                            <span class="panel-subtitle" id="agendaHojeData">Carregando...</span>
+                        </div>
                         <span class="panel-kpi" id="agendaHojeTotal">--</span>
                     </header>
                     <div class="panel-body">
                         <div class="session-list" id="agendaHojeList" aria-live="polite">
                             <p class="analytics-empty">Carregando agenda...</p>
+                        </div>
+                        <div class="agenda-legend" aria-label="Legenda dos tipos de sessão">
+                            <div class="agenda-legend-item">
+                                <div class="agenda-legend-dot" style="background:var(--blue-500)"></div>
+                                <span>Por plano</span>
+                            </div>
+                            <div class="agenda-legend-item">
+                                <div class="agenda-legend-dot" style="background:var(--brand-500)"></div>
+                                <span>Avulso</span>
+                            </div>
                         </div>
                     </div>
                 </article>

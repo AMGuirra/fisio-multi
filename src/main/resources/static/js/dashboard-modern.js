@@ -247,11 +247,27 @@
             return `<span class="session-badge ${info.cls}">${info.label}</span>`;
         };
 
+        const tipoClass = (tipo) => {
+            if (tipo === 'PLANO') return 'session-item--plano';
+            if (tipo === 'AVULSO') return 'session-item--avulso';
+            return '';
+        };
+
         const renderAgendaHoje = (sessoes) => {
             const list = document.getElementById('agendaHojeList');
             const total = document.getElementById('agendaHojeTotal');
+            const dataEl = document.getElementById('agendaHojeData');
             if (!list) {
                 return;
+            }
+
+            if (dataEl) {
+                const hoje = new Date();
+                dataEl.textContent = capitalize(hoje.toLocaleDateString('pt-BR', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long'
+                }));
             }
 
             if (total) {
@@ -264,7 +280,7 @@
             }
 
             list.innerHTML = sessoes.map((s) => `
-                <div class="session-item">
+                <div class="session-item ${tipoClass(s.tipo)}">
                     <span class="session-time">${s.horario}</span>
                     <span class="session-patient">${s.nomePaciente}</span>
                     ${statusBadge(s.status)}
@@ -308,12 +324,29 @@
 
                 setText('ocupacaoMedia', `${ocupacaoMedia.toFixed(1)}%`);
                 setText('receitaTotal', formatCurrency(receitaTotal));
-                setText('taxaConversao', `${Number(retencao.taxaConversao || 0).toFixed(1)}%`);
-                setText('taxaRenovacao', `${Number(retencao.taxaRenovacao || 0).toFixed(1)}%`);
+                const convPct = Number(retencao.taxaConversao || 0);
+                const renovPct = Number(retencao.taxaRenovacao || 0);
+
+                setText('taxaConversao', `${convPct.toFixed(1)}%`);
+                setText('taxaRenovacao', `${renovPct.toFixed(1)}%`);
                 setText(
                     'retencaoBase',
-                    `${retencao.pacientesComPlano || 0} de ${retencao.totalPacientesAtivos || 0} pacientes ativos com plano`
+                    `${retencao.pacientesComPlano || 0} de ${retencao.totalPacientesAtivos || 0} pacientes com plano`
                 );
+
+                // Anima barras de progresso LP-style
+                const convBar = document.getElementById('taxaConversaoBar');
+                if (convBar) {
+                    requestAnimationFrame(() => {
+                        convBar.style.width = `${Math.min(100, convPct)}%`;
+                    });
+                }
+                const renovBar = document.getElementById('taxaRenovacaoBar');
+                if (renovBar) {
+                    requestAnimationFrame(() => {
+                        renovBar.style.width = `${Math.min(100, renovPct)}%`;
+                    });
+                }
 
                 renderBars(ocupacaoChart, ocupacao, {
                     value: (item) => Number(item.taxaOcupacao || 0),

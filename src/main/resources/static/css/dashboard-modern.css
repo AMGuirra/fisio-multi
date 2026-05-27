@@ -1968,3 +1968,143 @@ body[data-theme='dark'] .panel,
 body[data-theme='dark'] .metric-card {
     background: rgba(12, 22, 28, 0.94);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MELHORIAS DE DASHBOARD — Estilos portados da Landing Page
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Panel header com subtítulo (estilo lp-mockup-card__header) ── */
+.panel-head-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.panel-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Sessões coloridas por tipo (Agenda de Hoje) ── */
+.session-item--plano {
+    background: rgba(47, 111, 236, 0.07);
+    border-left: 3px solid var(--blue-500);
+    border-color: rgba(47, 111, 236, 0.16);
+}
+
+.session-item--plano .session-time {
+    color: var(--blue-500);
+}
+
+.session-item--avulso {
+    background: rgba(15, 143, 122, 0.07);
+    border-left: 3px solid var(--brand-500);
+    border-color: rgba(15, 143, 122, 0.16);
+}
+
+.session-item--avulso .session-time {
+    color: var(--brand-600);
+}
+
+/* ── Legenda da agenda ── */
+.agenda-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 1px solid var(--stroke-soft);
+    margin-top: 8px;
+}
+
+.agenda-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: var(--text-soft);
+    font-weight: 500;
+}
+
+.agenda-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Métricas LP-style (Retenção de planos) ── */
+.dash-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dash-metric-row__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+
+.dash-metric-row__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-body);
+}
+
+.dash-metric-row__value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
+}
+
+.dash-progress {
+    height: 8px;
+    background: var(--bg-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.dash-progress__fill {
+    height: 100%;
+    border-radius: 999px;
+    min-width: 4px;
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dash-progress__fill--brand {
+    background: linear-gradient(90deg, var(--brand-700), var(--brand-500));
+}
+
+.dash-progress__fill--blue {
+    background: linear-gradient(90deg, #1a52c2, var(--blue-500));
+}
+
+.dash-progress__fill--red {
+    background: linear-gradient(90deg, #b84040, var(--red-500));
+}
+
+/* ── Dark mode overrides ── */
+body[data-theme='dark'] .dash-progress {
+    background: var(--bg-soft-strong);
+}
+
+body[data-theme='dark'] .session-item--plano {
+    background: rgba(47, 111, 236, 0.1);
+    border-color: rgba(47, 111, 236, 0.22);
+}
+
+body[data-theme='dark'] .session-item--avulso {
+    background: rgba(15, 143, 122, 0.1);
+    border-color: rgba(15, 143, 122, 0.22);
+}
+
+body[data-theme='dark'] .agenda-legend {
+    border-top-color: var(--stroke-soft);
+}

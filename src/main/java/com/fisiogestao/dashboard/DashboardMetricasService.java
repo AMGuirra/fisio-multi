@@ -82,7 +82,8 @@ public class DashboardMetricasService {
     public record SessaoResumoDia(
             String nomePaciente,
             String horario,
-            String status
+            String status,
+            String tipo
     ) {}
 
     public record MetricasDashboard(
@@ -285,7 +286,7 @@ public class DashboardMetricasService {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
 
         String sql = """
-                SELECT c.nome_completo, s.data_hora_inicio, s.status
+                SELECT c.nome_completo, s.data_hora_inicio, s.status, s.tipo_agendamento
                 FROM sessao s
                 JOIN cliente c ON c.id = s.cliente_id
                 WHERE s.data_hora_inicio >= ?
@@ -302,7 +303,8 @@ public class DashboardMetricasService {
             resultado.add(new SessaoResumoDia(
                     rs.getString("nome_completo"),
                     horario,
-                    rs.getString("status")
+                    rs.getString("status"),
+                    rs.getString("tipo_agendamento")
             ));
         }, inicioDia, fimDia);
         return resultado;
