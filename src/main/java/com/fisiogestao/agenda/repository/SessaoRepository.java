@@ -151,6 +151,31 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             @Param("inicio") OffsetDateTime inicio,
             @Param("fim") OffsetDateTime fim);
 
+    // --- Notificações internas da clínica ---
+
+    /** Sessões AGENDADAS dentro do período (e-mail das 6h). */
+    @EntityGraph(attributePaths = {"cliente"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+              AND s.dataHoraInicio >= :inicio
+              AND s.dataHoraInicio < :fim
+            ORDER BY s.dataHoraInicio ASC
+            """)
+    List<SessaoEntity> findAgendadasNoPeriodo(
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim);
+
+    /** Sessões ainda AGENDADAS cujo horário de fim já passou — precisam de baixa (e-mail das 19h). */
+    @EntityGraph(attributePaths = {"cliente"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+              AND s.dataHoraFim < :agora
+            ORDER BY s.dataHoraInicio ASC
+            """)
+    List<SessaoEntity> findAgendadasPendentesDeBaixa(@Param("agora") OffsetDateTime agora);
+
     @Modifying
     @Query(value = """
             UPDATE sessao

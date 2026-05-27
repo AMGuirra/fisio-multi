@@ -349,6 +349,7 @@
                     try {
                         localStorage.setItem('pc-col1-w', col1W);
                         localStorage.setItem('pc-col3-w', col3W);
+                        if (window.showToast) window.showToast('Ajuste do layout salvo!', 'success');
                     } catch (err) {
                         console.warn('Erro ao salvar colunas no localStorage', err);
                     }
@@ -583,6 +584,7 @@
                 if (badge && saldo) badge.textContent = saldo;
             }
             lucide.createIcons();
+            if (window.showToast) window.showToast('Saldo reconciliado com sucesso!', 'success');
         });
     </script>
 </body>

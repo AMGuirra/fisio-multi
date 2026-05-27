@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Pendências do dia', ~{::section})}">
+<section>
+
+    <p style="margin:0 0 6px;">Boa noite! 🌙</p>
+    <p style="margin:0 0 24px;color:#4f6670;">
+        Aqui está um resumo das pendências de <strong th:text="${data}">01/01/2026</strong>
+        que precisam da sua atenção antes de encerrar o dia.
+    </p>
+
+    <!-- ── Sessões pendentes de baixa ── -->
+    <div th:if="${totalBaixa > 0}" style="margin-bottom:28px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;margin-bottom:10px;">
+            Sessões sem baixa
+        </div>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+               style="border-collapse:collapse;">
+            <tr style="background:#0f8f7a;">
+                <th align="left"
+                    style="padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;border-radius:8px 0 0 0;">
+                    Data
+                </th>
+                <th align="left"
+                    style="padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;">
+                    Horário
+                </th>
+                <th align="left"
+                    style="padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;border-radius:0 8px 0 0;">
+                    Paciente
+                </th>
+            </tr>
+            <tr th:each="s, iterStat : ${sessoesBaixa}"
+                th:style="${iterStat.odd} ? 'background:#f7fbfa;' : 'background:#ffffff;'">
+                <td style="padding:10px 14px;border-bottom:1px solid #e4efec;color:#4f6670;white-space:nowrap;"
+                    th:text="${s.data}">01/01/2026</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e4efec;font-weight:700;color:#0f8f7a;white-space:nowrap;"
+                    th:text="${s.hora}">08:00</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e4efec;color:#18323a;"
+                    th:text="${s.paciente}">Nome do Paciente</td>
+            </tr>
+        </table>
+
+        <p style="margin:10px 0 0;font-size:13px;color:#65808a;">
+            <strong th:text="${totalBaixa}">0</strong>
+            <span th:text="${totalBaixa == 1 ? 'sessão precisa de baixa.' : 'sessões precisam de baixa.'}">sessões precisam de baixa.</span>
+        </p>
+    </div>
+
+    <!-- ── Financeiro pendente ── -->
+    <div th:if="${totalFinanceiro > 0}"
+         style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:24px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#0f8f7a;font-weight:800;margin-bottom:10px;">
+            Financeiro pendente
+        </div>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+                <td style="padding:6px 0;color:#65808a;">Lançamentos a receber</td>
+                <td align="right" style="padding:6px 0;font-weight:700;color:#18323a;"
+                    th:text="${totalFinanceiro}">0</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;color:#65808a;border-top:1px solid #e4efec;">Valor total pendente</td>
+                <td align="right" style="padding:6px 0;font-weight:800;font-size:18px;color:#0f8f7a;border-top:1px solid #e4efec;"
+                    th:text="${valorFinanceiro}">R$ 0,00</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── Mensagem quando não há sessões mas há financeiro (ou vice-versa) ── -->
+    <p th:if="${totalBaixa == 0 and totalFinanceiro > 0}"
+       style="margin:0 0 20px;font-size:14px;color:#4f6670;">
+        ✅ Nenhuma sessão pendente de baixa hoje.
+    </p>
+    <p th:if="${totalBaixa > 0 and totalFinanceiro == 0}"
+       style="margin:0 0 20px;font-size:14px;color:#4f6670;">
+        ✅ Nenhum lançamento financeiro pendente.
+    </p>
+
+    <!-- ── CTA ── -->
+    <p style="margin:20px 0 0;font-size:13px;color:#65808a;">
+        Acesse o sistema para registrar as baixas e confirmar os recebimentos do dia.
+    </p>
+
+</section>
+</body>
+</html>

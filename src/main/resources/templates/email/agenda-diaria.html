@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Agenda do dia', ~{::section})}">
+<section>
+
+    <p style="margin:0 0 6px;">Bom dia! 👋</p>
+    <p style="margin:0 0 22px;color:#4f6670;">
+        Aqui está a sua agenda para hoje,
+        <strong th:text="${data}">01/01/2026</strong>.
+        Você tem <strong th:text="${totalSessoes}">0</strong>
+        <span th:text="${totalSessoes == 1 ? 'sessão agendada' : 'sessões agendadas'}">sessões agendadas</span>.
+    </p>
+
+    <!-- Tabela de sessões -->
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           style="border-collapse:collapse;margin-bottom:24px;">
+        <!-- Cabeçalho -->
+        <tr style="background:#0f8f7a;">
+            <th align="left"
+                style="padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;border-radius:8px 0 0 0;">
+                Horário
+            </th>
+            <th align="left"
+                style="padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;">
+                Paciente
+            </th>
+            <th align="left"
+                style="padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#ffffff;font-weight:700;border-radius:0 8px 0 0;">
+                Tipo de atendimento
+            </th>
+        </tr>
+        <!-- Linhas de sessão -->
+        <tr th:each="s, iterStat : ${sessoes}"
+            th:style="${iterStat.odd} ? 'background:#f7fbfa;' : 'background:#ffffff;'">
+            <td style="padding:11px 14px;border-bottom:1px solid #e4efec;font-weight:700;color:#0f8f7a;white-space:nowrap;"
+                th:text="${s.hora}">08:00</td>
+            <td style="padding:11px 14px;border-bottom:1px solid #e4efec;color:#18323a;"
+                th:text="${s.paciente}">Nome do Paciente</td>
+            <td style="padding:11px 14px;border-bottom:1px solid #e4efec;color:#4f6670;"
+                th:text="${s.tipoAtendimento}">Fisioterapia</td>
+        </tr>
+    </table>
+
+    <!-- Rodapé informativo -->
+    <div style="background:#eef5f3;border-radius:10px;padding:14px 18px;font-size:13px;color:#4f6670;">
+        Total de sessões hoje: <strong style="color:#18323a;" th:text="${totalSessoes}">0</strong>
+    </div>
+
+</section>
+</body>
+</html>
