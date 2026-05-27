@@ -11,14 +11,27 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
     <style>
-        .sec-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface);border:1px solid var(--stroke-soft);border-radius:var(--radius-md);padding:var(--space-md) var(--space-lg);margin-bottom:var(--space-sm);}
-        .sec-row__title{font-weight:700;color:var(--text-strong);font-size:var(--text-base);}
-        .sec-row__desc{font-size:var(--text-sm);color:var(--text-soft);}
-        .toggle-sw{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
+        .lp-page-banner{background:linear-gradient(135deg,#1a52c2 0%,#4f8ef7 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
+        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+        .lp-page-banner__icon svg{width:24px;height:24px;}
+        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
+        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
+
+        /* Toggle rows */
+        .sec-row{display:flex;align-items:center;gap:var(--space-lg);background:var(--bg-surface);border:1px solid var(--stroke-soft,#e5eae9);border-radius:var(--radius-md);padding:var(--space-lg) var(--space-xl);margin-bottom:var(--space-sm);transition:border-color .15s,box-shadow .15s;}
+        .sec-row:hover{border-color:#2f6fec;box-shadow:0 2px 12px rgba(47,111,236,.08);}
+        .sec-row__icon{width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(47,111,236,.1);color:#2f6fec;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .sec-row__icon svg{width:18px;height:18px;}
+        .sec-row__body{flex:1;}
+        .sec-row__title{font-weight:700;color:var(--text-strong);font-size:var(--text-base);margin:0 0 2px;}
+        .sec-row__desc{font-size:var(--text-xs);color:var(--text-soft);margin:0;}
+
+        /* Toggle switch */
+        .toggle-sw{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
         .toggle-sw input{opacity:0;width:0;height:0;}
-        .toggle-sl{position:absolute;inset:0;background:var(--stroke-strong);border-radius:999px;cursor:pointer;transition:background var(--ease-standard);}
-        .toggle-sl::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform var(--ease-standard);}
-        .toggle-sw input:checked+.toggle-sl{background:var(--brand-500);}
+        .toggle-sl{position:absolute;inset:0;background:var(--stroke-strong,#c9d2d0);border-radius:999px;cursor:pointer;transition:background .2s;}
+        .toggle-sl::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.18);}
+        .toggle-sw input:checked+.toggle-sl{background:#2f6fec;}
         .toggle-sw input:checked+.toggle-sl::before{transform:translateX(20px);}
     </style>
 </head>
@@ -35,49 +48,86 @@
                 <p class="header-context">Ative ou desative seções da landing page.</p>
             </div>
         </div>
-        <div class="header-right">
+        <div class="header-right" style="display:flex;gap:var(--space-sm);">
+            <a href="/" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="external-link" style="width:14px;height:14px;"></i> Ver página</a>
             <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:680px;">
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:720px;">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <!-- Banner -->
+        <div class="lp-page-banner">
+            <div class="lp-page-banner__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div>
+                <p class="lp-page-banner__title">Visibilidade das Seções</p>
+                <p class="lp-page-banner__sub">Cada toggle controla se aquela seção aparece ou não para os visitantes da landing page.</p>
+            </div>
+        </div>
 
         <form th:action="@{/admin/landing/secoes}" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
             <div class="sec-row">
-                <div><div class="sec-row__title">Como Funciona</div><div class="sec-row__desc">Timeline de 4 passos de onboarding.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">Como Funciona</p>
+                    <p class="sec-row__desc">Timeline de passos de onboarding numerados.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.como_funciona" value="true" th:checked="${cfg['secao.como_funciona'] == null or cfg['secao.como_funciona'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
             <div class="sec-row">
-                <div><div class="sec-row__title">Funcionalidades</div><div class="sec-row__desc">Mini-mockups da Agenda, Painel e Portal.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">Funcionalidades</p>
+                    <p class="sec-row__desc">Mini-mockups interativos da Agenda, Painel e Portal do Paciente.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.funcionalidades" value="true" th:checked="${cfg['secao.funcionalidades'] == null or cfg['secao.funcionalidades'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
             <div class="sec-row">
-                <div><div class="sec-row__title">Benefícios</div><div class="sec-row__desc">Cards com os diferenciais do sistema.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">Benefícios</p>
+                    <p class="sec-row__desc">Cards com os diferenciais e vantagens do sistema.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.beneficios" value="true" th:checked="${cfg['secao.beneficios'] == null or cfg['secao.beneficios'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
             <div class="sec-row">
-                <div><div class="sec-row__title">Depoimentos</div><div class="sec-row__desc">Avaliações de fisioterapeutas.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">Depoimentos</p>
+                    <p class="sec-row__desc">Avaliações e testemunhos de fisioterapeutas.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.depoimentos" value="true" th:checked="${cfg['secao.depoimentos'] == null or cfg['secao.depoimentos'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
             <div class="sec-row">
-                <div><div class="sec-row__title">Planos e Preços</div><div class="sec-row__desc">Tabela comparativa de planos.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">Planos e Preços</p>
+                    <p class="sec-row__desc">Tabela comparativa de planos com recursos e CTAs.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.planos" value="true" th:checked="${cfg['secao.planos'] == null or cfg['secao.planos'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
             <div class="sec-row">
-                <div><div class="sec-row__title">FAQ</div><div class="sec-row__desc">Perguntas frequentes com accordion.</div></div>
+                <div class="sec-row__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></div>
+                <div class="sec-row__body">
+                    <p class="sec-row__title">FAQ</p>
+                    <p class="sec-row__desc">Perguntas frequentes com accordion interativo.</p>
+                </div>
                 <label class="toggle-sw"><input type="checkbox" name="secao.faq" value="true" th:checked="${cfg['secao.faq'] == null or cfg['secao.faq'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
-            <div style="margin-top:var(--space-xl)">
+            <div style="margin-top:var(--space-xl);display:flex;gap:var(--space-md);">
                 <button type="submit" class="btn btn-primary"><i data-lucide="save" style="width:15px;height:15px;"></i> Salvar</button>
+                <a th:href="@{/admin/landing}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </main>

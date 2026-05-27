@@ -10,6 +10,22 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        .lp-page-banner{background:linear-gradient(135deg,#c47d0a 0%,#f59e0b 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
+        .lp-page-banner__left{display:flex;align-items:center;gap:var(--space-md);}
+        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+        .lp-page-banner__icon svg{width:24px;height:24px;}
+        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
+        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
+        .lp-page-banner__btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:10px 18px;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer;transition:background .15s;white-space:nowrap;}
+        .lp-page-banner__btn:hover{background:rgba(255,255,255,.28);}
+        .lp-page-banner__btn svg{width:15px;height:15px;}
+        .tip-box{background:var(--bg-soft,#eef3f2);border-left:3px solid var(--brand-500);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:var(--space-sm) var(--space-md);font-size:var(--text-xs);color:var(--text-body);margin-bottom:var(--space-lg);}
+        .tip-box code{background:var(--bg-canvas,#f4f7f6);padding:1px 5px;border-radius:4px;font-size:var(--text-xs);}
+        .empty-state{text-align:center;padding:var(--space-2xl) var(--space-xl);color:var(--text-soft);}
+        .empty-state svg{width:40px;height:40px;margin:0 auto var(--space-md);opacity:.4;display:block;}
+        .empty-state p{margin:0;font-size:var(--text-sm);}
+    </style>
 </head>
 <body class="dashboard-app">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
@@ -21,21 +37,37 @@
             <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
             <div class="header-copy">
                 <h2 class="header-title">Planos e Preços</h2>
-                <p class="header-context">Gerencie os planos exibidos na landing page.</p>
+                <p class="header-context">Planos exibidos na landing page.</p>
             </div>
         </div>
         <div class="header-right" style="display:flex;gap:var(--space-sm);">
-            <button type="button" class="btn btn-primary" onclick="abrirModalNovo()"><i data-lucide="plus" style="width:15px;height:15px;"></i> Novo plano</button>
-            <a th:href="@{/admin/landing}" class="btn btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
         </div>
     </header>
 
     <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <p class="helper-text" style="margin-bottom:var(--space-md)">
-            <strong>Recursos:</strong> uma linha por recurso. Prefixo <code>+</code> = incluído, <code>-</code> = não incluído.
-        </p>
+        <!-- Banner -->
+        <div class="lp-page-banner">
+            <div class="lp-page-banner__left">
+                <div class="lp-page-banner__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                </div>
+                <div>
+                    <p class="lp-page-banner__title">Planos e Preços</p>
+                    <p class="lp-page-banner__sub">Crie e edite os planos exibidos na tabela de preços da landing page.</p>
+                </div>
+            </div>
+            <button type="button" class="lp-page-banner__btn" onclick="abrirModalNovo()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                Novo plano
+            </button>
+        </div>
+
+        <div class="tip-box">
+            <strong>Recursos:</strong> uma linha por recurso. Prefixo <code>+</code> = incluído &nbsp;·&nbsp; <code>-</code> = não incluído.
+        </div>
 
         <div class="table-cards-wrapper">
             <table class="crud-table">
@@ -47,7 +79,7 @@
                             <span th:if="${p.destaque}" class="badge badge-success" style="margin-left:4px">Destaque</span>
                         </td>
                         <td data-label="Preço">
-                            R$ <span th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                            <strong>R$ <span th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}">0,00</span></strong>
                             <span th:text="${p.periodo}" style="color:var(--text-soft);font-size:var(--text-xs)">/mês</span>
                         </td>
                         <td data-label="Destaque">
@@ -76,7 +108,15 @@
                             </form>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(lista)}"><td colspan="6" style="text-align:center;color:var(--text-soft);padding:var(--space-xl)">Nenhum plano cadastrado.</td></tr>
+                    <tr th:if="${#lists.isEmpty(lista)}">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                                <p>Nenhum plano cadastrado.</p>
+                                <p style="margin-top:6px;"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Criar primeiro plano</button></p>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -96,7 +136,7 @@
                     <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" name="preco" class="form-control" required min="0" step="0.01" placeholder="97.00"></div>
                     <div class="form-group"><label class="form-label">Período</label><input type="text" name="periodo" class="form-control" value="/mês" maxlength="30"></div>
                     <div class="form-group" style="grid-column:1/-1">
-                        <label class="form-label">Recursos (um por linha, + incluído / - não incluído)</label>
+                        <label class="form-label">Recursos (um por linha, <code style="font-size:var(--text-xs);background:var(--bg-soft);padding:1px 4px;border-radius:3px;">+</code> incluído / <code style="font-size:var(--text-xs);background:var(--bg-soft);padding:1px 4px;border-radius:3px;">-</code> não incluído)</label>
                         <textarea name="recursos" class="form-control" rows="6" placeholder="+Agenda inteligente&#10;+Até 50 pacientes&#10;-Relatórios avançados"></textarea>
                     </div>
                     <div class="form-group">
@@ -129,10 +169,7 @@
                     <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição</label><input type="text" id="eDesc" name="descricao" class="form-control" maxlength="200"></div>
                     <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" id="ePreco" name="preco" class="form-control" required min="0" step="0.01"></div>
                     <div class="form-group"><label class="form-label">Período</label><input type="text" id="ePeriodo" name="periodo" class="form-control" maxlength="30"></div>
-                    <div class="form-group" style="grid-column:1/-1">
-                        <label class="form-label">Recursos</label>
-                        <textarea id="eRecursos" name="recursos" class="form-control" rows="6"></textarea>
-                    </div>
+                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Recursos</label><textarea id="eRecursos" name="recursos" class="form-control" rows="6"></textarea></div>
                     <div class="form-group">
                         <label class="form-label">Plano em destaque?</label>
                         <select id="eDestaque" name="destaque" class="form-control"><option value="false">Não</option><option value="true">Sim</option></select>

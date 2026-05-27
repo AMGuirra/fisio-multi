@@ -10,6 +10,21 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        .lp-page-banner{background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
+        .lp-page-banner__left{display:flex;align-items:center;gap:var(--space-md);}
+        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+        .lp-page-banner__icon svg{width:24px;height:24px;}
+        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
+        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
+        .lp-page-banner__btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:10px 18px;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer;transition:background .15s;white-space:nowrap;}
+        .lp-page-banner__btn:hover{background:rgba(255,255,255,.28);}
+        .lp-page-banner__btn svg{width:15px;height:15px;}
+        .avatar-chip{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:var(--text-xs);font-weight:700;color:#fff;flex-shrink:0;}
+        .empty-state{text-align:center;padding:var(--space-2xl) var(--space-xl);color:var(--text-soft);}
+        .empty-state svg{width:40px;height:40px;margin:0 auto var(--space-md);opacity:.4;display:block;}
+        .empty-state p{margin:0;font-size:var(--text-sm);}
+    </style>
 </head>
 <body class="dashboard-app">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
@@ -21,37 +36,52 @@
             <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-expanded="true"><i data-lucide="panel-left"></i></button>
             <div class="header-copy">
                 <h2 class="header-title">Depoimentos</h2>
-                <p class="header-context">Gerencie os depoimentos exibidos na landing page.</p>
+                <p class="header-context">Testemunhos exibidos na landing page.</p>
             </div>
         </div>
         <div class="header-right" style="display:flex;gap:var(--space-sm);">
-            <button type="button" class="btn btn-primary" onclick="abrirModalNovo()">
-                <i data-lucide="plus" style="width:15px;height:15px;"></i> Novo depoimento
-            </button>
-            <a th:href="@{/admin/landing}" class="btn btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
         </div>
     </header>
 
     <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
+        <!-- Banner -->
+        <div class="lp-page-banner">
+            <div class="lp-page-banner__left">
+                <div class="lp-page-banner__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div>
+                    <p class="lp-page-banner__title">Depoimentos</p>
+                    <p class="lp-page-banner__sub">Avaliações de fisioterapeutas que usam o FisioGestão.</p>
+                </div>
+            </div>
+            <button type="button" class="lp-page-banner__btn" onclick="abrirModalNovo()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                Novo depoimento
+            </button>
+        </div>
+
         <div class="table-cards-wrapper">
             <table class="crud-table">
                 <thead>
-                    <tr>
-                        <th>Nome</th><th>Cargo</th><th>Estrelas</th><th>Ordem</th><th>Status</th><th>Ações</th>
-                    </tr>
+                    <tr><th>Autor</th><th>Cargo</th><th>Estrelas</th><th>Ordem</th><th>Status</th><th>Ações</th></tr>
                 </thead>
                 <tbody>
                     <tr th:each="t : ${lista}" th:classappend="${!t.ativo} ? ' row-inactive' : ''">
-                        <td data-label="Nome">
-                            <span th:text="${t.iniciais}" class="avatar-chip"
-                                  th:style="'background:' + (${t.corAvatar==1} ? '#0c7a68' : (${t.corAvatar==2} ? '#1a52c2' : '#8e44ad')) + ';color:#fff'">XX</span>
-                            <span th:text="${t.nome}">Nome</span>
+                        <td data-label="Autor">
+                            <div style="display:flex;align-items:center;gap:var(--space-sm);">
+                                <span class="avatar-chip"
+                                      th:text="${t.iniciais}"
+                                      th:style="'background:' + (${t.corAvatar==1} ? '#0c7a68' : (${t.corAvatar==2} ? '#1a52c2' : '#7c3aed'))">XX</span>
+                                <strong th:text="${t.nome}">Nome</strong>
+                            </div>
                         </td>
                         <td data-label="Cargo" th:text="${t.cargo}">Cargo</td>
                         <td data-label="Estrelas">
-                            <span th:each="s : ${#numbers.sequence(1,t.estrelas)}" style="color:var(--yellow-500)">★</span>
+                            <span th:each="s : ${#numbers.sequence(1,t.estrelas)}" style="color:#f59e0b;font-size:14px;">★</span>
                         </td>
                         <td data-label="Ordem" th:text="${t.ordem}">0</td>
                         <td data-label="Status">
@@ -77,7 +107,13 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(lista)}">
-                        <td colspan="6" style="text-align:center;color:var(--text-soft);padding:var(--space-xl)">Nenhum depoimento cadastrado.</td>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <p>Nenhum depoimento cadastrado.</p>
+                                <p style="margin-top:6px;"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Adicionar primeiro depoimento</button></p>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -88,10 +124,7 @@
 <!-- Modal Novo -->
 <div id="modalNovo" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalNovoTitle">
     <div class="modal-card" style="max-width:560px;width:100%">
-        <div class="modal-header">
-            <h3 id="modalNovoTitle" class="modal-title">Novo depoimento</h3>
-            <button type="button" class="modal-close" onclick="fecharModalNovo()" aria-label="Fechar">&times;</button>
-        </div>
+        <div class="modal-header"><h3 id="modalNovoTitle" class="modal-title">Novo depoimento</h3><button type="button" class="modal-close" onclick="fecharModalNovo()" aria-label="Fechar">&times;</button></div>
         <form th:action="@{/admin/landing/testemunhos/novo}" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="modal-body">
@@ -120,10 +153,7 @@
 <!-- Modal Editar -->
 <div id="modalEditar" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalEditarTitle">
     <div class="modal-card" style="max-width:560px;width:100%">
-        <div class="modal-header">
-            <h3 id="modalEditarTitle" class="modal-title">Editar depoimento</h3>
-            <button type="button" class="modal-close" onclick="fecharModalEditar()" aria-label="Fechar">&times;</button>
-        </div>
+        <div class="modal-header"><h3 id="modalEditarTitle" class="modal-title">Editar depoimento</h3><button type="button" class="modal-close" onclick="fecharModalEditar()" aria-label="Fechar">&times;</button></div>
         <form id="formEditar" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="modal-body">
@@ -152,21 +182,21 @@
 <script th:src="@{/js/vendor/lucide.min.js}"></script>
 <script>
     lucide.createIcons();
-    function abrirModalNovo() { document.getElementById('modalNovo').style.display='flex'; }
-    function fecharModalNovo() { document.getElementById('modalNovo').style.display='none'; }
-    function abrirModalEditar(id, nome, cargo, depoimento, iniciais, cor, estrelas, ordem) {
-        document.getElementById('formEditar').action = '/admin/landing/testemunhos/' + id + '/editar';
-        document.getElementById('editNome').value = nome;
-        document.getElementById('editCargo').value = cargo;
-        document.getElementById('editDepoimento').value = depoimento;
-        document.getElementById('editIniciais').value = iniciais;
-        document.getElementById('editCor').value = cor;
-        document.getElementById('editEstrelas').value = estrelas;
-        document.getElementById('editOrdem').value = ordem;
+    function abrirModalNovo(){document.getElementById('modalNovo').style.display='flex';}
+    function fecharModalNovo(){document.getElementById('modalNovo').style.display='none';}
+    function abrirModalEditar(id,nome,cargo,depoimento,iniciais,cor,estrelas,ordem){
+        document.getElementById('formEditar').action='/admin/landing/testemunhos/'+id+'/editar';
+        document.getElementById('editNome').value=nome;
+        document.getElementById('editCargo').value=cargo;
+        document.getElementById('editDepoimento').value=depoimento;
+        document.getElementById('editIniciais').value=iniciais;
+        document.getElementById('editCor').value=cor;
+        document.getElementById('editEstrelas').value=estrelas;
+        document.getElementById('editOrdem').value=ordem;
         document.getElementById('modalEditar').style.display='flex';
     }
-    function fecharModalEditar() { document.getElementById('modalEditar').style.display='none'; }
-    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){fecharModalNovo();fecharModalEditar();} });
+    function fecharModalEditar(){document.getElementById('modalEditar').style.display='none';}
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){fecharModalNovo();fecharModalEditar();}});
 </script>
 <script th:src="@{/js/dashboard-modern.js}" defer></script>
 </body>

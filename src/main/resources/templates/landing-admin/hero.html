@@ -10,6 +10,17 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <style>
+        .lp-page-banner{background:linear-gradient(135deg,var(--brand-600) 0%,#17b89d 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
+        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+        .lp-page-banner__icon svg{width:24px;height:24px;}
+        .lp-page-banner__text{flex:1;}
+        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
+        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
+        .form-card{background:var(--bg-surface);border:1px solid var(--stroke-soft,#e5eae9);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);}
+        .form-section-title{font-size:var(--text-sm);font-weight:700;color:var(--brand-500);text-transform:uppercase;letter-spacing:.07em;padding-bottom:var(--space-sm);border-bottom:2px solid var(--brand-500);margin-bottom:var(--space-lg);display:flex;align-items:center;gap:6px;}
+        .required{color:#e11d48;}
+    </style>
 </head>
 <body class="dashboard-app">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
@@ -24,102 +35,88 @@
                 <p class="header-context">Título, subtítulo, CTAs e estatísticas.</p>
             </div>
         </div>
-        <div class="header-right">
-            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary">
-                <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar
-            </a>
+        <div class="header-right" style="display:flex;gap:var(--space-sm);">
+            <a href="/" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="external-link" style="width:14px;height:14px;"></i> Ver página</a>
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:800px;">
+    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:860px;">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <!-- Banner -->
+        <div class="lp-page-banner">
+            <div class="lp-page-banner__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="lp-page-banner__text">
+                <p class="lp-page-banner__title">Seção Hero</p>
+                <p class="lp-page-banner__sub">Primeira coisa que o visitante vê. Capriche no título e nos botões de ação.</p>
+            </div>
+        </div>
 
         <form th:action="@{/admin/landing/hero}" method="post" class="form-card">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
-            <div class="form-section-title">Texto principal</div>
-
+            <!-- Texto principal -->
+            <div class="form-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Texto principal
+            </div>
             <div class="form-group">
                 <label class="form-label">Badge (etiqueta do topo)</label>
-                <input type="text" name="hero.badge" class="form-control"
-                       th:value="${cfg['hero.badge']}" maxlength="80" placeholder="Software especializado em fisioterapia">
+                <input type="text" name="hero.badge" class="form-control" th:value="${cfg['hero.badge']}" maxlength="80" placeholder="Software especializado em fisioterapia">
             </div>
-
             <div class="form-group">
                 <label class="form-label">Título <span class="required">*</span></label>
-                <input type="text" name="hero.titulo" class="form-control" required
-                       th:value="${cfg['hero.titulo']}" maxlength="100" placeholder="Gestão clínica que trabalha com você">
+                <input type="text" name="hero.titulo" class="form-control" required th:value="${cfg['hero.titulo']}" maxlength="100" placeholder="Gestão clínica que trabalha com você">
             </div>
-
             <div class="form-group">
                 <label class="form-label">Subtítulo</label>
-                <textarea name="hero.subtitulo" class="form-control" rows="3" maxlength="400"
-                          th:text="${cfg['hero.subtitulo']}" placeholder="Descrição curta do sistema..."></textarea>
+                <textarea name="hero.subtitulo" class="form-control" rows="3" maxlength="400" th:text="${cfg['hero.subtitulo']}" placeholder="Descrição curta do sistema..."></textarea>
             </div>
 
-            <div class="form-section-title" style="margin-top:var(--space-xl)">Botões de ação (CTAs)</div>
-
+            <!-- CTAs -->
+            <div class="form-section-title" style="margin-top:var(--space-xl)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                Botões de ação (CTAs)
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
                 <div class="form-group">
-                    <label class="form-label">CTA Primário (texto)</label>
-                    <input type="text" name="hero.cta_primario" class="form-control"
-                           th:value="${cfg['hero.cta_primario']}" maxlength="60">
+                    <label class="form-label">CTA Primário — texto</label>
+                    <input type="text" name="hero.cta_primario" class="form-control" th:value="${cfg['hero.cta_primario']}" maxlength="60" placeholder="Ver funcionalidades">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">CTA Primário (link)</label>
-                    <input type="text" name="hero.cta_primario_link" class="form-control"
-                           th:value="${cfg['hero.cta_primario_link']}" maxlength="200" placeholder="#funcionalidades">
+                    <label class="form-label">CTA Primário — link</label>
+                    <input type="text" name="hero.cta_primario_link" class="form-control" th:value="${cfg['hero.cta_primario_link']}" maxlength="200" placeholder="#funcionalidades">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">CTA Secundário (texto)</label>
-                    <input type="text" name="hero.cta_secundario" class="form-control"
-                           th:value="${cfg['hero.cta_secundario']}" maxlength="60">
+                    <label class="form-label">CTA Secundário — texto</label>
+                    <input type="text" name="hero.cta_secundario" class="form-control" th:value="${cfg['hero.cta_secundario']}" maxlength="60" placeholder="Acessar o sistema">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">CTA Secundário (link)</label>
-                    <input type="text" name="hero.cta_secundario_link" class="form-control"
-                           th:value="${cfg['hero.cta_secundario_link']}" maxlength="200" placeholder="/login">
+                    <label class="form-label">CTA Secundário — link</label>
+                    <input type="text" name="hero.cta_secundario_link" class="form-control" th:value="${cfg['hero.cta_secundario_link']}" maxlength="200" placeholder="/login">
                 </div>
             </div>
 
-            <div class="form-section-title" style="margin-top:var(--space-xl)">Estatísticas (4 números)</div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
-                <div class="form-group">
-                    <label class="form-label">Stat 1 — Valor</label>
-                    <input type="text" name="hero.stat1_valor" class="form-control" th:value="${cfg['hero.stat1_valor']}" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 1 — Rótulo</label>
-                    <input type="text" name="hero.stat1_label" class="form-control" th:value="${cfg['hero.stat1_label']}" maxlength="40">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 2 — Valor</label>
-                    <input type="text" name="hero.stat2_valor" class="form-control" th:value="${cfg['hero.stat2_valor']}" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 2 — Rótulo</label>
-                    <input type="text" name="hero.stat2_label" class="form-control" th:value="${cfg['hero.stat2_label']}" maxlength="40">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 3 — Valor</label>
-                    <input type="text" name="hero.stat3_valor" class="form-control" th:value="${cfg['hero.stat3_valor']}" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 3 — Rótulo</label>
-                    <input type="text" name="hero.stat3_label" class="form-control" th:value="${cfg['hero.stat3_label']}" maxlength="40">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 4 — Valor</label>
-                    <input type="text" name="hero.stat4_valor" class="form-control" th:value="${cfg['hero.stat4_valor']}" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stat 4 — Rótulo</label>
-                    <input type="text" name="hero.stat4_label" class="form-control" th:value="${cfg['hero.stat4_label']}" maxlength="40">
-                </div>
+            <!-- Estatísticas -->
+            <div class="form-section-title" style="margin-top:var(--space-xl)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                Estatísticas (4 números)
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:var(--space-md)">
+                <div class="form-group"><label class="form-label">Stat 1 — Valor</label><input type="text" name="hero.stat1_valor" class="form-control" th:value="${cfg['hero.stat1_valor']}" maxlength="20"></div>
+                <div class="form-group"><label class="form-label">Stat 1 — Rótulo</label><input type="text" name="hero.stat1_label" class="form-control" th:value="${cfg['hero.stat1_label']}" maxlength="40"></div>
+                <div class="form-group"><label class="form-label">Stat 2 — Valor</label><input type="text" name="hero.stat2_valor" class="form-control" th:value="${cfg['hero.stat2_valor']}" maxlength="20"></div>
+                <div class="form-group"><label class="form-label">Stat 2 — Rótulo</label><input type="text" name="hero.stat2_label" class="form-control" th:value="${cfg['hero.stat2_label']}" maxlength="40"></div>
+                <div class="form-group"><label class="form-label">Stat 3 — Valor</label><input type="text" name="hero.stat3_valor" class="form-control" th:value="${cfg['hero.stat3_valor']}" maxlength="20"></div>
+                <div class="form-group"><label class="form-label">Stat 3 — Rótulo</label><input type="text" name="hero.stat3_label" class="form-control" th:value="${cfg['hero.stat3_label']}" maxlength="40"></div>
+                <div class="form-group"><label class="form-label">Stat 4 — Valor</label><input type="text" name="hero.stat4_valor" class="form-control" th:value="${cfg['hero.stat4_valor']}" maxlength="20"></div>
+                <div class="form-group"><label class="form-label">Stat 4 — Rótulo</label><input type="text" name="hero.stat4_label" class="form-control" th:value="${cfg['hero.stat4_label']}" maxlength="40"></div>
             </div>
 
-            <div style="display:flex;gap:var(--space-md);margin-top:var(--space-xl)">
+            <div style="display:flex;gap:var(--space-md);margin-top:var(--space-xl);padding-top:var(--space-lg);border-top:1px solid var(--stroke-soft,#e5eae9);">
                 <button type="submit" class="btn btn-primary">
                     <i data-lucide="save" style="width:15px;height:15px;"></i> Salvar alterações
                 </button>
