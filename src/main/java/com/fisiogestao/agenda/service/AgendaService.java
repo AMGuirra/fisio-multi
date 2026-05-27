@@ -292,9 +292,6 @@ public class AgendaService {
 
         TipoAgendamento tipoAgendamento = tipoAgendamento(form);
         PlanoSessaoEntity plano = resolverPlanoParaCriacao(form, tipoAgendamento);
-        if (tipoAgendamento == TipoAgendamento.PLANO) {
-            planoSessaoService.reservarSessao(plano.getId());
-        }
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(pacienteService.buscarPorId(form.getClienteId()))
@@ -306,7 +303,7 @@ public class AgendaService {
                 .tipoAgendamento(tipoAgendamento)
                 .valorAvulso(tipoAgendamento == TipoAgendamento.AVULSO ? form.getValorAvulso() : null)
                 .observacoes(texto(form.getObservacoes()))
-                .planoConsumoRegistrado(tipoAgendamento == TipoAgendamento.PLANO)
+                .planoConsumoRegistrado(Boolean.FALSE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordCreate(
@@ -333,11 +330,12 @@ public class AgendaService {
         }
 
         if (tipoAgendamento == TipoAgendamento.PLANO) {
-            int sessoesDisponiveis = planoSessaoService.calcularSessoesDisponiveis(plano);
+            int sessoesDisponiveis = planoSessaoService.calcularSessoesDisponiveis(plano)
+                    - (int) sessaoRepository.countAgendadasPorPlano(plano.getId());
             if (inicios.size() > sessoesDisponiveis) {
                 throw new BusinessException("A recorrencia gera " + inicios.size()
                         + " sessoes, mas o plano selecionado possui apenas "
-                        + sessoesDisponiveis + " sessoes disponiveis.");
+                        + sessoesDisponiveis + " sessoes disponiveis (descontando as ja agendadas).");
             }
         }
 
@@ -357,10 +355,6 @@ public class AgendaService {
         ArrayList<SessaoEntity> salvas = new ArrayList<>();
         SessaoEntity pai = null;
         for (OffsetDateTime inicio : inicios) {
-            if (tipoAgendamento == TipoAgendamento.PLANO) {
-                planoSessaoService.reservarSessao(plano.getId(), false, 1);
-            }
-
             SessaoEntity sessao = SessaoEntity.builder()
                     .cliente(pacienteService.buscarPorId(form.getClienteId()))
                     .planoSessao(plano)
@@ -373,7 +367,7 @@ public class AgendaService {
                     .recorrencia(pai == null ? recorrencia : null)
                     .recorrenciaPai(pai)
                     .observacoes(texto(form.getObservacoes()))
-                    .planoConsumoRegistrado(tipoAgendamento == TipoAgendamento.PLANO)
+                    .planoConsumoRegistrado(Boolean.FALSE)
                     .build();
             SessaoEntity salva = sessaoRepository.save(sessao);
             if (pai == null) {
@@ -390,13 +384,6 @@ public class AgendaService {
             );
         }
 
-        if (tipoAgendamento == TipoAgendamento.PLANO) {
-            planoSessaoService.notificarConsumoPlano(
-                    plano.getId(),
-                    inicios.size(),
-                    "Série de agendamentos reservada no plano de tratamento."
-            );
-        }
         agendamentoEmailNotificationService.notificarConfirmadoPorSessao(salvas.get(0), profissionalResponsavel);
         return salvas;
     }
@@ -474,10 +461,7 @@ public class AgendaService {
             return sessao;
         }
 
-        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
-            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
-            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
-        }
+        registrarConsumoPlanoSeNecessario(sessao);
 
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
             financeiroService.registrarReceitaAvulso(sessao, profissionalResponsavel);
@@ -521,10 +505,7 @@ public class AgendaService {
             throw new BusinessException("Somente sessões pendentes podem ser registradas como falta faturada.");
         }
 
-        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
-            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
-            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
-        }
+        registrarConsumoPlanoSeNecessario(sessao);
         if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
             financeiroService.registrarReceitaAvulso(sessao, profissionalResponsavel);
         }
@@ -558,6 +539,7 @@ public class AgendaService {
             throw new BusinessException("Somente sessões pendentes podem ser registradas como falta.");
         }
 
+        registrarConsumoPlanoSeNecessario(sessao);
         sessao.setStatus(SessaoStatus.FALTA);
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordManual(
@@ -611,10 +593,7 @@ public class AgendaService {
             throw new BusinessException("Apenas sessões canceladas podem voltar para pendente.");
         }
 
-        if (sessao.getPlanoSessao() != null && !Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
-            planoSessaoService.reservarSessao(sessao.getPlanoSessao().getId());
-            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
-        }
+        registrarConsumoPlanoSeNecessario(sessao);
 
         sessao.setStatus(SessaoStatus.AGENDADA);
         SessaoEntity salva = sessaoRepository.save(sessao);
@@ -844,5 +823,35 @@ public class AgendaService {
         return form.getRecorrencia().getDiasSemana().stream()
                 .map(Enum::name)
                 .collect(Collectors.joining(","));
+    }
+
+    /**
+     * Registra o consumo de uma sessão no plano de tratamento, caso ainda não tenha sido registrado.
+     * <p>
+     * Sessões do tipo AVULSO nunca consomem plano. Para sessões do tipo PLANO que não possuam
+     * vínculo direto com um plano (planoSessao == null), tenta localizar o primeiro plano
+     * disponível do paciente e vincula retroativamente.
+     * </p>
+     */
+    private void registrarConsumoPlanoSeNecessario(SessaoEntity sessao) {
+        if (Boolean.TRUE.equals(sessao.getPlanoConsumoRegistrado())) {
+            return; // consumo já registrado (pré-consumo no agendamento ou ação anterior)
+        }
+        if (sessao.getTipoAgendamento() == TipoAgendamento.AVULSO) {
+            return; // avulso não consome plano
+        }
+        PlanoSessaoEntity plano = sessao.getPlanoSessao();
+        if (plano == null) {
+            // fallback: sessão sem vínculo direto — tenta encontrar plano ativo do paciente
+            plano = planoSessaoService.buscarPrimeiroDisponivel(sessao.getCliente().getId())
+                    .orElse(null);
+            if (plano != null) {
+                sessao.setPlanoSessao(plano);
+            }
+        }
+        if (plano != null) {
+            planoSessaoService.reservarSessao(plano.getId());
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
+        }
     }
 }

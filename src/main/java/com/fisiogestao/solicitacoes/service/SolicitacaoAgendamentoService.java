@@ -325,7 +325,6 @@ public class SolicitacaoAgendamentoService {
                 cliente.getId(),
                 form != null ? form.getPlanoSessaoId() : null,
                 null);
-        planoSessaoService.reservarSessao(plano.getId());
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(cliente)
@@ -335,7 +334,7 @@ public class SolicitacaoAgendamentoService {
                 .status(SessaoStatus.AGENDADA)
                 .tipoAtendimento(solicitacao.getLocalAtendimentoDescricao())
                 .observacoes(montarObservacoesSessao(solicitacao))
-                .planoConsumoRegistrado(Boolean.TRUE)
+                .planoConsumoRegistrado(Boolean.FALSE)
                 .build();
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordCreate(
