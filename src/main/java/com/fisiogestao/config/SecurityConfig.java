@@ -78,6 +78,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ── Recursos públicos estáticos e páginas sem autenticação ──────
                         .requestMatchers(
+                                "/",
+                                "/home",
                                 "/login",
                                 "/esqueci-minha-senha",
                                 "/resetar-senha",

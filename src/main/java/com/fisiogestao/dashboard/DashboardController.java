@@ -13,7 +13,7 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    @GetMapping({"/", "/dashboard"})
+    @GetMapping("/dashboard")
     public String dashboard(@RequestParam(name = "acessoNegado", required = false) boolean acessoNegado, Model model) {
         model.addAttribute("summary", dashboardService.carregarResumo());
         model.addAttribute("dashboardToday", ClinicTimezoneHolder.today());
