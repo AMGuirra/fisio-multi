@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -141,17 +141,53 @@
         }
 
         async function carregarPaciente(pacienteId, modo, planoId) {
+            // Exibir Skeleton Loaders pulsantes durante a requisição AJAX
+            const skeletonHtml = `
+                <div style="padding: 16px 20px;">
+                    <div class="skeleton-card skeleton-pulse-anim">
+                        <div class="skeleton-circle"></div>
+                        <div style="flex: 1;">
+                            <div class="skeleton-line title" style="width: 50%;"></div>
+                            <div class="skeleton-line medium"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card skeleton-pulse-anim" style="opacity: 0.85;">
+                        <div class="skeleton-circle"></div>
+                        <div style="flex: 1;">
+                            <div class="skeleton-line title" style="width: 35%;"></div>
+                            <div class="skeleton-line short"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('c2b').innerHTML = skeletonHtml;
+            document.getElementById('c3b').innerHTML = skeletonHtml;
+
             let url = `/planos-consumo/${pacienteId}/selecionar?modo=${modo}`;
             if (planoId) url += `&planoId=${planoId}`;
             try {
                 const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
                 if (!res.ok) {
-                    document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Erro ao carregar paciente (' + res.status + '). Tente novamente.</p></div>';
+                    document.getElementById('c2b').innerHTML = `
+                        <div class="placeholder">
+                            <i data-lucide="triangle-alert" aria-hidden="true" style="color: var(--status-error-bg, #ef4444); margin-bottom: 8px;"></i>
+                            <p>Erro ao carregar paciente (${res.status}).</p>
+                            <button type="button" class="btn-sec" style="margin-top: 12px; padding: 6px 12px; font-size: 0.875rem;" onclick="carregarPaciente(${pacienteId}, '${modo}', ${planoId ? `'${planoId}'` : 'null'})">Tentar novamente</button>
+                        </div>
+                    `;
+                    if (window.lucide) lucide.createIcons();
                     return;
                 }
                 atualizarPaineis(await res.text(), modo);
             } catch (err) {
-                document.getElementById('c2b').innerHTML = '<div class="placeholder"><p>Falha de conexão. Recarregue a página.</p></div>';
+                document.getElementById('c2b').innerHTML = `
+                    <div class="placeholder">
+                        <i data-lucide="wifi-off" aria-hidden="true" style="color: var(--status-error-bg, #ef4444); margin-bottom: 8px;"></i>
+                        <p>Falha de conexão com o servidor.</p>
+                        <button type="button" class="btn-sec" style="margin-top: 12px; padding: 6px 12px; font-size: 0.875rem;" onclick="carregarPaciente(${pacienteId}, '${modo}', ${planoId ? `'${planoId}'` : 'null'})">Tentar novamente</button>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
             }
         }
 
@@ -217,13 +253,13 @@
             });
         }
 
-        document.getElementById('si')?.addEventListener('input', function () {
-            const q = this.value.toLowerCase();
+        document.getElementById('si')?.addEventListener('input', debounce(function (e) {
+            const q = e.target.value.toLowerCase();
             document.querySelectorAll('.prow').forEach(row => {
                 const haystack = `${row.dataset.name || ''} ${row.dataset.phone || ''} ${row.dataset.email || ''}`.toLowerCase();
                 row.style.display = haystack.includes(q) ? '' : 'none';
             });
-        });
+        }, 120));
 
         function initColumnResizers() {
             const body = document.querySelector('.pc-shell .body');
@@ -231,7 +267,23 @@
 
             const DEFAULTS = { col1: 260, col3: 320 };
             const MIN_W = 180, MIN_COL2 = 260;
-            let col1W = DEFAULTS.col1, col3W = DEFAULTS.col3;
+            let col1W = DEFAULTS.col1;
+            let col3W = DEFAULTS.col3;
+
+            try {
+                const storedCol1 = localStorage.getItem('pc-col1-w');
+                const storedCol3 = localStorage.getItem('pc-col3-w');
+                if (storedCol1) {
+                    col1W = parseInt(storedCol1, 10);
+                    body.style.setProperty('--col1-w', col1W + 'px');
+                }
+                if (storedCol3) {
+                    col3W = parseInt(storedCol3, 10);
+                    body.style.setProperty('--col3-w', col3W + 'px');
+                }
+            } catch (err) {
+                console.warn('Erro ao carregar colunas do localStorage', err);
+            }
 
             const h1 = document.createElement('div');
             const h2 = document.createElement('div');
@@ -294,6 +346,12 @@
                     document.body.style.userSelect = '';
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('mouseup', onUp);
+                    try {
+                        localStorage.setItem('pc-col1-w', col1W);
+                        localStorage.setItem('pc-col3-w', col3W);
+                    } catch (err) {
+                        console.warn('Erro ao salvar colunas no localStorage', err);
+                    }
                 };
 
                 document.addEventListener('mousemove', onMove);

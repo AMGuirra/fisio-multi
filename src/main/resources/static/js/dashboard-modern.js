@@ -489,6 +489,162 @@
         carregarMetricasDashboard();
         setInterval(updateDateTime, 1000);
 
+        // ── UTILITÁRIO: DEBOUNCE GLOBAL ──
+        window.debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        // ── COMMAND PALETTE JS ──
+        (() => {
+            const cpModal = document.getElementById('commandPaletteModal');
+            const cpInput = document.getElementById('cpInput');
+            const cpResults = document.getElementById('cpResults');
+            if (!cpModal || !cpInput || !cpResults) return;
+
+            let activeIndex = 0;
+            let matches = [];
+
+            // Mapeamento dinâmico dos links da barra lateral
+            const getNavigationItems = () => {
+                const sidebarLinks = Array.from(document.querySelectorAll('.app-sidebar .sidebar-nav .sidebar-link[href]'));
+                const footerLinks = Array.from(document.querySelectorAll('.app-sidebar .sidebar-footer .sidebar-link[href]'));
+                const allLinks = [...sidebarLinks, ...footerLinks];
+
+                return allLinks.map(link => {
+                    const label = link.querySelector('.sidebar-link-label')?.textContent || link.textContent.trim();
+                    const href = link.getAttribute('href');
+                    const iconName = link.querySelector('i')?.dataset.lucide || 'link';
+                    return { type: 'nav', label: `Ir para ${label}`, href, icon: iconName };
+                });
+            };
+
+            const toggleCommandPalette = (open) => {
+                const isOpen = open !== undefined ? open : !cpModal.classList.contains('is-open');
+                cpModal.classList.toggle('is-open', isOpen);
+                cpModal.setAttribute('aria-hidden', String(!isOpen));
+                document.body.classList.toggle('modal-open', isOpen);
+                if (isOpen) {
+                    cpInput.value = '';
+                    renderMatches('');
+                    setTimeout(() => cpInput.focus(), 60);
+                }
+            };
+
+            const executeItem = (item) => {
+                toggleCommandPalette(false);
+                if (item.type === 'nav') {
+                    window.location.href = item.href;
+                } else if (item.type === 'action' && typeof item.action === 'function') {
+                    item.action();
+                }
+            };
+
+            const updateActiveItem = () => {
+                const items = cpResults.querySelectorAll('.cp-item');
+                items.forEach((item, index) => {
+                    item.classList.toggle('is-active', index === activeIndex);
+                    if (index === activeIndex) {
+                        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
+                });
+            };
+
+            const renderMatches = (q) => {
+                const query = q.toLowerCase().trim();
+                const navItems = getNavigationItems();
+                const actions = [
+                    { 
+                        type: 'action', 
+                        label: 'Alterar Tema: Claro', 
+                        action: () => {
+                            const btn = document.querySelector('form.theme-switcher button[value="LIGHT"]');
+                            if (btn) btn.click();
+                        }, 
+                        icon: 'sun-medium' 
+                    },
+                    { 
+                        type: 'action', 
+                        label: 'Alterar Tema: Escuro', 
+                        action: () => {
+                            const btn = document.querySelector('form.theme-switcher button[value="DARK"]');
+                            if (btn) btn.click();
+                        }, 
+                        icon: 'moon-star' 
+                    }
+                ];
+
+                const allItems = [...navItems, ...actions];
+                matches = allItems.filter(item => item.label.toLowerCase().includes(query));
+                activeIndex = 0;
+
+                cpResults.innerHTML = '';
+                if (matches.length === 0) {
+                    cpResults.innerHTML = '<li style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Nenhum comando ou página encontrada.</li>';
+                    return;
+                }
+
+                matches.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = `cp-item ${index === activeIndex ? 'is-active' : ''}`;
+                    li.innerHTML = `
+                        <i data-lucide="${item.icon || 'link'}" class="cp-item-icon"></i>
+                        <span class="cp-item-label">${item.label}</span>
+                        <span class="cp-item-shortcut">⏎</span>
+                    `;
+                    li.addEventListener('click', () => executeItem(item));
+                    cpResults.appendChild(li);
+                });
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            };
+
+            // Event Listeners
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    toggleCommandPalette();
+                }
+            });
+
+            cpModal.addEventListener('click', (e) => {
+                if (e.target === cpModal) {
+                    toggleCommandPalette(false);
+                }
+            });
+
+            cpInput.addEventListener('input', (e) => renderMatches(e.target.value));
+
+            cpInput.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = (activeIndex + 1) % matches.length;
+                    updateActiveItem();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = (activeIndex - 1 + matches.length) % matches.length;
+                    updateActiveItem();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (matches[activeIndex]) {
+                        executeItem(matches[activeIndex]);
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    toggleCommandPalette(false);
+                }
+            });
+        })();
+
         window.toggleSidebar = toggleSidebar;
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {

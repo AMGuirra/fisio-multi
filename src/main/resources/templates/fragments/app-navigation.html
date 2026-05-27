@@ -85,6 +85,27 @@
                 </form>
             </div>
         </aside>
+
+        <!-- Command Palette Floating Overlay -->
+        <div id="commandPaletteModal" class="cp-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Paleta de Comandos">
+            <div class="cp-window">
+                <div class="cp-search-wrapper">
+                    <i data-lucide="search" class="cp-search-icon"></i>
+                    <input type="text" id="cpInput" class="cp-input" placeholder="Buscar páginas ou ações... (Ex: Agenda, Tema)" autocomplete="off">
+                </div>
+                <ul id="cpResults" class="cp-results-list">
+                    <!-- Dinamicamente preenchido via JS -->
+                </ul>
+                <footer class="cp-footer">
+                    <span>Atalho: <kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+                    <div class="cp-keys">
+                        <span class="cp-key"><kbd>↑↓</kbd> Navegar</span>
+                        <span class="cp-key"><kbd>⏎</kbd> Selecionar</span>
+                        <span class="cp-key"><kbd>Esc</kbd> Fechar</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
     </th:block>
 </body>
 </html>
