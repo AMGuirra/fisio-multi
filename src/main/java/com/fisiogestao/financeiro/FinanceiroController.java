@@ -2,11 +2,15 @@ package com.fisiogestao.financeiro;
 
 import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.financeiro.form.LancamentoFinanceiroForm;
+import com.fisiogestao.financeiro.service.ContasAReceberExportService;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.financeiro.service.ReciboPdfService;
+import com.fisiogestao.relatorios.form.FormatoRelatorio;
+import com.fisiogestao.relatorios.service.RelatorioDocumento;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Controller
@@ -34,6 +39,8 @@ public class FinanceiroController {
 
     private final FinanceiroService financeiroService;
     private final ReciboPdfService reciboPdfService;
+    private final ContasAReceberExportService contasAReceberExportService;
+    private final ContasAPagarExportService contasAPagarExportService;
 
     public record FaturamentoBloco(String titulo, List<FinanceiroService.FaturamentoGrupo> itens) {}
 
@@ -59,7 +66,51 @@ public class FinanceiroController {
         model.addAttribute("contasAReceber", financeiroService.listarContasAReceber());
         model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
         model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
+        model.addAttribute("metodosPagamento", MetodoPagamento.values());
         return "financeiro/contas-a-receber";
+    }
+
+    @GetMapping("/contas-a-receber/exportar")
+    public ResponseEntity<ByteArrayResource> exportarContasAReceber(@RequestParam FormatoRelatorio formato) {
+        FinanceiroService.ContasAReceberView view = financeiroService.listarContasAReceber();
+        RelatorioDocumento documento = contasAReceberExportService.exportar(view, formato);
+        String contentType = Objects.requireNonNullElse(documento.contentType(), MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        byte[] content = Objects.requireNonNullElseGet(documento.content(), () -> new byte[0]);
+        String fileName = Objects.requireNonNullElse(documento.fileName(), "contas-a-receber.bin");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .contentLength(content.length)
+                .body(new ByteArrayResource(content));
+    }
+
+    @PostMapping("/contas-a-receber/lancamentos/{id}/pagar")
+    public String pagarContaAReceber(
+            @PathVariable("id") UUID id,
+            @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.marcarComoPago(id, metodoPagamento);
+            redirectAttributes.addFlashAttribute("successMessage", "Pagamento registrado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/financeiro/contas-a-receber";
+    }
+
+    @PostMapping("/contas-a-receber/lancamentos/{id}/cancelar")
+    public String cancelarContaAReceber(
+            @PathVariable("id") UUID id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.cancelar(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Lançamento cancelado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/financeiro/contas-a-receber";
     }
 
     @GetMapping("/contas-a-pagar")
@@ -68,6 +119,49 @@ public class FinanceiroController {
         model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
         model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
         return "financeiro/contas-a-pagar";
+    }
+
+    @GetMapping("/contas-a-pagar/exportar")
+    public ResponseEntity<ByteArrayResource> exportarContasAPagar(@RequestParam FormatoRelatorio formato) {
+        FinanceiroService.ContasAPagarView view = financeiroService.listarContasAPagar();
+        RelatorioDocumento documento = contasAPagarExportService.exportar(view, formato);
+        String contentType = Objects.requireNonNullElse(documento.contentType(), MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        byte[] content = Objects.requireNonNullElseGet(documento.content(), () -> new byte[0]);
+        String fileName = Objects.requireNonNullElse(documento.fileName(), "contas-a-pagar.bin");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .contentLength(content.length)
+                .body(new ByteArrayResource(content));
+    }
+
+    @PostMapping("/contas-a-pagar/lancamentos/{id}/pagar")
+    public String pagarContaAPagar(
+            @PathVariable("id") UUID id,
+            @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.marcarComoPago(id, metodoPagamento);
+            redirectAttributes.addFlashAttribute("successMessage", "Pagamento registrado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/financeiro/contas-a-pagar";
+    }
+
+    @PostMapping("/contas-a-pagar/lancamentos/{id}/cancelar")
+    public String cancelarContaAPagar(
+            @PathVariable("id") UUID id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.cancelar(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Lançamento cancelado com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/financeiro/contas-a-pagar";
     }
 
     @GetMapping("/relatorio-faturamento")

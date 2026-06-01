@@ -31,6 +31,11 @@
         </header>
 
         <main class="dashboard-main crud-main">
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
+
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Contas a Receber</h1>
@@ -87,6 +92,18 @@
                         <h3 class="section-title"><i data-lucide="list-checks"></i> Aging de recebíveis</h3>
                         <p class="section-subtitle">Valores agrupados por paciente e plano de tratamento.</p>
                     </div>
+                    <div class="section-actions" th:unless="${#lists.isEmpty(contasAReceber.grupos())}">
+                        <a th:href="@{/financeiro/contas-a-receber/exportar(formato=PDF)}"
+                           class="action-button ghost"
+                           title="Exportar em PDF">
+                            <i data-lucide="file-down"></i> PDF
+                        </a>
+                        <a th:href="@{/financeiro/contas-a-receber/exportar(formato=EXCEL)}"
+                           class="action-button ghost"
+                           title="Exportar em Excel">
+                            <i data-lucide="table-2"></i> Excel
+                        </a>
+                    </div>
                 </header>
 
                 <div class="section-body" th:if="${#lists.isEmpty(contasAReceber.grupos())}">
@@ -109,6 +126,7 @@
                                 <th class="text-right">+30 dias</th>
                                 <th class="text-right">Total</th>
                                 <th>Status</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -116,6 +134,8 @@
                                 <td>
                                     <p class="entity-name" th:text="${grupo.paciente()}">Paciente</p>
                                     <p class="entity-meta" th:text="${grupo.plano()}">Plano</p>
+                                    <p class="entity-meta" th:if="${grupo.quantidade() > 1}"
+                                       th:text="${grupo.quantidade() + ' lançamentos'}">N lançamentos</p>
                                 </td>
                                 <td th:text="${#temporals.format(grupo.vencimentoMaisAntigo(), 'dd/MM/yyyy')}">01/01/2026</td>
                                 <td class="text-right" th:text="${'R$ ' + #numbers.formatDecimal(grupo.aVencer(), 1, 'COMMA', 2, 'POINT')}">R$ 0,00</td>
@@ -129,6 +149,42 @@
                                           th:classappend="${'tone-' + grupo.agingTone()}"
                                           th:text="${grupo.maiorAtrasoDias() > 0 ? grupo.maiorAtrasoDias() + ' dia(s)' : 'A vencer'}">A vencer</span>
                                 </td>
+                                <td class="finance-action-cell">
+                                    <div th:if="${grupo.primeiroLancamentoId() != null}" class="table-actions finance-actions">
+                                        <!-- Registrar pagamento -->
+                                        <form th:action="@{/financeiro/contas-a-receber/lancamentos/{id}/pagar(id=${grupo.primeiroLancamentoId()})}"
+                                              method="post"
+                                              class="inline-form baixa-form">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                            <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento">
+                                                <option value="">Forma de pgto</option>
+                                                <option th:each="mp : ${metodosPagamento}"
+                                                        th:value="${mp.name()}"
+                                                        th:text="${mp.label}">PIX</option>
+                                            </select>
+                                            <button type="submit" class="action-button success">
+                                                <i data-lucide="check-check"></i>
+                                                Baixa
+                                            </button>
+                                        </form>
+                                        <!-- Cancelar lançamento -->
+                                        <form th:action="@{/financeiro/contas-a-receber/lancamentos/{id}/cancelar(id=${grupo.primeiroLancamentoId()})}"
+                                              method="post"
+                                              class="inline-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Cancelar lançamento?"
+                                              th:data-confirm-message="${grupo.quantidade() > 1 ? 'Deseja cancelar o lançamento mais antigo de ' + grupo.paciente() + '? (' + grupo.quantidade() + ' lançamentos no grupo)' : 'Deseja cancelar o lançamento de R$ ' + #numbers.formatDecimal(grupo.total(), 1, 'COMMA', 2, 'POINT') + ' de ' + grupo.paciente() + '?'}"
+                                              data-confirm-helper-title="O lançamento será cancelado"
+                                              data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
+                                              data-confirm-action-label="Cancelar lançamento">
+                                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                            <button type="submit" class="action-button danger">
+                                                <i data-lucide="x-circle"></i>
+                                                Cancelar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -139,7 +195,10 @@
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
     </div>
 
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 </body>
 </html>

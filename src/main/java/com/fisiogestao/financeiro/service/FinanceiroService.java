@@ -109,6 +109,7 @@ public class FinanceiroService {
     public record ContaReceberGrupo(
             String paciente,
             String plano,
+            UUID clienteId,
             BigDecimal total,
             BigDecimal aVencer,
             BigDecimal vencidoAte7,
@@ -116,6 +117,7 @@ public class FinanceiroService {
             BigDecimal vencido16A30,
             BigDecimal vencidoAcima30,
             long quantidade,
+            UUID primeiroLancamentoId,
             LocalDate vencimentoMaisAntigo,
             long maiorAtrasoDias
     ) {
@@ -157,6 +159,7 @@ public class FinanceiroService {
             BigDecimal vencido16A30,
             BigDecimal vencidoAcima30,
             long quantidade,
+            UUID primeiroLancamentoId,
             LocalDate vencimentoMaisAntigo,
             long maiorAtrasoDias
     ) {
@@ -744,6 +747,7 @@ public class FinanceiroService {
     private static final class ContaReceberAcumulador {
         private final String paciente;
         private final String plano;
+        private UUID clienteId;
         private BigDecimal total = BigDecimal.ZERO;
         private BigDecimal aVencer = BigDecimal.ZERO;
         private BigDecimal vencidoAte7 = BigDecimal.ZERO;
@@ -751,6 +755,7 @@ public class FinanceiroService {
         private BigDecimal vencido16A30 = BigDecimal.ZERO;
         private BigDecimal vencidoAcima30 = BigDecimal.ZERO;
         private long quantidade;
+        private UUID primeiroLancamentoId;
         private LocalDate vencimentoMaisAntigo;
         private long maiorAtrasoDias;
 
@@ -766,8 +771,12 @@ public class FinanceiroService {
 
             total = total.add(valor);
             quantidade++;
+            if (clienteId == null && lancamento.getCliente() != null) {
+                clienteId = lancamento.getCliente().getId();
+            }
             if (vencimentoMaisAntigo == null || vencimento.isBefore(vencimentoMaisAntigo)) {
                 vencimentoMaisAntigo = vencimento;
+                primeiroLancamentoId = lancamento.getId();
             }
             maiorAtrasoDias = Math.max(maiorAtrasoDias, atraso);
 
@@ -788,6 +797,7 @@ public class FinanceiroService {
             return new ContaReceberGrupo(
                     paciente,
                     plano,
+                    clienteId,
                     total,
                     aVencer,
                     vencidoAte7,
@@ -795,6 +805,7 @@ public class FinanceiroService {
                     vencido16A30,
                     vencidoAcima30,
                     quantidade,
+                    primeiroLancamentoId,
                     vencimentoMaisAntigo,
                     maiorAtrasoDias
             );
@@ -811,6 +822,7 @@ public class FinanceiroService {
         private BigDecimal vencido16A30 = BigDecimal.ZERO;
         private BigDecimal vencidoAcima30 = BigDecimal.ZERO;
         private long quantidade;
+        private UUID primeiroLancamentoId;
         private LocalDate vencimentoMaisAntigo;
         private long maiorAtrasoDias;
 
@@ -828,6 +840,7 @@ public class FinanceiroService {
             quantidade++;
             if (vencimentoMaisAntigo == null || vencimento.isBefore(vencimentoMaisAntigo)) {
                 vencimentoMaisAntigo = vencimento;
+                primeiroLancamentoId = lancamento.getId();
             }
             maiorAtrasoDias = Math.max(maiorAtrasoDias, atraso);
 
@@ -855,6 +868,7 @@ public class FinanceiroService {
                     vencido16A30,
                     vencidoAcima30,
                     quantidade,
+                    primeiroLancamentoId,
                     vencimentoMaisAntigo,
                     maiorAtrasoDias
             );
