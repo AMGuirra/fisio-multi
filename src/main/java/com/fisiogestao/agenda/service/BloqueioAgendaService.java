@@ -249,8 +249,8 @@ public class BloqueioAgendaService {
 
     private Intervalo montarIntervalo(BloqueioAgendaCadastroForm form, LocalDate data, ConfiguracaoClinicaEntity configuracao) {
         ZoneId zoneId = ZoneId.of(configuracao.getTimezoneId());
-        LocalTime inicio = form.isBloqueioDiaInteiro() ? configuracao.getHorarioAbertura() : form.getHoraInicio();
-        LocalTime fim = form.isBloqueioDiaInteiro() ? configuracao.getHorarioFechamento() : form.getHoraFim();
+        LocalTime inicio = form.isBloqueioDiaInteiro() ? LocalTime.MIN : form.getHoraInicio();
+        LocalTime fim = form.isBloqueioDiaInteiro() ? LocalTime.MAX : form.getHoraFim();
         return new Intervalo(data.atTime(inicio).atZone(zoneId).toOffsetDateTime(), data.atTime(fim).atZone(zoneId).toOffsetDateTime());
     }
 

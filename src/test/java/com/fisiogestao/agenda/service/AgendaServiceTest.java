@@ -1,6 +1,7 @@
 package com.fisiogestao.agenda.service;
 
 import com.fisiogestao.agenda.ConfiguracaoClinicaEntity;
+import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.HorarioBloqueadoEntity;
 import com.fisiogestao.agenda.TipoAgendamento;
 import com.fisiogestao.agenda.SessaoEntity;
@@ -240,6 +241,27 @@ class AgendaServiceTest {
         when(bloqueioAgendaService.existeBloqueioAtivo(any(), any(), any())).thenReturn(true);
 
         assertThrows(BusinessException.class, () -> agendaService.agendarSessaoManual(form, "Administrador"));
+    }
+
+    @Test
+    void deveRemoverSlotsQuandoDataEstiverBloqueadaDiaInteiro() {
+        LocalDate data = LocalDate.now().plusDays(3);
+        ZoneId zoneId = ZoneId.of("America/Campo_Grande");
+        BloqueioAgendaEntity bloqueio = BloqueioAgendaEntity.builder()
+                .dataHoraInicio(data.atStartOfDay(zoneId).toOffsetDateTime())
+                .dataHoraFim(data.atTime(LocalTime.MAX).atZone(zoneId).toOffsetDateTime())
+                .diaInteiro(true)
+                .motivo("Feriado")
+                .ativo(true)
+                .build();
+
+        when(configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()).thenReturn(Optional.of(criarConfiguracao()));
+        when(sessaoRepository.findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(any(), any())).thenReturn(List.of());
+        when(horarioBloqueadoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(any(), any(), any()))
+                .thenReturn(List.<HorarioBloqueadoEntity>of());
+        when(bloqueioAgendaService.listarAtivosDoDia(data)).thenReturn(List.of(bloqueio));
+
+        assertEquals(List.of(), agendaService.gerarSlotsDisponiveis(data));
     }
 
     @Test
