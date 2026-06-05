@@ -377,18 +377,29 @@ class PageSmokeTest {
         PlanoSessaoEntity planoDepois = planoSessaoRepository.findById(planoAntes.getId())
                 .orElseThrow(() -> new IllegalStateException("Plano de teste não encontrado após o agendamento."));
 
+        // Consumo adiado: não incrementa no agendamento — apenas na realização da sessão
         org.junit.jupiter.api.Assertions.assertEquals(
-                planoAntes.getSessoesConsumidas() + 1,
-                planoDepois.getSessoesConsumidas()
+                planoAntes.getSessoesConsumidas(),
+                planoDepois.getSessoesConsumidas(),
+                "Consumo do plano não deve ser registrado no agendamento — apenas na realização da sessão"
         );
 
-        long sessoesAgendadas = sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
-                .filter(sessao -> sessao.getDataHoraInicio().toLocalDate().equals(agendaDate))
-                .filter(sessao -> sessao.getDataHoraInicio().toLocalTime().equals(LocalTime.of(10, 0)))
-                .filter(sessao -> sessao.getStatus() == SessaoStatus.AGENDADA)
-                .count();
+        SessaoEntity sessaoAgendada = sessaoRepository
+                .findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
+                .filter(s -> s.getDataHoraInicio().toLocalDate().equals(agendaDate))
+                .filter(s -> s.getDataHoraInicio().toLocalTime().equals(LocalTime.of(10, 0)))
+                .filter(s -> s.getStatus() == SessaoStatus.AGENDADA)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Sessão agendada não encontrada."));
 
-        org.junit.jupiter.api.Assertions.assertEquals(1L, sessoesAgendadas);
+        org.junit.jupiter.api.Assertions.assertEquals(1L,
+                sessaoRepository.findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
+                        .filter(s -> s.getDataHoraInicio().toLocalDate().equals(agendaDate))
+                        .filter(s -> s.getDataHoraInicio().toLocalTime().equals(LocalTime.of(10, 0)))
+                        .filter(s -> s.getStatus() == SessaoStatus.AGENDADA)
+                        .count());
+
+        org.junit.jupiter.api.Assertions.assertEquals(Boolean.FALSE, sessaoAgendada.getPlanoConsumoRegistrado());
     }
 
     @Test
