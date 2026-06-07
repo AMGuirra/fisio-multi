@@ -24,7 +24,6 @@ public enum AppMenuItem {
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
     CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
     AUDITORIA("Auditoria",           "/auditoria",           "shield-check",        false, false, false, true,  MenuSection.ADMIN,   List.of("/auditoria")),
-    LANDING_ADMIN("Landing Page",    "/admin/landing",       "layout-panel-top",    false, false, false, true,  MenuSection.ADMIN,   List.of("/admin/landing")),
     AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true,  false, MenuSection.NONE,   List.of("/agendamento-online"));
 
     public enum MenuSection {
@@ -161,8 +160,6 @@ public enum AppMenuItem {
                 return "Configura envio de e-mails e parametros de comunicacao.";
             case AUDITORIA:
                 return "Permite consultar o historico de acoes realizadas no sistema.";
-            case LANDING_ADMIN:
-                return "Gerencia o conteudo da landing page publica: hero, planos, depoimentos e FAQ.";
             case AGENDAMENTO_ONLINE:
                 return "Disponibiliza o link e o acesso ao agendamento online da clinica.";
             default:
@@ -208,8 +205,7 @@ public enum AppMenuItem {
                 USUARIOS,
                 FUNCOES_USUARIOS,
                 CONFIG_EMAIL,
-                AUDITORIA,
-                LANDING_ADMIN
+                AUDITORIA
         );
     }
 

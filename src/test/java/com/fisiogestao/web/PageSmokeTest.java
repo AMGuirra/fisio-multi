@@ -125,8 +125,6 @@ class PageSmokeTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "/",
-            "/home",
             "/login",
             "/esqueci-minha-senha",
             "/resetar-senha",
@@ -136,6 +134,14 @@ class PageSmokeTest {
     void publicPagesRender(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/home"})
+    void homeRedirecionaParaLogin(String path) throws Exception {
+        mockMvc.perform(get(path))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -199,7 +205,6 @@ class PageSmokeTest {
     @ParameterizedTest
     @WithMockUser(username = "admin", roles = "ADMIN")
     @ValueSource(strings = {
-            "/",
             "/dashboard",
             "/calendario",
             "/auditoria",
@@ -220,34 +225,11 @@ class PageSmokeTest {
             "/relatorios",
             "/solicitacoes",
             "/usuarios",
-            "/funcoes-usuarios",
-            "/admin/landing",
-            "/admin/landing/hero",
-            "/admin/landing/secoes",
-            "/admin/landing/testemunhos",
-            "/admin/landing/planos",
-            "/admin/landing/faq",
-            "/admin/landing/beneficios",
-            "/admin/landing/steps"
+            "/funcoes-usuarios"
     })
     void securedPagesRenderForAdmin(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void landingAdminSalvaVisibilidadeDasSecoes() throws Exception {
-        mockMvc.perform(post("/admin/landing/secoes")
-                        .with(csrf())
-                        .param("secao.como_funciona", "true")
-                        .param("secao.funcionalidades", "true")
-                        .param("secao.beneficios", "true")
-                        .param("secao.depoimentos", "true")
-                        .param("secao.planos", "true")
-                        .param("secao.faq", "true"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/landing/secoes"));
     }
 
     @Test
