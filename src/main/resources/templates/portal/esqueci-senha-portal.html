@@ -9,23 +9,23 @@
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
 <body class="pub-body pub-centered">
-    <div class="pub-success-card" style="max-width:420px;">
-        <div class="pub-header-icon" style="margin:0 auto 20px;">
+    <div class="pub-success-card pub-success-card--compact">
+        <div class="pub-header-icon pub-header-icon--centered">
             <i data-lucide="mail"></i>
         </div>
-        <h1 class="pub-success-title" style="font-size:1.4rem;">Recuperar senha</h1>
-        <p class="pub-success-text" style="margin-bottom:6px;">
+        <h1 class="pub-success-title pub-success-title--compact">Recuperar senha</h1>
+        <p class="pub-success-text pub-text-tight">
             Informe o e-mail cadastrado para receber as instruções de redefinição de senha.
         </p>
 
-        <div th:if="${successMessage}" class="pub-alert pub-alert-success" style="margin:16px 0 8px;">
+        <div th:if="${successMessage}" class="pub-alert pub-alert-success pub-alert--spaced">
             <i data-lucide="circle-check"></i>
             <span th:text="${successMessage}"></span>
         </div>
 
         <form th:if="${successMessage == null}"
               th:action="@{/paciente/{token}/esqueci-minha-senha(token=${token})}"
-              method="post" style="margin-top:20px;text-align:left;">
+              method="post" class="pub-form-panel">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
             <div class="pub-form-group">
@@ -34,14 +34,14 @@
                        placeholder="seu@email.com" autofocus autocomplete="email" required>
             </div>
 
-            <button type="submit" class="pub-btn-primary" style="margin-top:8px;">
+            <button type="submit" class="pub-btn-primary pub-action-offset">
                 <i data-lucide="send"></i>
                 Enviar instruções
             </button>
         </form>
 
-        <p style="margin-top:20px;font-size:13px;text-align:center;">
-            <a th:href="@{/paciente/{token}/login(token=${token})}" style="color:#0f8f7a;text-decoration:none;">
+        <p class="pub-footer-link">
+            <a th:href="@{/paciente/{token}/login(token=${token})}" class="pub-link-muted">
                 &larr; Voltar para o login
             </a>
         </p>

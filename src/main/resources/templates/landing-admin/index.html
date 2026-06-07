@@ -10,171 +10,8 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
-    <style>
-        /* ── Grid de módulos ─────────────────────────────────── */
-        .lm-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        /* ── Card de módulo ──────────────────────────────────── */
-        .lm-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--stroke-soft, #e5eae9);
-            border-radius: var(--radius-lg);
-            padding: var(--space-xl);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
-            transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .lm-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            background: var(--lm-accent, var(--brand-500));
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            opacity: 0;
-            transition: opacity .18s ease;
-        }
-        .lm-card:hover {
-            box-shadow: 0 8px 32px rgba(0,0,0,.1);
-            transform: translateY(-2px);
-            border-color: var(--lm-accent, var(--brand-500));
-        }
-        .lm-card:hover::before { opacity: 1; }
-
-        /* ── Cabeçalho do card ───────────────────────────────── */
-        .lm-card__head {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--space-md);
-        }
-        .lm-card__icon {
-            width: 48px; height: 48px;
-            border-radius: var(--radius-md);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            background: var(--lm-icon-bg, rgba(15,143,122,.12));
-            color: var(--lm-accent, var(--brand-500));
-        }
-        .lm-card__icon svg { width: 22px; height: 22px; }
-
-        .lm-card__meta { flex: 1; }
-        .lm-card__title {
-            font-size: var(--text-base);
-            font-weight: 700;
-            color: var(--text-strong);
-            margin: 0 0 2px;
-        }
-        .lm-card__sub {
-            font-size: var(--text-xs);
-            color: var(--text-soft);
-            line-height: 1.4;
-        }
-
-        /* ── Badge de contagem ───────────────────────────────── */
-        .lm-card__badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--lm-icon-bg, rgba(15,143,122,.12));
-            color: var(--lm-accent, var(--brand-500));
-            font-size: var(--text-xs);
-            font-weight: 600;
-            padding: 3px 10px;
-            border-radius: 999px;
-            align-self: flex-start;
-        }
-
-        /* ── Botão de ação ───────────────────────────────────── */
-        .lm-card__action {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-xs);
-            padding: 10px var(--space-md);
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
-            font-weight: 600;
-            text-decoration: none;
-            border: 1.5px solid var(--lm-accent, var(--brand-500));
-            color: var(--lm-accent, var(--brand-500));
-            background: transparent;
-            transition: background .15s ease, color .15s ease;
-            margin-top: auto;
-        }
-        .lm-card__action:hover {
-            background: var(--lm-accent, var(--brand-500));
-            color: #fff;
-        }
-        .lm-card__action svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-        /* ── Cores por módulo ────────────────────────────────── */
-        .lm-green  { --lm-accent: var(--brand-500);            --lm-icon-bg: rgba(15,143,122,.12); }
-        .lm-blue   { --lm-accent: #2f6fec;                     --lm-icon-bg: rgba(47,111,236,.12); }
-        .lm-yellow { --lm-accent: #c47d0a;                     --lm-icon-bg: rgba(196,125,10,.12); }
-        .lm-purple { --lm-accent: #7c3aed;                     --lm-icon-bg: rgba(124,58,237,.12); }
-        .lm-rose   { --lm-accent: #e11d48;                     --lm-icon-bg: rgba(225,29,72,.1);  }
-        .lm-cyan   { --lm-accent: #0891b2;                     --lm-icon-bg: rgba(8,145,178,.12); }
-        .lm-orange { --lm-accent: #ea580c;                     --lm-icon-bg: rgba(234,88,12,.12); }
-
-        /* ── Banner de boas-vindas ───────────────────────────── */
-        .lm-banner {
-            background: linear-gradient(135deg, var(--brand-600) 0%, #17b89d 100%);
-            border-radius: var(--radius-lg);
-            padding: var(--space-xl) var(--space-2xl);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--space-lg);
-            flex-wrap: wrap;
-            margin-bottom: var(--space-xl);
-        }
-        .lm-banner__text { color: #fff; }
-        .lm-banner__title {
-            font-size: var(--text-xl);
-            font-weight: 800;
-            margin: 0 0 4px;
-            color: #fff;
-        }
-        .lm-banner__sub {
-            font-size: var(--text-sm);
-            color: rgba(255,255,255,.8);
-            margin: 0;
-        }
-        .lm-banner__cta {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,.18);
-            border: 1.5px solid rgba(255,255,255,.35);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: var(--text-sm);
-            text-decoration: none;
-            transition: background .15s ease;
-            white-space: nowrap;
-        }
-        .lm-banner__cta:hover { background: rgba(255,255,255,.28); }
-        .lm-banner__cta svg { width: 14px; height: 14px; }
-
-        /* ── Seção título ────────────────────────────────────── */
-        .lm-section-label {
-            font-size: var(--text-xs);
-            font-weight: 700;
-            color: var(--text-soft);
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            margin: 0 0 var(--space-md);
-        }
-    </style>
 </head>
-<body class="dashboard-app">
+<body class="dashboard-app dashboard-loading">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
 <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
@@ -189,14 +26,14 @@
                 <p class="header-context">Gerencie o conteúdo exibido na página pública.</p>
             </div>
         </div>
-        <div class="header-right">
-            <a href="/" target="_blank" class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;gap:6px;">
-                <i data-lucide="external-link" style="width:14px;height:14px;"></i> Ver landing page
+        <div class="header-right app-actions app-actions--end">
+            <a th:href="@{/}" target="_blank" class="btn btn-sm btn-secondary">
+                <i data-lucide="external-link" class="app-icon-sm"></i> Ver landing page
             </a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+    <main class="app-main">
 
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
@@ -206,7 +43,7 @@
                 <p class="lm-banner__title">Painel da Landing Page</p>
                 <p class="lm-banner__sub">Edite textos, planos, depoimentos e visibilidade das seções sem tocar no código.</p>
             </div>
-            <a href="/" target="_blank" class="lm-banner__cta">
+            <a th:href="@{/}" target="_blank" class="lm-banner__cta">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
                 Abrir página pública
             </a>

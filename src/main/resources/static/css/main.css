@@ -2320,6 +2320,78 @@ body.portal-premium .modal-title {
     margin-bottom: var(--space-sm);
 }
 
+.portal-actions-inline {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.pub-success-card--compact {
+    max-width: 420px;
+}
+
+.pub-header-icon--centered {
+    margin: 0 auto var(--space-md);
+}
+
+.pub-success-title--compact {
+    font-size: 1.4rem;
+}
+
+.pub-text-tight {
+    margin-bottom: var(--space-2xs);
+}
+
+.pub-alert--spaced {
+    margin: var(--space-md) 0 var(--space-xs);
+}
+
+.pub-alert--balanced {
+    margin: var(--space-md) 0;
+}
+
+.pub-form-panel {
+    margin-top: var(--space-md);
+    text-align: left;
+}
+
+.pub-form-group--spaced {
+    margin-top: var(--space-sm);
+}
+
+.pub-action-offset {
+    margin-top: var(--space-xs);
+}
+
+.pub-footer-link {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.pub-footer-link a,
+.pub-link-muted {
+    color: var(--brand-600);
+    text-decoration: none;
+}
+
+.pub-label-note {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.pub-divider {
+    border-top: 1px solid var(--stroke-soft);
+    margin: var(--space-md) 0 var(--space-sm);
+}
+
+.pub-help--section {
+    margin-bottom: var(--space-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
 .portal-modal {
     position: fixed;
     inset: 0;

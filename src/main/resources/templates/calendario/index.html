@@ -196,7 +196,7 @@
                                                        th:href="@{/calendario(data=${dia.data})}"
                                                        th:text="${dia.solicitacoesPendentes + ' pendente' + (dia.solicitacoesPendentes > 1 ? 's' : '')}">1 pendente</a>
                                                     <a class="calendar-link"
-                                                       th:href="@{/configuracoes/clinica(data=${dia.data})}">
+                                                       th:href="@{/bloqueios(data=${dia.data})}">
                                                         Bloquear
                                                     </a>
                                                 </div>
@@ -305,8 +305,8 @@
                                     <p>Use o módulo de bloqueios para cadastrar indisponibilidades por faixa de horário ou dia inteiro, com edição segura, histórico e integração real com agenda e agendamento online.</p>
                                 </div>
                                 <div class="form-actions">
-                                    <a th:href="@{/configuracoes/clinica(data=${mesSelecionado.atDay(1)})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
-                                    <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
+                                    <a th:href="@{/bloqueios(data=${dataSelecionada})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
+                                    <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
                                 </div>
                             </div>
                         </div>

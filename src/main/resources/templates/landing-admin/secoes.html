@@ -10,32 +10,8 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
-    <style>
-        .lp-page-banner{background:linear-gradient(135deg,#1a52c2 0%,#4f8ef7 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
-        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-        .lp-page-banner__icon svg{width:24px;height:24px;}
-        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
-        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
-
-        /* Toggle rows */
-        .sec-row{display:flex;align-items:center;gap:var(--space-lg);background:var(--bg-surface);border:1px solid var(--stroke-soft,#e5eae9);border-radius:var(--radius-md);padding:var(--space-lg) var(--space-xl);margin-bottom:var(--space-sm);transition:border-color .15s,box-shadow .15s;}
-        .sec-row:hover{border-color:#2f6fec;box-shadow:0 2px 12px rgba(47,111,236,.08);}
-        .sec-row__icon{width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(47,111,236,.1);color:#2f6fec;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-        .sec-row__icon svg{width:18px;height:18px;}
-        .sec-row__body{flex:1;}
-        .sec-row__title{font-weight:700;color:var(--text-strong);font-size:var(--text-base);margin:0 0 2px;}
-        .sec-row__desc{font-size:var(--text-xs);color:var(--text-soft);margin:0;}
-
-        /* Toggle switch */
-        .toggle-sw{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
-        .toggle-sw input{opacity:0;width:0;height:0;}
-        .toggle-sl{position:absolute;inset:0;background:var(--stroke-strong,#c9d2d0);border-radius:999px;cursor:pointer;transition:background .2s;}
-        .toggle-sl::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.18);}
-        .toggle-sw input:checked+.toggle-sl{background:#2f6fec;}
-        .toggle-sw input:checked+.toggle-sl::before{transform:translateX(20px);}
-    </style>
 </head>
-<body class="dashboard-app">
+<body class="dashboard-app dashboard-loading">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
 <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
@@ -48,17 +24,17 @@
                 <p class="header-context">Ative ou desative seções da landing page.</p>
             </div>
         </div>
-        <div class="header-right" style="display:flex;gap:var(--space-sm);">
-            <a href="/" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="external-link" style="width:14px;height:14px;"></i> Ver página</a>
-            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        <div class="header-right app-actions app-actions--end">
+            <a th:href="@{/}" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="external-link" class="app-icon-sm"></i> Ver página</a>
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" class="app-icon-sm"></i> Voltar</a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);max-width:720px;">
+    <main class="app-main app-main--compact">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
         <!-- Banner -->
-        <div class="lp-page-banner">
+        <div class="lp-page-banner lp-page-banner--blue">
             <div class="lp-page-banner__icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
@@ -125,8 +101,8 @@
                 <label class="toggle-sw"><input type="checkbox" name="secao.faq" value="true" th:checked="${cfg['secao.faq'] == null or cfg['secao.faq'] == 'true'}"><span class="toggle-sl"></span></label>
             </div>
 
-            <div style="margin-top:var(--space-xl);display:flex;gap:var(--space-md);">
-                <button type="submit" class="btn btn-primary"><i data-lucide="save" style="width:15px;height:15px;"></i> Salvar</button>
+            <div class="app-section-divider">
+                <button type="submit" class="btn btn-primary"><i data-lucide="save" class="app-icon-md"></i> Salvar</button>
                 <a th:href="@{/admin/landing}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>

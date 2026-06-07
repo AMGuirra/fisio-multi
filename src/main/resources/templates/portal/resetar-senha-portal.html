@@ -9,15 +9,15 @@
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
 <body class="pub-body pub-centered">
-    <div class="pub-success-card" style="max-width:420px;">
-        <div class="pub-header-icon" style="margin:0 auto 20px;">
+    <div class="pub-success-card pub-success-card--compact">
+        <div class="pub-header-icon pub-header-icon--centered">
             <i data-lucide="lock-keyhole"></i>
         </div>
 
         <!-- Senha redefinida com sucesso -->
         <div th:if="${successMessage}">
-            <h1 class="pub-success-title" style="font-size:1.4rem;">Senha redefinida!</h1>
-            <div class="pub-alert pub-alert-success" style="margin:16px 0;">
+            <h1 class="pub-success-title pub-success-title--compact">Senha redefinida!</h1>
+            <div class="pub-alert pub-alert-success pub-alert--balanced">
                 <i data-lucide="circle-check"></i>
                 <span th:text="${successMessage}"></span>
             </div>
@@ -25,8 +25,8 @@
 
         <!-- Token inválido ou expirado -->
         <div th:if="${!tokenValido and successMessage == null}">
-            <h1 class="pub-success-title" style="font-size:1.4rem;">Link inválido</h1>
-            <div class="pub-alert pub-alert-danger" style="margin:16px 0;">
+            <h1 class="pub-success-title pub-success-title--compact">Link inválido</h1>
+            <div class="pub-alert pub-alert-danger pub-alert--balanced">
                 <i data-lucide="triangle-alert"></i>
                 <span>Este link de redefinição é inválido ou já expirou. Solicite um novo link.</span>
             </div>
@@ -34,17 +34,17 @@
 
         <!-- Token válido — formulário de nova senha -->
         <div th:if="${tokenValido and successMessage == null}">
-            <h1 class="pub-success-title" style="font-size:1.4rem;">Redefinir senha</h1>
-            <p class="pub-success-text" style="margin-bottom:6px;">
+            <h1 class="pub-success-title pub-success-title--compact">Redefinir senha</h1>
+            <p class="pub-success-text pub-text-tight">
                 Escolha uma nova senha para acessar o portal.
             </p>
 
-            <div th:if="${errorMessage}" class="pub-alert pub-alert-danger" style="margin:16px 0 8px;">
+            <div th:if="${errorMessage}" class="pub-alert pub-alert-danger pub-alert--spaced">
                 <i data-lucide="triangle-alert"></i>
                 <span th:text="${errorMessage}"></span>
             </div>
 
-            <form th:action="@{/paciente/resetar-senha}" method="post" style="margin-top:20px;text-align:left;">
+            <form th:action="@{/paciente/resetar-senha}" method="post" class="pub-form-panel">
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                 <input type="hidden" name="token" th:value="${resetToken}">
 
@@ -54,13 +54,13 @@
                            placeholder="Mínimo 8 caracteres" autofocus autocomplete="new-password" required minlength="8">
                 </div>
 
-                <div class="pub-form-group" style="margin-top:12px;">
+                <div class="pub-form-group pub-form-group--spaced">
                     <label class="pub-label" for="confirmacaoSenha">Confirmar nova senha</label>
                     <input type="password" id="confirmacaoSenha" name="confirmacaoSenha" class="pub-control"
                            placeholder="Repita a nova senha" autocomplete="new-password" required minlength="8">
                 </div>
 
-                <button type="submit" class="pub-btn-primary" style="margin-top:8px;">
+                <button type="submit" class="pub-btn-primary pub-action-offset">
                     <i data-lucide="check"></i>
                     Salvar nova senha
                 </button>

@@ -10,25 +10,8 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
-    <style>
-        .lp-page-banner{background:linear-gradient(135deg,#ea580c 0%,#fb923c 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
-        .lp-page-banner__left{display:flex;align-items:center;gap:var(--space-md);}
-        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-        .lp-page-banner__icon svg{width:24px;height:24px;}
-        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
-        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
-        .lp-page-banner__btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:10px 18px;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer;transition:background .15s;white-space:nowrap;}
-        .lp-page-banner__btn:hover{background:rgba(255,255,255,.28);}
-        .lp-page-banner__btn svg{width:15px;height:15px;}
-        .step-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ea580c,#fb923c);color:#fff;font-weight:800;font-size:var(--text-sm);flex-shrink:0;}
-        .tip-box{background:rgba(234,88,12,.07);border-left:3px solid #ea580c;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:var(--space-sm) var(--space-md);font-size:var(--text-xs);color:var(--text-soft);margin-bottom:var(--space-lg);}
-        .tip-box strong{color:#ea580c;}
-        .empty-state{text-align:center;padding:var(--space-2xl) var(--space-xl);color:var(--text-soft);}
-        .empty-state svg{width:40px;height:40px;margin:0 auto var(--space-md);opacity:.4;display:block;}
-        .empty-state p{margin:0;font-size:var(--text-sm);}
-    </style>
 </head>
-<body class="dashboard-app">
+<body class="dashboard-app dashboard-loading">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
 <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
@@ -41,16 +24,16 @@
                 <p class="header-context">Passos exibidos na seção "Como Funciona" da landing page.</p>
             </div>
         </div>
-        <div class="header-right" style="display:flex;gap:var(--space-sm);">
-            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        <div class="header-right app-actions app-actions--end">
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" class="app-icon-sm"></i> Voltar</a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+    <main class="app-main">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
         <!-- Banner -->
-        <div class="lp-page-banner">
+        <div class="lp-page-banner lp-page-banner--orange">
             <div class="lp-page-banner__left">
                 <div class="lp-page-banner__icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -80,27 +63,27 @@
                         </td>
                         <td data-label="Título">
                             <strong th:text="${s.titulo}">Título</strong>
-                            <div style="font-size:var(--text-xs);color:var(--text-soft);margin-top:2px" th:text="${#strings.abbreviate(s.descricao, 70)}"></div>
+                            <div class="app-muted-line app-offset-top-xs" th:text="${#strings.abbreviate(s.descricao, 70)}"></div>
                         </td>
                         <td data-label="Ordem" th:text="${s.ordem}">0</td>
                         <td data-label="Status">
                             <span th:if="${s.ativo}" class="badge badge-success">Ativo</span>
                             <span th:unless="${s.ativo}" class="badge badge-secondary">Inativo</span>
                         </td>
-                        <td data-label="Ações" style="white-space:nowrap">
+                        <td data-label="Ações" class="app-table-actions">
                             <button type="button" class="btn btn-sm btn-secondary"
                                     th:attr="data-id=${s.id},data-numero=${s.numero},data-titulo=${s.titulo},data-descricao=${s.descricao},data-ordem=${s.ordem}"
                                     onclick="abrirModalEditar(this)">
-                                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                                <i data-lucide="pencil" class="app-icon-sm"></i>
                             </button>
-                            <form th:action="@{'/admin/landing/steps/' + ${s.id} + '/alternar'}" method="post" style="display:inline">
+                            <form th:action="@{'/admin/landing/steps/' + ${s.id} + '/alternar'}" method="post" >
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${s.ativo ? 'eye-off' : 'eye'}" style="width:13px;height:13px;"></i></button>
+                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${s.ativo ? 'eye-off' : 'eye'}" class="app-icon-sm"></i></button>
                             </form>
-                            <form th:action="@{'/admin/landing/steps/' + ${s.id} + '/excluir'}" method="post" style="display:inline"
+                            <form th:action="@{'/admin/landing/steps/' + ${s.id} + '/excluir'}" method="post"
                                   onsubmit="return confirm('Remover este passo?')">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" class="app-icon-sm"></i></button>
                             </form>
                         </td>
                     </tr>
@@ -109,7 +92,7 @@
                             <div class="empty-state">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                                 <p>Nenhum passo cadastrado.</p>
-                                <p style="margin-top:6px;"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Adicionar primeiro passo</button></p>
+                                <p class="app-offset-top-xs"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Adicionar primeiro passo</button></p>
                             </div>
                         </td>
                     </tr>
@@ -120,13 +103,13 @@
 </div>
 
 <!-- Modal Novo -->
-<div id="modalNovo" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:540px;width:100%">
+<div id="modalNovo" class="modal-backdrop app-modal-hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card--sm">
         <div class="modal-header"><h3 class="modal-title">Novo passo</h3><button type="button" class="modal-close" onclick="fecharModalNovo()">&times;</button></div>
         <form th:action="@{/admin/landing/steps/novo}" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="app-form-grid">
                     <div class="form-group">
                         <label class="form-label">Número (círculo) *</label>
                         <input type="number" name="numero" class="form-control" required min="1" max="9" value="1">
@@ -135,11 +118,11 @@
                         <label class="form-label">Ordem</label>
                         <input type="number" name="ordem" class="form-control" value="0" min="0" max="99">
                     </div>
-                    <div class="form-group" style="grid-column:1/-1">
+                    <div class="form-group app-span-full">
                         <label class="form-label">Título *</label>
                         <input type="text" name="titulo" class="form-control" required maxlength="120">
                     </div>
-                    <div class="form-group" style="grid-column:1/-1">
+                    <div class="form-group app-span-full">
                         <label class="form-label">Descrição *</label>
                         <textarea name="descricao" class="form-control" rows="3" required maxlength="500"></textarea>
                     </div>
@@ -154,13 +137,13 @@
 </div>
 
 <!-- Modal Editar -->
-<div id="modalEditar" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:540px;width:100%">
+<div id="modalEditar" class="modal-backdrop app-modal-hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card--sm">
         <div class="modal-header"><h3 class="modal-title">Editar passo</h3><button type="button" class="modal-close" onclick="fecharModalEditar()">&times;</button></div>
         <form id="formEditar" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="app-form-grid">
                     <div class="form-group">
                         <label class="form-label">Número (círculo) *</label>
                         <input type="number" id="eNumero" name="numero" class="form-control" required min="1" max="9">
@@ -169,11 +152,11 @@
                         <label class="form-label">Ordem</label>
                         <input type="number" id="eOrdem" name="ordem" class="form-control" min="0" max="99">
                     </div>
-                    <div class="form-group" style="grid-column:1/-1">
+                    <div class="form-group app-span-full">
                         <label class="form-label">Título *</label>
                         <input type="text" id="eTitulo" name="titulo" class="form-control" required maxlength="120">
                     </div>
-                    <div class="form-group" style="grid-column:1/-1">
+                    <div class="form-group app-span-full">
                         <label class="form-label">Descrição *</label>
                         <textarea id="eDescricao" name="descricao" class="form-control" rows="3" required maxlength="500"></textarea>
                     </div>
@@ -188,13 +171,15 @@
 </div>
 
 <script th:src="@{/js/vendor/lucide.min.js}"></script>
-<script>
+<script th:inline="javascript">
+    var appContextPath = /*[[@{/}]]*/ '/';
+    appContextPath = appContextPath.replace(/\/$/, '');
     lucide.createIcons();
     function abrirModalNovo(){document.getElementById('modalNovo').style.display='flex';}
     function fecharModalNovo(){document.getElementById('modalNovo').style.display='none';}
     function abrirModalEditar(btn){
         var d=btn.dataset;
-        document.getElementById('formEditar').action='/admin/landing/steps/'+d.id+'/editar';
+        document.getElementById('formEditar').action=appContextPath+'/admin/landing/steps/'+d.id+'/editar';
         document.getElementById('eNumero').value=d.numero||1;
         document.getElementById('eTitulo').value=d.titulo||'';
         document.getElementById('eDescricao').value=d.descricao||'';

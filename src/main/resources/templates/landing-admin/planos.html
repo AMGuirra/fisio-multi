@@ -10,24 +10,8 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
-    <style>
-        .lp-page-banner{background:linear-gradient(135deg,#c47d0a 0%,#f59e0b 100%);border-radius:var(--radius-lg);padding:var(--space-xl) var(--space-2xl);display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-xl);flex-wrap:wrap;}
-        .lp-page-banner__left{display:flex;align-items:center;gap:var(--space-md);}
-        .lp-page-banner__icon{width:52px;height:52px;border-radius:var(--radius-md);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-        .lp-page-banner__icon svg{width:24px;height:24px;}
-        .lp-page-banner__title{font-size:var(--text-xl);font-weight:800;color:#fff;margin:0 0 4px;}
-        .lp-page-banner__sub{font-size:var(--text-sm);color:rgba(255,255,255,.8);margin:0;}
-        .lp-page-banner__btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:10px 18px;border-radius:var(--radius-md);font-weight:600;font-size:var(--text-sm);cursor:pointer;transition:background .15s;white-space:nowrap;}
-        .lp-page-banner__btn:hover{background:rgba(255,255,255,.28);}
-        .lp-page-banner__btn svg{width:15px;height:15px;}
-        .tip-box{background:var(--bg-soft,#eef3f2);border-left:3px solid var(--brand-500);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:var(--space-sm) var(--space-md);font-size:var(--text-xs);color:var(--text-body);margin-bottom:var(--space-lg);}
-        .tip-box code{background:var(--bg-canvas,#f4f7f6);padding:1px 5px;border-radius:4px;font-size:var(--text-xs);}
-        .empty-state{text-align:center;padding:var(--space-2xl) var(--space-xl);color:var(--text-soft);}
-        .empty-state svg{width:40px;height:40px;margin:0 auto var(--space-md);opacity:.4;display:block;}
-        .empty-state p{margin:0;font-size:var(--text-sm);}
-    </style>
 </head>
-<body class="dashboard-app">
+<body class="dashboard-app dashboard-loading">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu" aria-hidden="true"></button>
 <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
@@ -40,16 +24,16 @@
                 <p class="header-context">Planos exibidos na landing page.</p>
             </div>
         </div>
-        <div class="header-right" style="display:flex;gap:var(--space-sm);">
-            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Voltar</a>
+        <div class="header-right app-actions app-actions--end">
+            <a th:href="@{/admin/landing}" class="btn btn-sm btn-secondary"><i data-lucide="arrow-left" class="app-icon-sm"></i> Voltar</a>
         </div>
     </header>
 
-    <main class="app-main" style="padding:var(--space-xl) var(--space-2xl);">
+    <main class="app-main">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
         <!-- Banner -->
-        <div class="lp-page-banner">
+        <div class="lp-page-banner lp-page-banner--yellow">
             <div class="lp-page-banner__left">
                 <div class="lp-page-banner__icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -76,35 +60,35 @@
                     <tr th:each="p : ${lista}" th:classappend="${!p.ativo} ? ' row-inactive' : ''">
                         <td data-label="Nome">
                             <strong th:text="${p.nome}">Nome</strong>
-                            <span th:if="${p.destaque}" class="badge badge-success" style="margin-left:4px">Destaque</span>
+                            <span th:if="${p.destaque}" class="badge badge-success app-offset-left-xs">Destaque</span>
                         </td>
                         <td data-label="Preço">
                             <strong>R$ <span th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}">0,00</span></strong>
-                            <span th:text="${p.periodo}" style="color:var(--text-soft);font-size:var(--text-xs)">/mês</span>
+                            <span th:text="${p.periodo}" class="app-muted-inline">/mês</span>
                         </td>
                         <td data-label="Destaque">
                             <span th:if="${p.destaque}">⭐ <span th:text="${p.badgeTexto}"></span></span>
-                            <span th:unless="${p.destaque}" style="color:var(--text-soft)">—</span>
+                            <span th:unless="${p.destaque}" class="app-muted-inline">—</span>
                         </td>
                         <td data-label="Ordem" th:text="${p.ordem}">0</td>
                         <td data-label="Status">
                             <span th:if="${p.ativo}" class="badge badge-success">Ativo</span>
                             <span th:unless="${p.ativo}" class="badge badge-secondary">Inativo</span>
                         </td>
-                        <td data-label="Ações" style="white-space:nowrap">
+                        <td data-label="Ações" class="app-table-actions">
                             <button type="button" class="btn btn-sm btn-secondary"
                                     th:attr="data-id=${p.id},data-nome=${p.nome},data-descricao=${p.descricao},data-preco=${p.preco},data-periodo=${p.periodo},data-recursos=${p.recursos},data-destaque=${p.destaque},data-badge=${p.badgeTexto},data-ctatexto=${p.ctaTexto},data-ctalink=${p.ctaLink},data-ordem=${p.ordem}"
                                     onclick="abrirModalEditar(this)">
-                                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                                <i data-lucide="pencil" class="app-icon-sm"></i>
                             </button>
-                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/alternar'}" method="post" style="display:inline">
+                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/alternar'}" method="post" >
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${p.ativo ? 'eye-off' : 'eye'}" style="width:13px;height:13px;"></i></button>
+                                <button type="submit" class="btn btn-sm btn-secondary"><i th:attr="data-lucide=${p.ativo ? 'eye-off' : 'eye'}" class="app-icon-sm"></i></button>
                             </form>
-                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/excluir'}" method="post" style="display:inline"
+                            <form th:action="@{'/admin/landing/planos/' + ${p.id} + '/excluir'}" method="post"
                                   onsubmit="return confirm('Remover este plano?')">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                                <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="trash-2" class="app-icon-sm"></i></button>
                             </form>
                         </td>
                     </tr>
@@ -113,7 +97,7 @@
                             <div class="empty-state">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                                 <p>Nenhum plano cadastrado.</p>
-                                <p style="margin-top:6px;"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Criar primeiro plano</button></p>
+                                <p class="app-offset-top-xs"><button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNovo()">Criar primeiro plano</button></p>
                             </div>
                         </td>
                     </tr>
@@ -124,19 +108,19 @@
 </div>
 
 <!-- Modal Novo -->
-<div id="modalNovo" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:640px;width:100%">
+<div id="modalNovo" class="modal-backdrop app-modal-hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card--lg">
         <div class="modal-header"><h3 class="modal-title">Novo plano</h3><button type="button" class="modal-close" onclick="fecharModalNovo()">&times;</button></div>
         <form th:action="@{/admin/landing/planos/novo}" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-            <div class="modal-body" style="max-height:70vh;overflow-y:auto">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome *</label><input type="text" name="nome" class="form-control" required maxlength="100"></div>
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição</label><input type="text" name="descricao" class="form-control" maxlength="200"></div>
+            <div class="modal-body modal-body--scroll">
+                <div class="app-form-grid">
+                    <div class="form-group app-span-full"><label class="form-label">Nome *</label><input type="text" name="nome" class="form-control" required maxlength="100"></div>
+                    <div class="form-group app-span-full"><label class="form-label">Descrição</label><input type="text" name="descricao" class="form-control" maxlength="200"></div>
                     <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" name="preco" class="form-control" required min="0" step="0.01" placeholder="97.00"></div>
                     <div class="form-group"><label class="form-label">Período</label><input type="text" name="periodo" class="form-control" value="/mês" maxlength="30"></div>
-                    <div class="form-group" style="grid-column:1/-1">
-                        <label class="form-label">Recursos (um por linha, <code style="font-size:var(--text-xs);background:var(--bg-soft);padding:1px 4px;border-radius:3px;">+</code> incluído / <code style="font-size:var(--text-xs);background:var(--bg-soft);padding:1px 4px;border-radius:3px;">-</code> não incluído)</label>
+                    <div class="form-group app-span-full">
+                        <label class="form-label">Recursos (um por linha, <code class="code-pill">+</code> incluído / <code class="code-pill">-</code> não incluído)</label>
                         <textarea name="recursos" class="form-control" rows="6" placeholder="+Agenda inteligente&#10;+Até 50 pacientes&#10;-Relatórios avançados"></textarea>
                     </div>
                     <div class="form-group">
@@ -158,18 +142,18 @@
 </div>
 
 <!-- Modal Editar -->
-<div id="modalEditar" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:640px;width:100%">
+<div id="modalEditar" class="modal-backdrop app-modal-hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card--lg">
         <div class="modal-header"><h3 class="modal-title">Editar plano</h3><button type="button" class="modal-close" onclick="fecharModalEditar()">&times;</button></div>
         <form id="formEditar" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-            <div class="modal-body" style="max-height:70vh;overflow-y:auto">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nome *</label><input type="text" id="eNome" name="nome" class="form-control" required maxlength="100"></div>
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Descrição</label><input type="text" id="eDesc" name="descricao" class="form-control" maxlength="200"></div>
+            <div class="modal-body modal-body--scroll">
+                <div class="app-form-grid">
+                    <div class="form-group app-span-full"><label class="form-label">Nome *</label><input type="text" id="eNome" name="nome" class="form-control" required maxlength="100"></div>
+                    <div class="form-group app-span-full"><label class="form-label">Descrição</label><input type="text" id="eDesc" name="descricao" class="form-control" maxlength="200"></div>
                     <div class="form-group"><label class="form-label">Preço (R$) *</label><input type="number" id="ePreco" name="preco" class="form-control" required min="0" step="0.01"></div>
                     <div class="form-group"><label class="form-label">Período</label><input type="text" id="ePeriodo" name="periodo" class="form-control" maxlength="30"></div>
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Recursos</label><textarea id="eRecursos" name="recursos" class="form-control" rows="6"></textarea></div>
+                    <div class="form-group app-span-full"><label class="form-label">Recursos</label><textarea id="eRecursos" name="recursos" class="form-control" rows="6"></textarea></div>
                     <div class="form-group">
                         <label class="form-label">Plano em destaque?</label>
                         <select id="eDestaque" name="destaque" class="form-control"><option value="false">Não</option><option value="true">Sim</option></select>
@@ -189,13 +173,15 @@
 </div>
 
 <script th:src="@{/js/vendor/lucide.min.js}"></script>
-<script>
+<script th:inline="javascript">
+    var appContextPath = /*[[@{/}]]*/ '/';
+    appContextPath = appContextPath.replace(/\/$/, '');
     lucide.createIcons();
     function abrirModalNovo(){document.getElementById('modalNovo').style.display='flex';}
     function fecharModalNovo(){document.getElementById('modalNovo').style.display='none';}
     function abrirModalEditar(btn){
         var d=btn.dataset;
-        document.getElementById('formEditar').action='/admin/landing/planos/'+d.id+'/editar';
+        document.getElementById('formEditar').action=appContextPath+'/admin/landing/planos/'+d.id+'/editar';
         document.getElementById('eNome').value=d.nome||'';
         document.getElementById('eDesc').value=d.descricao||'';
         document.getElementById('ePreco').value=d.preco||0;
