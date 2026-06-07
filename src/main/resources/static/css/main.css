@@ -2338,6 +2338,15 @@ body.portal-premium .modal-title {
     font-size: 1.4rem;
 }
 
+.pub-eyebrow {
+    margin: 0 0 var(--space-xs);
+    color: var(--brand-600);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
 .pub-text-tight {
     margin-bottom: var(--space-2xs);
 }

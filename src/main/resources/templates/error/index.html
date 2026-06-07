@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${status + ' - ' + title}">Erro - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="pub-body pub-centered">
+    <main class="pub-success-card pub-success-card--compact">
+        <div class="pub-header-icon pub-header-icon--centered">
+            <i data-lucide="triangle-alert"></i>
+        </div>
+        <p class="pub-eyebrow" th:text="${status}">500</p>
+        <h1 class="pub-success-title pub-success-title--compact" th:text="${title}">
+            Nao foi possivel concluir a solicitacao
+        </h1>
+        <p class="pub-success-text pub-text-tight" th:text="${message}">
+            Encontramos uma instabilidade ao processar esta pagina.
+        </p>
+        <a class="pub-btn-primary pub-action-offset" th:href="@{/}" href="/">
+            <i data-lucide="home"></i>
+            Voltar para o inicio
+        </a>
+    </main>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script>
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
