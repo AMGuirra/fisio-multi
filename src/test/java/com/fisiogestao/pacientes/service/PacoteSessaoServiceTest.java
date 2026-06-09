@@ -324,32 +324,37 @@ class PlanoSessaoServiceTest {
     }
 
     @Test
-    void devePreservarLancamentoPagoAoExcluirPacote() {
+    void deveBloquearExclusaoDePacoteComLancamentoPago() {
         UUID pacoteId = UUID.randomUUID();
         PlanoSessaoEntity pacote = pacoteAtivo(10, 3);
         pacote.setId(pacoteId);
-        LancamentoFinanceiroEntity lancamentoPago = LancamentoFinanceiroEntity.builder()
-                .status(StatusLancamentoFinanceiro.PAGO)
-                .descricao("Plano de tratamento")
-                .categoria("Planos de tratamento")
-                .tipo(com.fisiogestao.financeiro.TipoLancamentoFinanceiro.RECEITA)
-                .valor(BigDecimal.TEN)
-                .dataCompetencia(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
-                .planoSessao(pacote)
-                .build();
-        lancamentoPago.setId(UUID.randomUUID());
 
         when(planoSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
-        when(sessaoRepository.findByPlanoSessaoIdOrderByDataHoraInicioDesc(pacoteId)).thenReturn(List.of());
-        when(lancamentoFinanceiroRepository.findByPlanoSessaoId(pacoteId)).thenReturn(List.of(lancamentoPago));
-        when(lancamentoFinanceiroRepository.save(lancamentoPago)).thenReturn(lancamentoPago);
+        when(lancamentoFinanceiroRepository.existsByPlanoSessaoIdAndStatus(pacoteId, StatusLancamentoFinanceiro.PAGO))
+                .thenReturn(true);
 
-        assertDoesNotThrow(() -> planoSessaoService.excluir(pacoteId));
+        BusinessException ex = assertThrows(BusinessException.class, () -> planoSessaoService.excluir(pacoteId));
 
-        assertNull(lancamentoPago.getPlanoSessao());
-        verify(lancamentoFinanceiroRepository, never()).deleteAll(List.of(lancamentoPago));
-        verify(lancamentoFinanceiroRepository).save(lancamentoPago);
-        verify(planoSessaoRepository).delete(pacote);
+        assertTrue(ex.getMessage().contains("lançamento financeiro pago"));
+        verify(planoSessaoRepository, never()).delete(pacote);
+    }
+
+    @Test
+    void deveBloquearExclusaoDePacoteComSessaoRealizadaOuFaltaFaturada() {
+        UUID pacoteId = UUID.randomUUID();
+        PlanoSessaoEntity pacote = pacoteAtivo(10, 3);
+        pacote.setId(pacoteId);
+
+        when(planoSessaoRepository.findById(pacoteId)).thenReturn(Optional.of(pacote));
+        when(sessaoRepository.existsByPlanoSessaoIdAndStatusIn(
+                pacoteId,
+                List.of(SessaoStatus.REALIZADA, SessaoStatus.FALTA_FATURADA)
+        )).thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class, () -> planoSessaoService.excluir(pacoteId));
+
+        assertTrue(ex.getMessage().contains("histórico de atendimento"));
+        verify(planoSessaoRepository, never()).delete(pacote);
     }
 
     // -----------------------------------------------------------------------

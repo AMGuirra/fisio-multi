@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FisioGestão — Sistema completo de gestão para clínicas de fisioterapia. Agenda inteligente, prontuário, portal do paciente e relatórios de ocupação em tempo real." />
+    <title>FisioGestão — Gestão clínica que trabalha com você</title>
+
+    <!-- Fonte Inter via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Design tokens globais -->
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <!-- Estilos exclusivos da landing -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}" />
+
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" />
+</head>
+<body class="lp-body">
+
+<!-- ══════════════════════════════════════════════════════════════
+     NAVEGAÇÃO
+     ══════════════════════════════════════════════════════════════ -->
+<nav class="lp-nav" aria-label="Navegação principal">
+    <a href="#" class="lp-nav__logo" aria-label="FisioGestão — página inicial">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        FisioGestão
+    </a>
+
+    <ul class="lp-nav__links" id="nav-links" role="list">
+        <li th:if="${secoes.comoFunciona}"><a href="#como-funciona">Como funciona</a></li>
+        <li th:if="${secoes.funcionalidades}"><a href="#funcionalidades">Funcionalidades</a></li>
+        <li th:if="${secoes.planos}"><a href="#planos">Planos</a></li>
+        <li th:if="${secoes.faq}"><a href="#faq">FAQ</a></li>
+    </ul>
+
+    <div class="lp-nav__cta">
+        <a href="/login" class="lp-btn lp-btn--ghost">Entrar</a>
+        <a th:href="${hero.ctaPrimarioLink}" class="lp-btn lp-btn--primary" th:text="${hero.ctaPrimario}">Ver o sistema</a>
+    </div>
+
+    <button class="lp-nav__hamburger" id="hamburger-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-hero" aria-labelledby="hero-title">
+    <div class="lp-hero__inner">
+        <div class="lp-hero__badge" aria-label="Categoria">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span th:text="${hero.badge}">Software especializado em fisioterapia</span>
+        </div>
+
+        <h1 class="lp-hero__title" id="hero-title" th:text="${hero.titulo}">
+            Gestão clínica que trabalha com você
+        </h1>
+
+        <p class="lp-hero__subtitle" th:text="${hero.subtitulo}">
+            Agenda inteligente, prontuário integrado, portal do paciente e relatórios
+            de ocupação em tempo real. Tudo que sua clínica precisa em um único sistema.
+        </p>
+
+        <div class="lp-hero__cta">
+            <a th:href="${hero.ctaPrimarioLink}" class="lp-btn lp-btn--hero-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <span th:text="${hero.ctaPrimario}">Ver funcionalidades</span>
+            </a>
+            <a th:href="${hero.ctaSecundarioLink}" class="lp-btn lp-btn--hero-secondary">
+                <span th:text="${hero.ctaSecundario}">Acessar o sistema</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        <div class="lp-hero-product" aria-label="Resumo visual do sistema FisioGestão">
+            <div class="lp-hero-product__bar">
+                <span></span><span></span><span></span>
+                <strong>Hoje na clínica</strong>
+            </div>
+            <div class="lp-hero-product__grid">
+                <div class="lp-hero-product__metric">
+                    <span>Ocupação</span>
+                    <strong>87%</strong>
+                    <div><i style="width:87%"></i></div>
+                </div>
+                <div class="lp-hero-product__metric">
+                    <span>Receita prevista</span>
+                    <strong>R$ 12,4 mil</strong>
+                    <div><i style="width:72%"></i></div>
+                </div>
+                <div class="lp-hero-product__agenda">
+                    <div><b>08:00</b><span>Ana Souza · Joelho</span></div>
+                    <div><b>09:00</b><span>Carlos Mendes · Coluna</span></div>
+                    <div><b>10:00</b><span>Disponível para lista de espera</span></div>
+                    <div><b>11:00</b><span>Beatriz Lima · Ombro</span></div>
+                </div>
+                <div class="lp-hero-product__side">
+                    <div><span>Confirmações</span><strong>18/20</strong></div>
+                    <div><span>Planos a renovar</span><strong>4</strong></div>
+                    <div><span>Alertas LGPD</span><strong>0</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lp-hero__stats" role="list" aria-label="Números do sistema">
+            <div class="lp-hero__stat" role="listitem">
+                <span class="lp-hero__stat-value" th:text="${hero.stat1Valor}">360°</span>
+                <span class="lp-hero__stat-label" th:text="${hero.stat1Label}">Visão da clínica</span>
+            </div>
+            <div class="lp-hero__stat" role="listitem">
+                <span class="lp-hero__stat-value" th:text="${hero.stat2Valor}">24h</span>
+                <span class="lp-hero__stat-label" th:text="${hero.stat2Label}">Lembretes automáticos</span>
+            </div>
+            <div class="lp-hero__stat" role="listitem">
+                <span class="lp-hero__stat-value" th:text="${hero.stat3Valor}">100%</span>
+                <span class="lp-hero__stat-label" th:text="${hero.stat3Label}">LGPD Compliant</span>
+            </div>
+            <div class="lp-hero__stat" role="listitem">
+                <span class="lp-hero__stat-value" th:text="${hero.stat4Valor}">0</span>
+                <span class="lp-hero__stat-label" th:text="${hero.stat4Label}">Sessões perdidas sem aviso</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     COMO FUNCIONA
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-howto-section" id="como-funciona" aria-labelledby="howto-title" th:if="${secoes.comoFunciona and not #lists.isEmpty(steps)}">
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Primeiros passos</span>
+        <h2 class="lp-section-title" id="howto-title">Sua clínica organizada em minutos</h2>
+        <p class="lp-section-subtitle">
+            Sem instalação, sem configuração complexa. Basta acessar e começar.
+        </p>
+    </div>
+
+    <div class="lp-steps" role="list">
+        <div class="lp-step" role="listitem" th:each="s : ${steps}">
+            <div class="lp-step__number" aria-hidden="true" th:text="${s.numero}">1</div>
+            <div class="lp-step__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 class="lp-step__title" th:text="${s.titulo}">Passo</h3>
+            <p class="lp-step__desc" th:text="${s.descricao}">Descrição do passo.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     VITRINE DE FUNCIONALIDADES
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-showcase" id="funcionalidades" aria-labelledby="showcase-title" th:if="${secoes.funcionalidades}">
+
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Funcionalidades</span>
+        <h2 class="lp-section-title" id="showcase-title">O sistema por dentro</h2>
+        <p class="lp-section-subtitle">
+            Veja como o FisioGestão organiza cada aspecto da sua clínica de forma visual e intuitiva.
+        </p>
+    </div>
+
+    <div class="lp-showcase__grid">
+
+        <!-- ── Mockup 1: Agenda Inteligente ── -->
+        <article class="lp-mockup-card" aria-label="Demonstração da Agenda Inteligente">
+            <header class="lp-mockup-card__header">
+                <div class="lp-mockup-card__icon lp-mockup-card__icon--brand" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                </div>
+                <div>
+                    <div class="lp-mockup-card__title">Agenda Inteligente</div>
+                    <div class="lp-mockup-card__subtitle">Terça-feira, 27 de maio</div>
+                </div>
+            </header>
+            <div class="lp-mockup-card__body">
+                <div class="lp-agenda" role="list" aria-label="Horários do dia">
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">08:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--pacote">Ana Souza · Joelho (Pacote)</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">09:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--avulso">Carlos Mendes · Coluna (Avulso)</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">10:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--livre">Disponível</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">11:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--pacote">Beatriz Lima · Ombro (Pacote)</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">14:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--avulso">Pedro Rocha · Tornozelo (Avulso)</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">15:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--bloqueado">Reunião de equipe</div>
+                    </div>
+                    <div class="lp-agenda__row" role="listitem">
+                        <span class="lp-agenda__time">16:00</span>
+                        <div class="lp-agenda__slot lp-agenda__slot--pacote">Fernanda Costa · Quadril (Pacote)</div>
+                    </div>
+                </div>
+                <div class="lp-agenda__legend" aria-label="Legenda">
+                    <div class="lp-agenda__legend-item">
+                        <div class="lp-agenda__legend-dot" style="background:var(--blue-500)"></div>
+                        <span>Por pacote</span>
+                    </div>
+                    <div class="lp-agenda__legend-item">
+                        <div class="lp-agenda__legend-dot" style="background:var(--brand-500)"></div>
+                        <span>Avulso</span>
+                    </div>
+                    <div class="lp-agenda__legend-item">
+                        <div class="lp-agenda__legend-dot" style="background:var(--yellow-500)"></div>
+                        <span>Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ── Mockup 2: Painel de Inteligência Clínica ── -->
+        <article class="lp-mockup-card" aria-label="Demonstração do Painel de Métricas">
+            <header class="lp-mockup-card__header">
+                <div class="lp-mockup-card__icon lp-mockup-card__icon--blue" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                </div>
+                <div>
+                    <div class="lp-mockup-card__title">Inteligência Clínica</div>
+                    <div class="lp-mockup-card__subtitle">Maio 2026 · atualizado agora</div>
+                </div>
+            </header>
+            <div class="lp-mockup-card__body">
+                <div class="lp-metrics">
+                    <div class="lp-metric-item">
+                        <div class="lp-metric-item__header">
+                            <span class="lp-metric-item__label">Taxa de Ocupação</span>
+                            <span class="lp-metric-item__value">87%</span>
+                        </div>
+                        <div class="lp-progress-bar" role="progressbar" aria-valuenow="87" aria-valuemin="0" aria-valuemax="100" aria-label="Taxa de Ocupação 87%">
+                            <div class="lp-progress-bar__fill lp-progress-bar__fill--brand" style="width:87%"></div>
+                        </div>
+                    </div>
+                    <div class="lp-metric-item">
+                        <div class="lp-metric-item__header">
+                            <span class="lp-metric-item__label">Faltas Faturadas</span>
+                            <span class="lp-metric-item__value">12%</span>
+                        </div>
+                        <div class="lp-progress-bar" role="progressbar" aria-valuenow="12" aria-valuemin="0" aria-valuemax="100" aria-label="Faltas Faturadas 12%">
+                            <div class="lp-progress-bar__fill lp-progress-bar__fill--red" style="width:12%"></div>
+                        </div>
+                    </div>
+                    <div class="lp-metric-item">
+                        <div class="lp-metric-item__header">
+                            <span class="lp-metric-item__label">Lista de Espera Convertida</span>
+                            <span class="lp-metric-item__value">63%</span>
+                        </div>
+                        <div class="lp-progress-bar" role="progressbar" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100" aria-label="Lista de Espera Convertida 63%">
+                            <div class="lp-progress-bar__fill lp-progress-bar__fill--blue" style="width:63%"></div>
+                        </div>
+                    </div>
+                    <div class="lp-metrics__divider" role="separator"></div>
+                    <div class="lp-ranking">
+                        <div class="lp-ranking__title">Ranking de Absenteísmo</div>
+                        <div class="lp-ranking__row">
+                            <span class="lp-ranking__pos" aria-label="1º lugar">1</span>
+                            <span class="lp-ranking__name">Segunda-feira manhã</span>
+                            <span class="lp-ranking__badge">28%</span>
+                        </div>
+                        <div class="lp-ranking__row">
+                            <span class="lp-ranking__pos" aria-label="2º lugar">2</span>
+                            <span class="lp-ranking__name">Sexta-feira tarde</span>
+                            <span class="lp-ranking__badge">21%</span>
+                        </div>
+                        <div class="lp-ranking__row">
+                            <span class="lp-ranking__pos" aria-label="3º lugar">3</span>
+                            <span class="lp-ranking__name">Quarta-feira 07:00</span>
+                            <span class="lp-ranking__badge">17%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ── Mockup 3: Portal do Paciente ── -->
+        <article class="lp-mockup-card" aria-label="Demonstração do Portal do Paciente">
+            <header class="lp-mockup-card__header">
+                <div class="lp-mockup-card__icon lp-mockup-card__icon--yellow" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                    <div class="lp-mockup-card__title">Portal do Paciente</div>
+                    <div class="lp-mockup-card__subtitle">Área exclusiva e segura</div>
+                </div>
+            </header>
+            <div class="lp-mockup-card__body">
+                <div class="lp-portal">
+                    <div class="lp-portal__greeting">
+                        <div class="lp-portal__avatar" aria-hidden="true">AS</div>
+                        <div>
+                            <div class="lp-portal__name">Ana Souza</div>
+                            <div class="lp-portal__plan">Plano Reabilitação Joelho</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="lp-eva__label">Sua dor hoje (Escala EVA)</div>
+                        <div class="lp-eva__scale" role="group" aria-label="Escala de dor EVA de 0 a 10">
+                            <div class="lp-eva__dot lp-eva__dot--0" title="Sem dor">0</div>
+                            <div class="lp-eva__dot lp-eva__dot--1" title="Dor mínima">1</div>
+                            <div class="lp-eva__dot lp-eva__dot--2" title="Dor leve">2</div>
+                            <div class="lp-eva__dot lp-eva__dot--3" title="Dor leve">3</div>
+                            <div class="lp-eva__dot lp-eva__dot--4" title="Dor moderada">4</div>
+                            <div class="lp-eva__dot lp-eva__dot--5 lp-eva__dot--active" aria-current="true" title="Dor moderada (atual)">5</div>
+                            <div class="lp-eva__dot lp-eva__dot--6" title="Dor intensa">6</div>
+                            <div class="lp-eva__dot lp-eva__dot--7" title="Dor intensa">7</div>
+                            <div class="lp-eva__dot lp-eva__dot--8" title="Dor muito intensa">8</div>
+                            <div class="lp-eva__dot lp-eva__dot--9" title="Dor insuportável">9</div>
+                            <div class="lp-eva__dot lp-eva__dot--10" title="Pior dor imaginável">10</div>
+                        </div>
+                        <div class="lp-eva__labels" aria-hidden="true">
+                            <span>Sem dor</span>
+                            <span>Pior dor</span>
+                        </div>
+                    </div>
+                    <div class="lp-saldo">
+                        <div class="lp-saldo__header">
+                            <span class="lp-saldo__title">Saldo de sessões</span>
+                            <span class="lp-saldo__count">8 <span>/ 12</span></span>
+                        </div>
+                        <div class="lp-saldo__bar" role="progressbar" aria-valuenow="8" aria-valuemin="0" aria-valuemax="12" aria-label="8 sessões restantes de 12">
+                            <div class="lp-saldo__bar-fill"></div>
+                        </div>
+                        <div class="lp-saldo__info">4 sessões realizadas · Plano ativo até 30/08/2026</div>
+                    </div>
+                    <div class="lp-proxima-sessao">
+                        <div class="lp-proxima-sessao__icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div>
+                            <div class="lp-proxima-sessao__label">Próxima sessão</div>
+                            <div class="lp-proxima-sessao__datetime">Quinta, 29 maio · 09:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     BENEFÍCIOS
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-system-section" aria-labelledby="system-title">
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Sistema integrado</span>
+        <h2 class="lp-section-title" id="system-title">Da primeira visita ao relatório final</h2>
+        <p class="lp-section-subtitle">
+            A landing promete uma rotina mais organizada; o sistema entrega isso em módulos conectados.
+        </p>
+    </div>
+
+    <div class="lp-system-map" role="list">
+        <a class="lp-system-card" th:href="@{/calendario}" role="listitem">
+            <span class="lp-system-card__icon lp-system-card__icon--brand" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </span>
+            <strong>Agenda</strong>
+            <span>Grade do dia, bloqueios, recorrência e confirmação de presença.</span>
+        </a>
+        <a class="lp-system-card" th:href="@{/planos-consumo}" role="listitem">
+            <span class="lp-system-card__icon lp-system-card__icon--blue" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </span>
+            <strong>Planos</strong>
+            <span>Saldo de sessões, validade, renovações e vínculo direto com agendamentos.</span>
+        </a>
+        <a class="lp-system-card" th:href="@{/prontuario}" role="listitem">
+            <span class="lp-system-card__icon lp-system-card__icon--yellow" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="16" height="18" x="4" y="4" rx="2"/><path d="M9 14h6"/><path d="M12 11v6"/></svg>
+            </span>
+            <strong>Prontuário</strong>
+            <span>SOAP, anexos e histórico clínico organizados no perfil do paciente.</span>
+        </a>
+        <a class="lp-system-card" th:href="@{/relatorios}" role="listitem">
+            <span class="lp-system-card__icon lp-system-card__icon--rose" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-7"/></svg>
+            </span>
+            <strong>Relatórios</strong>
+            <span>Ocupação, faltas, receitas e exportações para decisões rápidas.</span>
+        </a>
+    </div>
+</section>
+
+<section class="lp-benefits-section" id="beneficios" aria-labelledby="benefits-title" th:if="${secoes.beneficios and not #lists.isEmpty(beneficios)}">
+
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Benefícios</span>
+        <h2 class="lp-section-title" id="benefits-title">Tudo que a sua clínica precisa</h2>
+        <p class="lp-section-subtitle">
+            Automatize processos, reduza faltas e tenha controle total sobre os resultados clínicos.
+        </p>
+    </div>
+
+    <div class="lp-benefits" role="list">
+
+        <article class="lp-benefit-card" role="listitem" th:each="b : ${beneficios}">
+            <div th:class="'lp-benefit-card__icon lp-benefit-card__icon--' + ${b.cor}" aria-hidden="true">
+                <!-- BELL -->
+                <th:block th:if="${b.icone == 'BELL'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </th:block>
+                <!-- LIST -->
+                <th:block th:if="${b.icone == 'LIST'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                </th:block>
+                <!-- CHART -->
+                <th:block th:if="${b.icone == 'CHART'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                </th:block>
+                <!-- CARD -->
+                <th:block th:if="${b.icone == 'CARD'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                </th:block>
+                <!-- MOBILE -->
+                <th:block th:if="${b.icone == 'MOBILE'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="12" x="8.5" y="2" rx="1"/><path d="M8.5 14H5a2 2 0 0 0-2 2v4"/><path d="M15.5 14H19a2 2 0 0 1 2 2v4"/></svg>
+                </th:block>
+                <!-- LOCK -->
+                <th:block th:if="${b.icone == 'LOCK'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </th:block>
+                <!-- CLOCK -->
+                <th:block th:if="${b.icone == 'CLOCK'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </th:block>
+                <!-- USERS -->
+                <th:block th:if="${b.icone == 'USERS'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </th:block>
+                <!-- CALENDAR -->
+                <th:block th:if="${b.icone == 'CALENDAR'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                </th:block>
+                <!-- STAR -->
+                <th:block th:if="${b.icone == 'STAR'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </th:block>
+                <!-- CHECK -->
+                <th:block th:if="${b.icone == 'CHECK'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </th:block>
+                <!-- PLUS -->
+                <th:block th:if="${b.icone == 'PLUS'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                </th:block>
+            </div>
+            <h3 class="lp-benefit-card__title" th:text="${b.titulo}">Benefício</h3>
+            <p class="lp-benefit-card__desc" th:text="${b.descricao}">Descrição do benefício.</p>
+        </article>
+
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DEPOIMENTOS
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-testimonials-section" id="depoimentos" aria-labelledby="testimonials-title" th:if="${secoes.depoimentos and not #lists.isEmpty(testemunhos)}">
+
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Depoimentos</span>
+        <h2 class="lp-section-title" id="testimonials-title">O que dizem os fisioterapeutas</h2>
+        <p class="lp-section-subtitle">
+            Clínicas de todo o Brasil já organizam sua rotina com o FisioGestão.
+        </p>
+    </div>
+
+    <div class="lp-testimonials" role="list">
+
+        <article class="lp-testimonial-card" role="listitem" th:each="t : ${testemunhos}">
+            <div class="lp-testimonial-card__stars" th:attr="aria-label='Avaliação ' + ${t.estrelas} + ' de 5 estrelas'">
+                <th:block th:each="s : ${#numbers.sequence(1, t.estrelas)}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </th:block>
+            </div>
+            <p class="lp-testimonial-card__quote" th:text="${t.depoimento}">Depoimento.</p>
+            <div class="lp-testimonial-card__author">
+                <div th:class="'lp-testimonial-card__avatar lp-testimonial-card__avatar--' + ${t.corAvatar}"
+                     aria-hidden="true" th:text="${t.iniciais}">XX</div>
+                <div>
+                    <div class="lp-testimonial-card__name" th:text="${t.nome}">Nome</div>
+                    <div class="lp-testimonial-card__role" th:text="${t.cargo}">Cargo</div>
+                </div>
+            </div>
+        </article>
+
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PLANOS E PREÇOS
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-pricing-section" id="planos" aria-labelledby="pricing-title" th:if="${secoes.planos and not #lists.isEmpty(planos)}">
+    <div class="lp-section-header">
+        <span class="lp-section-tag">Planos e Preços</span>
+        <h2 class="lp-section-title" id="pricing-title">Simples, transparente, sem surpresas</h2>
+        <p class="lp-section-subtitle">
+            Escolha o plano ideal para o tamanho da sua clínica. Sem taxa de instalação.
+        </p>
+    </div>
+
+    <div class="lp-pricing" role="list">
+
+        <article th:each="p : ${planos}"
+                 th:class="'lp-plan-card' + (${p.destaque} ? ' lp-plan-card--featured' : '')"
+                 role="listitem"
+                 th:attr="aria-label='Plano ' + ${p.nome}">
+            <div th:if="${p.destaque}" class="lp-plan-badge" th:text="${p.badgeTexto}">Mais popular</div>
+            <div class="lp-plan-card__header">
+                <div class="lp-plan-card__name" th:text="${p.nome}">Plano</div>
+                <div class="lp-plan-card__desc" th:text="${p.descricao}">Descrição.</div>
+            </div>
+            <div class="lp-plan-card__price">
+                <span class="lp-plan-card__currency">R$</span>
+                <span class="lp-plan-card__amount" th:text="${p.preco}">0</span>
+                <span class="lp-plan-card__period" th:text="${p.periodo}">/mês</span>
+            </div>
+            <ul class="lp-plan-card__features" role="list">
+                <th:block th:each="r : ${p.recursos}">
+                    <li th:class="'lp-plan-card__feature' + (${r.incluido} ? '' : ' lp-plan-card__feature--disabled')" role="listitem">
+                        <!-- check icon -->
+                        <svg th:if="${r.incluido}" class="lp-plan-card__feature-icon lp-plan-card__feature-icon--check" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        <!-- x icon -->
+                        <svg th:unless="${r.incluido}" class="lp-plan-card__feature-icon lp-plan-card__feature-icon--x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                        <span th:text="${r.texto}">Recurso</span>
+                    </li>
+                </th:block>
+            </ul>
+            <a th:href="${p.ctaLink}"
+               th:class="'lp-btn lp-plan-card__cta ' + (${p.destaque} ? 'lp-btn--plan-primary' : 'lp-btn--plan-secondary')"
+               th:text="${p.ctaTexto}">Começar agora</a>
+        </article>
+
+    </div>
+
+    <p class="lp-pricing__note">
+        <strong>Sem fidelidade.</strong> Cancele quando quiser. Todos os planos incluem suporte por e-mail e atualizações automáticas.
+    </p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FAQ
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-faq-section" id="faq" aria-labelledby="faq-title" th:if="${secoes.faq and not #lists.isEmpty(faqs)}">
+    <div class="lp-section-header">
+        <span class="lp-section-tag">FAQ</span>
+        <h2 class="lp-section-title" id="faq-title">Perguntas frequentes</h2>
+        <p class="lp-section-subtitle">
+            Não encontrou o que precisa? Fale com a nossa equipe pelo e-mail de suporte.
+        </p>
+    </div>
+
+    <div class="lp-faq" role="list">
+
+        <div class="lp-faq-item" role="listitem" th:each="f,fStat : ${faqs}">
+            <button class="lp-faq-btn" aria-expanded="false"
+                    th:attr="aria-controls='faq-' + ${fStat.index + 1} + '-body'">
+                <span th:text="${f.pergunta}">Pergunta?</span>
+                <span class="lp-faq-btn__icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                </span>
+            </button>
+            <div class="lp-faq-body" th:id="'faq-' + ${fStat.index + 1} + '-body'" role="region">
+                <div class="lp-faq-body__inner">
+                    <div class="lp-faq-body__content" th:text="${f.resposta}">Resposta.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CTA FINAL
+     ══════════════════════════════════════════════════════════════ -->
+<section class="lp-cta-section" id="contato" aria-labelledby="cta-title">
+    <div class="lp-cta-section__inner">
+        <h2 class="lp-cta-section__title" id="cta-title">
+            Pronto para organizar sua clínica?
+        </h2>
+        <p class="lp-cta-section__subtitle">
+            Acesse o FisioGestão agora e veja como a gestão inteligente transforma o dia a dia da sua equipe e a experiência dos seus pacientes.
+        </p>
+        <div class="lp-cta-section__actions">
+            <a th:href="${hero.ctaSecundarioLink}" class="lp-btn lp-btn--hero-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                <span th:text="${hero.ctaSecundario}">Acessar o sistema</span>
+            </a>
+            <a th:href="${hero.ctaPrimarioLink}" class="lp-btn lp-btn--hero-secondary" th:text="${hero.ctaPrimario}">
+                Ver funcionalidades
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     RODAPÉ
+     ══════════════════════════════════════════════════════════════ -->
+<footer class="lp-footer">
+    <div class="lp-footer__inner">
+        <a href="#" class="lp-footer__logo" aria-label="FisioGestão — topo da página">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            FisioGestão
+        </a>
+        <nav aria-label="Links do rodapé">
+            <ul class="lp-footer__links" role="list">
+                <li th:if="${secoes.comoFunciona}"><a href="#como-funciona">Como funciona</a></li>
+                <li th:if="${secoes.planos}"><a href="#planos">Planos</a></li>
+                <li th:if="${secoes.faq}"><a href="#faq">FAQ</a></li>
+                <li><a href="#">Política de Privacidade</a></li>
+                <li><a href="#">Termos de Uso</a></li>
+                <li><a href="/login">Entrar</a></li>
+            </ul>
+        </nav>
+        <p class="lp-footer__copy">
+            &copy; 2026 FisioGestão. Todos os direitos reservados.
+        </p>
+    </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS MÍNIMOS
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+    // ── Menu hamburguer (mobile) ──────────────────────────────────
+    (function () {
+        var btn = document.getElementById('hamburger-btn');
+        var links = document.getElementById('nav-links');
+        if (!btn || !links) return;
+        btn.addEventListener('click', function () {
+            var open = links.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', String(open));
+        });
+    })();
+
+    // ── FAQ Accordion (CSS grid-template-rows trick) ──────────────
+    (function () {
+        var btns = document.querySelectorAll('.lp-faq-btn');
+        btns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var item = btn.closest('.lp-faq-item');
+                var isOpen = item.classList.contains('is-open');
+
+                // Fecha todos
+                document.querySelectorAll('.lp-faq-item').forEach(function (el) {
+                    el.classList.remove('is-open');
+                    el.querySelector('.lp-faq-btn').setAttribute('aria-expanded', 'false');
+                });
+
+                // Abre o clicado (toggle)
+                if (!isOpen) {
+                    item.classList.add('is-open');
+                    btn.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

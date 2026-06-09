@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <th:block th:fragment="sidebar">
+        <aside class="app-sidebar" id="appSidebar" role="navigation" aria-label="Menu lateral principal" aria-hidden="false">
+            <div class="sidebar-header">
+                <a th:href="@{/admin/landing}" class="sidebar-brand">
+                    <span class="sidebar-brand-mark"><i data-lucide="layout-panel-top"></i></span>
+                    <span class="sidebar-brand-copy">
+                        <span class="sidebar-brand-title">Landing Page</span>
+                        <span class="sidebar-brand-subtitle">Painel de conteúdo</span>
+                    </span>
+                </a>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li><a th:href="@{/admin/landing}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="layout-dashboard"></i></span>
+                    <span class="sidebar-link-label">Visão geral</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/hero}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="image"></i></span>
+                    <span class="sidebar-link-label">Hero</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/secoes}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="eye"></i></span>
+                    <span class="sidebar-link-label">Seções</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/testemunhos}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="message-square-quote"></i></span>
+                    <span class="sidebar-link-label">Depoimentos</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/planos}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="credit-card"></i></span>
+                    <span class="sidebar-link-label">Planos</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/faq}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="circle-help"></i></span>
+                    <span class="sidebar-link-label">FAQ</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/beneficios}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="sparkles"></i></span>
+                    <span class="sidebar-link-label">Benefícios</span>
+                </a></li>
+                <li><a th:href="@{/admin/landing/steps}" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="route"></i></span>
+                    <span class="sidebar-link-label">Como Funciona</span>
+                </a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a th:href="@{/}" target="_blank" rel="noopener" class="sidebar-link">
+                    <span class="sidebar-link-icon"><i data-lucide="external-link"></i></span>
+                    <span class="sidebar-link-label">Ver página pública</span>
+                </a>
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <button type="submit" class="sidebar-link sidebar-logout">
+                        <span class="sidebar-link-icon"><i data-lucide="log-out"></i></span>
+                        <span class="sidebar-link-label">Sair</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+    </th:block>
+</body>
+</html>

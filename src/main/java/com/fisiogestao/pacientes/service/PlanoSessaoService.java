@@ -207,6 +207,7 @@ public class PlanoSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(plano);
 
+        validarExclusaoFisicaPermitida(plano.getId());
         desvincularRenovacoesDoPlano(plano.getId());
         desvincularSessoesDoPlano(plano.getId());
         limparLancamentosDoPlano(plano.getId());
@@ -224,6 +225,18 @@ public class PlanoSessaoService {
                 AuditEventOrigin.MANUAL
         );
         planoSessaoRepository.delete(plano);
+    }
+
+    private void validarExclusaoFisicaPermitida(UUID planoId) {
+        if (sessaoRepository.existsByPlanoSessaoIdAndStatusIn(
+                planoId,
+                List.of(SessaoStatus.REALIZADA, SessaoStatus.FALTA_FATURADA)
+        )) {
+            throw new BusinessException("Plano com histórico de atendimento não pode ser excluído. Cancele ou desative para preservar o histórico.");
+        }
+        if (lancamentoFinanceiroRepository.existsByPlanoSessaoIdAndStatus(planoId, StatusLancamentoFinanceiro.PAGO)) {
+            throw new BusinessException("Plano com lançamento financeiro pago não pode ser excluído. Cancele ou desative para preservar o histórico.");
+        }
     }
 
     private void desvincularRenovacoesDoPlano(UUID planoId) {

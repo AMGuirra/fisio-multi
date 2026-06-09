@@ -484,7 +484,6 @@ public class AgendaService {
                 "Sessão marcada como realizada.",
                 AuditEventOrigin.MANUAL
         );
-        agendamentoEmailNotificationService.notificarCanceladoPorSessao(salva, texto(observacoes), "Equipe da clínica");
         return salva;
     }
 
@@ -539,7 +538,6 @@ public class AgendaService {
             throw new BusinessException("Somente sessões pendentes podem ser registradas como falta.");
         }
 
-        registrarConsumoPlanoSeNecessario(sessao);
         sessao.setStatus(SessaoStatus.FALTA);
         SessaoEntity salva = sessaoRepository.save(sessao);
         auditService.recordManual(
@@ -592,8 +590,6 @@ public class AgendaService {
         if (sessao.getStatus() != SessaoStatus.CANCELADA) {
             throw new BusinessException("Apenas sessões canceladas podem voltar para pendente.");
         }
-
-        registrarConsumoPlanoSeNecessario(sessao);
 
         sessao.setStatus(SessaoStatus.AGENDADA);
         SessaoEntity salva = sessaoRepository.save(sessao);

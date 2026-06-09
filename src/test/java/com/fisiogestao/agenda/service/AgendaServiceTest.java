@@ -13,6 +13,7 @@ import com.fisiogestao.agenda.repository.RecorrenciaRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
+import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
@@ -75,6 +76,9 @@ class AgendaServiceTest {
     private RecorrenciaService recorrenciaService;
 
     @Mock
+    private FinanceiroService financeiroService;
+
+    @Mock
     private AuditService auditService;
 
     @InjectMocks
@@ -97,7 +101,7 @@ class AgendaServiceTest {
     }
 
     @Test
-    void devePermitirMarcarSessaoCanceladaComoRealizadaReservandoPlano() {
+    void devePermitirMarcarSessaoCanceladaComoRealizadaReservandoPlanoSemNotificarCancelamento() {
         PlanoSessaoEntity plano = criarPlano();
         SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, plano, false, OffsetDateTime.now().minusDays(1));
 
@@ -110,10 +114,45 @@ class AgendaServiceTest {
         assertEquals(SessaoStatus.REALIZADA, sessao.getStatus());
         assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
         verify(planoSessaoService).reservarSessao(plano.getId());
+        verify(agendamentoEmailNotificationService, never()).notificarCanceladoPorSessao(any(), any(), any());
     }
 
     @Test
-    void devePermitirReabrirSessaoCanceladaComoPendenteReservandoPlano() {
+    void faltaNaoFaturadaNaoConsomePlano() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.AGENDADA, plano, false, OffsetDateTime.now().minusDays(1));
+
+        when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
+        when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+        when(auditService.describeOf(any())).thenReturn("Sessão Teste");
+
+        agendaService.registrarFaltaNaoFaturada(sessao.getId(), "Administrador");
+
+        assertEquals(SessaoStatus.FALTA, sessao.getStatus());
+        assertEquals(Boolean.FALSE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService, never()).reservarSessao(plano.getId());
+    }
+
+    @Test
+    void faltaFaturadaConsomePlano() {
+        PlanoSessaoEntity plano = criarPlano();
+        SessaoEntity sessao = criarSessao(SessaoStatus.AGENDADA, plano, false, OffsetDateTime.now().minusDays(1));
+
+        when(sessaoRepository.findById(sessao.getId())).thenReturn(Optional.of(sessao));
+        when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+        when(auditService.describeOf(any())).thenReturn("Sessão Teste");
+
+        agendaService.registrarFaltaFaturada(sessao.getId(), "Administrador");
+
+        assertEquals(SessaoStatus.FALTA_FATURADA, sessao.getStatus());
+        assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService).reservarSessao(plano.getId());
+    }
+
+    @Test
+    void devePermitirReabrirSessaoCanceladaComoPendenteSemReservarPlano() {
         PlanoSessaoEntity plano = criarPlano();
         SessaoEntity sessao = criarSessao(SessaoStatus.CANCELADA, plano, false, OffsetDateTime.now().minusDays(1));
 
@@ -125,8 +164,8 @@ class AgendaServiceTest {
         agendaService.reabrirSessaoCancelada(sessao.getId());
 
         assertEquals(SessaoStatus.AGENDADA, sessao.getStatus());
-        assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
-        verify(planoSessaoService).reservarSessao(plano.getId());
+        assertEquals(Boolean.FALSE, sessao.getPlanoConsumoRegistrado());
+        verify(planoSessaoService, never()).reservarSessao(plano.getId());
     }
 
     @Test
