@@ -18,12 +18,12 @@ public enum AppMenuItem {
     CONTAS_PAGAR("Contas a Pagar",   "/financeiro/contas-a-pagar", "receipt",       false, false, true,  false, MenuSection.GESTAO,  List.of("/financeiro/contas-a-pagar")),
     FATURAMENTO("Faturamento",       "/financeiro/relatorio-faturamento", "bar-chart-3", false, false, true, false, MenuSection.GESTAO, List.of("/financeiro/relatorio-faturamento")),
     RELATORIOS("Relatórios",         "/relatorios",          "file-text",           false, false, true,  false, MenuSection.GESTAO,  List.of("/relatorios")),
-    CONFIG_CLINICA("Config. Clínica",  "/configuracoes/clinica", "building-2",      false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/clinica", "/configuracao/clinica")),
-    SYSTEM_STATUS("Status do Sistema", "/admin/system-status",   "monitor-check",   false, false, false, true,  MenuSection.ADMIN,   List.of("/admin/system-status")),
-    USUARIOS("Usuários",             "/usuarios",            "users",               false, false, false, true,  MenuSection.ADMIN,   List.of("/usuarios")),
-    FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, false, true, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
-    CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, false, true,  MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
-    AUDITORIA("Auditoria",           "/auditoria",           "shield-check",        false, false, false, true,  MenuSection.ADMIN,   List.of("/auditoria")),
+    CONFIG_CLINICA("Config. Clínica",  "/configuracoes/clinica", "building-2",      false, false, true,  false, MenuSection.ADMIN,   List.of("/configuracoes/clinica", "/configuracao/clinica")),
+    SYSTEM_STATUS("Status do Sistema", "/admin/system-status",   "monitor-check",   false, false, true,  false, MenuSection.ADMIN,   List.of("/admin/system-status")),
+    USUARIOS("Usuários",             "/usuarios",            "users",               false, false, true,  false, MenuSection.ADMIN,   List.of("/usuarios")),
+    FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, true, false, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
+    CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, true,  false, MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
+    AUDITORIA("Auditoria",           "/auditoria",           "shield-check",        false, false, true,  false, MenuSection.ADMIN,   List.of("/auditoria")),
     AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true,  false, MenuSection.NONE,   List.of("/agendamento-online"));
 
     public enum MenuSection {

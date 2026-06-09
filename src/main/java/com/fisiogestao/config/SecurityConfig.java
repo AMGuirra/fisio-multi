@@ -100,14 +100,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/slots").permitAll()
                         // ── Swagger — apenas ADMIN tem visibilidade da documentação ─────────
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
-                        // ── Administração do sistema ─────────────────────────────────────────
+                        // ── Administração do sistema: acesso fino controlado por
+                        // UserMenuAccessInterceptor / UserMenuAccessService.podeAcessar(),
+                        // que respeita as permissões configuradas em Funções de Usuários ──
                         .requestMatchers(
                                 "/configuracoes/**",
                                 "/configuracao/**",
                                 "/admin/**",
                                 "/usuarios/**",
                                 "/funcoes-usuarios/**"
-                        ).hasRole("ADMIN")
+                        ).authenticated()
                         // ── APIs de dados financeiros: restritas a ADMIN e FINANCEIRO ────────
                         // Contêm receita agregada, ocupação e projeções — dados sensíveis.
                         .requestMatchers("/api/dashboard/**", "/api/financeiro/**").hasAnyRole("ADMIN", "FINANCEIRO")
