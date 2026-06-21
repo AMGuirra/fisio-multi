@@ -2910,11 +2910,9 @@ body[data-theme='dark'] .metric-card {
     background: rgba(12, 22, 28, 0.94);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MELHORIAS DE DASHBOARD — Estilos portados da Landing Page
-   ═══════════════════════════════════════════════════════════════ */
+/* Dashboard refinements */
 
-/* ── Panel header com subtítulo (estilo lp-mockup-card__header) ── */
+/* Panel header com subtitulo */
 .panel-head-info {
     display: flex;
     flex-direction: column;
