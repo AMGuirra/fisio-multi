@@ -53,6 +53,10 @@ public class PlanoSessaoService {
                 .toList();
     }
 
+    public List<PlanoSessaoEntity> listarTodosParaDiagnosticoAgenda() {
+        return planoSessaoRepository.findAllByOrderByCreatedAtDesc();
+    }
+
     public List<PlanoSessaoEntity> listarDisponiveisParaAgenda(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
                 .filter(this::isDisponivel)
@@ -67,6 +71,13 @@ public class PlanoSessaoService {
     public Optional<PlanoSessaoEntity> buscarPrimeiroDisponivel(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
                 .filter(this::isDisponivel)
+                .sorted(comparadorDisponibilidade())
+                .findFirst();
+    }
+
+    public Optional<PlanoSessaoEntity> buscarPrimeiroLivreParaAgenda(UUID clienteId) {
+        return listarPorCliente(clienteId).stream()
+                .filter(plano -> motivoIndisponibilidadeAgenda(plano) == null)
                 .sorted(comparadorDisponibilidade())
                 .findFirst();
     }
@@ -444,6 +455,33 @@ public class PlanoSessaoService {
 
     public int calcularSessoesDisponiveis(PlanoSessaoEntity plano) {
         return Math.max(0, plano.getSessoesContratadas() - plano.getSessoesConsumidas());
+    }
+
+    public int calcularSessoesDisponiveisParaAgenda(PlanoSessaoEntity plano) {
+        return Math.max(0, calcularSessoesDisponiveis(plano) - (int) sessaoRepository.countAgendadasPorPlano(plano.getId()));
+    }
+
+    public String motivoIndisponibilidadeAgenda(PlanoSessaoEntity plano) {
+        if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
+            return "Plano cancelado.";
+        }
+        if (plano.getStatus() == PlanoSessaoStatus.CONCLUIDO) {
+            return "Plano concluído, sem sessões disponíveis.";
+        }
+        if (plano.getStatus() == PlanoSessaoStatus.EXPIRADO) {
+            return "Plano expirado.";
+        }
+        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
+            return "Vigência encerrada em " + plano.getDataValidade() + ".";
+        }
+        if (plano.getSessoesConsumidas() >= plano.getSessoesContratadas()) {
+            return "Todas as sessões foram consumidas.";
+        }
+        int disponiveisAgenda = calcularSessoesDisponiveisParaAgenda(plano);
+        if (disponiveisAgenda <= 0) {
+            return "Saldo livre comprometido por sessões já agendadas.";
+        }
+        return null;
     }
 
     private boolean isDisponivel(PlanoSessaoEntity plano) {

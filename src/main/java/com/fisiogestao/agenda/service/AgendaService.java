@@ -773,7 +773,14 @@ public class AgendaService {
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
-        return planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), null);
+        PlanoSessaoEntity plano = form.getPlanoSessaoId() == null
+                ? planoSessaoService.buscarPrimeiroLivreParaAgenda(form.getClienteId())
+                        .orElseThrow(() -> new BusinessException(
+                                "O paciente não possui plano de tratamento com saldo livre para agenda. Cadastre ou renove um plano antes de confirmar a sessão."
+                        ))
+                : planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), null);
+        validarSaldoLivreParaNovoAgendamento(plano, 1);
+        return plano;
     }
 
     private PlanoSessaoEntity resolverPlanoParaEdicao(AgendaManualForm form, TipoAgendamento tipoAgendamento, UUID planoAtualId) {
@@ -781,7 +788,11 @@ public class AgendaService {
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
-        return planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), planoAtualId);
+        PlanoSessaoEntity plano = planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), planoAtualId);
+        if (planoAtualId == null || !planoAtualId.equals(plano.getId())) {
+            validarSaldoLivreParaNovoAgendamento(plano, 1);
+        }
+        return plano;
     }
 
     private void validarVinculoAgendamento(AgendaManualForm form, TipoAgendamento tipoAgendamento) {
@@ -819,6 +830,14 @@ public class AgendaService {
         return form.getRecorrencia().getDiasSemana().stream()
                 .map(Enum::name)
                 .collect(Collectors.joining(","));
+    }
+
+    private void validarSaldoLivreParaNovoAgendamento(PlanoSessaoEntity plano, int novasSessoes) {
+        int sessoesLivres = planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano);
+        if (novasSessoes > sessoesLivres) {
+            throw new BusinessException("O plano selecionado não possui saldo livre para novos agendamentos. "
+                    + "Sessões já agendadas bloqueiam créditos futuros, mas só serão consumidas quando realizadas ou marcadas como falta faturada.");
+        }
     }
 
     /**

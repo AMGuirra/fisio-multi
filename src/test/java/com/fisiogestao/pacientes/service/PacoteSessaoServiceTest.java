@@ -272,6 +272,23 @@ class PlanoSessaoServiceTest {
         assertTrue(planoSessaoService.buscarPrimeiroDisponivel(clienteId).isPresent());
     }
 
+    @Test
+    void deveIgnorarPacoteComSaldoComprometidoAoBuscarLivreParaAgenda() {
+        UUID clienteId = UUID.randomUUID();
+        PlanoSessaoEntity comprometido = pacoteAtivo(10, 9);
+        PlanoSessaoEntity livre = pacoteAtivo(10, 3);
+
+        when(planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+                .thenReturn(List.of(comprometido, livre));
+        when(sessaoRepository.countAgendadasPorPlano(comprometido.getId())).thenReturn(1L);
+        when(sessaoRepository.countAgendadasPorPlano(livre.getId())).thenReturn(0L);
+
+        Optional<PlanoSessaoEntity> resultado = planoSessaoService.buscarPrimeiroLivreParaAgenda(clienteId);
+
+        assertTrue(resultado.isPresent());
+        assertEquals(livre.getId(), resultado.get().getId());
+    }
+
     // -----------------------------------------------------------------------
     // excluir — cenários de regressao
     // -----------------------------------------------------------------------

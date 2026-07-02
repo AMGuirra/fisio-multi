@@ -252,6 +252,32 @@ class AgendaServiceTest {
     }
 
     @Test
+    void deveBloquearAgendamentoQuandoSaldoLivreDoPlanoEstaComprometido() {
+        ClienteEntity cliente = criarCliente();
+        PlanoSessaoEntity plano = criarPlano();
+        AgendaManualForm form = new AgendaManualForm();
+        form.setClienteId(cliente.getId());
+        form.setPlanoSessaoId(plano.getId());
+        form.setData(LocalDate.now().minusDays(1));
+        form.setHorario(LocalTime.of(10, 0));
+        form.setTipoAgendamento(TipoAgendamento.PLANO);
+
+        when(configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()).thenReturn(Optional.of(criarConfiguracao()));
+        when(sessaoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(any(), any(), any())).thenReturn(List.of());
+        when(horarioBloqueadoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(any(), any(), any()))
+                .thenReturn(List.<HorarioBloqueadoEntity>of());
+        when(bloqueioAgendaService.existeBloqueioAtivo(any(), any(), any())).thenReturn(false);
+        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), null)).thenReturn(plano);
+        when(planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano)).thenReturn(0);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> agendaService.agendarSessaoManual(form, "Administrador"));
+
+        assertEquals(true, ex.getMessage().contains("saldo livre"));
+        verify(sessaoRepository, never()).save(any(SessaoEntity.class));
+    }
+
+    @Test
     void deveValidarConflitoDeHorarioAntesDeAgendar() {
         ClienteEntity cliente = criarCliente();
         OffsetDateTime inicio = LocalDate.now().minusDays(1)

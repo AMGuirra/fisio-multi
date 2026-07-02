@@ -53,11 +53,13 @@ public class CalendarioController {
             @RequestParam(name = "mes", required = false) String mes,
             @RequestParam(name = "data", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(name = "clienteId", required = false) UUID clienteId,
+            @RequestParam(name = "agendar", defaultValue = "false") boolean abrirAgendamento,
             Model model
     ) {
         YearMonth mesSelecionado = resolverMesSelecionado(mes, data);
         LocalDate dataSelecionada = resolverDataSelecionada(mesSelecionado, data);
         carregarPagina(model, mesSelecionado, dataSelecionada);
+        model.addAttribute("abrirAgendamentoModal", abrirAgendamento);
         if (clienteId != null) {
             try {
                 model.addAttribute("clienteDestaque",
@@ -181,12 +183,28 @@ public class CalendarioController {
         model.addAttribute("mesAnterior", mesSelecionado.minusMonths(1));
         model.addAttribute("mesProximo", mesSelecionado.plusMonths(1));
         model.addAttribute("dataSelecionada", dataSelecionada);
+        model.addAttribute("dataFimRecorrenciaPadrao", dataSelecionada.withDayOfMonth(dataSelecionada.lengthOfMonth()));
         model.addAttribute("dataMesAnterior", ajustarDataParaMes(dataSelecionada, mesSelecionado.minusMonths(1)));
         model.addAttribute("dataMesProximo", ajustarDataParaMes(dataSelecionada, mesSelecionado.plusMonths(1)));
         model.addAttribute("calendarioSemanas", montarSemanas(mesSelecionado, dataSelecionada, sessoesMes, solicitacoesMes, bloqueiosMes));
         model.addAttribute("sessoes", sessoesDia);
         model.addAttribute("pacientes", pacienteService.listarAtivos());
         model.addAttribute("planosAgenda", planoSessaoService.listarDisponiveisParaAgenda());
+        List<com.fisiogestao.pacientes.PlanoSessaoEntity> planosDiagnostico = planoSessaoService.listarTodosParaDiagnosticoAgenda();
+        model.addAttribute("planosAgendaDiagnostico", planosDiagnostico);
+        model.addAttribute("motivosPlanosAgenda", planosDiagnostico.stream()
+                .collect(Collectors.toMap(
+                        plano -> plano.getId().toString(),
+                        plano -> {
+                            String motivo = planoSessaoService.motivoIndisponibilidadeAgenda(plano);
+                            return motivo == null ? "" : motivo;
+                        }
+                )));
+        model.addAttribute("saldosLivresAgenda", planosDiagnostico.stream()
+                .collect(Collectors.toMap(
+                        plano -> plano.getId().toString(),
+                        planoSessaoService::calcularSessoesDisponiveisParaAgenda
+                )));
         model.addAttribute("pendentes", pendentes);
         model.addAttribute("bloqueiosAtivosMes", bloqueiosMes.stream()
                 .sorted((a, b) -> a.getDataHoraInicio().compareTo(b.getDataHoraInicio()))

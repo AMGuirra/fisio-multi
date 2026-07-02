@@ -5784,3 +5784,69 @@ body[data-theme='dark'] .cp-key kbd {
     border-color: var(--stroke-soft);
 }
 
+/* Agenda: modal de criação de sessão e recorrência */
+.agenda-day-card .section-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.agenda-empty-box .action-button {
+    margin-top: var(--space-sm);
+}
+
+.recorrencia-box {
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--app-control-radius, 11px);
+    background: var(--bg-soft);
+}
+
+.weekday-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.weekday-grid label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 6px 8px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--app-control-radius, 11px);
+    background: var(--bg-surface);
+    color: var(--text-body);
+    font-size: 0.78rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.weekday-grid input {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--brand-500);
+}
+
+body[data-theme='dark'] .recorrencia-box,
+body[data-theme='dark'] .weekday-grid label {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+}
+
+@media (max-width: 720px) {
+    .agenda-day-card .section-head-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

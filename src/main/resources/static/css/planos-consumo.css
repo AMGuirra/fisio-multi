@@ -83,39 +83,6 @@
   --g-dark-sel-row: #0d2820;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --g-sidebar: #0a1e18;
-    --g-sidebar-b: #1a3028;
-    --g-sidebar-txt: #6a9e8a;
-    --g-sidebar-lbl: #3a6050;
-    --g-primary: #18a070;
-    --g-primary-dark: #7addb8;
-    --g-ctx-bg: #0a2418;
-    --g-ctx-b: #1a4830;
-    --g-pbar-done: #18a070;
-    --g-pbar-warn: #d09010;
-    --g-pbar-crit: #d04040;
-    --g-dot-done-bg: #18a070;
-    --g-av-bg: #0d3028;
-    --g-av-txt: #7addb8;
-    --g-tgl-plano-bg: #0d3028;
-    --g-tgl-plano-b: #18a070;
-    --g-tgl-plano-txt: #7addb8;
-    --g-tgl-avulso-b: #c08010;
-    --g-badge-act-bg: #0d3028;
-    --g-badge-act-txt: #7addb8;
-    --g-mode-p-bg: #0d3028;
-    --g-mode-p-txt: #7addb8;
-    --g-step2-circle: #1a2848;
-    --g-step2-txt: #8aaae8;
-    --g-step3-circle: #2a1808;
-    --g-step3-txt: #d09060;
-    --g-btn-avulso: #c07020;
-    --g-sel-row: #0d2820;
-  }
-}
-
 body[data-theme="dark"] {
   --g-sidebar: var(--g-dark-sidebar);
   --g-sidebar-b: var(--g-dark-sidebar-b);
@@ -1891,4 +1858,76 @@ body[data-theme='dark'] {
 .btn-icon-danger svg {
   width: 15px;
   height: 15px;
+}
+
+body[data-theme='dark'] .plano-hist-section,
+body[data-theme='dark'] .plano-hist-item,
+body[data-theme='dark'] .sess-item {
+  border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .plano-hist-toggle,
+body[data-theme='dark'] .plano-hist-item:hover,
+body[data-theme='dark'] .plano-hist-item.phist-active {
+  background: var(--bg-soft);
+  color: var(--text-strong);
+}
+
+body[data-theme='dark'] .phist-nome,
+body[data-theme='dark'] .phist-sessoes,
+body[data-theme='dark'] .pc-modal-head h2,
+body[data-theme='dark'] .sess-detalhe-status strong {
+  color: var(--text-strong);
+}
+
+body[data-theme='dark'] .phist-datas,
+body[data-theme='dark'] .pc-modal-body p,
+body[data-theme='dark'] .pc-modal-patient span {
+  color: var(--text-body);
+}
+
+body[data-theme='dark'] .pc-modal-close,
+body[data-theme='dark'] .btn-ghost,
+body[data-theme='dark'] .btn-sec {
+  background: var(--bg-soft);
+  border-color: var(--stroke-soft);
+  color: var(--text-strong);
+}
+
+body[data-theme='dark'] .btn-sec:hover,
+body[data-theme='dark'] .btn-ghost:hover {
+  background: rgba(15, 143, 122, 0.18);
+  border-color: rgba(107, 194, 175, 0.35);
+  color: #9fe8d7;
+}
+
+body[data-theme='dark'] .pc-modal-patient {
+  background: rgba(15, 143, 122, 0.16);
+  border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .btn-icon-danger {
+  background: rgba(135, 43, 43, 0.18);
+  border-color: rgba(213, 83, 83, 0.38);
+  color: #ffc3c3;
+}
+
+body[data-theme='dark'] .phist-ativo {
+  background: rgba(16, 108, 70, 0.24);
+  color: #baf4d7;
+}
+
+body[data-theme='dark'] .phist-concluido {
+  background: rgba(47, 111, 236, 0.2);
+  color: #b9d1ff;
+}
+
+body[data-theme='dark'] .phist-expirado {
+  background: rgba(209, 154, 16, 0.2);
+  color: #ffe39b;
+}
+
+body[data-theme='dark'] .phist-cancelado {
+  background: rgba(138, 160, 155, 0.16);
+  color: var(--text-body);
 }

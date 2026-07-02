@@ -37,6 +37,41 @@ class RecorrenciaServiceTest {
     }
 
     @Test
+    void deveGerarRecorrenciaSemanalSegAQuiDentroDoMes() {
+        RecorrenciaRequestDto regra = new RecorrenciaRequestDto();
+        regra.setFrequencia(Frequencia.SEMANAL);
+        regra.setDiasSemana(List.of(DiaSemana.SEG, DiaSemana.TER, DiaSemana.QUA, DiaSemana.QUI));
+        regra.setIntervalo(1);
+        regra.setDataFim(LocalDate.of(2026, 7, 31));
+        regra.setMaxOcorrencias(20);
+
+        List<LocalDateTime> ocorrencias = recorrenciaService.gerarOcorrencias(
+                LocalDateTime.of(2026, 7, 2, 15, 0),
+                regra
+        );
+
+        assertEquals(List.of(
+                LocalDateTime.of(2026, 7, 2, 15, 0),
+                LocalDateTime.of(2026, 7, 6, 15, 0),
+                LocalDateTime.of(2026, 7, 7, 15, 0),
+                LocalDateTime.of(2026, 7, 8, 15, 0),
+                LocalDateTime.of(2026, 7, 9, 15, 0),
+                LocalDateTime.of(2026, 7, 13, 15, 0),
+                LocalDateTime.of(2026, 7, 14, 15, 0),
+                LocalDateTime.of(2026, 7, 15, 15, 0),
+                LocalDateTime.of(2026, 7, 16, 15, 0),
+                LocalDateTime.of(2026, 7, 20, 15, 0),
+                LocalDateTime.of(2026, 7, 21, 15, 0),
+                LocalDateTime.of(2026, 7, 22, 15, 0),
+                LocalDateTime.of(2026, 7, 23, 15, 0),
+                LocalDateTime.of(2026, 7, 27, 15, 0),
+                LocalDateTime.of(2026, 7, 28, 15, 0),
+                LocalDateTime.of(2026, 7, 29, 15, 0),
+                LocalDateTime.of(2026, 7, 30, 15, 0)
+        ), ocorrencias);
+    }
+
+    @Test
     void deveLimitarEmCinquentaEDuasOcorrenciasQuandoNaoInformado() {
         RecorrenciaRequestDto regra = new RecorrenciaRequestDto();
         regra.setFrequencia(Frequencia.MENSAL);

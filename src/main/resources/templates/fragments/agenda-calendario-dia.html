@@ -9,13 +9,21 @@
         <article class="section-card agenda-day-card">
             <header class="section-head">
                 <h3 class="section-title"><i data-lucide="clock-3"></i> Sessões do Dia</h3>
-                <p class="section-subtitle" th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</p>
+                <div class="section-head-actions">
+                    <p class="section-subtitle" th:text="${sessoes != null ? sessoes.size() + ' sessões' : '0 sessões'}">0 sessões</p>
+                    <button type="button" class="action-button primary js-btn-nova-sessao">
+                        <i data-lucide="calendar-plus"></i>Agendar sessão
+                    </button>
+                </div>
             </header>
 
             <div class="section-body" th:if="${sessoes == null or sessoes.empty}">
                 <div class="empty-box agenda-empty-box">
                     <i data-lucide="calendar-x"></i>
                     <p>Nenhuma sessão agendada para a data selecionada.</p>
+                    <button type="button" class="action-button primary js-btn-nova-sessao">
+                        <i data-lucide="calendar-plus"></i>Agendar sessão
+                    </button>
                 </div>
             </div>
 
@@ -213,6 +221,145 @@
                             <i data-lucide="user-x"></i>Sim, cobrar
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="novaSessaoModal"
+         class="app-modal"
+         th:classappend="${abrirAgendamentoModal} ? ' is-open' : ''"
+         th:attr="aria-hidden=${abrirAgendamentoModal ? 'false' : 'true'}">
+        <div class="app-modal-backdrop" data-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="novaSessaoModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="novaSessaoModalTitle"><i data-lucide="calendar-plus"></i> Agendar sessão</h3>
+                        <p th:text="${'Dia selecionado: ' + #temporals.format(dataSelecionada, 'dd/MM/yyyy')}">Dia selecionado</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form id="novaSessaoForm" th:action="@{/agenda/sessoes}" method="post" class="modern-form">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                        <input type="hidden" name="data" id="novaSessaoData" th:value="${dataSelecionada}">
+                        <input type="hidden" name="recorrencia.frequencia" value="SEMANAL">
+                        <input type="hidden" name="recorrencia.intervalo" value="1">
+
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="novaSessaoHorario">Horário</label>
+                                <input id="novaSessaoHorario" type="time" name="horario" class="form-control" value="08:00" step="60" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="novaSessaoTipoAtendimento">Tipo de atendimento</label>
+                                <input id="novaSessaoTipoAtendimento" type="text" name="tipoAtendimento" class="form-control" placeholder="Ex: Pilates, RPG">
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="novaSessaoCliente">Paciente</label>
+                            <select id="novaSessaoCliente" name="clienteId" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nomeCompleto}">Paciente</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label>Tipo de consulta</label>
+                            <div class="segmented-control appointment-type-control" role="radiogroup" aria-label="Tipo de consulta">
+                                <label class="appointment-type-option">
+                                    <input type="radio" name="tipoAgendamento" value="PLANO" checked>
+                                    <span><i data-lucide="package"></i>Plano</span>
+                                </label>
+                                <label class="appointment-type-option">
+                                    <input type="radio" name="tipoAgendamento" value="AVULSO">
+                                    <span><i data-lucide="coins"></i>Avulso</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-field js-nova-plano-field">
+                            <label for="novaSessaoPlano">Plano de tratamento</label>
+                            <select id="novaSessaoPlano" name="planoSessaoId" class="form-select">
+                                <option value="">Selecionar automaticamente o plano ativo</option>
+                                <option th:each="plano : ${planosAgendaDiagnostico}"
+                                        th:value="${plano.id}"
+                                        th:disabled="${motivosPlanosAgenda[#strings.toString(plano.id)] != ''}"
+                                        th:attr="data-cliente-id=${plano.cliente.id},
+                                                 data-disponivel=${saldosLivresAgenda[#strings.toString(plano.id)]},
+                                                 data-motivo=${motivosPlanosAgenda[#strings.toString(plano.id)]}"
+                                        th:text="${plano.nomePlano + ' - ' + plano.cliente.nomeCompleto + ' - ' + (motivosPlanosAgenda[#strings.toString(plano.id)] == '' ? saldosLivresAgenda[#strings.toString(plano.id)] + ' livre(s)' : motivosPlanosAgenda[#strings.toString(plano.id)])}">
+                                    Plano
+                                </option>
+                            </select>
+                            <div id="novaSessaoPlanoAlert" class="flash-message warning compact-banner" hidden>
+                                <i data-lucide="triangle-alert"></i>
+                                <span id="novaSessaoPlanoAlertText">Selecione um paciente com plano disponível.</span>
+                            </div>
+                            <p class="helper-text">Sessões agendadas bloqueiam créditos futuros, mas o consumo só acontece ao confirmar realização ou falta faturada.</p>
+                        </div>
+
+                        <div class="form-field js-nova-avulso-field initially-hidden">
+                            <div class="flash-message success compact-banner">
+                                <i data-lucide="circle-check"></i>
+                                <span>Consulta avulsa não usa plano de tratamento.</span>
+                            </div>
+                            <label for="novaSessaoValorAvulso">Valor da consulta</label>
+                            <input id="novaSessaoValorAvulso" type="number" name="valorAvulso" class="form-control" min="0" step="0.01">
+                        </div>
+
+                        <div class="form-field">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="novaSessaoRecorrente" name="recorrente" value="true">
+                                <span>Agendar em série</span>
+                            </label>
+                        </div>
+
+                        <div class="recorrencia-box initially-hidden" id="novaSessaoRecorrenciaBox">
+                            <div class="form-field">
+                                <label>Dias da semana</label>
+                                <div class="weekday-grid" id="novaSessaoDiasSemana">
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="SEG">Seg</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="TER">Ter</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="QUA">Qua</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="QUI">Qui</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="SEX">Sex</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="SAB">Sáb</label>
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="DOM">Dom</label>
+                                </div>
+                            </div>
+                            <div class="form-grid form-grid-two">
+                                <div class="form-field">
+                                    <label for="novaSessaoRecorrenciaFim">Até</label>
+                                    <input id="novaSessaoRecorrenciaFim" type="date" name="recorrencia.dataFim" class="form-control" th:value="${dataFimRecorrenciaPadrao}">
+                                </div>
+                                <div class="form-field">
+                                    <label for="novaSessaoMaxOcorrencias">Limite</label>
+                                    <input id="novaSessaoMaxOcorrencias" type="number" name="recorrencia.maxOcorrencias" class="form-control" min="1" max="365" value="52">
+                                </div>
+                            </div>
+                            <div class="flash-message success compact-banner" id="novaSessaoPreview">
+                                <i data-lucide="list-checks"></i>
+                                <span>A série será calculada após selecionar os dias.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="novaSessaoObservacoes">Observações</label>
+                            <textarea id="novaSessaoObservacoes" name="observacoes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
+                            <button type="submit" class="action-button primary" id="novaSessaoSalvar">
+                                <i data-lucide="calendar-check"></i>Confirmar agendamento
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -517,6 +664,236 @@
                         close();
                     }
                 });
+            })();
+
+            (() => {
+                const modal = document.getElementById('novaSessaoModal');
+                const form = document.getElementById('novaSessaoForm');
+                const clienteSelect = document.getElementById('novaSessaoCliente');
+                const planoSelect = document.getElementById('novaSessaoPlano');
+                const tipoInputs = Array.from(document.querySelectorAll('#novaSessaoForm input[name="tipoAgendamento"]'));
+                const planoAlert = document.getElementById('novaSessaoPlanoAlert');
+                const planoAlertText = document.getElementById('novaSessaoPlanoAlertText');
+                const salvarBtn = document.getElementById('novaSessaoSalvar');
+                const recorrenteInput = document.getElementById('novaSessaoRecorrente');
+                const recorrenciaBox = document.getElementById('novaSessaoRecorrenciaBox');
+                const dataInput = document.getElementById('novaSessaoData');
+                const dataFimInput = document.getElementById('novaSessaoRecorrenciaFim');
+                const maxInput = document.getElementById('novaSessaoMaxOcorrencias');
+                const preview = document.getElementById('novaSessaoPreview');
+                const diasInputs = Array.from(document.querySelectorAll('#novaSessaoDiasSemana input[type="checkbox"]'));
+
+                if (!modal || !form) {
+                    return;
+                }
+
+                const setOpen = (open) => {
+                    modal.classList.toggle('is-open', open);
+                    modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                    document.body.classList.toggle('modal-open', open);
+                    if (open && clienteSelect) {
+                        window.setTimeout(() => clienteSelect.focus(), 60);
+                    }
+                };
+
+                const selectedType = () => tipoInputs.find((input) => input.checked)?.value || 'PLANO';
+
+                const setFieldGroupVisible = () => {
+                    const avulso = selectedType() === 'AVULSO';
+                    document.querySelectorAll('#novaSessaoForm .js-nova-plano-field').forEach((field) => {
+                        field.classList.toggle('initially-hidden', avulso);
+                    });
+                    document.querySelectorAll('#novaSessaoForm .js-nova-avulso-field').forEach((field) => {
+                        field.classList.toggle('initially-hidden', !avulso);
+                    });
+                    if (planoSelect) {
+                        planoSelect.disabled = avulso;
+                        if (avulso) {
+                            planoSelect.value = '';
+                        }
+                    }
+                    syncSalvar();
+                };
+
+                const syncPlanos = () => {
+                    if (!planoSelect || !clienteSelect) {
+                        return;
+                    }
+                    const clienteId = clienteSelect.value;
+                    let primeiraDisponivel = '';
+                    let primeiroMotivo = '';
+                    let totalDoPaciente = 0;
+
+                    Array.from(planoSelect.options).forEach((option, index) => {
+                        if (index === 0) {
+                            option.hidden = false;
+                            return;
+                        }
+                        const visivel = !!clienteId && option.getAttribute('data-cliente-id') === clienteId;
+                        option.hidden = !visivel;
+                        if (!visivel) {
+                            return;
+                        }
+                        totalDoPaciente += 1;
+                        const motivo = option.getAttribute('data-motivo') || '';
+                        if (!motivo && !primeiraDisponivel) {
+                            primeiraDisponivel = option.value;
+                        } else if (motivo && !primeiroMotivo) {
+                            primeiroMotivo = motivo;
+                        }
+                    });
+
+                    const selecionada = planoSelect.selectedOptions[0];
+                    const selecionadaInvalida = selecionada && selecionada.value
+                        && selecionada.getAttribute('data-cliente-id') !== clienteId;
+                    if (!planoSelect.value || selecionadaInvalida || selecionada?.disabled) {
+                        planoSelect.value = primeiraDisponivel;
+                    }
+
+                    if (planoAlert && planoAlertText) {
+                        if (!clienteId) {
+                            planoAlert.hidden = true;
+                        } else if (primeiraDisponivel) {
+                            planoAlert.hidden = true;
+                        } else {
+                            planoAlert.hidden = false;
+                            planoAlertText.textContent = totalDoPaciente > 0
+                                ? primeiroMotivo || 'Nenhum plano deste paciente possui saldo livre para agenda.'
+                                : 'Este paciente não possui plano de tratamento. Cadastre ou renove um plano antes de usar esta opção.';
+                        }
+                    }
+
+                    updateRecurrencePreview();
+                    syncSalvar();
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                };
+
+                const syncSalvar = () => {
+                    if (!salvarBtn || !planoAlert) {
+                        return;
+                    }
+                    const tipoPlano = selectedType() === 'PLANO';
+                    salvarBtn.disabled = tipoPlano && !planoAlert.hidden;
+                    salvarBtn.title = salvarBtn.disabled ? 'Selecione um plano com saldo livre ou use consulta avulsa.' : '';
+                };
+
+                const weekdayFromDate = (value) => {
+                    const date = new Date(`${value}T00:00:00`);
+                    return ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'][date.getDay()];
+                };
+
+                const ensureDefaultWeekday = () => {
+                    if (diasInputs.some((input) => input.checked) || !dataInput?.value) {
+                        return;
+                    }
+                    const currentDay = weekdayFromDate(dataInput.value);
+                    const input = diasInputs.find((item) => item.value === currentDay);
+                    if (input) {
+                        input.checked = true;
+                    }
+                };
+
+                const countWeeklyOccurrences = () => {
+                    if (!dataInput?.value || !dataFimInput?.value) {
+                        return 0;
+                    }
+                    const selectedDays = new Set(diasInputs.filter((input) => input.checked).map((input) => input.value));
+                    if (!selectedDays.size) {
+                        return 0;
+                    }
+                    const max = Math.max(1, Number(maxInput?.value || 52));
+                    const start = new Date(`${dataInput.value}T00:00:00`);
+                    const end = new Date(`${dataFimInput.value}T00:00:00`);
+                    if (end < start) {
+                        return 0;
+                    }
+                    let total = 0;
+                    const cursor = new Date(start);
+                    while (cursor <= end && total < max) {
+                        const key = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'][cursor.getDay()];
+                        if (selectedDays.has(key)) {
+                            total += 1;
+                        }
+                        cursor.setDate(cursor.getDate() + 1);
+                    }
+                    return total;
+                };
+
+                const updateRecurrencePreview = () => {
+                    if (!recorrenteInput || !recorrenciaBox || !preview) {
+                        return;
+                    }
+                    const active = recorrenteInput.checked;
+                    recorrenciaBox.classList.toggle('initially-hidden', !active);
+                    recorrenciaBox.querySelectorAll('input').forEach((input) => {
+                        input.disabled = !active;
+                    });
+                    if (!active) {
+                        return;
+                    }
+                    ensureDefaultWeekday();
+                    const total = countWeeklyOccurrences();
+                    const span = preview.querySelector('span');
+                    if (!span) {
+                        return;
+                    }
+                    const planoOption = planoSelect?.selectedOptions[0];
+                    const livres = Number(planoOption?.getAttribute('data-disponivel') || 0);
+                    span.textContent = total > 0
+                        ? `A série criará ${total} sessão(ões) até a data final.`
+                        : 'Selecione pelo menos um dia da semana e uma data final válida.';
+                    if (selectedType() === 'PLANO' && total > livres && livres > 0) {
+                        span.textContent += ` O plano selecionado tem ${livres} crédito(s) livre(s) para agenda.`;
+                    }
+                };
+
+                document.querySelectorAll('.js-btn-nova-sessao').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        ensureDefaultWeekday();
+                        syncPlanos();
+                        setFieldGroupVisible();
+                        updateRecurrencePreview();
+                        setOpen(true);
+                    });
+                });
+
+                if (clienteSelect) {
+                    clienteSelect.addEventListener('change', syncPlanos);
+                }
+                if (planoSelect) {
+                    planoSelect.addEventListener('change', updateRecurrencePreview);
+                }
+                tipoInputs.forEach((input) => {
+                    input.addEventListener('change', setFieldGroupVisible);
+                });
+                if (recorrenteInput) {
+                    recorrenteInput.addEventListener('change', updateRecurrencePreview);
+                }
+                [...diasInputs, dataFimInput, maxInput].forEach((input) => {
+                    if (input) {
+                        input.addEventListener('change', updateRecurrencePreview);
+                        input.addEventListener('input', updateRecurrencePreview);
+                    }
+                });
+
+                modal.querySelectorAll('[data-modal-close]').forEach((element) => {
+                    element.addEventListener('click', () => setOpen(false));
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                        setOpen(false);
+                    }
+                });
+
+                updateRecurrencePreview();
+                syncPlanos();
+                setFieldGroupVisible();
+                if (modal.classList.contains('is-open')) {
+                    document.body.classList.add('modal-open');
+                }
             })();
 
             (() => {

@@ -18,6 +18,9 @@ public interface PlanoSessaoRepository extends JpaRepository<PlanoSessaoEntity, 
     @EntityGraph(attributePaths = "cliente")
     List<PlanoSessaoEntity> findByStatusOrderByCreatedAtDesc(PlanoSessaoStatus status);
 
+    @EntityGraph(attributePaths = "cliente")
+    List<PlanoSessaoEntity> findAllByOrderByCreatedAtDesc();
+
     List<PlanoSessaoEntity> findByPlanoAnteriorId(UUID planoAnteriorId);
 
 }
