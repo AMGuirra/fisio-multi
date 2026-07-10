@@ -134,8 +134,11 @@ public class RelatoriosService {
         BigDecimal despesas = lancamento.getTipo() == TipoLancamentoFinanceiro.DESPESA ? lancamento.getValor() : BigDecimal.ZERO;
 
         FiltroRelatorioForm filtroCobranca = new FiltroRelatorioForm();
-        filtroCobranca.setDataInicial(lancamento.getDataRecebimento().toLocalDate());
-        filtroCobranca.setDataFinal(lancamento.getDataRecebimento().toLocalDate());
+        LocalDate dataRecebimentoLocal = lancamento.getDataRecebimento()
+                .atZoneSameInstant(ClinicTimezoneHolder.zoneId())
+                .toLocalDate();
+        filtroCobranca.setDataInicial(dataRecebimentoLocal);
+        filtroCobranca.setDataFinal(dataRecebimentoLocal);
         filtroCobranca.setIncluirFinanceiro(true);
 
         PeriodoComparacao periodo = calcularPeriodo(filtroCobranca.getDataInicial(), filtroCobranca.getDataFinal());

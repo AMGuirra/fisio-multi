@@ -1,6 +1,7 @@
 package com.fisiogestao.pacientes;
 
 import com.fisiogestao.pacientes.form.PacienteForm;
+import com.fisiogestao.pacientes.dto.PacienteExclusaoPendencias;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
@@ -104,7 +105,16 @@ public class PacientesController {
             pacienteService.excluir(id);
             redirectAttributes.addFlashAttribute("successMessage", "Paciente excluído com sucesso.");
         } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            try {
+                PacienteExclusaoPendencias pendencias = pacienteService.buscarPendenciasExclusao(id);
+                if (pendencias.bloqueada()) {
+                    redirectAttributes.addFlashAttribute("exclusaoPendencias", pendencias);
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+                }
+            } catch (BusinessException ignored) {
+                redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            }
         }
 
         return "redirect:/pacientes";

@@ -62,6 +62,15 @@ public class FinanceiroController {
         return "financeiro/index";
     }
 
+    private static final List<String> DESTINOS_PERMITIDOS = List.of(
+            "/financeiro", "/financeiro/contas-a-receber", "/financeiro/contas-a-pagar"
+    );
+
+    private String redirecionarPara(String redirectTo) {
+        String destino = DESTINOS_PERMITIDOS.contains(redirectTo) ? redirectTo : "/financeiro";
+        return "redirect:" + destino;
+    }
+
     @GetMapping("/contas-a-receber")
     public String contasAReceber(Model model) {
         model.addAttribute("contasAReceber", financeiroService.listarContasAReceber());
@@ -85,35 +94,6 @@ public class FinanceiroController {
                 .body(new ByteArrayResource(content));
     }
 
-    @PostMapping("/contas-a-receber/lancamentos/{id}/pagar")
-    public String pagarContaAReceber(
-            @PathVariable("id") UUID id,
-            @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            financeiroService.marcarComoPago(id, metodoPagamento);
-            redirectAttributes.addFlashAttribute("successMessage", "Pagamento registrado com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/financeiro/contas-a-receber";
-    }
-
-    @PostMapping("/contas-a-receber/lancamentos/{id}/cancelar")
-    public String cancelarContaAReceber(
-            @PathVariable("id") UUID id,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            financeiroService.cancelar(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Lançamento cancelado com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/financeiro/contas-a-receber";
-    }
-
     @GetMapping("/contas-a-pagar")
     public String contasAPagar(Model model) {
         model.addAttribute("contasAPagar", financeiroService.listarContasAPagar());
@@ -134,35 +114,6 @@ public class FinanceiroController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .contentLength(content.length)
                 .body(new ByteArrayResource(content));
-    }
-
-    @PostMapping("/contas-a-pagar/lancamentos/{id}/pagar")
-    public String pagarContaAPagar(
-            @PathVariable("id") UUID id,
-            @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            financeiroService.marcarComoPago(id, metodoPagamento);
-            redirectAttributes.addFlashAttribute("successMessage", "Pagamento registrado com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/financeiro/contas-a-pagar";
-    }
-
-    @PostMapping("/contas-a-pagar/lancamentos/{id}/cancelar")
-    public String cancelarContaAPagar(
-            @PathVariable("id") UUID id,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            financeiroService.cancelar(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Lançamento cancelado com sucesso.");
-        } catch (BusinessException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/financeiro/contas-a-pagar";
     }
 
     @GetMapping("/relatorio-faturamento")
@@ -240,20 +191,37 @@ public class FinanceiroController {
     public String marcarComoPago(
             @PathVariable("id") UUID id,
             @RequestParam(value = "metodoPagamento", required = false) MetodoPagamento metodoPagamento,
+            @RequestParam(value = "redirectTo", required = false, defaultValue = "/financeiro") String redirectTo,
             RedirectAttributes redirectAttributes
     ) {
         try {
             financeiroService.marcarComoPago(id, metodoPagamento);
-            redirectAttributes.addFlashAttribute("successMessage", "Lançamento marcado como pago.");
+            redirectAttributes.addFlashAttribute("successMessage", "Pagamento registrado com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/financeiro";
+        return redirecionarPara(redirectTo);
+    }
+
+    @PostMapping("/lancamentos/{id}/reabrir")
+    public String reabrirLancamento(
+            @PathVariable("id") UUID id,
+            @RequestParam(value = "redirectTo", required = false, defaultValue = "/financeiro") String redirectTo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            financeiroService.reabrir(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cancelamento revertido. O lançamento voltou para pendente.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return redirecionarPara(redirectTo);
     }
 
     @PostMapping("/lancamentos/{id}/cancelar-baixa")
     public String cancelarBaixa(
             @PathVariable("id") UUID id,
+            @RequestParam(value = "redirectTo", required = false, defaultValue = "/financeiro") String redirectTo,
             RedirectAttributes redirectAttributes
     ) {
         try {
@@ -262,7 +230,7 @@ public class FinanceiroController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/financeiro";
+        return redirecionarPara(redirectTo);
     }
 
     @GetMapping("/lancamentos/{id}/recibo.pdf")
@@ -280,6 +248,7 @@ public class FinanceiroController {
     @PostMapping("/lancamentos/{id}/cancelar")
     public String cancelarLancamento(
             @PathVariable("id") UUID id,
+            @RequestParam(value = "redirectTo", required = false, defaultValue = "/financeiro") String redirectTo,
             RedirectAttributes redirectAttributes
     ) {
         try {
@@ -288,7 +257,7 @@ public class FinanceiroController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/financeiro";
+        return redirecionarPara(redirectTo);
     }
 
     private void prepararPagina(Model model, LancamentoFinanceiroForm form, UUID lancamentoEdicaoId,

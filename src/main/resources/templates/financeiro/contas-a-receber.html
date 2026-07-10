@@ -152,11 +152,18 @@
                                 <td class="finance-action-cell">
                                     <div th:if="${grupo.primeiroLancamentoId() != null}" class="table-actions finance-actions">
                                         <!-- Registrar pagamento -->
-                                        <form th:action="@{/financeiro/contas-a-receber/lancamentos/{id}/pagar(id=${grupo.primeiroLancamentoId()})}"
+                                        <form th:action="@{/financeiro/lancamentos/{id}/pagar(id=${grupo.primeiroLancamentoId()})}"
                                               method="post"
-                                              class="inline-form baixa-form">
+                                              class="inline-form baixa-form"
+                                              data-confirm-modal
+                                              data-confirm-title="Confirmar baixa?"
+                                              th:data-confirm-message="${grupo.quantidade() > 1 ? 'Apenas o lançamento mais antigo de ' + grupo.paciente() + ' será baixado (' + grupo.quantidade() + ' lançamentos no grupo). Os demais continuarão pendentes.' : 'Confirma a baixa do lançamento de R$ ' + #numbers.formatDecimal(grupo.total(), 1, 'COMMA', 2, 'POINT') + ' de ' + grupo.paciente() + '?'}"
+                                              data-confirm-helper-title="A baixa será registrada agora"
+                                              data-confirm-helper-message="Verifique a forma de pagamento selecionada antes de confirmar."
+                                              data-confirm-action-label="Confirmar baixa">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                            <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento">
+                                            <input type="hidden" name="redirectTo" value="/financeiro/contas-a-receber">
+                                            <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento" required>
                                                 <option value="">Forma de pgto</option>
                                                 <option th:each="mp : ${metodosPagamento}"
                                                         th:value="${mp.name()}"
@@ -168,7 +175,7 @@
                                             </button>
                                         </form>
                                         <!-- Cancelar lançamento -->
-                                        <form th:action="@{/financeiro/contas-a-receber/lancamentos/{id}/cancelar(id=${grupo.primeiroLancamentoId()})}"
+                                        <form th:action="@{/financeiro/lancamentos/{id}/cancelar(id=${grupo.primeiroLancamentoId()})}"
                                               method="post"
                                               class="inline-form"
                                               data-confirm-modal
@@ -178,6 +185,7 @@
                                               data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
                                               data-confirm-action-label="Cancelar lançamento">
                                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                            <input type="hidden" name="redirectTo" value="/financeiro/contas-a-receber">
                                             <button type="submit" class="action-button danger">
                                                 <i data-lucide="x-circle"></i>
                                                 Cancelar

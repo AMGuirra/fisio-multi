@@ -22,6 +22,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.dto.PacienteExclusaoPendencias;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -49,6 +51,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -230,6 +233,42 @@ class PageSmokeTest {
     void securedPagesRenderForAdmin(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void exclusaoPacienteComPlanoAbreModalDePendencias() throws Exception {
+        mockMvc.perform(post("/pacientes/{id}/excluir", clienteAgenda.getId())
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pacientes"))
+                .andExpect(flash().attributeExists("exclusaoPendencias"))
+                .andExpect(flash().attribute("exclusaoPendencias",
+                        org.hamcrest.Matchers.hasToString(org.hamcrest.Matchers.containsString(
+                                "destinoPrimario=/planos-consumo?paciente=" + clienteAgenda.getId()))));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void pacientesRenderizaModalDePendenciasComLinkDoPacienteSelecionado() throws Exception {
+        PacienteExclusaoPendencias pendencias = new PacienteExclusaoPendencias(
+                clienteAgenda.getId(),
+                clienteAgenda.getNomeCompleto(),
+                List.of(new PacienteExclusaoPendencias.Pendencia(
+                        "PLANOS",
+                        "Planos de tratamento",
+                        "Exclua ou cancele os planos vinculados antes de remover o paciente.",
+                        "/planos-consumo?paciente=" + clienteAgenda.getId(),
+                        "Exclua primeiro os planos de tratamento vinculados a este paciente."
+                )),
+                "/planos-consumo?paciente=" + clienteAgenda.getId()
+        );
+
+        mockMvc.perform(get("/pacientes").flashAttr("exclusaoPendencias", pendencias))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Antes de excluir este paciente")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Planos de tratamento")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/planos-consumo?paciente=" + clienteAgenda.getId())));
     }
 
     @Test

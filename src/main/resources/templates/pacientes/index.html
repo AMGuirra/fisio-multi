@@ -190,7 +190,7 @@
                                               class="inline-form"
                                               data-confirm-modal
                                               data-confirm-title="Excluir paciente?"
-                                              data-confirm-message="Deseja excluir este paciente? A exclusão só será permitida se ele não tiver pacotes, sessões, prontuário, solicitações ou movimentações."
+                                              data-confirm-message="Deseja excluir este paciente? A exclusão só será permitida se ele não tiver planos de tratamento, sessões, prontuário, solicitações ou movimentações."
                                               data-confirm-helper-title="Essa exclusão é definitiva"
                                               data-confirm-helper-message="Se houver vínculos ativos no histórico clínico ou financeiro, o sistema irá bloquear a operação."
                                               data-confirm-action-label="Excluir paciente">
@@ -252,6 +252,51 @@
     </div>
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
+    <div th:if="${exclusaoPendencias != null and exclusaoPendencias.bloqueada()}"
+         id="pacientePendenciasModal"
+         class="app-modal is-open"
+         aria-hidden="false"
+         data-pending-modal-open>
+        <div class="app-modal-backdrop" data-pending-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pacientePendenciasModalTitle" aria-describedby="pacientePendenciasModalDescription">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="pacientePendenciasModalTitle">Antes de excluir este paciente</h3>
+                        <p id="pacientePendenciasModalDescription">
+                            Resolva os vínculos de
+                            <strong th:text="${exclusaoPendencias.nomePaciente()}">Paciente</strong>
+                            antes de tentar excluir o cadastro novamente.
+                        </p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-pending-modal-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <ul class="pending-delete-list">
+                        <li th:each="pendencia : ${exclusaoPendencias.pendencias()}" class="pending-delete-item">
+                            <span class="pending-delete-icon"><i data-lucide="alert-circle"></i></span>
+                            <span class="pending-delete-copy">
+                                <strong th:text="${pendencia.rotulo()}">Planos de tratamento</strong>
+                                <span th:text="${pendencia.descricao()}">Exclua ou cancele os vínculos antes de remover o paciente.</span>
+                            </span>
+                        </li>
+                    </ul>
+                    <div class="modal-actions">
+                        <button type="button" class="action-button ghost" data-pending-modal-close>Voltar</button>
+                        <a class="action-button primary"
+                           th:href="${exclusaoPendencias.destinoPrimario()}"
+                           href="/planos-consumo">
+                            <i data-lucide="arrow-right"></i>
+                            Resolver pendências
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal de cadastro de novo paciente -->
     <div id="newPacienteModal" class="app-modal" aria-hidden="true">
@@ -401,6 +446,26 @@
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script>
     (function () {
+        var modal = document.getElementById('pacientePendenciasModal');
+        if (!modal) { return; }
+
+        function closeModal() {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.classList.remove('is-open');
+            document.body.classList.remove('modal-open');
+        }
+
+        document.body.classList.add('modal-open');
+        document.querySelectorAll('[data-pending-modal-close]').forEach(function (el) {
+            el.addEventListener('click', closeModal);
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) { closeModal(); }
+        });
+    })();
+    </script>
+    <script>
+    (function () {
         var newModal = document.getElementById('newPacienteModal');
 
         function openNewModal() {
@@ -478,7 +543,4 @@
     </script>
 </body>
 </html>
-
-
-
 

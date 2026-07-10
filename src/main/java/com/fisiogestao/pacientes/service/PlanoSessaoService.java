@@ -212,9 +212,20 @@ public class PlanoSessaoService {
         plano.setStatus(PlanoSessaoStatus.CANCELADO);
         PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
 
+        List<LancamentoFinanceiroEntity> lancamentosPendentes = lancamentoFinanceiroRepository.findByPlanoSessaoId(planoId).stream()
+                .filter(lancamento -> lancamento.getStatus() == StatusLancamentoFinanceiro.PENDENTE)
+                .toList();
+        for (LancamentoFinanceiroEntity lancamentoPendente : lancamentosPendentes) {
+            financeiroService.cancelar(lancamentoPendente.getId());
+        }
+        int lancamentosCancelados = lancamentosPendentes.size();
+
         String detalhes = sessoesCanceladas > 0
                 ? String.format("Cancelamento de plano de tratamento. %d sessão(ões) agendada(s) futura(s) removida(s) da agenda.", sessoesCanceladas)
                 : "Cancelamento de plano de tratamento.";
+        if (lancamentosCancelados > 0) {
+            detalhes += String.format(" %d lançamento(s) financeiro(s) pendente(s) também foram cancelados.", lancamentosCancelados);
+        }
 
         auditService.recordManual(
                 AuditModule.PLANOS,

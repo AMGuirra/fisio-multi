@@ -109,6 +109,38 @@ class FinanceiroServiceTest {
         verify(lancamentoFinanceiroRepository, never()).save(any());
     }
 
+    @Test
+    void deveImpedirTrocaDeTipoEmLancamentoVinculadoAPlano() {
+        PlanoSessaoEntity planoVinculado = plano(cliente("Carla"), "Plano Trimestral", "900.00", LocalDate.now());
+        LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "300.00");
+        lancamento.setPlanoSessao(planoVinculado);
+        LancamentoFinanceiroForm form = formDespesa("Tentativa de troca", "Cat", "300.00");
+
+        when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> financeiroService.atualizarManual(lancamento.getId(), form));
+        assertEquals("Não é possível alterar o tipo de um lançamento vinculado a um plano de tratamento.", ex.getMessage());
+        verify(lancamentoFinanceiroRepository, never()).save(any());
+    }
+
+    @Test
+    void devePermitirEdicaoSemTrocaDeTipoEmLancamentoVinculadoAPlano() {
+        PlanoSessaoEntity planoVinculado = plano(cliente("Carla"), "Plano Trimestral", "900.00", LocalDate.now());
+        LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "300.00");
+        lancamento.setPlanoSessao(planoVinculado);
+        LancamentoFinanceiroForm form = formReceita("Ajuste de valor", "Cat", "350.00");
+
+        when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
+        when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        financeiroService.atualizarManual(lancamento.getId(), form);
+
+        assertEquals(new BigDecimal("350.00"), lancamento.getValor());
+    }
+
     // -----------------------------------------------------------------------
     // cancelar
     // -----------------------------------------------------------------------
@@ -163,10 +195,24 @@ class FinanceiroServiceTest {
         when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
-        financeiroService.marcarComoPago(lancamento.getId(), null);
+        financeiroService.marcarComoPago(lancamento.getId(), MetodoPagamento.PIX);
 
         assertEquals(StatusLancamentoFinanceiro.PAGO, lancamento.getStatus());
         assertNotNull(lancamento.getDataPagamento());
+        assertEquals(MetodoPagamento.PIX, lancamento.getMetodoPagamento());
+    }
+
+    @Test
+    void deveImpedirBaixaSemFormaDePagamento() {
+        LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "200.00");
+
+        when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> financeiroService.marcarComoPago(lancamento.getId(), null));
+        assertEquals("Selecione a forma de pagamento para registrar a baixa.", ex.getMessage());
+        verify(lancamentoFinanceiroRepository, never()).save(any());
     }
 
     @Test
@@ -177,7 +223,7 @@ class FinanceiroServiceTest {
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> financeiroService.marcarComoPago(lancamento.getId(), null));
+                () -> financeiroService.marcarComoPago(lancamento.getId(), MetodoPagamento.PIX));
         assertEquals("Apenas lançamentos pendentes podem ser marcados como pagos.", ex.getMessage());
     }
 
@@ -189,7 +235,7 @@ class FinanceiroServiceTest {
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
 
         assertThrows(BusinessException.class,
-                () -> financeiroService.marcarComoPago(lancamento.getId(), null));
+                () -> financeiroService.marcarComoPago(lancamento.getId(), MetodoPagamento.PIX));
     }
 
     // -----------------------------------------------------------------------
@@ -222,6 +268,36 @@ class FinanceiroServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> financeiroService.cancelarBaixa(lancamento.getId()));
         assertEquals("Somente lançamentos pagos podem ter a baixa cancelada.", ex.getMessage());
+    }
+
+    // -----------------------------------------------------------------------
+    // reabrir
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deveReabrirLancamentoCanceladoVoltandoParaPendente() {
+        LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.CANCELADO, "120.00");
+
+        when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
+        when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        financeiroService.reabrir(lancamento.getId());
+
+        assertEquals(StatusLancamentoFinanceiro.PENDENTE, lancamento.getStatus());
+    }
+
+    @Test
+    void deveImpedirReabrirLancamentoQueNaoEstaCancelado() {
+        LancamentoFinanceiroEntity lancamento = lancamento(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE, "120.00");
+
+        when(lancamentoFinanceiroRepository.findById(lancamento.getId())).thenReturn(Optional.of(lancamento));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> financeiroService.reabrir(lancamento.getId()));
+        assertEquals("Somente lançamentos cancelados podem ter o cancelamento revertido.", ex.getMessage());
+        verify(lancamentoFinanceiroRepository, never()).save(any());
     }
 
     // -----------------------------------------------------------------------

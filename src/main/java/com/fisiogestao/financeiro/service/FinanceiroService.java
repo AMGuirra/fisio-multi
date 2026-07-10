@@ -408,6 +408,9 @@ public class FinanceiroService {
         if (lancamento.getStatus() == StatusLancamentoFinanceiro.CANCELADO) {
             throw new BusinessException("Lançamentos cancelados não podem ser editados.");
         }
+        if (lancamento.getPlanoSessao() != null && lancamento.getTipo() != form.getTipo()) {
+            throw new BusinessException("Não é possível alterar o tipo de um lançamento vinculado a um plano de tratamento.");
+        }
 
         lancamento.setTipo(form.getTipo());
         lancamento.setDescricao(form.getDescricao().trim());
@@ -575,6 +578,9 @@ public class FinanceiroService {
         if (lancamento.getStatus() != StatusLancamentoFinanceiro.PENDENTE) {
             throw new BusinessException("Apenas lançamentos pendentes podem ser marcados como pagos.");
         }
+        if (metodoPagamento == null) {
+            throw new BusinessException("Selecione a forma de pagamento para registrar a baixa.");
+        }
 
         lancamento.setStatus(StatusLancamentoFinanceiro.PAGO);
         lancamento.setDataPagamento(ClinicTimezoneHolder.now());
@@ -617,6 +623,31 @@ public class FinanceiroService {
                 auditService.snapshotOf(salvo),
                 null,
                 "Baixa financeira cancelada manualmente para permitir refazer o lançamento.",
+                AuditEventOrigin.MANUAL
+        );
+    }
+
+    @Transactional
+    public void reabrir(UUID lancamentoId) {
+        LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
+        var snapshotAnterior = auditService.snapshotOf(lancamento);
+
+        if (lancamento.getStatus() != StatusLancamentoFinanceiro.CANCELADO) {
+            throw new BusinessException("Somente lançamentos cancelados podem ter o cancelamento revertido.");
+        }
+
+        lancamento.setStatus(StatusLancamentoFinanceiro.PENDENTE);
+        LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
+        auditService.recordManual(
+                AuditModule.FINANCEIRO,
+                "lancamento_financeiro",
+                salvo.getId().toString(),
+                salvo.getDescricao(),
+                AuditActionType.RESTORE,
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Reversão manual de cancelamento de lançamento financeiro.",
                 AuditEventOrigin.MANUAL
         );
     }

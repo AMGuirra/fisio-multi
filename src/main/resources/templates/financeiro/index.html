@@ -194,9 +194,22 @@
                             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                             <div class="form-field">
                                 <label for="tipo">Tipo</label>
-                                <select id="tipo" class="form-select" th:field="*{tipo}" required>
+                                <select th:unless="${editMode and lancamentoEmEdicao != null and lancamentoEmEdicao.planoSessao != null}"
+                                        id="tipo"
+                                        class="form-select"
+                                        th:field="*{tipo}"
+                                        required>
                                     <option th:each="tipo : ${tiposLancamento}" th:value="${tipo}" th:text="${tipo}">RECEITA</option>
                                 </select>
+                                <input th:if="${editMode and lancamentoEmEdicao != null and lancamentoEmEdicao.planoSessao != null}"
+                                       type="hidden"
+                                       th:field="*{tipo}">
+                                <input th:if="${editMode and lancamentoEmEdicao != null and lancamentoEmEdicao.planoSessao != null}"
+                                       id="tipo"
+                                       type="text"
+                                       class="form-control"
+                                       th:value="${lancamentoEmEdicao.tipo}"
+                                       readonly>
                                 <p class="form-error" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></p>
                             </div>
 
@@ -319,6 +332,7 @@
                                                   data-confirm-helper-title="O lançamento será cancelado agora"
                                                   data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
                                                   data-confirm-action-label="Cancelar lançamento">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                                 <button type="submit" class="action-button danger">
                                                     <i data-lucide="x-circle"></i>
                                                     Cancelar
@@ -329,7 +343,7 @@
                                                   method="post"
                                                   class="inline-form baixa-form">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento">
+                                                <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento" required>
                                                     <option value="">Forma de pgto</option>
                                                     <option value="PIX">PIX</option>
                                                     <option value="DINHEIRO">Dinheiro</option>
@@ -363,9 +377,26 @@
                                                   data-confirm-helper-title="O lançamento voltará para pendente"
                                                   data-confirm-helper-message="Use esta ação quando precisar revisar ou refazer o pagamento."
                                                   data-confirm-action-label="Cancelar baixa">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                                 <button type="submit" class="action-button ghost">
                                                     <i data-lucide="rotate-ccw"></i>
                                                     Cancelar baixa
+                                                </button>
+                                            </form>
+                                            <form th:if="${lancamento.status.name() == 'CANCELADO'}"
+                                                  th:action="@{/financeiro/lancamentos/{id}/reabrir(id=${lancamento.id})}"
+                                                  method="post"
+                                                  class="inline-form"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Reverter cancelamento?"
+                                                  data-confirm-message="Deseja reverter o cancelamento deste lançamento? Ele voltará para pendente."
+                                                  data-confirm-helper-title="O lançamento voltará para pendente"
+                                                  data-confirm-helper-message="Use esta ação para corrigir um cancelamento feito por engano."
+                                                  data-confirm-action-label="Reverter cancelamento">
+                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                                <button type="submit" class="action-button ghost">
+                                                    <i data-lucide="rotate-ccw"></i>
+                                                    Reverter cancelamento
                                                 </button>
                                             </form>
                                         </div>
