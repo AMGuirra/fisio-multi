@@ -14,10 +14,12 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.dto.PlanoDisponibilidadeDTO;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.pacientes.service.PacienteService;
+import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
@@ -48,7 +50,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/paciente")
@@ -69,6 +73,7 @@ public class PortalPacienteController {
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final PacienteService pacienteService;
+    private final PlanoSessaoService planoSessaoService;
 
     private static final String SESS_PREFIX = "portalAutenticado_";
 
@@ -242,6 +247,9 @@ public class PortalPacienteController {
 
         List<PlanoSessaoEntity> planos = planoSessaoRepository
                 .findByClienteIdOrderByCreatedAtDesc(paciente.getId());
+        Map<String, PlanoDisponibilidadeDTO> diagnosticosPlanos = planoSessaoService
+                .diagnosticarPlanosDoPaciente(paciente.getId()).stream()
+                .collect(Collectors.toMap(dto -> dto.planoId().toString(), dto -> dto));
 
         List<PlanoSessaoEntity> planosAtivos = planos.stream()
                 .filter(p -> p.getStatus() == PlanoSessaoStatus.ATIVO)
@@ -287,6 +295,7 @@ public class PortalPacienteController {
         model.addAttribute("historicoSessoes", historicoSessoes);
         model.addAttribute("planosAtivos", planosAtivos);
         model.addAttribute("planosEncerrados", planosEncerrados);
+        model.addAttribute("diagnosticosPlanos", diagnosticosPlanos);
         model.addAttribute("saldoSessoesAtivas", saldoSessoesAtivas);
         model.addAttribute("sessoesContratadasAtivas", sessoesContratadasAtivas);
         model.addAttribute("sessoesConsumidasAtivas", sessoesConsumidasAtivas);

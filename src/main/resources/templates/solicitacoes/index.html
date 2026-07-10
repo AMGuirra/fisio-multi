@@ -1110,11 +1110,13 @@
                 const pl = fluxo.plano.planos.find(p => p.id === state.planoId)
                         || fluxo.plano.planos[0];
                 if (!state.planoId) state.planoId = pl.id;
-                csPl.textContent = `${pl.nomePlano} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+                const livres = pl.sessoesLivresParaAgenda ?? pl.sessoesDisponiveis;
+                csPl.textContent = `${pl.nomePlano} (${livres} sessões livres para agenda)`;
             } else if (fluxo.plano.planos.length > 0) {
                 const pl = fluxo.plano.planos[0];
                 state.planoId = pl.id;
-                csPl.textContent = `${pl.nomePlano} (${pl.sessoesDisponiveis} sessões disponíveis)`;
+                const livres = pl.sessoesLivresParaAgenda ?? pl.sessoesDisponiveis;
+                csPl.textContent = `${pl.nomePlano} (${livres} sessões livres para agenda)`;
             } else {
                 csPl.textContent = '—';
             }

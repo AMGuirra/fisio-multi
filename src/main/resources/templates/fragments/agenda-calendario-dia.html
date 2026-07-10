@@ -420,10 +420,13 @@
                             <label for="editarSessaoPlano">Plano de tratamento</label>
                             <select id="editarSessaoPlano" name="planoSessaoId" class="form-select">
                                 <option value="">Selecionar automaticamente o plano ativo</option>
-                                <option th:each="plano : ${planosAgenda}"
+                                <option th:each="plano : ${planosAgendaDiagnostico}"
                                         th:value="${plano.id}"
-                                        th:attr="data-cliente-id=${plano.cliente.id}"
-                                        th:text="${plano.nomePlano + ' • ' + plano.cliente.nomeCompleto + ' • ' + (plano.sessoesContratadas - plano.sessoesConsumidas) + ' disponíveis'}">
+                                        th:disabled="${motivosPlanosAgenda[#strings.toString(plano.id)] != ''}"
+                                        th:attr="data-cliente-id=${plano.cliente.id},
+                                                 data-disponivel=${saldosLivresAgenda[#strings.toString(plano.id)]},
+                                                 data-motivo=${motivosPlanosAgenda[#strings.toString(plano.id)]}"
+                                        th:text="${plano.nomePlano + ' • ' + plano.cliente.nomeCompleto + ' • ' + (motivosPlanosAgenda[#strings.toString(plano.id)] == '' ? saldosLivresAgenda[#strings.toString(plano.id)] + ' livre(s)' : motivosPlanosAgenda[#strings.toString(plano.id)])}">
                                     Plano
                                 </option>
                             </select>
@@ -922,6 +925,7 @@
 
                 const semPlanoAlert = document.getElementById('editarSessaoSemPlanoAlert');
                 const criarPlanoLink = document.getElementById('editarSessaoCriarPlanoLink');
+                let planoAtualEdicaoId = '';
 
                 const syncSalvarBtn = () => {
                     if (!editarSessaoSalvarBtn || !semPlanoAlert) return;
@@ -935,23 +939,38 @@
                 const syncPlanosModal = () => {
                     if (!editarSessaoPlanoSelect || !editarSessaoClienteSelect) return;
                     const clienteId = editarSessaoClienteSelect.value;
-                    let temPlano = false;
+                    let temPlanoDisponivel = false;
+                    let primeiroMotivo = '';
                     Array.from(editarSessaoPlanoSelect.options).forEach((option, index) => {
                         if (index === 0) {
                             option.hidden = false;
+                            option.disabled = false;
                             return;
                         }
                         const optionCliente = option.getAttribute('data-cliente-id');
                         const visivel = !clienteId || optionCliente === clienteId;
                         option.hidden = !visivel;
-                        if (visivel) temPlano = true;
+                        if (!visivel) return;
+                        const motivo = option.getAttribute('data-motivo') || '';
+                        option.disabled = !!motivo && option.value !== planoAtualEdicaoId;
+                        if (!option.disabled) {
+                            temPlanoDisponivel = true;
+                        } else if (motivo && !primeiroMotivo) {
+                            primeiroMotivo = motivo;
+                        }
                     });
                     const selecionada = editarSessaoPlanoSelect.selectedOptions[0];
-                    if (selecionada && selecionada.getAttribute('data-cliente-id') && selecionada.getAttribute('data-cliente-id') !== clienteId) {
+                    if (selecionada && selecionada.getAttribute('data-cliente-id') && (
+                        selecionada.getAttribute('data-cliente-id') !== clienteId || selecionada.disabled
+                    )) {
                         editarSessaoPlanoSelect.value = '';
                     }
                     if (semPlanoAlert) {
-                        semPlanoAlert.hidden = temPlano;
+                        semPlanoAlert.hidden = temPlanoDisponivel;
+                        const alertText = semPlanoAlert.querySelector('span');
+                        if (alertText && !temPlanoDisponivel && primeiroMotivo) {
+                            alertText.textContent = primeiroMotivo;
+                        }
                         if (criarPlanoLink && clienteId) {
                             criarPlanoLink.href = '/planos-consumo?pacienteId=' + clienteId;
                         }
@@ -995,6 +1014,7 @@
                                 throw new Error(err.error || 'Erro ao carregar sessão');
                             }
                             const sessao = await response.json();
+                            planoAtualEdicaoId = sessao.planoSessaoId || '';
 
                             editarSessaoIdInput.value = sessao.id;
                             editarSessaoDataInput.value = sessao.data;

@@ -2,7 +2,7 @@ package com.fisiogestao.solicitacoes;
 
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.service.AgendaService;
-import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.dto.PlanoDisponibilidadeDTO;
 import com.fisiogestao.pacientes.form.PlanoSessaoForm;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -58,15 +58,15 @@ public class SolicitacaoFluxoApiController {
         boolean planoDisponivel = false;
         List<PlanoDto> planos   = List.of();
         if (pacienteEncontrado) {
-            LocalDate hoje = LocalDate.now();
-            List<PlanoDto> ativos = planoSessaoService.listarPorCliente(clienteId).stream()
-                    .filter(p -> p.getStatus() == PlanoSessaoStatus.ATIVO
-                            && (p.getDataValidade() == null || !p.getDataValidade().isBefore(hoje))
-                            && p.getSessoesConsumidas() < p.getSessoesContratadas())
+            List<PlanoDto> ativos = planoSessaoService.diagnosticarPlanosDoPaciente(clienteId).stream()
+                    .filter(PlanoDisponibilidadeDTO::disponivelParaAgenda)
                     .map(p -> new PlanoDto(
-                            p.getId(),
-                            p.getNomePlano(),
-                            p.getSessoesContratadas() - p.getSessoesConsumidas()))
+                            p.planoId(),
+                            p.nomePlano(),
+                            p.sessoesRestantes(),
+                            p.sessoesAgendadas(),
+                            p.sessoesLivresParaAgenda(),
+                            p.motivoIndisponibilidade()))
                     .toList();
             planoDisponivel = !ativos.isEmpty();
             planos = ativos;
@@ -185,7 +185,10 @@ public class SolicitacaoFluxoApiController {
     public record PlanoDto(
             UUID   id,
             String nomePlano,
-            int    sessoesDisponiveis
+            int    sessoesDisponiveis,
+            int    sessoesAgendadas,
+            int    sessoesLivresParaAgenda,
+            String motivoIndisponibilidade
     ) {}
 
     public record DisponibilidadeInfo(

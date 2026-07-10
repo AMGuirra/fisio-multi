@@ -383,6 +383,21 @@ class PlanoSessaoServiceTest {
         assertEquals(livre.getId(), resultado.get().getId());
     }
 
+    @Test
+    void diagnosticoDePlanoDeveDescontarSessoesAgendadasDoSaldoLivreParaAgenda() {
+        PlanoSessaoEntity plano = pacoteAtivo(10, 2);
+        when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));
+        when(sessaoRepository.countAgendadasPorPlano(plano.getId())).thenReturn(2L);
+
+        var diagnostico = planoSessaoService.diagnosticarPlano(plano.getId());
+
+        assertEquals(8, diagnostico.sessoesRestantes());
+        assertEquals(2, diagnostico.sessoesAgendadas());
+        assertEquals(6, diagnostico.sessoesLivresParaAgenda());
+        assertTrue(diagnostico.disponivelParaAgenda());
+        assertNull(diagnostico.motivoIndisponibilidade());
+    }
+
     // -----------------------------------------------------------------------
     // excluir — cenários de regressao
     // -----------------------------------------------------------------------

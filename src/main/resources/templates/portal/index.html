@@ -333,6 +333,9 @@
                     <div>
                         <p class="row-title" th:text="${plano.nomePlano}">Plano</p>
                         <p class="row-meta" th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessões realizadas'}">0 de 0 sessões</p>
+                        <p class="row-meta"
+                           th:if="${diagnosticosPlanos[#strings.toString(plano.id)] != null}"
+                           th:text="${diagnosticosPlanos[#strings.toString(plano.id)].sessoesLivresParaAgenda + ' livre(s) para solicitar novo agendamento'}">0 livre(s) para solicitar novo agendamento</p>
                         <p class="row-meta" th:if="${plano.dataValidade != null}" th:text="'Válido até ' + ${#temporals.format(plano.dataValidade, 'dd/MM/yyyy')}">Validade</p>
                     </div>
                     <div class="portal-action-row">
@@ -376,6 +379,9 @@
                         <div>
                             <p class="row-title" th:text="${plano.nomePlano}">Plano</p>
                             <p class="row-meta" th:text="${plano.sessoesConsumidas + ' de ' + plano.sessoesContratadas + ' sessões realizadas'}">0 de 0 sessões</p>
+                        <p class="row-meta"
+                           th:if="${diagnosticosPlanos[#strings.toString(plano.id)] != null}"
+                           th:text="${diagnosticosPlanos[#strings.toString(plano.id)].sessoesLivresParaAgenda + ' livre(s) para solicitar novo agendamento'}">0 livre(s) para solicitar novo agendamento</p>
                         </div>
                         <span class="portal-badge"
                               th:classappend="${plano.status.name() == 'CONCLUIDO' ? ' realizada' : (plano.status.name() == 'EXPIRADO' ? ' expirado' : ' cancelado')}"

@@ -748,16 +748,27 @@ public class AgendaService {
         boolean mudouPlano = planoAnteriorId == null
                 ? novoPlanoId != null
                 : !planoAnteriorId.equals(novoPlanoId);
+        boolean consumoEstornado = false;
 
         if (consumoAnteriorRegistrado && planoAnteriorId != null && mudouPlano) {
             planoSessaoService.estornarSessao(planoAnteriorId);
             sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
+            consumoEstornado = true;
         }
 
-        if (novoPlanoId != null && (!consumoAnteriorRegistrado || mudouPlano)) {
+        if (novoPlanoId != null && sessaoConsomePlano(sessao) && (!consumoAnteriorRegistrado || mudouPlano)) {
             planoSessaoService.reservarSessao(novoPlanoId);
             sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
+        } else if (!sessaoConsomePlano(sessao)) {
+            if (consumoAnteriorRegistrado && planoAnteriorId != null && !consumoEstornado) {
+                planoSessaoService.estornarSessao(planoAnteriorId);
+            }
+            sessao.setPlanoConsumoRegistrado(Boolean.FALSE);
         }
+    }
+
+    private boolean sessaoConsomePlano(SessaoEntity sessao) {
+        return sessao.getStatus() == SessaoStatus.REALIZADA || sessao.getStatus() == SessaoStatus.FALTA_FATURADA;
     }
 
     private String texto(String valor) {

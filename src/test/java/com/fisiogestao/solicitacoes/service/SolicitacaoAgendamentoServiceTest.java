@@ -1,5 +1,9 @@
 package com.fisiogestao.solicitacoes.service;
 
+import com.fisiogestao.agenda.HorarioBloqueadoEntity;
+import com.fisiogestao.agenda.HorarioBloqueadoStatus;
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.TipoAgendamento;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.agenda.service.AgendaService;
@@ -7,6 +11,7 @@ import com.fisiogestao.agenda.service.BloqueioAgendaService;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.service.AgendamentoEmailNotificationService;
 import com.fisiogestao.pacientes.ClienteEntity;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -112,6 +117,45 @@ class SolicitacaoAgendamentoServiceTest {
 
         assertEquals("Cadastre o paciente antes de aprovar a solicitação.", ex.getMessage());
         verifyNoInteractions(horarioBloqueadoRepository, pacienteService, planoSessaoService, sessaoRepository);
+    }
+
+    @Test
+    void deveCriarSessaoDePlanoAoAprovarSolicitacao() {
+        UUID solicitacaoId = UUID.randomUUID();
+        ClienteEntity cliente = ClienteEntity.builder()
+                .nomeCompleto("Antonio")
+                .telefone("65999990000")
+                .ativo(true)
+                .build();
+        cliente.setId(UUID.randomUUID());
+        PlanoSessaoEntity plano = PlanoSessaoEntity.builder()
+                .cliente(cliente)
+                .nomePlano("Plano Teste")
+                .sessoesContratadas(10)
+                .sessoesConsumidas(2)
+                .build();
+        plano.setId(UUID.randomUUID());
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoPendente();
+        solicitacao.setId(solicitacaoId);
+        solicitacao.setCliente(cliente);
+        HorarioBloqueadoEntity bloqueio = HorarioBloqueadoEntity.builder()
+                .status(HorarioBloqueadoStatus.PENDENTE)
+                .dataHoraInicio(solicitacao.getDataHoraInicio())
+                .dataHoraFim(solicitacao.getDataHoraFim())
+                .build();
+        bloqueio.setId(UUID.randomUUID());
+
+        when(solicitacaoAgendamentoRepository.findById(solicitacaoId)).thenReturn(Optional.of(solicitacao));
+        when(horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)).thenReturn(Optional.of(bloqueio));
+        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), null, null)).thenReturn(plano);
+        when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(solicitacaoAgendamentoRepository.save(any(SolicitacaoAgendamentoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SessaoEntity resultado = solicitacaoAgendamentoService.aprovarSolicitacao(solicitacaoId, new AprovacaoSolicitacaoForm());
+
+        assertEquals(TipoAgendamento.PLANO, resultado.getTipoAgendamento());
+        assertSame(plano, resultado.getPlanoSessao());
+        verify(sessaoRepository).save(argThat(sessao -> sessao.getTipoAgendamento() == TipoAgendamento.PLANO));
     }
 
     private SolicitacaoAgendamentoEntity solicitacaoPendente() {

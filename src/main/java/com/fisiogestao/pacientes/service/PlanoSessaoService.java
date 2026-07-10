@@ -16,6 +16,7 @@ import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.dto.AjusteSessoesPreviewDTO;
+import com.fisiogestao.pacientes.dto.PlanoDisponibilidadeDTO;
 import com.fisiogestao.pacientes.dto.ReconciliacaoPreviewDTO;
 import com.fisiogestao.pacientes.form.PlanoConsumoForm;
 import com.fisiogestao.pacientes.form.PlanoSessaoForm;
@@ -50,7 +51,7 @@ public class PlanoSessaoService {
 
     public List<PlanoSessaoEntity> listarDisponiveisParaAgenda() {
         return planoSessaoRepository.findByStatusOrderByCreatedAtDesc(PlanoSessaoStatus.ATIVO).stream()
-                .filter(this::isDisponivel)
+                .filter(plano -> diagnosticarPlano(plano).disponivelParaAgenda())
                 .toList();
     }
 
@@ -60,7 +61,7 @@ public class PlanoSessaoService {
 
     public List<PlanoSessaoEntity> listarDisponiveisParaAgenda(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
-                .filter(this::isDisponivel)
+                .filter(plano -> diagnosticarPlano(plano).disponivelParaAgenda())
                 .sorted(comparadorDisponibilidade())
                 .toList();
     }
@@ -78,9 +79,25 @@ public class PlanoSessaoService {
 
     public Optional<PlanoSessaoEntity> buscarPrimeiroLivreParaAgenda(UUID clienteId) {
         return listarPorCliente(clienteId).stream()
-                .filter(plano -> motivoIndisponibilidadeAgenda(plano) == null)
-                .sorted(comparadorDisponibilidade())
+                .filter(plano -> plano.getStatus() != PlanoSessaoStatus.CANCELADO)
+                .sorted(comparadorDiagnostico())
+                .filter(plano -> diagnosticarPlano(plano).disponivelParaAgenda())
                 .findFirst();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlanoDisponibilidadeDTO> diagnosticarPlanosDoPaciente(UUID clienteId) {
+        return listarPorCliente(clienteId).stream()
+                .filter(plano -> plano.getStatus() != PlanoSessaoStatus.CANCELADO)
+                .sorted(comparadorDiagnostico())
+                .map(this::diagnosticarPlano)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PlanoDisponibilidadeDTO diagnosticarPlano(UUID planoId) {
+        return diagnosticarPlano(planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado.")));
     }
 
     @Transactional
@@ -433,15 +450,12 @@ public class PlanoSessaoService {
         if (motivo != null) {
             throw new BusinessException(motivo);
         }
-        if (motivo != null) {
-            throw new BusinessException("O plano de tratamento selecionado não possui sessões disponíveis.");
-        }
         return plano;
     }
 
     public PlanoSessaoEntity resolverPlanoParaSessao(UUID clienteId, UUID planoId, UUID planoAtualId) {
         if (planoId == null) {
-            return buscarPrimeiroDisponivel(clienteId)
+            return buscarPrimeiroLivreParaAgenda(clienteId)
                     .orElseThrow(() -> new BusinessException(
                             "O paciente não possui plano de tratamento disponível. Cadastre ou renove um plano antes de confirmar a sessão."
                     ));
@@ -455,7 +469,11 @@ public class PlanoSessaoService {
         if (planoAtualId != null && planoAtualId.equals(planoId)) {
             return plano;
         }
-        return validarDisponivel(planoId);
+        PlanoDisponibilidadeDTO disponibilidade = diagnosticarPlano(plano);
+        if (!disponibilidade.disponivelParaAgenda()) {
+            throw new BusinessException(disponibilidade.motivoIndisponibilidade());
+        }
+        return plano;
     }
 
     public int calcularSessoesDisponiveis(PlanoSessaoEntity plano) {
@@ -463,11 +481,42 @@ public class PlanoSessaoService {
     }
 
     public int calcularSessoesDisponiveisParaAgenda(PlanoSessaoEntity plano) {
-        return Math.max(0, calcularSessoesDisponiveis(plano) - (int) sessaoRepository.countAgendadasPorPlano(plano.getId()));
+        return diagnosticarPlano(plano).sessoesLivresParaAgenda();
     }
 
     public boolean isDisponivelParaUso(PlanoSessaoEntity plano) {
         return motivoIndisponibilidadeBasica(plano) == null;
+    }
+
+    private PlanoDisponibilidadeDTO diagnosticarPlano(PlanoSessaoEntity plano) {
+        int contratadas = valorSeguro(plano.getSessoesContratadas());
+        int consumidas = valorSeguro(plano.getSessoesConsumidas());
+        int restantes = Math.max(0, contratadas - consumidas);
+        int agendadas = plano.getId() == null ? 0 : (int) sessaoRepository.countAgendadasPorPlano(plano.getId());
+        String motivoBasico = motivoIndisponibilidadeBasica(plano);
+        int livresParaAgenda = motivoBasico == null ? Math.max(0, restantes - agendadas) : 0;
+        String motivoAgenda = motivoBasico;
+        if (motivoAgenda == null && livresParaAgenda <= 0) {
+            motivoAgenda = "Saldo livre comprometido por sessoes ja agendadas.";
+        }
+        boolean disponivelUso = motivoBasico == null;
+        boolean disponivelAgenda = motivoAgenda == null;
+        return new PlanoDisponibilidadeDTO(
+                plano.getId(),
+                plano.getCliente().getId(),
+                plano.getNomePlano(),
+                plano.getStatus(),
+                plano.getDataInicio(),
+                plano.getDataValidade(),
+                contratadas,
+                consumidas,
+                restantes,
+                agendadas,
+                livresParaAgenda,
+                disponivelUso,
+                disponivelAgenda,
+                motivoAgenda
+        );
     }
 
     private String motivoIndisponibilidadeBasica(PlanoSessaoEntity plano) {
@@ -490,30 +539,7 @@ public class PlanoSessaoService {
     }
 
     public String motivoIndisponibilidadeAgenda(PlanoSessaoEntity plano) {
-        String motivoBasico = motivoIndisponibilidadeBasica(plano);
-        if (motivoBasico != null) {
-            return motivoBasico;
-        }
-        if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
-            return "Plano cancelado.";
-        }
-        if (plano.getStatus() == PlanoSessaoStatus.CONCLUIDO) {
-            return "Plano concluído, sem sessões disponíveis.";
-        }
-        if (plano.getStatus() == PlanoSessaoStatus.EXPIRADO) {
-            return "Plano expirado.";
-        }
-        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
-            return "Vigência encerrada em " + plano.getDataValidade() + ".";
-        }
-        if (plano.getSessoesConsumidas() >= plano.getSessoesContratadas()) {
-            return "Todas as sessões foram consumidas.";
-        }
-        int disponiveisAgenda = calcularSessoesDisponiveisParaAgenda(plano);
-        if (disponiveisAgenda <= 0) {
-            return "Saldo livre comprometido por sessões já agendadas.";
-        }
-        return null;
+        return diagnosticarPlano(plano).motivoIndisponibilidade();
     }
 
     private boolean isDisponivel(PlanoSessaoEntity plano) {
@@ -716,6 +742,12 @@ public class PlanoSessaoService {
                 .thenComparing(PlanoSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(PlanoSessaoEntity::getDataInicio)
                 .thenComparing(PlanoSessaoEntity::getCreatedAt);
+    }
+
+    private Comparator<PlanoSessaoEntity> comparadorDiagnostico() {
+        return Comparator
+                .comparing((PlanoSessaoEntity plano) -> !diagnosticarPlano(plano).disponivelParaAgenda())
+                .thenComparing(comparadorDisponibilidade());
     }
 
     private PlanoSessaoStatus statusAjustado(

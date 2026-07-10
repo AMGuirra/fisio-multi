@@ -4,6 +4,7 @@ import com.fisiogestao.agenda.BloqueioAgendaEntity;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.pacientes.dto.PlanoDisponibilidadeDTO;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -191,19 +192,23 @@ public class CalendarioController {
         model.addAttribute("pacientes", pacienteService.listarAtivos());
         model.addAttribute("planosAgenda", planoSessaoService.listarDisponiveisParaAgenda());
         List<com.fisiogestao.pacientes.PlanoSessaoEntity> planosDiagnostico = planoSessaoService.listarTodosParaDiagnosticoAgenda();
+        Map<String, PlanoDisponibilidadeDTO> diagnosticosPlanosAgenda = planosDiagnostico.stream()
+                .collect(Collectors.toMap(
+                        plano -> plano.getId().toString(),
+                        plano -> planoSessaoService.diagnosticarPlano(plano.getId())
+                ));
         model.addAttribute("planosAgendaDiagnostico", planosDiagnostico);
         model.addAttribute("motivosPlanosAgenda", planosDiagnostico.stream()
                 .collect(Collectors.toMap(
                         plano -> plano.getId().toString(),
-                        plano -> {
-                            String motivo = planoSessaoService.motivoIndisponibilidadeAgenda(plano);
-                            return motivo == null ? "" : motivo;
-                        }
+                        plano -> diagnosticosPlanosAgenda.get(plano.getId().toString()).motivoIndisponibilidade() == null
+                                ? ""
+                                : diagnosticosPlanosAgenda.get(plano.getId().toString()).motivoIndisponibilidade()
                 )));
         model.addAttribute("saldosLivresAgenda", planosDiagnostico.stream()
                 .collect(Collectors.toMap(
                         plano -> plano.getId().toString(),
-                        planoSessaoService::calcularSessoesDisponiveisParaAgenda
+                        plano -> diagnosticosPlanosAgenda.get(plano.getId().toString()).sessoesLivresParaAgenda()
                 )));
         model.addAttribute("pendentes", pendentes);
         model.addAttribute("bloqueiosAtivosMes", bloqueiosMes.stream()

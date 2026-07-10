@@ -4,6 +4,7 @@ import com.fisiogestao.agenda.HorarioBloqueadoEntity;
 import com.fisiogestao.agenda.HorarioBloqueadoStatus;
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.TipoAgendamento;
 import com.fisiogestao.agenda.BloqueioAgendaOrigem;
 import com.fisiogestao.agenda.form.BloqueioAgendaCadastroForm;
 import com.fisiogestao.agenda.service.AgendaService;
@@ -332,6 +333,7 @@ public class SolicitacaoAgendamentoService {
                 .dataHoraInicio(solicitacao.getDataHoraInicio())
                 .dataHoraFim(solicitacao.getDataHoraFim())
                 .status(SessaoStatus.AGENDADA)
+                .tipoAgendamento(TipoAgendamento.PLANO)
                 .tipoAtendimento(solicitacao.getLocalAtendimentoDescricao())
                 .observacoes(montarObservacoesSessao(solicitacao))
                 .planoConsumoRegistrado(Boolean.FALSE)
