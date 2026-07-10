@@ -10,7 +10,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}" href="/css/dashboard-modern.css">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}" href="/css/crud-modern.css">
 </head>
-<body class="portal-premium">
+<body class="portal-premium" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
 <div class="portal-shell">
     <header class="portal-topbar">
         <div class="portal-brand">

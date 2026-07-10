@@ -4194,6 +4194,10 @@ body[data-theme='dark'] .waitlist-action-danger {
     padding-bottom: 1.5rem;
 }
 
+.solicitacoes-page .solicitacoes-content[hidden] {
+    display: none;
+}
+
 .solicitacoes-page .solicitacoes-flash-stack {
     display: flex;
     flex-direction: column;

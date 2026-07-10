@@ -61,6 +61,12 @@ public class SolicitacoesApiController {
         return toDto(solicitacaoAgendamentoService.buscarPorId(id));
     }
 
+    @PostMapping
+    public SolicitacaoDto criar(@Valid @RequestBody EditarRequest body) {
+        EditarSolicitacaoForm form = formFrom(body);
+        return toDto(solicitacaoAgendamentoService.criarSolicitacaoManual(form));
+    }
+
     @PostMapping("/{id}/aprovar")
     public SolicitacaoDto aprovar(
             @PathVariable UUID id,
@@ -185,6 +191,23 @@ public class SolicitacoesApiController {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
+    }
+
+    private EditarSolicitacaoForm formFrom(EditarRequest body) {
+        EditarSolicitacaoForm form = new EditarSolicitacaoForm();
+        form.setNomePaciente(body.nomePaciente());
+        form.setTelefone(body.telefone());
+        form.setEmail(body.email());
+        form.setData(body.data());
+        form.setLocalAtendimento(body.localAtendimento());
+        form.setObservacoes(body.observacoes());
+        form.setMotivo(body.motivo());
+        try {
+            form.setHorario(LocalTime.parse(body.horario()));
+        } catch (DateTimeParseException ex) {
+            throw new ResponseStatusException(BAD_REQUEST, "horario invalido. Use o formato HH:mm.");
+        }
+        return form;
     }
 
     public record SolicitacaoDto(

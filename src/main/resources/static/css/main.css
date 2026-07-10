@@ -10,6 +10,10 @@
     --brand-500: #0f8f7a;
     --brand-600: #0c7a68;
     --brand-700: #0a5f52;
+    --brand-50:  #e8f7f4;
+    --brand-100: #d6f3eb;
+    --brand-200: #aee5d8;
+    --brand-300: #7dd3c8;
     --blue-500:  #2f6fec;
     --red-500:   #d55353;
     --yellow-500:#d19a10;
@@ -39,9 +43,11 @@
     --color-text-primary: var(--text-strong);
     --color-text-secondary: var(--text-body);
     --color-text-muted: var(--text-soft);
+    --text-muted: var(--text-soft);
     --color-text-success: #0d6a46;
     --color-text-warning: #8a6400;
     --color-text-danger: #8a3d3d;
+    --focus-ring: 0 0 0 3px rgba(15, 143, 122, 0.14);
 
     --shadow-sm: 0 6px 16px rgba(15, 23, 32, 0.06);
     --shadow-md: 0 14px 28px rgba(15, 23, 32, 0.11);
@@ -77,7 +83,8 @@
     :root { color-scheme: dark; }
 }
 
-body[data-theme='dark'] {
+body[data-theme='dark'],
+body.theme-dark {
     --bg-canvas:  #081116;
     --bg-surface: #0f1b21;
     --bg-soft:    #13242c;
@@ -86,6 +93,10 @@ body[data-theme='dark'] {
     --text-soft:  #8aa09b;
     --stroke-soft:#243841;
     --stroke-strong:#33505c;
+    --brand-50: rgba(15, 143, 122, 0.16);
+    --brand-100: rgba(15, 143, 122, 0.2);
+    --brand-200: rgba(79, 204, 176, 0.28);
+    --brand-300: rgba(104, 225, 198, 0.42);
     --color-background-success: rgba(16, 108, 70, 0.22);
     --color-background-warning: rgba(135, 98, 0, 0.22);
     --color-background-danger: rgba(135, 43, 43, 0.22);
@@ -94,6 +105,8 @@ body[data-theme='dark'] {
     --color-text-success: #baf4d7;
     --color-text-warning: #ffe39b;
     --color-text-danger: #ffc7c7;
+    --focus-ring: 0 0 0 3px rgba(24, 176, 149, 0.18);
+    color-scheme: dark;
 }
 
 /* ── 2. Reset base ────────────────────────────────────────────────── */

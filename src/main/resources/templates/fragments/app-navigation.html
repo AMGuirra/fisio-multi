@@ -6,8 +6,10 @@
             (() => {
                 const preferredTheme = /*[[${loggedUserTheme.cssValue}]]*/ 'light';
                 document.documentElement.style.colorScheme = preferredTheme === 'dark' ? 'dark' : 'light';
+                document.documentElement.dataset.theme = preferredTheme;
                 if (document.body) {
                     document.body.dataset.theme = preferredTheme;
+                    document.body.classList.toggle('theme-dark', preferredTheme === 'dark');
                 }
             })();
         </script>

@@ -255,6 +255,54 @@ public class SolicitacaoAgendamentoService {
         return salva;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public SolicitacaoAgendamentoEntity criarSolicitacaoManual(EditarSolicitacaoForm form) {
+        AgendaService.IntervaloAgenda intervalo = agendaService.montarIntervalo(form.getData(), form.getHorario());
+        agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
+
+        String nomePaciente = texto(form.getNomePaciente());
+        if (nomePaciente == null) {
+            throw new BusinessException("Informe o nome do paciente.");
+        }
+
+        String telefone = form.getTelefone() == null ? null : form.getTelefone().replaceAll("\\D", "");
+        if (telefone == null || telefone.isBlank()) {
+            throw new BusinessException("Informe o telefone.");
+        }
+
+        SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
+                .nomePaciente(nomePaciente)
+                .telefone(telefone)
+                .email(texto(form.getEmail()))
+                .dataHoraInicio(intervalo.inicio())
+                .dataHoraFim(intervalo.fim())
+                .localAtendimento(normalizarLocalAtendimento(form.getLocalAtendimento()))
+                .observacoes(texto(form.getObservacoes()))
+                .status(SolicitacaoStatus.PENDENTE)
+                .build();
+
+        SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
+        auditService.recordCreate(
+                AuditModule.SOLICITACOES,
+                "solicitacao_agendamento",
+                salva,
+                texto(form.getMotivo()),
+                "Solicitação de agendamento criada manualmente.",
+                AuditEventOrigin.MANUAL);
+
+        HorarioBloqueadoEntity bloqueio = HorarioBloqueadoEntity.builder()
+                .dataHoraInicio(intervalo.inicio())
+                .dataHoraFim(intervalo.fim())
+                .status(HorarioBloqueadoStatus.PENDENTE)
+                .origem("SOLICITACAO_MANUAL")
+                .motivo("Reserva provisória criada manualmente")
+                .solicitacao(salva)
+                .build();
+        horarioBloqueadoRepository.save(bloqueio);
+
+        return salva;
+    }
+
     @Transactional
     public ClienteEntity cadastrarPaciente(UUID solicitacaoId, AprovacaoSolicitacaoForm form) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)

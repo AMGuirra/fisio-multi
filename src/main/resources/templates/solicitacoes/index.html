@@ -14,7 +14,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
 </head>
-<body class="dashboard-app dashboard-loading">
+<body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
 
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
@@ -118,8 +118,13 @@
                                     <h2 class="sol-card-title">Pendentes</h2>
                                     <span class="count-badge" th:text="${solicitacoesPendentes != null ? solicitacoesPendentes.size() : 0}">0</span>
                                 </div>
-                                <button type="button" id="bulkApproveBtn" class="action-button sol-btn sol-btn-primary"
-                                        th:disabled="${solicitacoesPendentes == null or solicitacoesPendentes.empty}">Aprovar todas</button>
+                                <div class="req-actions">
+                                    <button type="button" id="novaSolicitacaoBtn" class="action-button sol-btn sol-btn-primary">
+                                        <i data-lucide="plus"></i> Nova
+                                    </button>
+                                    <button type="button" id="bulkApproveBtn" class="action-button sol-btn sol-btn-neutral"
+                                            th:disabled="${solicitacoesPendentes == null or solicitacoesPendentes.empty}">Aprovar todas</button>
+                                </div>
                             </header>
                             <div class="sol-card-body">
                                 <div th:if="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="empty-state">
@@ -181,7 +186,7 @@
                                                                  data-data=${#temporals.format(sol.dataHoraInicio, 'yyyy-MM-dd')},
                                                                  data-horario=${#temporals.format(sol.dataHoraInicio, 'HH:mm')},
                                                                  data-local=${sol.localAtendimento},
-                                                                 data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">Ver</button>
+                                                                 data-observacoes=${sol.observacoes != null ? sol.observacoes : ''}">Alterar</button>
                                             </div>
                                         </div>
                                     </article>
@@ -235,6 +240,14 @@
                                                         type="button"
                                                         class="action-button sol-btn sol-btn-neutral open-confirmar danger"
                                                         th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},data-title='Cancelar agendamento',data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">Cancelar</button>
+                                                <button th:if="${sol.status != null and (sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA')}"
+                                                        type="button"
+                                                        class="action-button sol-btn sol-btn-neutral open-confirmar"
+                                                        th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},data-title='Restaurar solicitação',data-msg='Deseja restaurar esta solicitação para pendente? O horário será reservado novamente se estiver disponível.'">Restaurar</button>
+                                                <button th:if="${sol.status != null and (sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA')}"
+                                                        type="button"
+                                                        class="action-button sol-btn sol-btn-danger open-confirmar danger"
+                                                        th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},data-title='Excluir solicitação',data-msg='Deseja excluir esta solicitação permanentemente? Esta ação não pode ser desfeita.'">Excluir</button>
                                             </div>
                                         </div>
                                     </article>
@@ -716,7 +729,7 @@
                                 <textarea id="edObs" class="form-control" maxlength="2000" rows="3"></textarea>
                             </div>
                             <div class="form-field">
-                                <label for="edMotivo">Motivo da alteração (opcional)</label>
+                                <label for="edMotivo" id="edMotivoLabel">Motivo da alteração (opcional)</label>
                                 <input id="edMotivo" type="text" class="form-control" maxlength="255" placeholder="Ex: Solicitado pelo paciente">
                             </div>
                             <div id="edError" class="wizard-status-card danger mt-3q" hidden>
@@ -726,7 +739,7 @@
                             <div class="modal-actions">
                                 <button type="button" class="action-button ghost" id="editarCloseBtn">Cancelar</button>
                                 <button type="submit" class="action-button success" id="edSubmitBtn">
-                                    <i data-lucide="save"></i> <span>Salvar alterações</span>
+                                    <i data-lucide="save"></i> <span id="edSubmitLabel">Salvar alterações</span>
                                 </button>
                             </div>
                         </form>
@@ -1203,6 +1216,7 @@
         (() => {
             const modal      = document.getElementById('editarModal');
             const form       = document.getElementById('formEditar');
+            const title      = document.getElementById('editarTitle');
             const edNome     = document.getElementById('edNome');
             const edTelefone = document.getElementById('edTelefone');
             const edEmail    = document.getElementById('edEmail');
@@ -1211,10 +1225,13 @@
             const edLocal    = document.getElementById('edLocal');
             const edObs      = document.getElementById('edObs');
             const edMotivo   = document.getElementById('edMotivo');
+            const edMotivoLabel = document.getElementById('edMotivoLabel');
             const edError    = document.getElementById('edError');
             const edErrorMsg = document.getElementById('edErrorMsg');
             const submitBtn  = document.getElementById('edSubmitBtn');
+            const submitLabel = document.getElementById('edSubmitLabel');
             let solicitacaoId = null;
+            let criando = false;
 
             const open = () => {
                 modal.classList.add('is-open');
@@ -1234,18 +1251,44 @@
                 if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
             });
 
+            const preencherModal = ({ id = null, nome = '', telefone = '', email = '', data = '', horario = '', local = 'CLINICA', observacoes = '' }) => {
+                solicitacaoId      = id;
+                criando            = !id;
+                title.innerHTML    = criando
+                    ? '<i data-lucide="plus"></i> Nova Solicitação'
+                    : '<i data-lucide="pencil"></i> Editar Solicitação';
+                submitLabel.textContent = criando ? 'Criar solicitação' : 'Salvar alterações';
+                edMotivoLabel.textContent = criando ? 'Observação interna (opcional)' : 'Motivo da alteração (opcional)';
+                edMotivo.placeholder = criando ? 'Ex: Solicitação registrada pela recepção' : 'Ex: Solicitado pelo paciente';
+                edNome.value       = nome;
+                edTelefone.value   = maskPhone(telefone);
+                edEmail.value      = email;
+                edData.value       = data;
+                edHorario.value    = horario;
+                edLocal.value      = local || 'CLINICA';
+                edObs.value        = observacoes;
+                edMotivo.value     = '';
+                edError.hidden     = true;
+            };
+
+            document.getElementById('novaSolicitacaoBtn')?.addEventListener('click', () => {
+                preencherModal({});
+                open();
+                if (window.lucide) lucide.createIcons({ nodes: [modal] });
+            });
+
             document.querySelectorAll('.open-editar').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    solicitacaoId      = btn.dataset.solId;
-                    edNome.value       = btn.dataset.nome       || '';
-                    edTelefone.value   = maskPhone(btn.dataset.telefone || '');
-                    edEmail.value      = btn.dataset.email      || '';
-                    edData.value       = btn.dataset.data       || '';
-                    edHorario.value    = btn.dataset.horario    || '';
-                    edLocal.value      = btn.dataset.local      || 'CLINICA';
-                    edObs.value        = btn.dataset.observacoes|| '';
-                    edMotivo.value     = '';
-                    edError.hidden     = true;
+                    preencherModal({
+                        id: btn.dataset.solId,
+                        nome: btn.dataset.nome || '',
+                        telefone: btn.dataset.telefone || '',
+                        email: btn.dataset.email || '',
+                        data: btn.dataset.data || '',
+                        horario: btn.dataset.horario || '',
+                        local: btn.dataset.local || 'CLINICA',
+                        observacoes: btn.dataset.observacoes || ''
+                    });
                     open();
                     if (window.lucide) lucide.createIcons({ nodes: [modal] });
                 });
@@ -1264,7 +1307,7 @@
 
                 btnLoading(submitBtn, true);
                 try {
-                    await postJson(`/api/solicitacoes/${solicitacaoId}/editar`, {
+                    await postJson(criando ? '/api/solicitacoes' : `/api/solicitacoes/${solicitacaoId}/editar`, {
                         nomePaciente:    edNome.value.trim(),
                         telefone:        edTelefone.value.replace(/\D/g, ''),
                         email:           edEmail.value.trim()  || null,
@@ -1275,7 +1318,7 @@
                         motivo:          edMotivo.value.trim() || null
                     });
                     close();
-                    window.location.href = '/solicitacoes?reagendado=1';
+                    window.location.href = criando ? '/solicitacoes?criado=1' : '/solicitacoes?reagendado=1';
                 } catch (err) {
                     showEdErr(err.message);
                 } finally {
@@ -1422,13 +1465,16 @@
         });
 
         const flashParam = new URLSearchParams(location.search);
-        if (flashParam.get('sucesso') === '1' || flashParam.get('reagendado') === '1') {
+        if (flashParam.get('sucesso') === '1' || flashParam.get('reagendado') === '1' || flashParam.get('criado') === '1') {
             history.replaceState(null, '', window.location.pathname);
+            const mensagem = flashParam.get('criado') === '1'
+                ? 'Solicitação criada com sucesso.'
+                : (flashParam.get('reagendado') === '1'
+                    ? 'Solicitação alterada com sucesso.'
+                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.');
             showFlash(
                 'success',
-                flashParam.get('reagendado') === '1'
-                    ? 'Solicitação reagendada com sucesso.'
-                    : 'Solicitação aprovada com sucesso. Agendamento confirmado na agenda.'
+                mensagem
             );
         }
     })();

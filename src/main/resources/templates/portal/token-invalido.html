@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
-<body class="portal-body centered">
+<body class="portal-body centered" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
 <div class="auth-card centered-card">
     <div class="auth-card-emoji">🔗</div>
     <h1 class="auth-card-title">Link inválido ou expirado</h1>
