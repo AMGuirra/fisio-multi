@@ -14,6 +14,7 @@
 
     let pendingForm = null;
     let lastActiveElement = null;
+    let pendingStep = 1;
 
     const syncBodyModalState = () => {
         const hasOpenModal = document.querySelector('.app-modal.is-open') !== null;
@@ -35,18 +36,32 @@
 
     const closeModal = () => {
         pendingForm = null;
+        pendingStep = 1;
         setModalOpen(false);
     };
 
-    const openForForm = (form, submitter) => {
-        pendingForm = form;
-        lastActiveElement = submitter || document.activeElement;
-
+    const applyStepContent = (form, step) => {
+        if (step === 2 && form.dataset.confirmSecondTitle) {
+            title.textContent = form.dataset.confirmSecondTitle;
+            message.textContent = form.dataset.confirmSecondMessage || message.textContent;
+            helperTitle.textContent = form.dataset.confirmSecondHelperTitle || helperTitle.textContent;
+            helperMessage.textContent = form.dataset.confirmSecondHelperMessage || helperMessage.textContent;
+            confirmLabel.textContent = form.dataset.confirmSecondActionLabel || 'Confirmar';
+            return;
+        }
         title.textContent = form.dataset.confirmTitle || 'Confirmar ação';
         message.textContent = form.dataset.confirmMessage || 'Deseja continuar com esta ação?';
         helperTitle.textContent = form.dataset.confirmHelperTitle || 'Essa ação exige confirmação';
         helperMessage.textContent = form.dataset.confirmHelperMessage || 'Os dados serão enviados assim que você confirmar.';
         confirmLabel.textContent = form.dataset.confirmActionLabel || 'Confirmar';
+    };
+
+    const openForForm = (form, submitter) => {
+        pendingForm = form;
+        pendingStep = 1;
+        lastActiveElement = submitter || document.activeElement;
+
+        applyStepContent(form, 1);
 
         setModalOpen(true);
     };
@@ -66,8 +81,15 @@
         if (!pendingForm) {
             return;
         }
+        if (pendingStep === 1 && pendingForm.dataset.confirmSecondTitle) {
+            pendingStep = 2;
+            applyStepContent(pendingForm, 2);
+            confirmButton.focus();
+            return;
+        }
         const formToSubmit = pendingForm;
         pendingForm = null;
+        pendingStep = 1;
         setModalOpen(false);
         HTMLFormElement.prototype.submit.call(formToSubmit);
     });

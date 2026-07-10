@@ -11,4 +11,6 @@ public interface ProntuarioSoapRepository extends JpaRepository<ProntuarioSoapEn
     List<ProntuarioSoapEntity> findByClienteIdOrderByCreatedAtDesc(UUID clienteId);
 
     boolean existsByClienteId(UUID clienteId);
+
+    void deleteByClienteId(UUID clienteId);
 }

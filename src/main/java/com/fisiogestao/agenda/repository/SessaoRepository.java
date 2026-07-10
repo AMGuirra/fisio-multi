@@ -45,6 +45,8 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     boolean existsByClienteId(UUID clienteId);
 
+    void deleteByClienteId(UUID clienteId);
+
     boolean existsByPlanoSessaoId(UUID planoSessaoId);
 
     long countByClienteIdAndStatus(UUID clienteId, SessaoStatus status);

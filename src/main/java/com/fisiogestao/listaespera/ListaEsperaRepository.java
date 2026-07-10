@@ -20,4 +20,6 @@ public interface ListaEsperaRepository extends JpaRepository<ListaEsperaEntity, 
     long countByStatus(StatusListaEspera status);
 
     Optional<ListaEsperaEntity> findByIdAndClienteId(UUID id, UUID clienteId);
+
+    void deleteByClienteId(UUID clienteId);
 }

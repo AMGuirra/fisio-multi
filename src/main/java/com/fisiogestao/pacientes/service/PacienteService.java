@@ -1,5 +1,6 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auth.PasswordPolicy;
 import com.fisiogestao.auditoria.AuditActionType;
@@ -11,15 +12,17 @@ import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailRequest;
 import com.fisiogestao.email.service.SystemEmailService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
+import com.fisiogestao.listaespera.ListaEsperaRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.pacientes.dto.PacienteExclusaoPendencias;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.portal.PacientePasswordResetTokenEntity;
 import com.fisiogestao.portal.PacientePasswordResetTokenRepository;
+import com.fisiogestao.prontuario.repository.ProntuarioAnexoRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
+import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +61,9 @@ public class PacienteService {
     private final ProntuarioSoapRepository prontuarioSoapRepository;
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+    private final ProntuarioAnexoRepository prontuarioAnexoRepository;
+    private final ListaEsperaRepository listaEsperaRepository;
+    private final HorarioBloqueadoRepository horarioBloqueadoRepository;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
     private final PacientePasswordResetTokenRepository pacientePasswordResetTokenRepository;
@@ -494,15 +500,36 @@ public class PacienteService {
         return normalized.isBlank() ? null : normalized;
     }
 
+    /**
+     * Exclusão em cascata: remove todos os registros vinculados ao paciente (anexos de prontuário,
+     * prontuário, lançamentos financeiros, sessões, planos de tratamento, bloqueios de agenda oriundos
+     * de solicitações, solicitações de agendamento, lista de espera e tokens de reset de senha) antes de
+     * excluir o cadastro. A ordem respeita as chaves estrangeiras (sem ON DELETE CASCADE no banco).
+     */
     @Transactional
     public void excluir(UUID clienteId) {
         ClienteEntity cliente = buscarPorId(clienteId);
         var snapshotAnterior = auditService.snapshotOf(cliente);
-        PacienteExclusaoPendencias pendencias = montarPendenciasExclusao(cliente);
 
-        if (pendencias.bloqueada()) {
-            throw new BusinessException(pendencias.mensagemPrincipal());
+        prontuarioAnexoRepository.deleteByClienteId(clienteId);
+        prontuarioSoapRepository.deleteByClienteId(clienteId);
+        lancamentoFinanceiroRepository.deleteByClienteId(clienteId);
+        sessaoRepository.deleteByClienteId(clienteId);
+
+        planoSessaoRepository.limparPlanoAnteriorPorCliente(clienteId);
+        planoSessaoRepository.deleteByClienteId(clienteId);
+
+        List<UUID> solicitacaoIds = solicitacaoAgendamentoRepository
+                .findByClienteIdOrderByCreatedAtDesc(clienteId).stream()
+                .map(SolicitacaoAgendamentoEntity::getId)
+                .toList();
+        if (!solicitacaoIds.isEmpty()) {
+            horarioBloqueadoRepository.deleteBySolicitacaoIdIn(solicitacaoIds);
         }
+        solicitacaoAgendamentoRepository.deleteByClienteId(clienteId);
+
+        listaEsperaRepository.deleteByClienteId(clienteId);
+        pacientePasswordResetTokenRepository.deleteByClienteId(clienteId);
 
         auditService.recordManual(
                 AuditModule.PACIENTES,
@@ -513,74 +540,10 @@ public class PacienteService {
                 snapshotAnterior,
                 null,
                 null,
-                "Exclusão física de paciente.",
+                "Exclusão física de paciente e de todos os registros vinculados (cascata).",
                 AuditEventOrigin.MANUAL
         );
         clienteRepository.delete(cliente);
-    }
-
-    @Transactional(readOnly = true)
-    public PacienteExclusaoPendencias buscarPendenciasExclusao(UUID clienteId) {
-        return montarPendenciasExclusao(buscarPorId(clienteId));
-    }
-
-    private PacienteExclusaoPendencias montarPendenciasExclusao(ClienteEntity cliente) {
-        UUID clienteId = cliente.getId();
-        List<PacienteExclusaoPendencias.Pendencia> pendencias = new java.util.ArrayList<>();
-
-        if (planoSessaoRepository.existsByClienteId(clienteId)) {
-            pendencias.add(new PacienteExclusaoPendencias.Pendencia(
-                    "PLANOS",
-                    "Planos de tratamento",
-                    "Exclua ou cancele os planos vinculados antes de remover o paciente.",
-                    "/planos-consumo?paciente=" + clienteId,
-                    "Exclua primeiro os planos de tratamento vinculados a este paciente."
-            ));
-        }
-        if (sessaoRepository.existsByClienteId(clienteId)) {
-            pendencias.add(new PacienteExclusaoPendencias.Pendencia(
-                    "SESSOES",
-                    "Sessões e histórico de agenda",
-                    "Revise as sessões do paciente na agenda antes de tentar excluir o cadastro.",
-                    "/calendario",
-                    "Este paciente possui histórico de sessões e não pode ser excluído."
-            ));
-        }
-        if (prontuarioSoapRepository.existsByClienteId(clienteId)) {
-            pendencias.add(new PacienteExclusaoPendencias.Pendencia(
-                    "PRONTUARIO",
-                    "Prontuário",
-                    "Remova ou revise os registros de prontuário vinculados ao paciente.",
-                    "/prontuario?paciente=" + clienteId,
-                    "Este paciente possui prontuário registrado e não pode ser excluído."
-            ));
-        }
-        if (solicitacaoAgendamentoRepository.existsByClienteId(clienteId)) {
-            pendencias.add(new PacienteExclusaoPendencias.Pendencia(
-                    "SOLICITACOES",
-                    "Solicitações",
-                    "Há solicitações de agendamento associadas a este paciente.",
-                    "/solicitacoes",
-                    "Este paciente possui histórico de solicitações e não pode ser excluído."
-            ));
-        }
-        if (lancamentoFinanceiroRepository.existsByClienteId(clienteId)) {
-            pendencias.add(new PacienteExclusaoPendencias.Pendencia(
-                    "FINANCEIRO",
-                    "Movimentação financeira",
-                    "Revise ou cancele os lançamentos financeiros vinculados ao paciente.",
-                    "/financeiro",
-                    "Este paciente possui movimentação financeira vinculada e não pode ser excluído."
-            ));
-        }
-
-        String destinoPrimario = pendencias.isEmpty() ? null : pendencias.get(0).destino();
-        return new PacienteExclusaoPendencias(
-                clienteId,
-                cliente.getNomeCompleto(),
-                pendencias,
-                destinoPrimario
-        );
     }
 
     private String normalizarTelefone(String telefone) {

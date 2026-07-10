@@ -58,4 +58,6 @@ public interface SolicitacaoAgendamentoRepository extends JpaRepository<Solicita
     boolean existsByClienteId(UUID clienteId);
 
     List<SolicitacaoAgendamentoEntity> findByClienteIdOrderByCreatedAtDesc(UUID clienteId);
+
+    void deleteByClienteId(UUID clienteId);
 }

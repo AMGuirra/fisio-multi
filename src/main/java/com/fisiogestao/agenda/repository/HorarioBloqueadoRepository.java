@@ -30,4 +30,6 @@ public interface HorarioBloqueadoRepository extends JpaRepository<HorarioBloquea
     );
 
     Optional<HorarioBloqueadoEntity> findBySolicitacaoId(UUID solicitacaoId);
+
+    void deleteBySolicitacaoIdIn(Collection<UUID> solicitacaoIds);
 }

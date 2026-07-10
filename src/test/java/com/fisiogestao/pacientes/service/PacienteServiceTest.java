@@ -1,11 +1,15 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
+import com.fisiogestao.listaespera.ListaEsperaRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
+import com.fisiogestao.portal.PacientePasswordResetTokenRepository;
+import com.fisiogestao.prontuario.repository.ProntuarioAnexoRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
@@ -16,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +56,18 @@ class PacienteServiceTest {
     private LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
     @Mock
+    private ProntuarioAnexoRepository prontuarioAnexoRepository;
+
+    @Mock
+    private ListaEsperaRepository listaEsperaRepository;
+
+    @Mock
+    private HorarioBloqueadoRepository horarioBloqueadoRepository;
+
+    @Mock
+    private PacientePasswordResetTokenRepository pacientePasswordResetTokenRepository;
+
+    @Mock
     private AuditService auditService;
 
     @InjectMocks
@@ -67,11 +83,8 @@ class PacienteServiceTest {
         cliente.setId(clienteId);
 
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
-        when(pacoteSessaoRepository.existsByClienteId(clienteId)).thenReturn(false);
-        when(sessaoRepository.existsByClienteId(clienteId)).thenReturn(false);
-        when(prontuarioSoapRepository.existsByClienteId(clienteId)).thenReturn(false);
-        when(solicitacaoAgendamentoRepository.existsByClienteId(clienteId)).thenReturn(false);
-        when(lancamentoFinanceiroRepository.existsByClienteId(clienteId)).thenReturn(false);
+        when(solicitacaoAgendamentoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+                .thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> pacienteService.excluir(clienteId));
 
@@ -79,7 +92,7 @@ class PacienteServiceTest {
     }
 
     @Test
-    void deveImpedirExclusaoDePacienteComPacotesVinculados() {
+    void deveExcluirEmCascataTodosOsVinculosDoPaciente() {
         UUID clienteId = UUID.randomUUID();
         ClienteEntity cliente = ClienteEntity.builder()
                 .nomeCompleto("Maria")
@@ -88,12 +101,21 @@ class PacienteServiceTest {
         cliente.setId(clienteId);
 
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
-        when(pacoteSessaoRepository.existsByClienteId(clienteId)).thenReturn(true);
+        when(solicitacaoAgendamentoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+                .thenReturn(Collections.emptyList());
 
-        BusinessException ex = assertThrows(BusinessException.class, () -> pacienteService.excluir(clienteId));
+        assertDoesNotThrow(() -> pacienteService.excluir(clienteId));
 
-        assertEquals("Exclua primeiro os planos de tratamento vinculados a este paciente.", ex.getMessage());
-        verify(clienteRepository, never()).delete(cliente);
+        verify(prontuarioAnexoRepository).deleteByClienteId(clienteId);
+        verify(prontuarioSoapRepository).deleteByClienteId(clienteId);
+        verify(lancamentoFinanceiroRepository).deleteByClienteId(clienteId);
+        verify(sessaoRepository).deleteByClienteId(clienteId);
+        verify(pacoteSessaoRepository).limparPlanoAnteriorPorCliente(clienteId);
+        verify(pacoteSessaoRepository).deleteByClienteId(clienteId);
+        verify(solicitacaoAgendamentoRepository).deleteByClienteId(clienteId);
+        verify(listaEsperaRepository).deleteByClienteId(clienteId);
+        verify(pacientePasswordResetTokenRepository).deleteByClienteId(clienteId);
+        verify(clienteRepository).delete(cliente);
     }
 
     @Test

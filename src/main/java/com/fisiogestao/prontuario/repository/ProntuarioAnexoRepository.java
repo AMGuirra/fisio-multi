@@ -31,4 +31,6 @@ public interface ProntuarioAnexoRepository extends JpaRepository<ProntuarioAnexo
             ORDER BY a.createdAt DESC
             """)
     List<ProntuarioAnexoResumoDto> findResumosByClienteId(@Param("clienteId") UUID clienteId);
+
+    void deleteByClienteId(UUID clienteId);
 }

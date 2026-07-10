@@ -11,4 +11,6 @@ public interface PacientePasswordResetTokenRepository extends JpaRepository<Paci
     Optional<PacientePasswordResetTokenEntity> findByTokenHash(String tokenHash);
 
     List<PacientePasswordResetTokenEntity> findByClienteIdAndUsedAtIsNull(UUID clienteId);
+
+    void deleteByClienteId(UUID clienteId);
 }

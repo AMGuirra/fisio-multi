@@ -19,6 +19,8 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
 
     boolean existsByClienteId(UUID clienteId);
 
+    void deleteByClienteId(UUID clienteId);
+
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
     List<LancamentoFinanceiroEntity> findByPlanoSessaoId(UUID planoSessaoId);
 
