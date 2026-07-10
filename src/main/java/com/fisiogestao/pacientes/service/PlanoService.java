@@ -55,9 +55,10 @@ public class PlanoService {
     @Transactional(readOnly = true)
     public PlanoResumoDTO buscarPlanoPorPaciente(UUID pacienteId) {
         return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                .filter(planoSessaoService::isDisponivelParaUso)
+                .filter(plano -> plano.getStatus() != PlanoSessaoStatus.CANCELADO)
                 .min(Comparator
-                        .comparing((PlanoSessaoEntity plano) -> sessoesRestantes(plano) <= 0)
+                        .comparing((PlanoSessaoEntity plano) -> !planoSessaoService.isDisponivelParaUso(plano))
+                        .thenComparing(plano -> sessoesRestantes(plano) <= 0)
                         .thenComparing(PlanoSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(PlanoSessaoEntity::getCreatedAt))
                 .map(this::paraPlanoResumo)

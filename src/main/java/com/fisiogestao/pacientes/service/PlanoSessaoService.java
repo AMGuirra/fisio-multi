@@ -577,15 +577,18 @@ public class PlanoSessaoService {
         int consumoAtual = valorSeguro(plano.getSessoesConsumidas());
         int totalContratado = valorSeguro(plano.getSessoesContratadas());
         int saldoDisponivel = Math.max(0, totalContratado - consumoAtual);
-        int ajustaveis = Math.min(saldoDisponivel, pendentes.size());
-        int excedentes = Math.max(0, pendentes.size() - ajustaveis);
+        int consumoCorreto = calcularConsumoCorreto(plano);
+        int diferencaContador = Math.max(0, consumoCorreto - consumoAtual);
+        int pendenciasParaCorrigir = Math.max(pendentes.size(), diferencaContador);
+        int ajustaveis = Math.min(saldoDisponivel, pendenciasParaCorrigir);
+        int excedentes = Math.max(0, pendenciasParaCorrigir - ajustaveis);
         return new AjusteSessoesPreviewDTO(
                 pacienteId,
                 planoId,
                 consumoAtual,
                 totalContratado,
                 saldoDisponivel,
-                pendentes.size(),
+                pendenciasParaCorrigir,
                 ajustaveis,
                 excedentes,
                 excedentes > 0
@@ -630,7 +633,7 @@ public class PlanoSessaoService {
 
         int novoConsumo = Math.min(
                 valorSeguro(plano.getSessoesContratadas()),
-                valorSeguro(plano.getSessoesConsumidas()) + sessoesParaAjustar.size()
+                valorSeguro(plano.getSessoesConsumidas()) + preview.sessoesAjustaveis()
         );
         plano.setSessoesConsumidas(novoConsumo);
         plano.setStatus(statusAjustado(
@@ -653,6 +656,20 @@ public class PlanoSessaoService {
                 AuditEventOrigin.MANUAL
         );
         return preview;
+    }
+
+    private int calcularConsumoCorreto(PlanoSessaoEntity plano) {
+        int correto = (int) sessaoRepository.countContabilizaveisPorPlano(plano.getId());
+        if (plano.getDataInicio() != null && plano.getDataValidade() != null) {
+            OffsetDateTime inicio = plano.getDataInicio().atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+            OffsetDateTime fim = plano.getDataValidade().atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC);
+            correto += (int) sessaoRepository.countOrfasRealizadasNoPeriodo(
+                    plano.getCliente().getId(),
+                    inicio,
+                    fim
+            );
+        }
+        return Math.min(correto, valorSeguro(plano.getSessoesContratadas()));
     }
 
     private PlanoSessaoEntity buscarPlanoDoPaciente(UUID pacienteId, UUID planoId) {

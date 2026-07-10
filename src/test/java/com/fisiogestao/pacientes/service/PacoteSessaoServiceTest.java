@@ -89,6 +89,27 @@ class PlanoSessaoServiceTest {
     }
 
     @Test
+    void ajusteDeSessoesDoPacienteDeveCorrigirContadorQuandoHistoricoJaTemSessoesRealizadas() {
+        ClienteEntity clienteObj = cliente("Maria");
+        PlanoSessaoEntity plano = pacoteAtivo(3, 0);
+        plano.setCliente(clienteObj);
+
+        when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));
+        when(sessaoRepository.findPendentesDeConsumoDoPacienteNoPlano(
+                any(), any(), any(), any())).thenReturn(List.of());
+        when(sessaoRepository.countContabilizaveisPorPlano(plano.getId())).thenReturn(3L);
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        var resultado = planoSessaoService.executarAjusteSessoesPaciente(clienteObj.getId(), plano.getId());
+
+        assertEquals(3, resultado.sessoesPendentes());
+        assertEquals(3, resultado.sessoesAjustaveis());
+        assertEquals(3, plano.getSessoesConsumidas());
+        assertEquals(PlanoSessaoStatus.CONCLUIDO, plano.getStatus());
+    }
+
+    @Test
     void ajusteDeSessoesDoPacienteDeveConsumirParcialmenteQuandoSaldoForInsuficiente() {
         ClienteEntity clienteObj = cliente("Maria");
         PlanoSessaoEntity plano = pacoteAtivo(4, 3);
