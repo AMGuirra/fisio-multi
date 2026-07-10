@@ -190,7 +190,7 @@ public class AuditSnapshotFactory {
         map.put("descricao", lancamento.getDescricao());
         map.put("categoria", lancamento.getCategoria());
         map.put("valor", lancamento.getValor());
-        map.put("dataCompetencia", lancamento.getDataCompetencia());
+        map.put("dataRecebimento", lancamento.getDataRecebimento());
         map.put("dataPagamento", lancamento.getDataPagamento());
         map.put("clienteId", lancamento.getCliente() != null ? lancamento.getCliente().getId() : null);
         map.put("clienteNome", lancamento.getCliente() != null ? lancamento.getCliente().getNomeCompleto() : null);

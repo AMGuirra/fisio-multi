@@ -134,8 +134,8 @@ public class RelatoriosService {
         BigDecimal despesas = lancamento.getTipo() == TipoLancamentoFinanceiro.DESPESA ? lancamento.getValor() : BigDecimal.ZERO;
 
         FiltroRelatorioForm filtroCobranca = new FiltroRelatorioForm();
-        filtroCobranca.setDataInicial(lancamento.getDataCompetencia().toLocalDate());
-        filtroCobranca.setDataFinal(lancamento.getDataCompetencia().toLocalDate());
+        filtroCobranca.setDataInicial(lancamento.getDataRecebimento().toLocalDate());
+        filtroCobranca.setDataFinal(lancamento.getDataRecebimento().toLocalDate());
         filtroCobranca.setIncluirFinanceiro(true);
 
         PeriodoComparacao periodo = calcularPeriodo(filtroCobranca.getDataInicial(), filtroCobranca.getDataFinal());
@@ -161,7 +161,7 @@ public class RelatoriosService {
                         "mensagem", RelatorioFormatUtil.texto(form.getMensagem(), "Segue o demonstrativo financeiro referente ao lançamento informado."),
                         "descricao", lancamento.getDescricao(),
                         "valor", lancamento.getValor(),
-                        "dataCompetencia", lancamento.getDataCompetencia()
+                        "dataRecebimento", lancamento.getDataRecebimento()
                 ))
                 .attachment(new EmailAttachment(anexo.fileName(), anexo.contentType(), anexo.content()))
                 .build());
@@ -196,7 +196,7 @@ public class RelatoriosService {
             List<LancamentoFinanceiroEntity> itens, LocalDate inicioInclusive, LocalDate fimInclusive) {
         return itens.stream()
                 .filter(item -> {
-                    LocalDate data = RelatorioFormatUtil.paraLocalDate(item.getDataCompetencia());
+                    LocalDate data = RelatorioFormatUtil.paraLocalDate(item.getDataRecebimento());
                     return !data.isBefore(inicioInclusive) && !data.isAfter(fimInclusive);
                 })
                 .toList();

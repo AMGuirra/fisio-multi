@@ -31,6 +31,7 @@ public class PlanoService {
 
     private final PacienteService pacienteService;
     private final PlanoSessaoRepository planoSessaoRepository;
+    private final PlanoSessaoService planoSessaoService;
 
     @Transactional(readOnly = true)
     public List<PacienteListaDTO> listarPacientesComResumoPlano() {
@@ -54,7 +55,7 @@ public class PlanoService {
     @Transactional(readOnly = true)
     public PlanoResumoDTO buscarPlanoPorPaciente(UUID pacienteId) {
         return planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(pacienteId).stream()
-                .filter(plano -> plano.getStatus() == PlanoSessaoStatus.ATIVO)
+                .filter(planoSessaoService::isDisponivelParaUso)
                 .min(Comparator
                         .comparing((PlanoSessaoEntity plano) -> sessoesRestantes(plano) <= 0)
                         .thenComparing(PlanoSessaoEntity::getDataValidade, Comparator.nullsLast(Comparator.naturalOrder()))

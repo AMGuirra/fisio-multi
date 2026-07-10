@@ -2,6 +2,7 @@ package com.fisiogestao.pacientes;
 
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.pacientes.dto.AjusteSessoesPreviewDTO;
 import com.fisiogestao.pacientes.dto.AtendimentoAvulsoFormDTO;
 import com.fisiogestao.pacientes.dto.PacienteListaDTO;
 import com.fisiogestao.pacientes.dto.PlanoFormDTO;
@@ -284,6 +285,34 @@ public class PlanoConsumoController {
         }
     }
 
+    @PostMapping("/{pacienteId}/ajustar-sessoes")
+    public String ajustarSessoes(
+            @PathVariable UUID pacienteId,
+            @RequestParam UUID planoId,
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            RedirectAttributes redirectAttributes,
+            Model model
+    ) {
+        try {
+            AjusteSessoesPreviewDTO resultado = planoSessaoService.executarAjusteSessoesPaciente(pacienteId, planoId);
+            String mensagem = mensagemAjuste(resultado);
+            if (isAjax(requestedWith)) {
+                model.addAttribute("successMessage", mensagem);
+                adicionarContextoPaciente(pacienteId, "PLANO", planoId, model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", mensagem);
+        } catch (BusinessException ex) {
+            if (isAjax(requestedWith)) {
+                model.addAttribute("errorMessage", ex.getMessage());
+                adicionarContextoPaciente(pacienteId, "PLANO", planoId, model);
+                return "planos-consumo/fragmentos :: configuracao-e-consumo";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/planos-consumo?pacienteId=" + pacienteId;
+    }
+
     private void adicionarContextoPaciente(UUID pacienteId, String modoSolicitado, Model model) {
         adicionarContextoPaciente(pacienteId, modoSolicitado, null, model);
     }
@@ -318,11 +347,30 @@ public class PlanoConsumoController {
         model.addAttribute("hoje", LocalDate.now());
         model.addAttribute("agendamentoSessaoModalOpen", false);
         if (plano != null) {
+            model.addAttribute("motivoIndisponibilidadeAgenda",
+                    planoSessaoService.buscarPorId(plano.id())
+                            .map(planoSessaoService::motivoIndisponibilidadeAgenda)
+                            .orElse(null));
             model.addAttribute("reconciliacaoPreview",
                     planoSessaoService.previewReconciliacao(plano.id()));
+            model.addAttribute("ajusteSessoesPreview",
+                    planoSessaoService.previewAjusteSessoesPaciente(pacienteId, plano.id()));
             model.addAttribute("sessoesAgendadas",
                     sessaoConsumoService.countAgendadasPorPlano(plano.id()));
         }
+    }
+
+    private String mensagemAjuste(AjusteSessoesPreviewDTO resultado) {
+        if (resultado.sessoesAjustaveis() <= 0 && resultado.sessoesExcedentes() <= 0) {
+            return "Consumo conferido. Nenhum ajuste pendente.";
+        }
+        if (resultado.sessoesAjustaveis() <= 0) {
+            return "Sem saldo disponivel neste plano. Crie um novo plano para consumir as sessoes restantes.";
+        }
+        if (resultado.sessoesExcedentes() > 0) {
+            return "Ajuste realizado parcialmente. Crie um novo plano para consumir as sessoes restantes.";
+        }
+        return "Sessoes ajustadas com sucesso.";
     }
 
     private String normalizarModo(String modoSolicitado, boolean possuiPlano) {

@@ -249,11 +249,15 @@
     </div>
 
     <div th:if="${modo == 'PLANO' and plano != null}">
-        <div th:if="${plano.sessoesRestantes <= 1}" class="alert-box alert-danger">
+        <div th:if="${motivoIndisponibilidadeAgenda != null}" class="alert-box alert-danger">
+            <i data-lucide="triangle-alert" aria-hidden="true"></i>
+            <span th:text="${motivoIndisponibilidadeAgenda}">Plano indisponível para novos atendimentos.</span>
+        </div>
+        <div th:if="${motivoIndisponibilidadeAgenda == null and plano.sessoesRestantes <= 1}" class="alert-box alert-danger">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
             Última sessão do plano! Renove antes de agendar.
         </div>
-        <div th:if="${plano.sessoesRestantes > 1 and plano.sessoesRestantes <= 3}" class="alert-box alert-warn">
+        <div th:if="${motivoIndisponibilidadeAgenda == null and plano.sessoesRestantes > 1 and plano.sessoesRestantes <= 3}" class="alert-box alert-warn">
             <i data-lucide="triangle-alert" aria-hidden="true"></i>
             <span th:text="${plano.sessoesRestantes}">2</span> sessões restantes. Considere renovar o plano.
         </div>
@@ -280,7 +284,8 @@
              class="sess-item sess-item-clickable"
              role="button"
              tabindex="0"
-             th:attr="data-descricao=${sess.descricao},
+             th:attr="data-id=${sess.id},
+                      data-descricao=${sess.descricao},
                       data-data-hora=${sess.dataHoraFormatada},
                       data-realizada=${sess.realizada},
                       data-tipo=${sess.tipoAtendimento},
@@ -358,21 +363,103 @@
                         <i data-lucide="x" aria-hidden="true"></i>
                     </button>
                 </div>
-                <div class="pc-modal-body" id="sessaoDetalheBody"></div>
+                <div class="pc-modal-body" id="sessaoDetalheBody">
+                    <div class="sess-detalhe-status" id="sessaoDetalheStatus"></div>
+                    <p class="sess-detalhe-loading" id="sessaoDetalheLoading">Carregando...</p>
+                    <form id="sessaoDetalheForm" class="pc-form" hidden>
+                        <div class="two">
+                            <div class="fld">
+                                <label>Data</label>
+                                <input type="date" name="data" id="sessaoDetalheData" required>
+                            </div>
+                            <div class="fld">
+                                <label>Horário</label>
+                                <input type="time" name="horario" id="sessaoDetalheHorario" step="900" required>
+                            </div>
+                        </div>
+                        <div class="fld">
+                            <label>Tipo de atendimento</label>
+                            <input type="text" name="tipoAtendimento" id="sessaoDetalheTipo" maxlength="120">
+                        </div>
+                        <div class="fld">
+                            <label>Observações</label>
+                            <input type="text" name="observacoes" id="sessaoDetalheObs" maxlength="2000" placeholder="Opcional">
+                        </div>
+                    </form>
+                    <div class="acb-box" id="sessaoDetalheFeedback" hidden></div>
+                    <div class="sess-detalhe-acoes" id="sessaoDetalheAcoes"></div>
+                </div>
                 <div class="pc-modal-actions">
                     <button type="button" class="btn-ghost" data-sessao-detalhe-modal-close>Fechar</button>
+                    <button type="button" class="btn-save" id="sessaoDetalheSalvar" hidden>
+                        <i data-lucide="save" aria-hidden="true"></i>Salvar alterações
+                    </button>
                 </div>
             </div>
         </div>
 
-        <button type="button" class="btn-ag" id="openAgendamentoSessaoModal">
+        <button th:if="${motivoIndisponibilidadeAgenda == null}" type="button" class="btn-ag" id="openAgendamentoSessaoModal">
             <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessão
         </button>
 
+        <button th:if="${motivoIndisponibilidadeAgenda != null}" type="button" class="btn-ajuste-sessoes" onclick="iniciarFluxo('CRIAR_PLANO')">
+            <i data-lucide="package-plus" aria-hidden="true"></i>Criar novo plano
+        </button>
+
+        <button type="button"
+                class="btn-ajuste-sessoes"
+                id="openAjusteSessoesModal"
+                th:attr="data-pendentes=${ajusteSessoesPreview?.sessoesPendentes ?: 0},
+                         data-saldo=${ajusteSessoesPreview?.saldoDisponivel ?: 0},
+                         data-ajustaveis=${ajusteSessoesPreview?.sessoesAjustaveis ?: 0},
+                         data-excedentes=${ajusteSessoesPreview?.sessoesExcedentes ?: 0},
+                         data-consumo-atual=${ajusteSessoesPreview?.consumoAtual ?: 0},
+                         data-total=${ajusteSessoesPreview?.totalContratado ?: plano.totalSessoes}">
+            <i data-lucide="wrench" aria-hidden="true"></i>Ajustar sessões
+        </button>
+
+        <div id="ajusteSessoesModal" class="pc-modal" aria-hidden="true">
+            <button type="button" class="pc-modal-backdrop" data-ajuste-sessoes-modal-close aria-label="Fechar"></button>
+            <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="ajusteSessoesModalTitle">
+                <div class="pc-modal-head">
+                    <div>
+                        <p class="pc-modal-kicker">Ajuste de sessões</p>
+                        <h2 id="ajusteSessoesModalTitle">Conferir consumo do plano</h2>
+                    </div>
+                    <button type="button" class="pc-modal-close" data-ajuste-sessoes-modal-close aria-label="Fechar">
+                        <i data-lucide="x" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="pc-modal-body">
+                    <div class="ajuste-grid">
+                        <div><span>Pendentes</span><strong id="ajustePendentes">0</strong></div>
+                        <div><span>Saldo livre</span><strong id="ajusteSaldo">0</strong></div>
+                        <div><span>Ajusta agora</span><strong id="ajusteAgora">0</strong></div>
+                        <div><span>Ficam pendentes</span><strong id="ajusteExcedentes">0</strong></div>
+                    </div>
+                    <p id="ajusteMensagemOk">O consumo deste plano está correto. Nenhuma sessão realizada pendente foi encontrada.</p>
+                    <p id="ajusteMensagemParcial">O ajuste vai consumir o saldo disponível deste plano. Crie um novo plano para consumir as sessões restantes.</p>
+                    <p id="ajusteMensagemConfirmar">As sessões realizadas pendentes serão vinculadas ao plano atual até o limite contratado.</p>
+                    <p class="pc-modal-hint">Sessões agendadas, canceladas e faltas não faturadas não entram neste ajuste.</p>
+                </div>
+                <form id="ajusteSessoesForm"
+                      th:action="@{/planos-consumo/{id}/ajustar-sessoes(id=${paciente.id})}"
+                      method="post"
+                      class="pc-modal-actions">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <input type="hidden" name="planoId" th:value="${plano.id}">
+                    <button type="button" class="btn-ghost" data-ajuste-sessoes-modal-close>Fechar</button>
+                    <button type="submit" class="btn-save" id="confirmarAjusteSessoes">
+                        <i data-lucide="refresh-cw" aria-hidden="true"></i>Confirmar ajuste
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <div id="agendamentoSessaoModal"
              class="pc-modal"
-             th:classappend="${agendamentoSessaoModalOpen} ? ' is-open' : ''"
-             th:attr="aria-hidden=${agendamentoSessaoModalOpen ? 'false' : 'true'}">
+             th:classappend="${agendamentoSessaoModalOpen and motivoIndisponibilidadeAgenda == null} ? ' is-open' : ''"
+             th:attr="aria-hidden=${agendamentoSessaoModalOpen and motivoIndisponibilidadeAgenda == null ? 'false' : 'true'}">
             <button type="button" class="pc-modal-backdrop" data-agendamento-modal-close aria-label="Fechar agendamento"></button>
             <div class="pc-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="agendamentoSessaoModalTitle">
                 <div class="pc-modal-head">

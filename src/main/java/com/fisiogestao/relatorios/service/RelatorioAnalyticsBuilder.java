@@ -208,7 +208,7 @@ public class RelatorioAnalyticsBuilder {
     private List<RelatorioAnalytics.FinanceDailyPoint> construirFinanceiroDiario(
             PeriodoComparacao periodo, List<LancamentoFinanceiroEntity> lancamentos) {
         var lancamentosPorDia = lancamentos.stream()
-                .collect(Collectors.groupingBy(item -> RelatorioFormatUtil.paraLocalDate(item.getDataCompetencia())));
+                .collect(Collectors.groupingBy(item -> RelatorioFormatUtil.paraLocalDate(item.getDataRecebimento())));
 
         BigDecimal maximo = periodo.datas().stream()
                 .map(data -> somarAbsoluto(lancamentosPorDia.getOrDefault(data, List.of())))

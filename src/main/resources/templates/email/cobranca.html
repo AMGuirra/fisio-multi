@@ -5,7 +5,7 @@
     <p th:text="${mensagem}">Mensagem</p>
     <p><strong>Descrição:</strong> <span th:text="${descricao}">Lançamento</span></p>
     <p><strong>Valor:</strong> <span th:text="${valor}">0,00</span></p>
-    <p><strong>Competência:</strong> <span th:text="${#temporals.format(dataCompetencia, 'dd/MM/yyyy HH:mm')}">01/01/2026</span></p>
+    <p><strong>Recebimento:</strong> <span th:text="${#temporals.format(dataRecebimento, 'dd/MM/yyyy HH:mm')}">01/01/2026</span></p>
     <p>O demonstrativo em PDF segue anexo.</p>
 </section>
 </body>

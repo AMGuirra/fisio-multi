@@ -304,6 +304,82 @@ public class AgendaController {
         }
     }
 
+    @PostMapping("/sessoes/{id}/realizar/json")
+    @ResponseBody
+    public ResponseEntity<?> marcarComoRealizadaJson(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String observacoes,
+            Authentication authentication
+    ) {
+        try {
+            agendaService.marcarComoRealizada(id, observacoes, authentication != null ? authentication.getName() : "Equipe da clínica");
+            return okJson("Sessão marcada como realizada.");
+        } catch (BusinessException ex) {
+            return errorJson(ex);
+        }
+    }
+
+    @PostMapping("/sessoes/{id}/reabrir/json")
+    @ResponseBody
+    public ResponseEntity<?> reverterRealizacaoJson(@PathVariable UUID id) {
+        try {
+            agendaService.reverterRealizacao(id);
+            return okJson("Sessão reaberta como agendada.");
+        } catch (BusinessException ex) {
+            return errorJson(ex);
+        }
+    }
+
+    @PostMapping("/sessoes/{id}/cancelar/json")
+    @ResponseBody
+    public ResponseEntity<?> cancelarSessaoJson(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String observacoes
+    ) {
+        try {
+            agendaService.cancelarSessao(id, observacoes);
+            return okJson("Sessão cancelada com sucesso.");
+        } catch (BusinessException ex) {
+            return errorJson(ex);
+        }
+    }
+
+    @PostMapping("/sessoes/{id}/restaurar/json")
+    @ResponseBody
+    public ResponseEntity<?> restaurarSessaoCanceladaJson(@PathVariable UUID id) {
+        try {
+            agendaService.reabrirSessaoCancelada(id);
+            return okJson("Sessão voltou para pendente.");
+        } catch (BusinessException ex) {
+            return errorJson(ex);
+        }
+    }
+
+    @PostMapping("/sessoes/{id}/excluir/json")
+    @ResponseBody
+    public ResponseEntity<?> excluirSessaoJson(@PathVariable UUID id) {
+        try {
+            agendaService.excluirSessao(id);
+            return okJson("Sessão excluída com sucesso.");
+        } catch (BusinessException ex) {
+            return errorJson(ex);
+        }
+    }
+
+    private ResponseEntity<?> okJson(String message) {
+        Map<String, Object> success = new HashMap<>();
+        success.put("success", true);
+        success.put("message", message);
+        return ResponseEntity.ok(success);
+    }
+
+    private ResponseEntity<?> errorJson(BusinessException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("success", false);
+        error.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
+
     private String construirDestinoCalendario(LocalDate data) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/calendario");
         if (data != null) {

@@ -355,7 +355,7 @@
                     <div>
                         <p class="row-title" th:text="${recibo.descricao}">Descrição</p>
                         <p class="row-meta"
-                           th:text="${#temporals.format(recibo.dataPagamento != null ? recibo.dataPagamento : recibo.dataCompetencia, 'dd/MM/yyyy') + ' - R$ ' + #numbers.formatDecimal(recibo.valor, 1, 'COMMA', 2, 'POINT')}">
+                           th:text="${#temporals.format(recibo.dataPagamento != null ? recibo.dataPagamento : recibo.dataRecebimento, 'dd/MM/yyyy') + ' - R$ ' + #numbers.formatDecimal(recibo.valor, 1, 'COMMA', 2, 'POINT')}">
                             01/01/2026 - R$ 0,00
                         </p>
                     </div>

@@ -466,7 +466,7 @@
             }
         });
 
-        // --- Detalhe de sessão ---
+        // --- Detalhe de sessão (CRUD completo) ---
 
         function setSessaoDetalheModalOpen(open) {
             const modal = document.getElementById('sessaoDetalheModal');
@@ -476,54 +476,190 @@
             document.body.classList.toggle('modal-open', open);
         }
 
+        const SESSAO_STATUS_LABEL = {
+            AGENDADA: 'Sessão agendada',
+            REALIZADA: 'Sessão realizada',
+            CANCELADA: 'Sessão cancelada',
+            FALTA: 'Falta (sem cobrança)',
+            FALTA_FATURADA: 'Falta faturada'
+        };
+
+        function sessaoDetalheAcoesHtml(status) {
+            const botoes = [];
+            if (status === 'AGENDADA') {
+                botoes.push('<button type="button" class="btn-ag" data-sessao-acao="realizar"><i data-lucide="check-circle" aria-hidden="true"></i>Marcar como realizada</button>');
+            }
+            if (status === 'REALIZADA') {
+                botoes.push('<button type="button" class="btn-sec btn-renovar" data-sessao-acao="reabrir"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reverter para agendada</button>');
+            }
+            if (status === 'CANCELADA') {
+                botoes.push('<button type="button" class="btn-sec btn-renovar" data-sessao-acao="restaurar"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Restaurar sessão</button>');
+            }
+            if (status !== 'CANCELADA') {
+                botoes.push('<button type="button" class="btn-sec btn-cancelar-sessao" data-sessao-acao="cancelar"><i data-lucide="ban" aria-hidden="true"></i>Cancelar sessão</button>');
+            }
+            botoes.push('<button type="button" class="btn-sec btn-excluir-sessao" data-sessao-acao="excluir"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir sessão</button>');
+            return botoes.join('');
+        }
+
+        function sessaoDetalheRow(label, value) {
+            const el = document.createElement('div');
+            el.className = 'acb-row';
+            const lbl = document.createElement('span');
+            lbl.className = 'acb-lbl';
+            lbl.textContent = label;
+            const val = document.createElement('span');
+            val.className = 'acb-val';
+            val.textContent = value;
+            el.append(lbl, val);
+            return el;
+        }
+
+        async function abrirSessaoDetalhe(id, extra) {
+            const statusEl = document.getElementById('sessaoDetalheStatus');
+            const loadingEl = document.getElementById('sessaoDetalheLoading');
+            const form = document.getElementById('sessaoDetalheForm');
+            const feedbackEl = document.getElementById('sessaoDetalheFeedback');
+            const acoesEl = document.getElementById('sessaoDetalheAcoes');
+            const salvarBtn = document.getElementById('sessaoDetalheSalvar');
+            if (!statusEl || !loadingEl || !form || !feedbackEl || !acoesEl || !salvarBtn) return;
+
+            form.dataset.sessaoId = id;
+            statusEl.innerHTML = '';
+            feedbackEl.hidden = true;
+            feedbackEl.innerHTML = '';
+            acoesEl.innerHTML = '';
+            form.hidden = true;
+            salvarBtn.hidden = true;
+            loadingEl.hidden = false;
+            loadingEl.textContent = 'Carregando...';
+
+            setSessaoDetalheModalOpen(true);
+
+            try {
+                const res = await fetch(`/agenda/sessoes/${id}/json`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                const dto = await res.json();
+                if (!res.ok) throw new Error(dto?.error || 'Não foi possível carregar a sessão.');
+
+                form.dataset.clienteId = dto.clienteId || '';
+                form.dataset.planoSessaoId = dto.planoSessaoId || '';
+                form.dataset.tipoAgendamento = dto.tipoAgendamento || 'PLANO';
+                form.dataset.valorAvulso = dto.valorAvulso != null ? dto.valorAvulso : '';
+
+                const dot = document.createElement('div');
+                dot.className = 'sds ' + (dto.status === 'REALIZADA' ? 'sd-ok' : 'sd-pend');
+                const lbl = document.createElement('strong');
+                lbl.textContent = SESSAO_STATUS_LABEL[dto.status] || dto.status;
+                statusEl.append(dot, lbl);
+
+                document.getElementById('sessaoDetalheData').value = dto.data || '';
+                document.getElementById('sessaoDetalheHorario').value = dto.horario ? dto.horario.slice(0, 5) : '';
+                document.getElementById('sessaoDetalheTipo').value = dto.tipoAtendimento || '';
+                document.getElementById('sessaoDetalheObs').value = dto.observacoes || '';
+
+                if (extra && (extra.eva || extra.feedbackObs)) {
+                    if (extra.eva) feedbackEl.appendChild(sessaoDetalheRow('Feedback EVA', extra.eva + ' / 10'));
+                    if (extra.feedbackObs) feedbackEl.appendChild(sessaoDetalheRow('Comentário do paciente', extra.feedbackObs));
+                    feedbackEl.hidden = false;
+                }
+
+                acoesEl.innerHTML = sessaoDetalheAcoesHtml(dto.status);
+                if (window.lucide) lucide.createIcons();
+
+                loadingEl.hidden = true;
+                form.hidden = false;
+                salvarBtn.hidden = false;
+            } catch (err) {
+                loadingEl.textContent = err.message || 'Falha ao carregar a sessão.';
+            }
+        }
+
         document.addEventListener('click', (event) => {
             const item = event.target.closest('.sess-item-clickable');
             if (!item) return;
-            const body = document.getElementById('sessaoDetalheBody');
-            if (!body) return;
+            const id = item.dataset.id;
+            if (!id) return;
+            abrirSessaoDetalhe(id, {eva: item.dataset.eva || '', feedbackObs: item.dataset.feedbackObs || ''});
+        });
 
-            const descricao  = item.dataset.descricao  || '';
-            const dataHora   = item.dataset.dataHora   || '';
-            const realizada  = item.dataset.realizada  === 'true';
-            const tipo       = item.dataset.tipo       || '';
-            const obs        = item.dataset.obs        || '';
-            const eva        = item.dataset.eva        || '';
-            const feedbackObs = item.dataset.feedbackObs || '';
+        async function recarregarPainelConsumo() {
+            const selRow = document.querySelector('.prow.sel');
+            if (selRow) await carregarPaciente(selRow.dataset.id, 'PLANO');
+        }
 
-            function row(label, value) {
-                const el = document.createElement('div');
-                el.className = 'acb-row';
-                const lbl = document.createElement('span');
-                lbl.className = 'acb-lbl';
-                lbl.textContent = label;
-                const val = document.createElement('span');
-                val.className = 'acb-val';
-                val.textContent = value;
-                el.append(lbl, val);
-                return el;
+        async function executarAcaoSessao(acao, id) {
+            const CONFIRMACOES = {
+                cancelar: 'Cancelar esta sessão? O crédito consumido do plano será estornado, se aplicável.',
+                excluir: 'Excluir esta sessão permanentemente? Esta ação não pode ser desfeita.',
+                reabrir: 'Reverter esta sessão para agendada?',
+                restaurar: 'Restaurar esta sessão cancelada para pendente?'
+            };
+            const pergunta = CONFIRMACOES[acao];
+            if (pergunta && !confirm(pergunta)) return;
+
+            const res = await fetch(`/agenda/sessoes/${id}/${acao}/json`, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken}
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.success === false) {
+                if (window.showToast) window.showToast(data.error || 'Não foi possível concluir a ação.', 'error');
+                return;
+            }
+            if (window.showToast) window.showToast(data.message || 'Ação concluída.', 'success');
+            setSessaoDetalheModalOpen(false);
+            await recarregarPainelConsumo();
+        }
+
+        document.addEventListener('click', async (event) => {
+            const btn = event.target.closest('[data-sessao-acao]');
+            if (!btn) return;
+            const form = document.getElementById('sessaoDetalheForm');
+            const id = form?.dataset.sessaoId;
+            if (!id) return;
+            await executarAcaoSessao(btn.dataset.sessaoAcao, id);
+        });
+
+        document.getElementById('sessaoDetalheSalvar')?.addEventListener('click', async () => {
+            const form = document.getElementById('sessaoDetalheForm');
+            if (!form) return;
+            const id = form.dataset.sessaoId;
+            if (!id) return;
+
+            const data = document.getElementById('sessaoDetalheData').value;
+            const horario = document.getElementById('sessaoDetalheHorario').value;
+            if (!data || !horario) {
+                if (window.showToast) window.showToast('Preencha data e horário.', 'error');
+                return;
             }
 
-            body.innerHTML = '';
+            const params = new URLSearchParams();
+            params.set('clienteId', form.dataset.clienteId || '');
+            if (form.dataset.planoSessaoId) params.set('planoSessaoId', form.dataset.planoSessaoId);
+            params.set('data', data);
+            params.set('horario', horario);
+            params.set('tipoAtendimento', document.getElementById('sessaoDetalheTipo').value || '');
+            params.set('tipoAgendamento', form.dataset.tipoAgendamento || 'PLANO');
+            if (form.dataset.valorAvulso) params.set('valorAvulso', form.dataset.valorAvulso);
+            params.set('observacoes', document.getElementById('sessaoDetalheObs').value || '');
 
-            const statusWrap = document.createElement('div');
-            statusWrap.className = 'sess-detalhe-status';
-            const dot = document.createElement('div');
-            dot.className = 'sds ' + (realizada ? 'sd-ok' : 'sd-pend');
-            const lbl = document.createElement('strong');
-            lbl.textContent = descricao;
-            statusWrap.append(dot, lbl);
-            body.appendChild(statusWrap);
-
-            const box = document.createElement('div');
-            box.className = 'acb-box';
-            box.appendChild(row('Data / hora', dataHora));
-            if (tipo) box.appendChild(row('Tipo de atendimento', tipo));
-            if (obs)  box.appendChild(row('Observações', obs));
-            if (eva)  box.appendChild(row('Feedback EVA', eva + ' / 10'));
-            if (feedbackObs) box.appendChild(row('Comentário do paciente', feedbackObs));
-            body.appendChild(box);
-
-            setSessaoDetalheModalOpen(true);
+            const res = await fetch(`/agenda/sessoes/${id}/json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: params
+            });
+            const result = await res.json().catch(() => ({}));
+            if (!res.ok || result.success === false) {
+                if (window.showToast) window.showToast(result.error || 'Não foi possível salvar as alterações.', 'error');
+                return;
+            }
+            if (window.showToast) window.showToast(result.message || 'Sessão atualizada.', 'success');
+            setSessaoDetalheModalOpen(false);
+            await recarregarPainelConsumo();
         });
 
         document.addEventListener('click', (event) => {
@@ -537,6 +673,77 @@
             if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
                 setSessaoDetalheModalOpen(false);
             }
+        });
+
+        // --- Ajuste de sessões por paciente ---
+
+        function setAjusteSessoesModalOpen(open) {
+            const modal = document.getElementById('ajusteSessoesModal');
+            if (!modal) return;
+            modal.classList.toggle('is-open', open);
+            modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+            document.body.classList.toggle('modal-open', open);
+        }
+
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('#openAjusteSessoesModal');
+            if (!btn) return;
+
+            const pendentes = Number(btn.dataset.pendentes || 0);
+            const saldo = Number(btn.dataset.saldo || 0);
+            const ajustaveis = Number(btn.dataset.ajustaveis || 0);
+            const excedentes = Number(btn.dataset.excedentes || 0);
+
+            document.getElementById('ajustePendentes').textContent = pendentes;
+            document.getElementById('ajusteSaldo').textContent = saldo;
+            document.getElementById('ajusteAgora').textContent = ajustaveis;
+            document.getElementById('ajusteExcedentes').textContent = excedentes;
+
+            const msgOk = document.getElementById('ajusteMensagemOk');
+            const msgParcial = document.getElementById('ajusteMensagemParcial');
+            const msgConfirmar = document.getElementById('ajusteMensagemConfirmar');
+            if (msgOk) msgOk.hidden = pendentes !== 0;
+            if (msgParcial) msgParcial.hidden = excedentes === 0;
+            if (msgConfirmar) msgConfirmar.hidden = pendentes === 0 || excedentes > 0;
+
+            const confirmar = document.getElementById('confirmarAjusteSessoes');
+            if (confirmar) confirmar.disabled = ajustaveis <= 0;
+
+            setAjusteSessoesModalOpen(true);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-ajuste-sessoes-modal-close]')) {
+                setAjusteSessoesModalOpen(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            const modal = document.getElementById('ajusteSessoesModal');
+            if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
+                setAjusteSessoesModalOpen(false);
+            }
+        });
+
+        document.addEventListener('submit', async (event) => {
+            const form = event.target.closest('#ajusteSessoesForm');
+            if (!form) return;
+            event.preventDefault();
+            setAjusteSessoesModalOpen(false);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken},
+                body: new FormData(form)
+            });
+            const html = await res.text();
+            atualizarPaineis(html, 'PLANO');
+            const selRow = document.querySelector('.prow.sel');
+            if (selRow) {
+                const saldo = document.querySelector('#c3b .saldo-num')?.textContent?.replace(/\s+/g, '');
+                const badge = selRow.querySelector('.pbadge');
+                if (badge && saldo) badge.textContent = saldo;
+            }
+            if (window.showToast) window.showToast('Conferência de sessões concluída.', 'success');
         });
 
         // --- Reconciliação de consumo ---

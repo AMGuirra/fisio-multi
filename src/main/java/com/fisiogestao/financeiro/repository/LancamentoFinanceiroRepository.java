@@ -23,7 +23,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
     List<LancamentoFinanceiroEntity> findByPlanoSessaoId(UUID planoSessaoId);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
-    List<LancamentoFinanceiroEntity> findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataCompetenciaDescCreatedAtDesc(
+    List<LancamentoFinanceiroEntity> findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataRecebimentoDescCreatedAtDesc(
             UUID clienteId, TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
@@ -35,28 +35,28 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
     long countByTipoAndStatus(TipoLancamentoFinanceiro tipo, StatusLancamentoFinanceiro status);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
-    List<LancamentoFinanceiroEntity> findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(
+    List<LancamentoFinanceiroEntity> findByDataRecebimentoBetweenOrderByDataRecebimentoDescCreatedAtDesc(
             OffsetDateTime inicio, OffsetDateTime fim);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
-    List<LancamentoFinanceiroEntity> findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+    List<LancamentoFinanceiroEntity> findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
             TipoLancamentoFinanceiro tipo,
             StatusLancamentoFinanceiro status);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
-    List<LancamentoFinanceiroEntity> findByDataCompetenciaBetweenAndTipoAndStatusOrderByDataCompetenciaDescCreatedAtDesc(
+    List<LancamentoFinanceiroEntity> findByDataRecebimentoBetweenAndTipoAndStatusOrderByDataRecebimentoDescCreatedAtDesc(
             OffsetDateTime inicio,
             OffsetDateTime fim,
             TipoLancamentoFinanceiro tipo,
             StatusLancamentoFinanceiro status);
 
-    long countByTipoAndStatusAndDataCompetenciaBefore(
+    long countByTipoAndStatusAndDataRecebimentoBefore(
             TipoLancamentoFinanceiro tipo,
             StatusLancamentoFinanceiro status,
             OffsetDateTime limite);
 
     @EntityGraph(attributePaths = {"cliente", "planoSessao"})
-    Optional<LancamentoFinanceiroEntity> findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+    Optional<LancamentoFinanceiroEntity> findFirstByTipoAndStatusAndDataRecebimentoBeforeOrderByDataRecebimentoAscCreatedAtAsc(
             TipoLancamentoFinanceiro tipo,
             StatusLancamentoFinanceiro status,
             OffsetDateTime limite);
@@ -74,9 +74,9 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
             FROM LancamentoFinanceiroEntity l
             WHERE l.tipo = :tipo
               AND l.status = :status
-              AND l.dataCompetencia < :limite
+              AND l.dataRecebimento < :limite
             """)
-    BigDecimal sumValorByTipoAndStatusAndDataCompetenciaBefore(
+    BigDecimal sumValorByTipoAndStatusAndDataRecebimentoBefore(
             @Param("tipo") TipoLancamentoFinanceiro tipo,
             @Param("status") StatusLancamentoFinanceiro status,
             @Param("limite") OffsetDateTime limite);
@@ -84,7 +84,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
     @Query("""
             SELECT COALESCE(SUM(l.valor), 0)
             FROM LancamentoFinanceiroEntity l
-            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+            WHERE l.dataRecebimento BETWEEN :inicio AND :fim
               AND l.tipo = :tipo
               AND l.status = :status
             """)
@@ -94,7 +94,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
             @Param("tipo") TipoLancamentoFinanceiro tipo,
             @Param("status") StatusLancamentoFinanceiro status);
 
-    long countByDataCompetenciaBetweenAndTipoAndStatus(
+    long countByDataRecebimentoBetweenAndTipoAndStatus(
             OffsetDateTime inicio,
             OffsetDateTime fim,
             TipoLancamentoFinanceiro tipo,
@@ -105,7 +105,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
                    COUNT(l.id) AS quantidade,
                    COALESCE(SUM(l.valor), 0) AS total
             FROM LancamentoFinanceiroEntity l
-            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+            WHERE l.dataRecebimento BETWEEN :inicio AND :fim
               AND l.tipo = :tipo
               AND l.status = :status
             GROUP BY l.categoria
@@ -123,7 +123,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
                    COALESCE(SUM(l.valor), 0) AS total
             FROM LancamentoFinanceiroEntity l
             LEFT JOIN l.planoSessao p
-            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+            WHERE l.dataRecebimento BETWEEN :inicio AND :fim
               AND l.tipo = :tipo
               AND l.status = :status
             GROUP BY p.nomePlano
@@ -140,7 +140,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
                    COUNT(l.id) AS quantidade,
                    COALESCE(SUM(l.valor), 0) AS total
             FROM LancamentoFinanceiroEntity l
-            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+            WHERE l.dataRecebimento BETWEEN :inicio AND :fim
               AND l.tipo = :tipo
               AND l.status = :status
             GROUP BY l.profissional
@@ -157,7 +157,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
                    COUNT(l.id) AS quantidade,
                    COALESCE(SUM(l.valor), 0) AS total
             FROM LancamentoFinanceiroEntity l
-            WHERE l.dataCompetencia BETWEEN :inicio AND :fim
+            WHERE l.dataRecebimento BETWEEN :inicio AND :fim
               AND l.tipo = :tipo
               AND l.status = :status
             GROUP BY l.metodoPagamento
@@ -169,7 +169,7 @@ public interface LancamentoFinanceiroRepository extends JpaRepository<Lancamento
             @Param("tipo") TipoLancamentoFinanceiro tipo,
             @Param("status") StatusLancamentoFinanceiro status);
 
-    long countByDataCompetenciaBetweenAndStatusNot(
+    long countByDataRecebimentoBetweenAndStatusNot(
             OffsetDateTime inicio,
             OffsetDateTime fim,
             StatusLancamentoFinanceiro status);

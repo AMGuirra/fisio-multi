@@ -191,6 +191,7 @@
                               method="post"
                               class="modern-form"
                               th:attr="action=${editMode and lancamentoEmEdicao != null ? '/financeiro/lancamentos/' + lancamentoEmEdicao.id : '/financeiro/lancamentos'}">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                             <div class="form-field">
                                 <label for="tipo">Tipo</label>
                                 <select id="tipo" class="form-select" th:field="*{tipo}" required>
@@ -224,9 +225,9 @@
                             </div>
 
                             <div class="form-field">
-                                <label for="dataCompetencia">Data de Competência</label>
-                                <input id="dataCompetencia" type="date" class="form-control" th:field="*{dataCompetencia}" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('dataCompetencia')}" th:errors="*{dataCompetencia}"></p>
+                                <label for="dataRecebimento">Data do Recebimento</label>
+                                <input id="dataRecebimento" type="date" class="form-control" th:field="*{dataRecebimento}" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataRecebimento')}" th:errors="*{dataRecebimento}"></p>
                             </div>
 
                             <button type="submit" class="action-button primary">
@@ -263,7 +264,7 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>Competência</th>
+                                    <th>Recebimento</th>
                                     <th>Descrição</th>
                                     <th>Tipo</th>
                                     <th>Status</th>
@@ -274,7 +275,7 @@
                             </thead>
                             <tbody>
                                 <tr th:each="lancamento : ${lancamentos}">
-                                    <td th:text="${#temporals.format(lancamento.dataCompetencia, 'dd/MM/yyyy')}">01/01/2026</td>
+                                    <td th:text="${#temporals.format(lancamento.dataRecebimento, 'dd/MM/yyyy')}">01/01/2026</td>
                                     <td>
                                         <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
                                         <p class="entity-meta" th:if="${lancamento.cliente != null}">

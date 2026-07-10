@@ -153,6 +153,40 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     // --- Notificações internas da clínica ---
 
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.cliente.id = :clienteId
+              AND s.tipoAgendamento = com.fisiogestao.agenda.TipoAgendamento.PLANO
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+              AND s.planoConsumoRegistrado = false
+              AND (s.planoSessao IS NULL OR s.planoSessao.id = :planoId)
+              AND s.dataHoraInicio >= :inicio
+              AND s.dataHoraInicio <= :fim
+            ORDER BY s.dataHoraInicio ASC
+            """)
+    List<SessaoEntity> findPendentesDeConsumoDoPacienteNoPlano(
+            @Param("clienteId") UUID clienteId,
+            @Param("planoId") UUID planoId,
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fim") OffsetDateTime fim);
+
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.planoSessao.id = :planoId
+              AND s.status IN (
+                  com.fisiogestao.agenda.SessaoStatus.REALIZADA,
+                  com.fisiogestao.agenda.SessaoStatus.FALTA_FATURADA
+              )
+              AND s.planoConsumoRegistrado = false
+            ORDER BY s.dataHoraInicio ASC
+            """)
+    List<SessaoEntity> findContabilizaveisNaoRegistradasPorPlano(@Param("planoId") UUID planoId);
+
     /** Sessões AGENDADAS dentro do período (e-mail das 6h). */
     @EntityGraph(attributePaths = {"cliente"})
     @Query("""

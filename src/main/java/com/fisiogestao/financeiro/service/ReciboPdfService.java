@@ -132,7 +132,7 @@ public class ReciboPdfService {
                     lancamento.getMetodoPagamento() != null ? lancamento.getMetodoPagamento().getLabel() : "—",
                     fontLabel, fontValor, true);
             adicionarCampo(dados, "DATA DE COMPETÊNCIA",
-                    lancamento.getDataCompetencia().atZoneSameInstant(zone).format(FMT_DATA),
+                    lancamento.getDataRecebimento().atZoneSameInstant(zone).format(FMT_DATA),
                     fontLabel, fontValor, false);
             doc.add(dados);
 

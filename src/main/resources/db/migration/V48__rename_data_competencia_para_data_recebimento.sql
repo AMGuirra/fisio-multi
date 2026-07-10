@@ -1,0 +1,6 @@
+-- V48: renomeia data_competencia para data_recebimento em lancamento_financeiro
+ALTER TABLE lancamento_financeiro RENAME COLUMN data_competencia TO data_recebimento;
+
+ALTER INDEX idx_lancamento_financeiro_data_competencia RENAME TO idx_lancamento_financeiro_data_recebimento;
+ALTER INDEX idx_lancamento_financeiro_dashboard_receita RENAME TO idx_lancamento_financeiro_dashboard_receita_recebimento;
+ALTER INDEX idx_lancamento_financeiro_receber RENAME TO idx_lancamento_financeiro_receber_recebimento;

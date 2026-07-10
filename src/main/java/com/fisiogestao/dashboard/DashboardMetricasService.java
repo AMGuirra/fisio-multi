@@ -177,15 +177,15 @@ public class DashboardMetricasService {
     private List<ReceitaMensal> consultarReceitaMensal(List<YearMonth> meses, OffsetDateTime inicioJanela) {
         String sql = """
                 SELECT
-                    EXTRACT(YEAR FROM data_competencia) AS ano,
-                    EXTRACT(MONTH FROM data_competencia) AS mes_num,
+                    EXTRACT(YEAR FROM data_recebimento) AS ano,
+                    EXTRACT(MONTH FROM data_recebimento) AS mes_num,
                     COALESCE(SUM(CASE WHEN plano_sessao_id IS NULL THEN valor ELSE 0 END), 0) AS receita_avulso,
                     COALESCE(SUM(CASE WHEN plano_sessao_id IS NOT NULL THEN valor ELSE 0 END), 0) AS receita_plano,
                     COALESCE(SUM(valor), 0) AS total_receita
                 FROM lancamento_financeiro
                 WHERE tipo = 'RECEITA'
                   AND status = 'PAGO'
-                  AND data_competencia >= ?
+                  AND data_recebimento >= ?
                 GROUP BY ano, mes_num
                 ORDER BY ano, mes_num
                 """;

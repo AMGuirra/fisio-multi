@@ -199,7 +199,7 @@ public class RelatorioExportService {
         header.createCell(0).setCellValue("Descrição");
         header.createCell(1).setCellValue("Tipo");
         header.createCell(2).setCellValue("Status");
-        header.createCell(3).setCellValue("Competência");
+        header.createCell(3).setCellValue("Recebimento");
         header.createCell(4).setCellValue("Valor");
         int idx = 1;
         for (LancamentoFinanceiroEntity item : lancamentos) {
@@ -207,7 +207,7 @@ public class RelatorioExportService {
             r.createCell(0).setCellValue(item.getDescricao());
             r.createCell(1).setCellValue(item.getTipo().name());
             r.createCell(2).setCellValue(item.getStatus().name());
-            r.createCell(3).setCellValue(RelatorioFormatUtil.formatDateTime(item.getDataCompetencia()));
+            r.createCell(3).setCellValue(RelatorioFormatUtil.formatDateTime(item.getDataRecebimento()));
             r.createCell(4).setCellValue(item.getValor().doubleValue());
         }
     }

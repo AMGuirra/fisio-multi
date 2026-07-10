@@ -323,7 +323,7 @@ public class FinanceiroController {
     private LancamentoFinanceiroForm criarFormPadrao() {
         LancamentoFinanceiroForm form = new LancamentoFinanceiroForm();
         form.setTipo(TipoLancamentoFinanceiro.RECEITA);
-        form.setDataCompetencia(LocalDate.now());
+        form.setDataRecebimento(LocalDate.now());
         return form;
     }
 
@@ -334,7 +334,7 @@ public class FinanceiroController {
         form.setCategoria(lancamento.getCategoria());
         form.setProfissional(lancamento.getProfissional());
         form.setValor(lancamento.getValor());
-        form.setDataCompetencia(lancamento.getDataCompetencia()
+        form.setDataRecebimento(lancamento.getDataRecebimento()
                 .atZoneSameInstant(ClinicTimezoneHolder.zoneId()).toLocalDate());
         return form;
     }

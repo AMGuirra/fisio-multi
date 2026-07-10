@@ -269,7 +269,7 @@ public class PortalPacienteController {
                 paciente.getId(), SessaoStatus.FALTA_FATURADA);
 
         List<LancamentoFinanceiroEntity> recibos = lancamentoFinanceiroRepository
-                .findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataCompetenciaDescCreatedAtDesc(
+                .findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataRecebimentoDescCreatedAtDesc(
                         paciente.getId(), TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO);
 
         String whatsappUrl = null;
@@ -553,7 +553,7 @@ public class PortalPacienteController {
                 ? lancamento.getDataPagamento().atZoneSameInstant(ClinicTimezoneHolder.zoneId())
                         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                 : "Pagamento registrado";
-        String competencia = lancamento.getDataCompetencia()
+        String competencia = lancamento.getDataRecebimento()
                 .atZoneSameInstant(ClinicTimezoneHolder.zoneId())
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         BigDecimal valor = lancamento.getValor() != null ? lancamento.getValor() : BigDecimal.ZERO;

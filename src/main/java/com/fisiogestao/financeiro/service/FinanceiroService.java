@@ -211,7 +211,7 @@ public class FinanceiroService {
     public List<LancamentoFinanceiroEntity> listarNoPeriodo(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
         return lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenOrderByDataCompetenciaDescCreatedAtDesc(periodo.inicio(), periodo.fim());
+                .findByDataRecebimentoBetweenOrderByDataRecebimentoDescCreatedAtDesc(periodo.inicio(), periodo.fim());
     }
 
     private PeriodoFinanceiro periodoFinanceiro(LocalDate inicio, LocalDate fim) {
@@ -224,9 +224,9 @@ public class FinanceiroService {
     @Transactional(readOnly = true)
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
-        long receitasPagasCount = lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndTipoAndStatus(
+        long receitasPagasCount = lancamentoFinanceiroRepository.countByDataRecebimentoBetweenAndTipoAndStatus(
                 periodo.inicio(), periodo.fim(), TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO);
-        long lancamentosAtivosCount = lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndStatusNot(
+        long lancamentosAtivosCount = lancamentoFinanceiroRepository.countByDataRecebimentoBetweenAndStatusNot(
                 periodo.inicio(), periodo.fim(), StatusLancamentoFinanceiro.CANCELADO);
         return new ResumoFinanceiro(
                 somarNoPeriodo(periodo, TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO),
@@ -242,18 +242,18 @@ public class FinanceiroService {
     public InadimplenciaResumo calcularInadimplencia() {
         LocalDate hoje = ClinicTimezoneHolder.today();
         OffsetDateTime limite = hoje.atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
-        BigDecimal total = valorSeguro(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataCompetenciaBefore(
+        BigDecimal total = valorSeguro(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataRecebimentoBefore(
                 TipoLancamentoFinanceiro.RECEITA,
                 StatusLancamentoFinanceiro.PENDENTE,
                 limite
         ));
-        long quantidade = lancamentoFinanceiroRepository.countByTipoAndStatusAndDataCompetenciaBefore(
+        long quantidade = lancamentoFinanceiroRepository.countByTipoAndStatusAndDataRecebimentoBefore(
                 TipoLancamentoFinanceiro.RECEITA,
                 StatusLancamentoFinanceiro.PENDENTE,
                 limite
         );
         long maiorAtraso = lancamentoFinanceiroRepository
-                .findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+                .findFirstByTipoAndStatusAndDataRecebimentoBeforeOrderByDataRecebimentoAscCreatedAtAsc(
                         TipoLancamentoFinanceiro.RECEITA,
                         StatusLancamentoFinanceiro.PENDENTE,
                         limite
@@ -266,7 +266,7 @@ public class FinanceiroService {
     @Transactional(readOnly = true)
     public ContasAReceberView listarContasAReceber() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
-                .findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                .findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                         TipoLancamentoFinanceiro.RECEITA,
                         StatusLancamentoFinanceiro.PENDENTE
                 );
@@ -307,7 +307,7 @@ public class FinanceiroService {
     @Transactional(readOnly = true)
     public ContasAPagarView listarContasAPagar() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
-                .findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+                .findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                         TipoLancamentoFinanceiro.DESPESA,
                         StatusLancamentoFinanceiro.PENDENTE
                 );
@@ -354,7 +354,7 @@ public class FinanceiroService {
     public RelatorioFaturamento gerarRelatorioFaturamento(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
         List<LancamentoFinanceiroEntity> receitasPagas = lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenAndTipoAndStatusOrderByDataCompetenciaDescCreatedAtDesc(
+                .findByDataRecebimentoBetweenAndTipoAndStatusOrderByDataRecebimentoDescCreatedAtDesc(
                         periodo.inicio(),
                         periodo.fim(),
                         TipoLancamentoFinanceiro.RECEITA,
@@ -414,7 +414,7 @@ public class FinanceiroService {
         lancamento.setCategoria(form.getCategoria().trim());
         lancamento.setProfissional(texto(form.getProfissional()));
         lancamento.setValor(form.getValor());
-        lancamento.setDataCompetencia(paraInicioDoDia(form.getDataCompetencia()));
+        lancamento.setDataRecebimento(paraInicioDoDia(form.getDataRecebimento()));
 
         LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
         auditService.recordManual(
@@ -441,7 +441,7 @@ public class FinanceiroService {
                 .categoria(form.getCategoria().trim())
                 .profissional(texto(form.getProfissional()))
                 .valor(form.getValor())
-                .dataCompetencia(paraInicioDoDia(form.getDataCompetencia()))
+                .dataRecebimento(paraInicioDoDia(form.getDataRecebimento()))
                 .build();
         LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(lancamento);
         auditService.recordCreate(
@@ -478,7 +478,7 @@ public class FinanceiroService {
                 .descricao(descricao)
                 .categoria("Sessões avulsas")
                 .valor(sessao.getValorAvulso())
-                .dataCompetencia(paraInicioDoDia(dataLocal))
+                .dataRecebimento(paraInicioDoDia(dataLocal))
                 .profissional(texto(profissionalResponsavel))
                 .cliente(sessao.getCliente())
                 .build();
@@ -506,7 +506,7 @@ public class FinanceiroService {
                 .descricao("Plano de tratamento: " + plano.getNomePlano())
                 .categoria("Planos de tratamento")
                 .valor(plano.getValorTotal())
-                .dataCompetencia(paraInicioDoDia(plano.getDataInicio()))
+                .dataRecebimento(paraInicioDoDia(plano.getDataInicio()))
                 .cliente(plano.getCliente())
                 .planoSessao(plano)
                 .profissional(texto(profissionalResponsavel))
@@ -717,12 +717,12 @@ public class FinanceiroService {
     }
 
     private static long atrasoEmDias(LancamentoFinanceiroEntity lancamento, LocalDate hoje) {
-        LocalDate vencimento = dataCompetenciaLocal(lancamento);
+        LocalDate vencimento = dataRecebimentoLocal(lancamento);
         return Math.max(0L, ChronoUnit.DAYS.between(vencimento, hoje));
     }
 
-    private static LocalDate dataCompetenciaLocal(LancamentoFinanceiroEntity lancamento) {
-        return lancamento.getDataCompetencia()
+    private static LocalDate dataRecebimentoLocal(LancamentoFinanceiroEntity lancamento) {
+        return lancamento.getDataRecebimento()
                 .atZoneSameInstant(ClinicTimezoneHolder.zoneId())
                 .toLocalDate();
     }
@@ -766,7 +766,7 @@ public class FinanceiroService {
 
         private void adicionar(LancamentoFinanceiroEntity lancamento, LocalDate hoje) {
             BigDecimal valor = valorSeguro(lancamento.getValor());
-            LocalDate vencimento = dataCompetenciaLocal(lancamento);
+            LocalDate vencimento = dataRecebimentoLocal(lancamento);
             long atraso = atrasoEmDias(lancamento, hoje);
 
             total = total.add(valor);
@@ -833,7 +833,7 @@ public class FinanceiroService {
 
         private void adicionar(LancamentoFinanceiroEntity lancamento, LocalDate hoje) {
             BigDecimal valor = valorSeguro(lancamento.getValor());
-            LocalDate vencimento = dataCompetenciaLocal(lancamento);
+            LocalDate vencimento = dataRecebimentoLocal(lancamento);
             long atraso = atrasoEmDias(lancamento, hoje);
 
             total = total.add(valor);

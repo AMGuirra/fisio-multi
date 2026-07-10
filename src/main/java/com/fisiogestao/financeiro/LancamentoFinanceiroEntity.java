@@ -49,8 +49,8 @@ public class LancamentoFinanceiroEntity extends BaseEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal valor;
 
-    @Column(name = "data_competencia", nullable = false)
-    private OffsetDateTime dataCompetencia;
+    @Column(name = "data_recebimento", nullable = false)
+    private OffsetDateTime dataRecebimento;
 
     @Column(name = "data_pagamento")
     private OffsetDateTime dataPagamento;

@@ -1691,6 +1691,74 @@ body[data-theme='dark'] {
 }
 
 /* ── Ações secundárias (Criar Novo Plano / Renovar) ── */
+.btn-ajuste-sessoes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--g-border, #dde3e0);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+
+.btn-ajuste-sessoes:hover {
+  border-color: var(--g-primary, #1a7a5e);
+  background: var(--g-primary-bg, #edf7f3);
+  color: var(--g-primary, #1a7a5e);
+}
+
+.btn-ajuste-sessoes svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ajuste-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ajuste-grid div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--stroke-soft);
+  border-radius: 8px;
+  background: var(--surface-muted, rgba(148, 163, 184, .08));
+}
+
+.ajuste-grid span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.ajuste-grid strong {
+  font-size: 1.15rem;
+  color: var(--text-strong);
+}
+
+.pc-modal-hint {
+  font-size: .8rem !important;
+  color: var(--text-muted) !important;
+}
+
+.btn-save:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
 .plano-acoes-secundarias {
   display: flex;
   gap: 8px;
@@ -1730,6 +1798,50 @@ body[data-theme='dark'] {
   background: var(--g-warn-b, #d4a000);
   color: #fff;
   border-color: var(--g-warn-b, #d4a000);
+}
+
+.sess-detalhe-loading {
+  color: var(--pc-muted);
+  font-size: .8rem;
+  margin: 4px 0 0;
+}
+
+.sess-detalhe-acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.sess-detalhe-acoes .btn-ag {
+  min-height: 38px;
+}
+
+.btn-sec.btn-cancelar-sessao,
+.btn-sec.btn-excluir-sessao {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-sec.btn-cancelar-sessao:hover,
+.btn-sec.btn-excluir-sessao:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
+body[data-theme='dark'] .btn-sec.btn-cancelar-sessao,
+body[data-theme='dark'] .btn-sec.btn-excluir-sessao {
+  background: rgba(135, 43, 43, 0.14);
+  border-color: rgba(213, 83, 83, 0.38);
+  color: #ffc3c3;
+}
+
+body[data-theme='dark'] .btn-sec.btn-cancelar-sessao:hover,
+body[data-theme='dark'] .btn-sec.btn-excluir-sessao:hover {
+  background: rgba(135, 43, 43, 0.26);
+  border-color: #f87171;
+  color: #ffd7d7;
 }
 
 /* ── Histórico de planos (colapsável) ── */

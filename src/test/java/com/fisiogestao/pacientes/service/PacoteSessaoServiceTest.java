@@ -64,6 +64,79 @@ class PlanoSessaoServiceTest {
     @InjectMocks
     private PlanoSessaoService planoSessaoService;
 
+    @Test
+    void ajusteDeSessoesDoPacienteDeveConsumirPendenciasComSaldoDisponivel() {
+        ClienteEntity clienteObj = cliente("Maria");
+        PlanoSessaoEntity plano = pacoteAtivo(10, 3);
+        plano.setCliente(clienteObj);
+        SessaoEntity s1 = sessaoPlano(clienteObj, null, SessaoStatus.REALIZADA);
+        SessaoEntity s2 = sessaoPlano(clienteObj, plano, SessaoStatus.FALTA_FATURADA);
+
+        when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));
+        when(sessaoRepository.findPendentesDeConsumoDoPacienteNoPlano(
+                any(), any(), any(), any())).thenReturn(List.of(s1, s2));
+        when(sessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        var resultado = planoSessaoService.executarAjusteSessoesPaciente(clienteObj.getId(), plano.getId());
+
+        assertEquals(2, resultado.sessoesAjustaveis());
+        assertEquals(5, plano.getSessoesConsumidas());
+        assertEquals(plano, s1.getPlanoSessao());
+        assertTrue(s1.getPlanoConsumoRegistrado());
+        assertTrue(s2.getPlanoConsumoRegistrado());
+    }
+
+    @Test
+    void ajusteDeSessoesDoPacienteDeveConsumirParcialmenteQuandoSaldoForInsuficiente() {
+        ClienteEntity clienteObj = cliente("Maria");
+        PlanoSessaoEntity plano = pacoteAtivo(4, 3);
+        plano.setCliente(clienteObj);
+        SessaoEntity s1 = sessaoPlano(clienteObj, null, SessaoStatus.REALIZADA);
+        SessaoEntity s2 = sessaoPlano(clienteObj, null, SessaoStatus.REALIZADA);
+        SessaoEntity s3 = sessaoPlano(clienteObj, null, SessaoStatus.FALTA_FATURADA);
+
+        when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));
+        when(sessaoRepository.findPendentesDeConsumoDoPacienteNoPlano(
+                any(), any(), any(), any())).thenReturn(List.of(s1, s2, s3));
+        when(sessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of());
+
+        var resultado = planoSessaoService.executarAjusteSessoesPaciente(clienteObj.getId(), plano.getId());
+
+        assertEquals(1, resultado.sessoesAjustaveis());
+        assertEquals(2, resultado.sessoesExcedentes());
+        assertTrue(resultado.sugerirNovoPlano());
+        assertEquals(4, plano.getSessoesConsumidas());
+        assertEquals(PlanoSessaoStatus.CONCLUIDO, plano.getStatus());
+        assertTrue(s1.getPlanoConsumoRegistrado());
+        assertFalse(s2.getPlanoConsumoRegistrado());
+        assertFalse(s3.getPlanoConsumoRegistrado());
+    }
+
+    @Test
+    void ajusteDeSessoesDoPacienteSemSaldoDeveSugerirNovoPlanoSemAlterarConsumo() {
+        ClienteEntity clienteObj = cliente("Maria");
+        PlanoSessaoEntity plano = pacoteComStatus(PlanoSessaoStatus.CONCLUIDO, 4, 4);
+        plano.setCliente(clienteObj);
+        SessaoEntity pendente = sessaoPlano(clienteObj, null, SessaoStatus.REALIZADA);
+
+        when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));
+        when(sessaoRepository.findPendentesDeConsumoDoPacienteNoPlano(
+                any(), any(), any(), any())).thenReturn(List.of(pendente));
+
+        var resultado = planoSessaoService.executarAjusteSessoesPaciente(clienteObj.getId(), plano.getId());
+
+        assertEquals(0, resultado.sessoesAjustaveis());
+        assertEquals(1, resultado.sessoesExcedentes());
+        assertTrue(resultado.sugerirNovoPlano());
+        assertEquals(4, plano.getSessoesConsumidas());
+        assertFalse(pendente.getPlanoConsumoRegistrado());
+        verify(planoSessaoRepository, never()).save(plano);
+    }
+
     // -----------------------------------------------------------------------
     // criar — deve disparar registrarReceitaPlano
     // -----------------------------------------------------------------------
@@ -421,10 +494,24 @@ class PlanoSessaoServiceTest {
                 .categoria("Planos de tratamento")
                 .tipo(com.fisiogestao.financeiro.TipoLancamentoFinanceiro.RECEITA)
                 .valor(BigDecimal.TEN)
-                .dataCompetencia(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
+                .dataRecebimento(LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime())
                 .planoSessao(pacote)
                 .build();
         l.setId(UUID.randomUUID());
         return l;
+    }
+
+    private SessaoEntity sessaoPlano(ClienteEntity clienteObj, PlanoSessaoEntity plano, SessaoStatus status) {
+        SessaoEntity sessao = SessaoEntity.builder()
+                .cliente(clienteObj)
+                .planoSessao(plano)
+                .dataHoraInicio(OffsetDateTime.now())
+                .dataHoraFim(OffsetDateTime.now().plusMinutes(50))
+                .status(status)
+                .tipoAgendamento(TipoAgendamento.PLANO)
+                .planoConsumoRegistrado(Boolean.FALSE)
+                .build();
+        sessao.setId(UUID.randomUUID());
+        return sessao;
     }
 }

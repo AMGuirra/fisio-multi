@@ -439,14 +439,14 @@ class FinanceiroServiceTest {
 
     @Test
     void deveRetornarZeroInadimplenciaQuandoNaoHaVencidos() {
-        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataCompetenciaBefore(
+        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataRecebimentoBefore(
                 eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(BigDecimal.ZERO);
-        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataCompetenciaBefore(
+        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataRecebimentoBefore(
                 eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(0L);
         when(lancamentoFinanceiroRepository
-                .findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+                .findFirstByTipoAndStatusAndDataRecebimentoBeforeOrderByDataRecebimentoAscCreatedAtAsc(
                         eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(Optional.empty());
 
@@ -495,7 +495,7 @@ class FinanceiroServiceTest {
     @Test
     void deveClassificarLancamentoNoDiaComoAVencer() {
         LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(0);
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l));
 
@@ -508,7 +508,7 @@ class FinanceiroServiceTest {
     @Test
     void deveClassificarAtraso3DiasNaFaixa1A7() {
         LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(3);
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l));
 
@@ -521,7 +521,7 @@ class FinanceiroServiceTest {
     @Test
     void deveClassificarAtraso10DiasNaFaixa8A15() {
         LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(10);
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l));
 
@@ -532,7 +532,7 @@ class FinanceiroServiceTest {
     @Test
     void deveClassificarAtraso20DiasNaFaixa16A30() {
         LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(20);
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l));
 
@@ -543,7 +543,7 @@ class FinanceiroServiceTest {
     @Test
     void deveClassificarAtraso35DiasNaFaixaAcima30() {
         LancamentoFinanceiroEntity l = receitaPendenteVencidaHa(35);
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l));
 
@@ -557,7 +557,7 @@ class FinanceiroServiceTest {
         PlanoSessaoEntity meuPlano = plano(paciente, "Plano Mensal", "500.00", LocalDate.now());
         LancamentoFinanceiroEntity l1 = receitaPendenteVencidaHa(paciente, meuPlano, 5, "100.00");
         LancamentoFinanceiroEntity l2 = receitaPendenteVencidaHa(paciente, meuPlano, 10, "150.00");
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(l1, l2));
 
@@ -574,7 +574,7 @@ class FinanceiroServiceTest {
         ClienteEntity p2 = cliente("Bruno");
         LancamentoFinanceiroEntity recente = receitaPendenteVencidaHa(p1, null, 3, "100.00");
         LancamentoFinanceiroEntity antigo  = receitaPendenteVencidaHa(p2, null, 35, "200.00");
-        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataCompetenciaAscCreatedAtAsc(
+        when(lancamentoFinanceiroRepository.findByTipoAndStatusOrderByDataRecebimentoAscCreatedAtAsc(
                 TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE))
                 .thenReturn(List.of(recente, antigo));
 
@@ -659,10 +659,10 @@ class FinanceiroServiceTest {
         when(lancamentoFinanceiroRepository.sumValorByPeriodoAndTipoAndStatus(
                 any(), any(), eq(TipoLancamentoFinanceiro.DESPESA), eq(StatusLancamentoFinanceiro.PENDENTE)))
                 .thenReturn(new BigDecimal(despesasPendentes));
-        when(lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndTipoAndStatus(
+        when(lancamentoFinanceiroRepository.countByDataRecebimentoBetweenAndTipoAndStatus(
                 any(), any(), eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PAGO)))
                 .thenReturn(receitasPagasCount);
-        when(lancamentoFinanceiroRepository.countByDataCompetenciaBetweenAndStatusNot(
+        when(lancamentoFinanceiroRepository.countByDataRecebimentoBetweenAndStatusNot(
                 any(), any(), eq(StatusLancamentoFinanceiro.CANCELADO)))
                 .thenReturn(lancamentosAtivosCount);
     }
@@ -676,7 +676,7 @@ class FinanceiroServiceTest {
                 .descricao("Lançamento teste")
                 .categoria("Teste")
                 .valor(new BigDecimal(valor))
-                .dataCompetencia(LocalDate.now().atStartOfDay(ZONA).toOffsetDateTime())
+                .dataRecebimento(LocalDate.now().atStartOfDay(ZONA).toOffsetDateTime())
                 .dataPagamento(status == StatusLancamentoFinanceiro.PAGO
                         ? OffsetDateTime.now(ZONA) : null)
                 .build();
@@ -694,7 +694,7 @@ class FinanceiroServiceTest {
         form.setDescricao(descricao);
         form.setCategoria(categoria);
         form.setValor(new BigDecimal(valor));
-        form.setDataCompetencia(LocalDate.now());
+        form.setDataRecebimento(LocalDate.now());
         return form;
     }
 
@@ -704,7 +704,7 @@ class FinanceiroServiceTest {
         form.setDescricao(descricao);
         form.setCategoria(categoria);
         form.setValor(new BigDecimal(valor));
-        form.setDataCompetencia(LocalDate.now());
+        form.setDataRecebimento(LocalDate.now());
         return form;
     }
 
@@ -729,21 +729,21 @@ class FinanceiroServiceTest {
     }
 
     private void mockInadimplencia(BigDecimal total, long quantidade, LancamentoFinanceiroEntity maisAntigo) {
-        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataCompetenciaBefore(
+        when(lancamentoFinanceiroRepository.sumValorByTipoAndStatusAndDataRecebimentoBefore(
                 eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(total);
-        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataCompetenciaBefore(
+        when(lancamentoFinanceiroRepository.countByTipoAndStatusAndDataRecebimentoBefore(
                 eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(quantidade);
         when(lancamentoFinanceiroRepository
-                .findFirstByTipoAndStatusAndDataCompetenciaBeforeOrderByDataCompetenciaAscCreatedAtAsc(
+                .findFirstByTipoAndStatusAndDataRecebimentoBeforeOrderByDataRecebimentoAscCreatedAtAsc(
                         eq(TipoLancamentoFinanceiro.RECEITA), eq(StatusLancamentoFinanceiro.PENDENTE), any()))
                 .thenReturn(Optional.of(maisAntigo));
     }
 
     private void mockRelatorioFaturamento(List<LancamentoFinanceiroEntity> receitasPagas) {
         when(lancamentoFinanceiroRepository
-                .findByDataCompetenciaBetweenAndTipoAndStatusOrderByDataCompetenciaDescCreatedAtDesc(
+                .findByDataRecebimentoBetweenAndTipoAndStatusOrderByDataRecebimentoDescCreatedAtDesc(
                         any(), any(),
                         eq(TipoLancamentoFinanceiro.RECEITA),
                         eq(StatusLancamentoFinanceiro.PAGO)))
@@ -771,7 +771,7 @@ class FinanceiroServiceTest {
                 .descricao("Receita teste")
                 .categoria("Teste")
                 .valor(new BigDecimal(valor))
-                .dataCompetencia(vencimento.atStartOfDay(ZONA).toOffsetDateTime())
+                .dataRecebimento(vencimento.atStartOfDay(ZONA).toOffsetDateTime())
                 .cliente(clienteArg)
                 .planoSessao(planoArg)
                 .build();
@@ -786,7 +786,7 @@ class FinanceiroServiceTest {
                 .descricao(descricao)
                 .categoria(categoria)
                 .valor(new BigDecimal(valor))
-                .dataCompetencia(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
+                .dataRecebimento(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
                 .dataPagamento(OffsetDateTime.now(ZONA))
                 .build();
         l.setId(UUID.randomUUID());
@@ -800,7 +800,7 @@ class FinanceiroServiceTest {
                 .descricao("Plano de tratamento: " + planoArg.getNomePlano())
                 .categoria("Planos de tratamento")
                 .valor(new BigDecimal(valor))
-                .dataCompetencia(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
+                .dataRecebimento(LocalDate.now(ZONA).atStartOfDay(ZONA).toOffsetDateTime())
                 .dataPagamento(OffsetDateTime.now(ZONA))
                 .planoSessao(planoArg)
                 .build();

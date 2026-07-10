@@ -15,6 +15,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.dto.AjusteSessoesPreviewDTO;
 import com.fisiogestao.pacientes.dto.ReconciliacaoPreviewDTO;
 import com.fisiogestao.pacientes.form.PlanoConsumoForm;
 import com.fisiogestao.pacientes.form.PlanoSessaoForm;
@@ -428,7 +429,11 @@ public class PlanoSessaoService {
     public PlanoSessaoEntity validarDisponivel(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        if (!isDisponivel(plano)) {
+        String motivo = motivoIndisponibilidadeBasica(plano);
+        if (motivo != null) {
+            throw new BusinessException(motivo);
+        }
+        if (motivo != null) {
             throw new BusinessException("O plano de tratamento selecionado não possui sessões disponíveis.");
         }
         return plano;
@@ -461,7 +466,34 @@ public class PlanoSessaoService {
         return Math.max(0, calcularSessoesDisponiveis(plano) - (int) sessaoRepository.countAgendadasPorPlano(plano.getId()));
     }
 
+    public boolean isDisponivelParaUso(PlanoSessaoEntity plano) {
+        return motivoIndisponibilidadeBasica(plano) == null;
+    }
+
+    private String motivoIndisponibilidadeBasica(PlanoSessaoEntity plano) {
+        if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
+            return "Plano cancelado.";
+        }
+        if (plano.getStatus() == PlanoSessaoStatus.CONCLUIDO) {
+            return "Plano concluido, sem sessoes disponiveis.";
+        }
+        if (plano.getStatus() == PlanoSessaoStatus.EXPIRADO) {
+            return "Plano expirado.";
+        }
+        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
+            return "Vigencia encerrada em " + plano.getDataValidade() + ". Crie ou renove um plano para novos atendimentos.";
+        }
+        if (plano.getSessoesConsumidas() >= plano.getSessoesContratadas()) {
+            return "Todas as sessoes foram consumidas.";
+        }
+        return null;
+    }
+
     public String motivoIndisponibilidadeAgenda(PlanoSessaoEntity plano) {
+        String motivoBasico = motivoIndisponibilidadeBasica(plano);
+        if (motivoBasico != null) {
+            return motivoBasico;
+        }
         if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
             return "Plano cancelado.";
         }
@@ -485,13 +517,7 @@ public class PlanoSessaoService {
     }
 
     private boolean isDisponivel(PlanoSessaoEntity plano) {
-        if (plano.getStatus() != PlanoSessaoStatus.ATIVO) {
-            return false;
-        }
-        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
-            return false;
-        }
-        return plano.getSessoesConsumidas() < plano.getSessoesContratadas();
+        return isDisponivelParaUso(plano);
     }
 
     @Transactional(readOnly = true)
@@ -507,6 +533,7 @@ public class PlanoSessaoService {
             correto += (int) sessaoRepository.countOrfasRealizadasNoPeriodo(
                     plano.getCliente().getId(), inicio, fim);
         }
+        correto = Math.min(correto, valorSeguro(plano.getSessoesContratadas()));
         int naoRegistradas = (int) sessaoRepository.countNaoRegistradasPorPlano(planoId);
         return new ReconciliacaoPreviewDTO(planoId, atual, correto, naoRegistradas, atual != correto);
     }
@@ -524,12 +551,130 @@ public class PlanoSessaoService {
             OffsetDateTime fim = plano.getDataValidade().atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC);
             sessaoRepository.vincularOrfasAoPlano(planoId, plano.getCliente().getId(), inicio, fim);
         }
-        sessaoRepository.marcarComoRegistradasPorPlano(planoId);
-        int correto = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);
+        int totalContratado = valorSeguro(plano.getSessoesContratadas());
+        int contabilizaveis = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);
+        int correto = Math.min(contabilizaveis, totalContratado);
+        int pendentes = (int) sessaoRepository.countNaoRegistradasPorPlano(planoId);
+        int jaRegistradas = Math.max(0, contabilizaveis - pendentes);
+        int registrarAgora = Math.max(0, correto - jaRegistradas);
+        List<SessaoEntity> sessoesParaRegistrar = sessaoRepository.findContabilizaveisNaoRegistradasPorPlano(planoId).stream()
+                .limit(registrarAgora)
+                .toList();
+        for (SessaoEntity sessao : sessoesParaRegistrar) {
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
+            sessaoRepository.save(sessao);
+        }
         plano.setSessoesConsumidas(correto);
         plano.setStatus(statusAjustado(plano.getStatus(), correto,
                 plano.getSessoesContratadas(), plano.getDataValidade()));
         planoSessaoRepository.save(plano);
+    }
+
+    @Transactional(readOnly = true)
+    public AjusteSessoesPreviewDTO previewAjusteSessoesPaciente(UUID pacienteId, UUID planoId) {
+        PlanoSessaoEntity plano = buscarPlanoDoPaciente(pacienteId, planoId);
+        List<SessaoEntity> pendentes = sessoesPendentesParaAjuste(plano);
+        int consumoAtual = valorSeguro(plano.getSessoesConsumidas());
+        int totalContratado = valorSeguro(plano.getSessoesContratadas());
+        int saldoDisponivel = Math.max(0, totalContratado - consumoAtual);
+        int ajustaveis = Math.min(saldoDisponivel, pendentes.size());
+        int excedentes = Math.max(0, pendentes.size() - ajustaveis);
+        return new AjusteSessoesPreviewDTO(
+                pacienteId,
+                planoId,
+                consumoAtual,
+                totalContratado,
+                saldoDisponivel,
+                pendentes.size(),
+                ajustaveis,
+                excedentes,
+                excedentes > 0
+        );
+    }
+
+    @Transactional
+    public AjusteSessoesPreviewDTO executarAjusteSessoesPaciente(UUID pacienteId, UUID planoId) {
+        PlanoSessaoEntity plano = buscarPlanoDoPaciente(pacienteId, planoId);
+        if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
+            throw new BusinessException("Não é possível ajustar sessões de um plano cancelado.");
+        }
+
+        AjusteSessoesPreviewDTO preview = previewAjusteSessoesPaciente(pacienteId, planoId);
+        if (preview.sessoesAjustaveis() <= 0) {
+            return preview;
+        }
+
+        var snapshotPlanoAnterior = auditService.snapshotOf(plano);
+        List<SessaoEntity> sessoesParaAjustar = sessoesPendentesParaAjuste(plano).stream()
+                .limit(preview.sessoesAjustaveis())
+                .toList();
+
+        for (SessaoEntity sessao : sessoesParaAjustar) {
+            var snapshotSessaoAnterior = auditService.snapshotOf(sessao);
+            sessao.setPlanoSessao(plano);
+            sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
+            SessaoEntity salva = sessaoRepository.save(sessao);
+            auditService.recordManual(
+                    AuditModule.AGENDA,
+                    "sessao",
+                    salva.getId().toString(),
+                    auditService.describeOf(salva),
+                    AuditActionType.UPDATE,
+                    snapshotSessaoAnterior,
+                    auditService.snapshotOf(salva),
+                    null,
+                    "Ajuste manual de consumo pelo painel de planos.",
+                    AuditEventOrigin.MANUAL
+            );
+        }
+
+        int novoConsumo = Math.min(
+                valorSeguro(plano.getSessoesContratadas()),
+                valorSeguro(plano.getSessoesConsumidas()) + sessoesParaAjustar.size()
+        );
+        plano.setSessoesConsumidas(novoConsumo);
+        plano.setStatus(statusAjustado(
+                plano.getStatus(),
+                novoConsumo,
+                plano.getSessoesContratadas(),
+                plano.getDataValidade()
+        ));
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
+        auditService.recordManual(
+                AuditModule.PLANOS,
+                "plano_sessao",
+                salvo.getId().toString(),
+                salvo.getNomePlano(),
+                AuditActionType.UPDATE,
+                snapshotPlanoAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Ajuste manual de sessoes realizadas no consumo do plano.",
+                AuditEventOrigin.MANUAL
+        );
+        return preview;
+    }
+
+    private PlanoSessaoEntity buscarPlanoDoPaciente(UUID pacienteId, UUID planoId) {
+        PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
+        if (!plano.getCliente().getId().equals(pacienteId)) {
+            throw new BusinessException("O plano selecionado não pertence ao paciente informado.");
+        }
+        return plano;
+    }
+
+    private List<SessaoEntity> sessoesPendentesParaAjuste(PlanoSessaoEntity plano) {
+        OffsetDateTime inicio = plano.getDataInicio().atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
+        OffsetDateTime fim = (plano.getDataValidade() == null ? LocalDate.of(9999, 12, 31) : plano.getDataValidade())
+                .atTime(23, 59, 59)
+                .atOffset(java.time.ZoneOffset.UTC);
+        return sessaoRepository.findPendentesDeConsumoDoPacienteNoPlano(
+                plano.getCliente().getId(),
+                plano.getId(),
+                inicio,
+                fim
+        );
     }
 
     private void validarPeriodo(LocalDate dataInicio, LocalDate dataValidade) {
@@ -542,6 +687,10 @@ public class PlanoSessaoService {
         if (sessoesConsumidas > sessoesContratadas) {
             throw new BusinessException("As sessões consumidas não podem ser maiores do que as sessões contratadas.");
         }
+    }
+
+    private int valorSeguro(Integer valor) {
+        return valor == null ? 0 : valor;
     }
 
     private Comparator<PlanoSessaoEntity> comparadorDisponibilidade() {

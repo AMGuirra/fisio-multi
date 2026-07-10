@@ -376,6 +376,7 @@ class PageSmokeTest {
                         .param("agendar", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"openAgendamentoSessaoModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"openAjusteSessoesModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"agendamentoSessaoModal\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("aria-hidden=\"false\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Paciente em atendimento")))
@@ -436,6 +437,42 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void planosConsumoAjustaSessaoRealizadaPendenteEPermaneceNaMesmaTela() throws Exception {
+        PlanoSessaoEntity planoAntes = planoSessaoRepository.findAll().stream()
+                .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Plano de teste nÃ£o encontrado para ajuste de sessÃµes."));
+        int consumoInicial = planoAntes.getSessoesConsumidas();
+
+        SessaoEntity pendente = sessaoRepository.save(SessaoEntity.builder()
+                .cliente(clienteAgenda)
+                .planoSessao(null)
+                .dataHoraInicio(agendaDate.plusDays(1).atTime(11, 0).atZone(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
+                .dataHoraFim(agendaDate.plusDays(1).atTime(11, 50).atZone(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
+                .status(SessaoStatus.REALIZADA)
+                .tipoAgendamento(TipoAgendamento.PLANO)
+                .tipoAtendimento("RPG")
+                .planoConsumoRegistrado(Boolean.FALSE)
+                .build());
+
+        mockMvc.perform(post("/planos-consumo/{pacienteId}/ajustar-sessoes", clienteAgenda.getId())
+                        .with(csrf())
+                        .param("planoId", planoAntes.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/planos-consumo?pacienteId=" + clienteAgenda.getId()));
+
+        PlanoSessaoEntity planoDepois = planoSessaoRepository.findById(planoAntes.getId())
+                .orElseThrow(() -> new IllegalStateException("Plano de teste nÃ£o encontrado apÃ³s ajuste."));
+        SessaoEntity sessaoDepois = sessaoRepository.findById(pendente.getId())
+                .orElseThrow(() -> new IllegalStateException("SessÃ£o pendente nÃ£o encontrada apÃ³s ajuste."));
+
+        org.junit.jupiter.api.Assertions.assertEquals(consumoInicial + 1, planoDepois.getSessoesConsumidas());
+        org.junit.jupiter.api.Assertions.assertEquals(planoAntes.getId(), sessaoDepois.getPlanoSessao().getId());
+        org.junit.jupiter.api.Assertions.assertTrue(sessaoDepois.getPlanoConsumoRegistrado());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void planosConsumoExcluiPlanoComSessaoVinculada() throws Exception {
         PlanoSessaoEntity plano = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
@@ -482,7 +519,7 @@ class PageSmokeTest {
                 .descricao("Receita vinculada ao paciente")
                 .categoria("Planos de tratamento")
                 .valor(new BigDecimal("350.00"))
-                .dataCompetencia(OffsetDateTime.now(ZoneId.of("America/Campo_Grande")).withHour(10).withMinute(0).withSecond(0).withNano(0))
+                .dataRecebimento(OffsetDateTime.now(ZoneId.of("America/Campo_Grande")).withHour(10).withMinute(0).withSecond(0).withNano(0))
                 .cliente(clienteAgenda)
                 .build());
 
@@ -623,7 +660,7 @@ class PageSmokeTest {
                 .descricao("Plano de sessões: Acompanhamento domiciliar")
                 .categoria("Planos de tratamento")
                 .valor(new BigDecimal("1.00"))
-                .dataCompetencia(agendaDate.atStartOfDay(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
+                .dataRecebimento(agendaDate.atStartOfDay(ZoneId.of("America/Campo_Grande")).toOffsetDateTime())
                 .cliente(clienteAgenda)
                 .planoSessao(plano)
                 .build());

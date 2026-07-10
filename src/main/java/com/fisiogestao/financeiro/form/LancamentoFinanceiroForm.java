@@ -36,5 +36,5 @@ public class LancamentoFinanceiroForm {
 
     @NotNull(message = "Informe a data de competência.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate dataCompetencia;
+    private LocalDate dataRecebimento;
 }
