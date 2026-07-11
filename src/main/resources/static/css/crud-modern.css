@@ -113,6 +113,28 @@
     flex: 0 0 auto;
 }
 
+.agenda-blocks-card .helper-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.agenda-blocks-card .helper-copy,
+.agenda-blocks-card .form-actions {
+    min-width: 0;
+}
+
+.agenda-blocks-card .form-actions {
+    width: 100%;
+}
+
+.agenda-blocks-card .form-actions .action-button {
+    flex: 1 1 170px;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+}
+
 @media (max-width: 1680px) {
     .agenda-support-grid .helper-card {
         flex-direction: column;
