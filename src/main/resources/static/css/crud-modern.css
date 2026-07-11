@@ -1521,8 +1521,9 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 
 .patient-spotlight-stat {
     border-radius: 14px;
-    border: 1px solid #d9e8e3;
-    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--stroke-soft);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
     padding: 14px 12px;
     display: grid;
     gap: 6px;
