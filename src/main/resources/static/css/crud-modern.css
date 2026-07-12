@@ -2305,9 +2305,9 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     padding: 4px 8px;
     font-size: 0.7rem;
     line-height: 1.35;
-    color: #6d4a00;
-    background: #fff1cb;
-    border: 1px solid #f3ddb0;
+    color: #8a2f2f;
+    background: #ffe2e2;
+    border: 1px solid #f4b8b8;
 }
 
 .calendar-day-links {
@@ -3130,9 +3130,9 @@ body[data-theme='dark'] .calendar-day.day-selected .calendar-day-item {
 }
 
 body[data-theme='dark'] .calendar-tag {
-    background: rgba(209, 154, 16, 0.18);
-    border-color: rgba(209, 154, 16, 0.28);
-    color: #f7d98b;
+    background: rgba(213, 83, 83, 0.2);
+    border-color: rgba(213, 83, 83, 0.34);
+    color: #ffc7c7;
 }
 
 body[data-theme='dark'] .calendar-link {
