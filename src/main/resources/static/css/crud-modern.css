@@ -2796,7 +2796,6 @@ body.modal-open {
 }
 
 .appointment-type-control,
-.weekday-grid,
 .quick-actions {
     display: flex;
     flex-wrap: wrap;
@@ -2812,15 +2811,13 @@ body.modal-open {
     background: #f4f8f7;
 }
 
-.appointment-type-option input,
-.weekday-grid input {
+.appointment-type-option input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
 }
 
-.appointment-type-option span,
-.weekday-grid span {
+.appointment-type-option span {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2860,17 +2857,6 @@ body.modal-open {
     background: #ecfdf5;
     color: #15803d;
     box-shadow: 0 8px 18px rgba(22, 163, 74, 0.12);
-}
-
-.weekday-grid input:checked + span {
-    border-color: var(--accent-color);
-    background: rgba(14, 165, 233, 0.12);
-    color: var(--accent-color);
-}
-
-.weekday-grid span {
-    width: 42px;
-    padding: 0;
 }
 
 .appointment-flow-panel {
@@ -5886,10 +5872,22 @@ body[data-theme='dark'] .cp-key kbd {
 }
 
 .weekday-grid label {
+    display: block;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.weekday-grid input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.weekday-grid span {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    width: 100%;
     min-height: 38px;
     padding: 6px 8px;
     border: 1px solid var(--stroke-soft);
@@ -5898,19 +5896,37 @@ body[data-theme='dark'] .cp-key kbd {
     color: var(--text-body);
     font-size: 0.78rem;
     font-weight: 750;
-    cursor: pointer;
+    line-height: 1;
+    transition: background var(--ease-standard), border-color var(--ease-standard), color var(--ease-standard), box-shadow var(--ease-standard), transform var(--ease-standard);
 }
 
-.weekday-grid input {
-    width: 14px;
-    height: 14px;
-    accent-color: var(--brand-500);
+.weekday-grid label:hover span {
+    border-color: var(--brand-500);
+}
+
+.weekday-grid input:checked + span {
+    border-color: #0f766e;
+    background: #ccfbf1;
+    color: #115e59;
+    box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
+}
+
+.weekday-grid input:focus-visible + span {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
 }
 
 body[data-theme='dark'] .recorrencia-box,
-body[data-theme='dark'] .weekday-grid label {
+body[data-theme='dark'] .weekday-grid span {
     background: rgba(12, 22, 28, 0.94);
     border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .weekday-grid input:checked + span {
+    border-color: #5eead4;
+    background: rgba(20, 184, 166, 0.24);
+    color: #ccfbf1;
+    box-shadow: 0 8px 18px rgba(20, 184, 166, 0.2);
 }
 
 @media (max-width: 720px) {
