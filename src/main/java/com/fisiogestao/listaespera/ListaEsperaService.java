@@ -98,7 +98,7 @@ public class ListaEsperaService {
 
     @Transactional(readOnly = true)
     public long contarAguardando() {
-        return listaEsperaRepository.findByStatusOrderByCreatedAtAsc(StatusListaEspera.AGUARDANDO).size();
+        return listaEsperaRepository.countByStatus(StatusListaEspera.AGUARDANDO);
     }
 
     @Transactional

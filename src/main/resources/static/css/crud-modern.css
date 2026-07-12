@@ -118,16 +118,16 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
 }
 
-.agenda-blocks-card .helper-copy,
-.agenda-blocks-card .form-actions {
+.helper-card .helper-copy,
+.helper-card .form-actions {
     min-width: 0;
 }
 
-.agenda-blocks-card .form-actions {
+.helper-card .form-actions {
     width: 100%;
 }
 
-.agenda-blocks-card .form-actions .action-button {
+.helper-card .form-actions .action-button {
     flex: 1 1 170px;
     min-width: 0;
     white-space: normal;
