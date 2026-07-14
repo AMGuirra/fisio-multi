@@ -77,73 +77,61 @@ public class PortalPacienteController {
 
     private static final String SESS_PREFIX = "portalAutenticado_";
 
-    @GetMapping("/{token}/login")
-    public String loginForm(@PathVariable UUID token, Model model) {
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) return "portal/token-invalido";
-        if (paciente.getSenhaPortal() == null || paciente.getSenhaPortal().isBlank()) {
-            return "redirect:/paciente/" + token;
-        }
-        model.addAttribute("token", token);
-        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
+    /**
+     * Login do portal por identificador (e-mail ou CPF) + senha — não depende de o visitante
+     * conhecer o link secreto do paciente. A senha é sempre exigida: contas sem senha definida
+     * precisam passar por "esqueci minha senha" antes de conseguir entrar.
+     */
+    @GetMapping("/login")
+    public String loginForm() {
         return "portal/login";
     }
 
-    @PostMapping("/{token}/login")
+    @PostMapping("/login")
     public String loginSubmit(
-            @PathVariable UUID token,
+            @RequestParam String identificador,
             @RequestParam String senha,
             Model model,
-            HttpSession session,
-            RedirectAttributes redirectAttributes
+            HttpSession session
     ) {
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) return "portal/token-invalido";
+        ClienteEntity paciente = pacienteService.autenticarPortal(identificador, senha).orElse(null);
 
-        if (pacienteService.verificarSenhaPortal(paciente, senha)) {
-            session.setAttribute(SESS_PREFIX + token, Boolean.TRUE);
-            return "redirect:/paciente/" + token;
+        if (paciente == null) {
+            model.addAttribute("erroLogin", "Identificador ou senha inválidos.");
+            return "portal/login";
         }
 
-        model.addAttribute("token", token);
-        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
-        model.addAttribute("erroSenha", "Senha incorreta. Tente novamente.");
-        return "portal/login";
+        session.setAttribute(SESS_PREFIX + paciente.getPortalToken(), Boolean.TRUE);
+        return "redirect:/paciente/" + paciente.getPortalToken();
     }
 
     @GetMapping("/{token}/sair")
     public String sair(@PathVariable UUID token, HttpSession session) {
         session.removeAttribute(SESS_PREFIX + token);
-        return "redirect:/paciente/" + token + "/login";
+        return "redirect:/paciente/login";
     }
 
-    @GetMapping("/{token}/esqueci-minha-senha")
-    public String esqueciSenhaForm(@PathVariable UUID token, Model model) {
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) return "portal/token-invalido";
-        model.addAttribute("token", token);
-        model.addAttribute("nomePaciente", paciente.getNomeCompleto());
+    @GetMapping("/esqueci-minha-senha")
+    public String esqueciSenhaForm() {
         return "portal/esqueci-senha-portal";
     }
 
-    @PostMapping("/{token}/esqueci-minha-senha")
+    @PostMapping("/esqueci-minha-senha")
     public String esqueciSenhaSubmit(
-            @PathVariable UUID token,
-            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String identificador,
             HttpServletRequest request,
-            RedirectAttributes redirectAttributes
+            Model model
     ) {
-        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
-        if (paciente == null) return "portal/token-invalido";
-        pacienteService.solicitarResetSenhaPaciente(
-                email,
+        pacienteService.solicitarAjudaSenhaPaciente(
+                identificador,
                 request.getRemoteAddr(),
                 request.getHeader("User-Agent"),
                 resolveBaseUrl(request)
         );
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir a senha.");
-        return "redirect:/paciente/" + token + "/esqueci-minha-senha";
+        model.addAttribute("successMessage",
+                "Se os dados informados estiverem cadastrados, você receberá um e-mail com instruções — "
+                        + "ou, caso não tenha e-mail cadastrado, a equipe da clínica entrará em contato para ajudar.");
+        return "portal/esqueci-senha-portal";
     }
 
     @GetMapping("/resetar-senha")
@@ -217,9 +205,8 @@ public class PortalPacienteController {
             return "portal/token-invalido";
         }
 
-        if (paciente.getSenhaPortal() != null && !paciente.getSenhaPortal().isBlank()
-                && !Boolean.TRUE.equals(session.getAttribute(SESS_PREFIX + token))) {
-            return "redirect:/paciente/" + token + "/login";
+        if (!Boolean.TRUE.equals(session.getAttribute(SESS_PREFIX + token))) {
+            return "redirect:/paciente/login";
         }
 
         ConfiguracaoClinicaEntity clinica = configuracaoClinicaRepository

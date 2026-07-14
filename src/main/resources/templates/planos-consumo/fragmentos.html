@@ -109,6 +109,10 @@
                 <label>Valor total (R$)</label>
                 <input type="number" name="valorTotal" min="0" step="0.01" th:value="${plano != null ? #strings.replace(#strings.replace(#strings.replace(plano.valorFormatado, 'R$', ''), '.', ''), ',', '.') : '0.00'}">
             </div>
+            <div class="fld" th:if="${modo == 'CRIAR_PLANO' or modo == 'RENOVAR'}">
+                <label>Número de parcelas</label>
+                <input type="number" name="numeroParcelas" min="1" max="60" value="1">
+            </div>
             <div class="two">
                 <div class="fld">
                     <label>Início da vigência</label>
@@ -512,6 +516,42 @@
                     <div class="fld">
                         <label>Observações</label>
                         <input type="text" name="observacoes" maxlength="2000" placeholder="Opcional">
+                    </div>
+
+                    <input type="hidden" name="recorrencia.frequencia" value="SEMANAL">
+                    <input type="hidden" name="recorrencia.intervalo" value="1">
+
+                    <div class="fld">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="pcAgendamentoRecorrente" name="recorrente" value="true">
+                            <span>Agendar em série</span>
+                        </label>
+                    </div>
+
+                    <div class="recorrencia-box initially-hidden" id="pcAgendamentoRecorrenciaBox">
+                        <div class="fld">
+                            <label>Dias da semana</label>
+                            <div class="weekday-grid" id="pcAgendamentoDiasSemana">
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="SEG"><span>Seg</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="TER"><span>Ter</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="QUA"><span>Qua</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="QUI"><span>Qui</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="SEX"><span>Sex</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="SAB"><span>Sáb</span></label>
+                                <label><input type="checkbox" name="recorrencia.diasSemana" value="DOM"><span>Dom</span></label>
+                            </div>
+                        </div>
+                        <div class="two">
+                            <div class="fld">
+                                <label for="pcAgendamentoRecorrenciaFim">Até</label>
+                                <input id="pcAgendamentoRecorrenciaFim" type="date" name="recorrencia.dataFim">
+                            </div>
+                            <div class="fld">
+                                <label for="pcAgendamentoMaxOcorrencias">Limite</label>
+                                <input id="pcAgendamentoMaxOcorrencias" type="number" name="recorrencia.maxOcorrencias" min="1" max="365" value="52">
+                            </div>
+                        </div>
+                        <p class="helper-text" id="pcAgendamentoRecorrenciaPreview">Selecione pelo menos um dia da semana e uma data final válida.</p>
                     </div>
 
                     <div class="pc-modal-actions">

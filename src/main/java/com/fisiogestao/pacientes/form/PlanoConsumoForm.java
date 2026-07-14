@@ -2,6 +2,7 @@ package com.fisiogestao.pacientes.form;
 
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,4 +47,8 @@ public class PlanoConsumoForm {
 
     @NotNull(message = "Informe o status do plano de tratamento.")
     private PlanoSessaoStatus status;
+
+    @Min(value = 1, message = "O número de parcelas deve ser maior ou igual a 1.")
+    @Max(value = 60, message = "O número de parcelas não pode ser maior que 60.")
+    private Integer numeroParcelas;
 }

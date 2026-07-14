@@ -12,6 +12,7 @@ import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.PlanoSessaoStatus;
+import com.fisiogestao.pacientes.form.PlanoConsumoForm;
 import com.fisiogestao.pacientes.form.PlanoSessaoForm;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
@@ -36,6 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -178,6 +181,47 @@ class PlanoSessaoServiceTest {
         planoSessaoService.criar(clienteId, form);
 
         verify(financeiroService).registrarReceitaPlano(any(PlanoSessaoEntity.class));
+    }
+
+    // -----------------------------------------------------------------------
+    // criarViaCrud — encadeamento do faturamento parcelado
+    // -----------------------------------------------------------------------
+
+    @Test
+    void criarViaCrudDeveRegistrarReceitaParceladaQuandoNumeroParcelasMaiorQueUm() {
+        UUID clienteId = UUID.randomUUID();
+        PlanoConsumoForm form = formConsumo(clienteId, "Plano Trimestral", 10, "600.00", LocalDate.now());
+        form.setNumeroParcelas(3);
+
+        when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente("Maria"));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> {
+            PlanoSessaoEntity p = inv.getArgument(0);
+            p.setId(UUID.randomUUID());
+            return p;
+        });
+
+        planoSessaoService.criarViaCrud(form, "Dra. Ana");
+
+        verify(financeiroService).registrarReceitaPlanoParcelado(any(PlanoSessaoEntity.class), eq(3), eq("Dra. Ana"));
+        verify(financeiroService, never()).registrarReceitaPlano(any(PlanoSessaoEntity.class), any());
+    }
+
+    @Test
+    void criarViaCrudDeveRegistrarReceitaUnicaQuandoNumeroParcelasNulo() {
+        UUID clienteId = UUID.randomUUID();
+        PlanoConsumoForm form = formConsumo(clienteId, "Plano Mensal", 10, "450.00", LocalDate.now());
+
+        when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente("Maria"));
+        when(planoSessaoRepository.save(any())).thenAnswer(inv -> {
+            PlanoSessaoEntity p = inv.getArgument(0);
+            p.setId(UUID.randomUUID());
+            return p;
+        });
+
+        planoSessaoService.criarViaCrud(form, "Dra. Ana");
+
+        verify(financeiroService).registrarReceitaPlano(any(PlanoSessaoEntity.class), eq("Dra. Ana"));
+        verify(financeiroService, never()).registrarReceitaPlanoParcelado(any(), anyInt(), any());
     }
 
     @Test
@@ -520,6 +564,18 @@ class PlanoSessaoServiceTest {
         form.setValorTotal(new BigDecimal(valor));
         form.setDataInicio(inicio);
         form.setDataValidade(validade);
+        return form;
+    }
+
+    private PlanoConsumoForm formConsumo(UUID clienteId, String nome, int sessoes, String valor, LocalDate inicio) {
+        PlanoConsumoForm form = new PlanoConsumoForm();
+        form.setClienteId(clienteId);
+        form.setNomePlano(nome);
+        form.setSessoesContratadas(sessoes);
+        form.setSessoesConsumidas(0);
+        form.setValorTotal(new BigDecimal(valor));
+        form.setDataInicio(inicio);
+        form.setStatus(PlanoSessaoStatus.ATIVO);
         return form;
     }
 

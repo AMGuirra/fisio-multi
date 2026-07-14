@@ -113,7 +113,7 @@ class AgendaServiceTest {
 
         assertEquals(SessaoStatus.REALIZADA, sessao.getStatus());
         assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
-        verify(planoSessaoService).reservarSessao(plano.getId());
+        verify(planoSessaoService).reservarSessaoParaConclusao(plano.getId());
         verify(agendamentoEmailNotificationService, never()).notificarCanceladoPorSessao(any(), any(), any());
     }
 
@@ -131,7 +131,7 @@ class AgendaServiceTest {
 
         assertEquals(SessaoStatus.FALTA, sessao.getStatus());
         assertEquals(Boolean.FALSE, sessao.getPlanoConsumoRegistrado());
-        verify(planoSessaoService, never()).reservarSessao(plano.getId());
+        verify(planoSessaoService, never()).reservarSessaoParaConclusao(plano.getId());
     }
 
     @Test
@@ -148,7 +148,7 @@ class AgendaServiceTest {
 
         assertEquals(SessaoStatus.FALTA_FATURADA, sessao.getStatus());
         assertEquals(Boolean.TRUE, sessao.getPlanoConsumoRegistrado());
-        verify(planoSessaoService).reservarSessao(plano.getId());
+        verify(planoSessaoService).reservarSessaoParaConclusao(plano.getId());
     }
 
     @Test

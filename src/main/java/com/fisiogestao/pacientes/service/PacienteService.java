@@ -1,5 +1,6 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auth.PasswordPolicy;
@@ -68,6 +69,7 @@ public class PacienteService {
     private final PasswordEncoder passwordEncoder;
     private final PacientePasswordResetTokenRepository pacientePasswordResetTokenRepository;
     private final SystemEmailService systemEmailService;
+    private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
     @Value("${app.base-url:http://localhost:8083}")
     private String baseUrl;
@@ -355,14 +357,120 @@ public class PacienteService {
         clienteRepository.save(cliente);
     }
 
-    public boolean verificarSenhaPortal(ClienteEntity cliente, String senhaRaw) {
-        if (cliente.getSenhaPortal() == null || cliente.getSenhaPortal().isBlank()) {
-            return true;
+    /**
+     * Hash bcrypt "descartável" usado apenas para igualar o tempo de resposta quando o
+     * identificador informado não corresponde a nenhum paciente ou a conta ainda não tem
+     * senha definida — evita que o tempo de resposta revele se o identificador existe.
+     */
+    private static final String DUMMY_BCRYPT_HASH =
+            "$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5L0EmZUsD3dqU/rM0lVn8DYWs8yjW";
+
+    /**
+     * Autentica um paciente no portal por identificador (e-mail ou CPF) + senha.
+     *
+     * <p>Substitui o acesso apenas por link secreto: a senha é sempre exigida (contas sem
+     * senha definida não conseguem logar — devem usar "esqueci minha senha" primeiro).</p>
+     */
+    @Transactional(readOnly = true)
+    public Optional<ClienteEntity> autenticarPortal(String identificador, String senhaRaw) {
+        ClienteEntity cliente = buscarPorIdentificadorPortal(identificador).orElse(null);
+        boolean temSenhaDefinida = cliente != null
+                && cliente.getSenhaPortal() != null
+                && !cliente.getSenhaPortal().isBlank();
+        String hashParaComparar = temSenhaDefinida ? cliente.getSenhaPortal() : DUMMY_BCRYPT_HASH;
+        boolean senhaConfere = senhaRaw != null && !senhaRaw.isBlank()
+                && passwordEncoder.matches(senhaRaw, hashParaComparar);
+
+        if (!temSenhaDefinida || !senhaConfere || !Boolean.TRUE.equals(cliente.getAtivo())) {
+            return Optional.empty();
         }
-        if (senhaRaw == null || senhaRaw.isBlank()) {
-            return false;
+        return Optional.of(cliente);
+    }
+
+    private Optional<ClienteEntity> buscarPorIdentificadorPortal(String identificador) {
+        if (identificador == null || identificador.isBlank()) {
+            return Optional.empty();
         }
-        return passwordEncoder.matches(senhaRaw, cliente.getSenhaPortal());
+        String valor = identificador.trim();
+        if (valor.contains("@")) {
+            return clienteRepository.findFirstByEmailIgnoreCase(valor.toLowerCase());
+        }
+        String digits = valor.replaceAll("\\D", "");
+        if (digits.length() == 11) {
+            return clienteRepository.findFirstByCpf(digits);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Ponto de entrada do "esqueci minha senha" do portal: aceita e-mail, CPF ou telefone
+     * como identificador, já que muitos pacientes (em especial idosos) não têm e-mail cadastrado.
+     *
+     * <p>Quando o paciente identificado tem e-mail, segue o fluxo padrão de link de redefinição.
+     * Quando não tem, a solicitação é encaminhada para o e-mail de contato da clínica
+     * (Configurações da Clínica), para que a equipe ajude o paciente presencialmente ou por telefone.</p>
+     */
+    @Transactional
+    public void solicitarAjudaSenhaPaciente(String identificador, String requestIp, String userAgent, String requestBaseUrl) {
+        if (identificador == null || identificador.isBlank()) {
+            return;
+        }
+        ClienteEntity cliente = buscarPorIdentificadorAjudaSenha(identificador).orElse(null);
+        if (cliente == null || !Boolean.TRUE.equals(cliente.getAtivo())) {
+            return;
+        }
+        if (cliente.getEmail() != null && !cliente.getEmail().isBlank()) {
+            solicitarResetSenhaPaciente(cliente.getEmail(), requestIp, userAgent, requestBaseUrl);
+            return;
+        }
+        notificarClinicaSemEmailPaciente(cliente);
+    }
+
+    private Optional<ClienteEntity> buscarPorIdentificadorAjudaSenha(String identificador) {
+        String valor = identificador.trim();
+        if (valor.contains("@")) {
+            return clienteRepository.findFirstByEmailIgnoreCase(valor.toLowerCase());
+        }
+        String digits = valor.replaceAll("\\D", "");
+        if (digits.length() == 11) {
+            Optional<ClienteEntity> porCpf = clienteRepository.findFirstByCpf(digits);
+            if (porCpf.isPresent()) {
+                return porCpf;
+            }
+        }
+        if (!digits.isEmpty()) {
+            return clienteRepository.findFirstByTelefone(digits);
+        }
+        return Optional.empty();
+    }
+
+    private void notificarClinicaSemEmailPaciente(ClienteEntity cliente) {
+        configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc().ifPresent(clinica -> {
+            String emailDestino = clinica.getEmailContato();
+            if (emailDestino == null || emailDestino.isBlank() || !emailDestino.contains("@")) {
+                return;
+            }
+            systemEmailService.send(
+                    EmailRequest.builder()
+                            .type(EmailLogType.SOLICITACAO_SENHA_PACIENTE_SEM_EMAIL)
+                            .subject("Paciente sem e-mail pediu ajuda com a senha do portal")
+                            .to(emailDestino)
+                            .templateName("email/solicitacao-senha-paciente-sem-email")
+                            .templateId("solicitacao-senha-paciente-sem-email")
+                            .entityType("cliente")
+                            .entityId(cliente.getId())
+                            .triggeredBy("sistema")
+                            .templateVariables(Map.of(
+                                    "nomePaciente", cliente.getNomeCompleto(),
+                                    "telefonePaciente", cliente.getTelefone() != null && !cliente.getTelefone().isBlank()
+                                            ? cliente.getTelefone() : "Não informado",
+                                    "cpfPaciente", cliente.getCpf() != null && !cliente.getCpf().isBlank()
+                                            ? cliente.getCpf() : "Não informado"
+                            ))
+                            .build()
+            );
+            log.debug("E-mail de solicitação de ajuda de senha (paciente sem e-mail) enviado para a clínica, cliente {}.", cliente.getId());
+        });
     }
 
     @Transactional

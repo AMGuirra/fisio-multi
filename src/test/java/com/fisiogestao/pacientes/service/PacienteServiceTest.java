@@ -1,5 +1,6 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auditoria.service.AuditService;
@@ -69,6 +70,9 @@ class PacienteServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
     @InjectMocks
     private PacienteService pacienteService;

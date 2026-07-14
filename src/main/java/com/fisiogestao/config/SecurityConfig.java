@@ -112,6 +112,8 @@ public class SecurityConfig {
                         ).authenticated()
                         // ── APIs de dados financeiros: restritas a ADMIN e FINANCEIRO ────────
                         // Contêm receita agregada, ocupação e projeções — dados sensíveis.
+                        // "/api/financeiro/**" é reservado preventivamente: nenhum @RestController
+                        // usa esse prefixo hoje, mas qualquer endpoint futuro nele já nasce protegido.
                         .requestMatchers("/api/dashboard/**", "/api/financeiro/**").hasAnyRole("ADMIN", "FINANCEIRO")
                         // ── APIs internas autenticadas ────────────────────────────────────────
                         // Qualquer role válida pode acessar. Explicitado para blindar contra
@@ -224,13 +226,21 @@ public class SecurityConfig {
      *   <li>/login — 10 tentativas em 15 min, redirect para /login?bloqueado</li>
      *   <li>/esqueci-minha-senha — 5 por minuto, JSON 429</li>
      *   <li>/agendamento-online — 5 por minuto, JSON 429</li>
+     *   <li>/paciente/login — 10 tentativas em 15 min, JSON 429</li>
+     *   <li>/paciente/esqueci-minha-senha — 5 por minuto, JSON 429</li>
      * </ul>
      */
     @Bean
     public FilterRegistrationBean<RateLimitingFilter> rateLimitingFilterRegistration() {
         FilterRegistrationBean<RateLimitingFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RateLimitingFilter());
-        registration.addUrlPatterns("/login", "/esqueci-minha-senha", "/agendamento-online");
+        registration.addUrlPatterns(
+                "/login",
+                "/esqueci-minha-senha",
+                "/agendamento-online",
+                "/paciente/login",
+                "/paciente/esqueci-minha-senha"
+        );
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         registration.setName("rateLimitingFilter");
         return registration;

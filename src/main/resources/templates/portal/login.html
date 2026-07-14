@@ -15,22 +15,27 @@
         </div>
         <h1 class="pub-success-title pub-success-title--compact">Acesse seu portal</h1>
         <p class="pub-success-text pub-text-tight">
-            Olá, <strong th:text="${#strings.substringBefore(nomePaciente, ' ')}">Paciente</strong>.
-            Insira sua senha para continuar.
+            Informe seu e-mail ou CPF e sua senha para continuar.
         </p>
 
-        <div th:if="${erroSenha}" class="pub-alert pub-alert-danger pub-alert--spaced">
+        <div th:if="${erroLogin}" class="pub-alert pub-alert-danger pub-alert--spaced">
             <i data-lucide="triangle-alert"></i>
-            <span th:text="${erroSenha}"></span>
+            <span th:text="${erroLogin}"></span>
         </div>
 
-        <form th:action="@{/paciente/{token}/login(token=${token})}" method="post" class="pub-form-panel">
+        <form th:action="@{/paciente/login}" method="post" class="pub-form-panel">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+
+            <div class="pub-form-group">
+                <label class="pub-label" for="identificador">E-mail ou CPF</label>
+                <input type="text" id="identificador" name="identificador" class="pub-control"
+                       placeholder="seu@email.com ou CPF" autofocus autocomplete="username" required>
+            </div>
 
             <div class="pub-form-group">
                 <label class="pub-label" for="senha">Senha</label>
                 <input type="password" id="senha" name="senha" class="pub-control"
-                       placeholder="Sua senha" autofocus autocomplete="current-password" required>
+                       placeholder="Sua senha" autocomplete="current-password" required>
             </div>
 
             <button type="submit" class="pub-btn-primary pub-action-offset">
@@ -40,8 +45,7 @@
         </form>
 
         <p class="pub-footer-link">
-            <a th:href="@{/paciente/{token}/esqueci-minha-senha(token=${token})}"
-               class="pub-link-muted">Esqueci minha senha</a>
+            <a th:href="@{/paciente/esqueci-minha-senha}" class="pub-link-muted">Esqueci minha senha / primeiro acesso</a>
         </p>
     </div>
 

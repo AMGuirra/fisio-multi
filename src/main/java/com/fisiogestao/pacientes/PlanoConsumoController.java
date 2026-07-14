@@ -83,10 +83,12 @@ public class PlanoConsumoController {
             @ModelAttribute PlanoFormDTO form,
             RedirectAttributes redirectAttributes,
             @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Authentication authentication,
             Model model
     ) {
         try {
-            planoService.salvarOuAtualizar(pacienteId, form);
+            String usuario = authentication == null ? "Equipe da clínica" : authentication.getName();
+            planoService.salvarOuAtualizar(pacienteId, form, usuario);
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Plano salvo com sucesso.");
                 adicionarContextoPaciente(pacienteId, "PLANO", model);
@@ -110,11 +112,13 @@ public class PlanoConsumoController {
             @ModelAttribute PlanoFormDTO form,
             RedirectAttributes redirectAttributes,
             @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Authentication authentication,
             Model model
     ) {
         try {
             form.setPlanoId(null);
-            PlanoSessaoEntity salvo = planoService.salvarOuAtualizar(pacienteId, form);
+            String usuario = authentication == null ? "Equipe da clínica" : authentication.getName();
+            PlanoSessaoEntity salvo = planoService.salvarOuAtualizar(pacienteId, form, usuario);
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Novo plano criado com sucesso.");
                 adicionarContextoPaciente(pacienteId, "PLANO", salvo.getId(), model);
@@ -139,10 +143,12 @@ public class PlanoConsumoController {
             @ModelAttribute PlanoFormDTO form,
             RedirectAttributes redirectAttributes,
             @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Authentication authentication,
             Model model
     ) {
         try {
-            PlanoSessaoEntity salvo = planoService.renovarPlano(planoAnteriorId, form);
+            String usuario = authentication == null ? "Equipe da clínica" : authentication.getName();
+            PlanoSessaoEntity salvo = planoService.renovarPlano(planoAnteriorId, form, usuario);
             if (isAjax(requestedWith)) {
                 model.addAttribute("successMessage", "Plano renovado com sucesso.");
                 adicionarContextoPaciente(pacienteId, "PLANO", salvo.getId(), model);

@@ -23,6 +23,7 @@ import com.fisiogestao.pacientes.form.PlanoSessaoForm;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,6 +101,14 @@ public class PlanoSessaoService {
                 .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado.")));
     }
 
+    /**
+     * A anotação {@code @PreAuthorize} é a segunda linha de defesa:
+     * garante que, mesmo que este método seja chamado fora do contexto HTTP
+     * (ex.: via injeção direta por outro serviço), a verificação de role
+     * ainda é enforced pelo Spring Security AOP.
+     * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criar(UUID clienteId, PlanoSessaoForm form) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
@@ -127,11 +136,15 @@ public class PlanoSessaoService {
         return salvo;
     }
 
+    // Segunda linha de defesa (ver comentário completo em criar acima). Anotado nas duas
+    // sobrecargas: autoinvocação entre métodos da mesma classe não passa pelo proxy AOP.
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form) {
         return criarViaCrud(form, null);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form, String profissionalResponsavel) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
@@ -147,7 +160,12 @@ public class PlanoSessaoService {
                 .status(statusAjustado(form.getStatus(), 0, form.getSessoesContratadas(), form.getDataValidade()))
                 .build();
         PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
-        financeiroService.registrarReceitaPlano(salvo, profissionalResponsavel);
+        int numeroParcelas = form.getNumeroParcelas() != null ? form.getNumeroParcelas() : 1;
+        if (numeroParcelas > 1) {
+            financeiroService.registrarReceitaPlanoParcelado(salvo, numeroParcelas, profissionalResponsavel);
+        } else {
+            financeiroService.registrarReceitaPlano(salvo, profissionalResponsavel);
+        }
         auditService.recordCreate(
                 AuditModule.PLANOS,
                 "plano_sessao",
@@ -199,6 +217,8 @@ public class PlanoSessaoService {
         return salvo;
     }
 
+    // Segunda linha de defesa (ver comentário completo em criar acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public void cancelar(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
@@ -241,6 +261,8 @@ public class PlanoSessaoService {
         );
     }
 
+    // Exclusão física — restrita a ADMIN, mesmo para roles com acesso a criar/cancelar planos.
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void excluir(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
@@ -376,7 +398,25 @@ public class PlanoSessaoService {
 
     @Transactional
     public PlanoSessaoEntity reservarSessao(UUID planoId, boolean notificar, int quantidadeNotificada) {
-        PlanoSessaoEntity plano = validarDisponivel(planoId);
+        return reservarSessao(planoId, notificar, quantidadeNotificada, true);
+    }
+
+    /**
+     * Registra o consumo de uma sessão já agendada dentro da vigência do plano, mesmo que a
+     * vigência tenha se encerrado entre o agendamento e a confirmação (ex.: marcar como
+     * realizada uma sessão de dias passados). A vigência só deve bloquear novos agendamentos,
+     * não a conclusão de compromissos já assumidos.
+     *
+     * Segunda linha de defesa (ver comentário completo em criar acima).
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @Transactional
+    public void reservarSessaoParaConclusao(UUID planoId) {
+        reservarSessao(planoId, true, 1, false);
+    }
+
+    private PlanoSessaoEntity reservarSessao(UUID planoId, boolean notificar, int quantidadeNotificada, boolean considerarVigencia) {
+        PlanoSessaoEntity plano = validarDisponivel(planoId, considerarVigencia);
         var snapshotAnterior = auditService.snapshotOf(plano);
         plano.setSessoesConsumidas(plano.getSessoesConsumidas() + 1);
         plano.setStatus(statusAjustado(
@@ -455,9 +495,13 @@ public class PlanoSessaoService {
     }
 
     public PlanoSessaoEntity validarDisponivel(UUID planoId) {
+        return validarDisponivel(planoId, true);
+    }
+
+    private PlanoSessaoEntity validarDisponivel(UUID planoId, boolean considerarVigencia) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
-        String motivo = motivoIndisponibilidadeBasica(plano);
+        String motivo = motivoIndisponibilidadeBasica(plano, considerarVigencia);
         if (motivo != null) {
             throw new BusinessException(motivo);
         }
@@ -531,17 +575,23 @@ public class PlanoSessaoService {
     }
 
     private String motivoIndisponibilidadeBasica(PlanoSessaoEntity plano) {
+        return motivoIndisponibilidadeBasica(plano, true);
+    }
+
+    private String motivoIndisponibilidadeBasica(PlanoSessaoEntity plano, boolean considerarVigencia) {
         if (plano.getStatus() == PlanoSessaoStatus.CANCELADO) {
             return "Plano cancelado.";
         }
         if (plano.getStatus() == PlanoSessaoStatus.CONCLUIDO) {
             return "Plano concluido, sem sessoes disponiveis.";
         }
-        if (plano.getStatus() == PlanoSessaoStatus.EXPIRADO) {
-            return "Plano expirado.";
-        }
-        if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
-            return "Vigencia encerrada em " + plano.getDataValidade() + ". Crie ou renove um plano para novos atendimentos.";
+        if (considerarVigencia) {
+            if (plano.getStatus() == PlanoSessaoStatus.EXPIRADO) {
+                return "Plano expirado.";
+            }
+            if (plano.getDataValidade() != null && plano.getDataValidade().isBefore(LocalDate.now())) {
+                return "Vigencia encerrada em " + plano.getDataValidade() + ". Crie ou renove um plano para novos atendimentos.";
+            }
         }
         if (plano.getSessoesConsumidas() >= plano.getSessoesContratadas()) {
             return "Todas as sessoes foram consumidas.";
@@ -575,6 +625,8 @@ public class PlanoSessaoService {
         return new ReconciliacaoPreviewDTO(planoId, atual, correto, naoRegistradas, atual != correto);
     }
 
+    // Segunda linha de defesa (ver comentário completo em criar acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public void executarReconciliacao(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)

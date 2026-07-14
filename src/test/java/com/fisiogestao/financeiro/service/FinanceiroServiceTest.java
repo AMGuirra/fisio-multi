@@ -336,6 +336,127 @@ class FinanceiroServiceTest {
     }
 
     // -----------------------------------------------------------------------
+    // registrarReceitaPlanoParcelado
+    // -----------------------------------------------------------------------
+
+    @Test
+    void deveDividirValorTotalEmParcelasExatas() {
+        PlanoSessaoEntity plano = plano(cliente("João"), "Plano Trimestral", "600.00", LocalDate.of(2026, 1, 10));
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 3, "Dra. Ana");
+
+        List<LancamentoFinanceiroEntity> parcelas = captor.getAllValues();
+        assertEquals(3, parcelas.size());
+        parcelas.forEach(parcela -> {
+            assertEquals(new BigDecimal("200.00"), parcela.getValor());
+            assertEquals(TipoLancamentoFinanceiro.RECEITA, parcela.getTipo());
+            assertEquals(StatusLancamentoFinanceiro.PENDENTE, parcela.getStatus());
+            assertEquals("Planos de tratamento", parcela.getCategoria());
+            assertEquals("Dra. Ana", parcela.getProfissional());
+            assertEquals(plano, parcela.getPlanoSessao());
+        });
+        verify(auditService, org.mockito.Mockito.times(3)).recordCreate(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void deveSomarRestoDeArredondamentoNaPrimeiraParcela() {
+        PlanoSessaoEntity plano = plano(cliente("Ana"), "Plano Trimestral", "500.00", LocalDate.of(2026, 1, 10));
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 3, null);
+
+        List<LancamentoFinanceiroEntity> parcelas = captor.getAllValues();
+        assertEquals(new BigDecimal("166.68"), parcelas.get(0).getValor());
+        assertEquals(new BigDecimal("166.66"), parcelas.get(1).getValor());
+        assertEquals(new BigDecimal("166.66"), parcelas.get(2).getValor());
+
+        BigDecimal soma = parcelas.stream().map(LancamentoFinanceiroEntity::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
+        assertEquals(new BigDecimal("500.00"), soma);
+    }
+
+    @Test
+    void devEscalonarVencimentosMensalmenteAPartirDaDataDeInicio() {
+        PlanoSessaoEntity plano = plano(cliente("Bruno"), "Plano Trimestral", "300.00", LocalDate.of(2026, 3, 15));
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 3, null);
+
+        List<LancamentoFinanceiroEntity> parcelas = captor.getAllValues();
+        OffsetDateTime esperadoInicial = plano.getDataInicio().atStartOfDay(ZONA).toOffsetDateTime();
+        assertEquals(esperadoInicial, parcelas.get(0).getDataRecebimento());
+        assertEquals(esperadoInicial.plusMonths(1), parcelas.get(1).getDataRecebimento());
+        assertEquals(esperadoInicial.plusMonths(2), parcelas.get(2).getDataRecebimento());
+    }
+
+    @Test
+    void descricaoDaParcelaDeveIndicarNumeroENumeroTotal() {
+        PlanoSessaoEntity plano = plano(cliente("Carla"), "Fisio Intensivo", "300.00", LocalDate.now());
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 3, null);
+
+        List<LancamentoFinanceiroEntity> parcelas = captor.getAllValues();
+        assertEquals("Plano de tratamento: Fisio Intensivo (parcela 1/3)", parcelas.get(0).getDescricao());
+        assertEquals("Plano de tratamento: Fisio Intensivo (parcela 2/3)", parcelas.get(1).getDescricao());
+        assertEquals("Plano de tratamento: Fisio Intensivo (parcela 3/3)", parcelas.get(2).getDescricao());
+    }
+
+    @Test
+    void deveDelegarParaRegistrarReceitaPlanoQuandoUmaParcela() {
+        PlanoSessaoEntity plano = plano(cliente("Diego"), "Plano Único", "400.00", LocalDate.now());
+
+        ArgumentCaptor<LancamentoFinanceiroEntity> captor = ArgumentCaptor.forClass(LancamentoFinanceiroEntity.class);
+        when(lancamentoFinanceiroRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 1, "Dr. Bruno");
+
+        List<LancamentoFinanceiroEntity> parcelas = captor.getAllValues();
+        assertEquals(1, parcelas.size());
+        assertEquals(new BigDecimal("400.00"), parcelas.get(0).getValor());
+        assertEquals("Plano de tratamento: Plano Único", parcelas.get(0).getDescricao());
+    }
+
+    @Test
+    void deveRejeitarNumeroDeParcelasMenorQueUm() {
+        PlanoSessaoEntity plano = plano(cliente("Eva"), "Plano Trimestral", "300.00", LocalDate.now());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> financeiroService.registrarReceitaPlanoParcelado(plano, 0, null));
+        assertEquals("O número de parcelas deve ser maior ou igual a 1.", ex.getMessage());
+        verify(lancamentoFinanceiroRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRejeitarNumeroDeParcelasAcimaDoLimite() {
+        PlanoSessaoEntity plano = plano(cliente("Felipe"), "Plano Trimestral", "300.00", LocalDate.now());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> financeiroService.registrarReceitaPlanoParcelado(plano, 61, null));
+        assertEquals("O número de parcelas não pode ser maior que 60.", ex.getMessage());
+        verify(lancamentoFinanceiroRepository, never()).save(any());
+    }
+
+    @Test
+    void devePermitirExatamenteOLimiteMaximoDeParcelas() {
+        PlanoSessaoEntity plano = plano(cliente("Gustavo"), "Plano Anual", "600.00", LocalDate.now());
+
+        when(lancamentoFinanceiroRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        financeiroService.registrarReceitaPlanoParcelado(plano, 60, null);
+
+        verify(lancamentoFinanceiroRepository, org.mockito.Mockito.times(60)).save(any());
+    }
+
+    // -----------------------------------------------------------------------
     // registrarReceitaAvulso
     // -----------------------------------------------------------------------
 

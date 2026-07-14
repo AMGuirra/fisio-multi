@@ -15,6 +15,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ import java.util.function.Function;
 public class FinanceiroService {
 
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
+    private static final int MAXIMO_PARCELAS_PLANO = 60;
 
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
     private final AuditService auditService;
@@ -221,6 +223,14 @@ public class FinanceiroService {
         return new PeriodoFinanceiro(dtInicio, dtFim);
     }
 
+    /**
+     * A anotação {@code @PreAuthorize} é a segunda linha de defesa:
+     * garante que, mesmo que este método seja chamado fora do contexto HTTP
+     * (ex.: via injeção direta por outro serviço), a verificação de role
+     * ainda é enforced pelo Spring Security AOP.
+     * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional(readOnly = true)
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
@@ -263,6 +273,8 @@ public class FinanceiroService {
         return new InadimplenciaResumo(total, quantidade, maiorAtraso);
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional(readOnly = true)
     public ContasAReceberView listarContasAReceber() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
@@ -304,6 +316,8 @@ public class FinanceiroService {
         );
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional(readOnly = true)
     public ContasAPagarView listarContasAPagar() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
@@ -350,6 +364,8 @@ public class FinanceiroService {
         );
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional(readOnly = true)
     public RelatorioFaturamento gerarRelatorioFaturamento(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
@@ -525,6 +541,49 @@ public class FinanceiroService {
         );
     }
 
+    @Transactional
+    public void registrarReceitaPlanoParcelado(PlanoSessaoEntity plano, int numeroParcelas, String profissionalResponsavel) {
+        if (numeroParcelas < 1) {
+            throw new BusinessException("O número de parcelas deve ser maior ou igual a 1.");
+        }
+        if (numeroParcelas > MAXIMO_PARCELAS_PLANO) {
+            throw new BusinessException("O número de parcelas não pode ser maior que " + MAXIMO_PARCELAS_PLANO + ".");
+        }
+        if (numeroParcelas == 1) {
+            registrarReceitaPlano(plano, profissionalResponsavel);
+            return;
+        }
+
+        BigDecimal valorParcela = plano.getValorTotal().divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.DOWN);
+        BigDecimal resto = plano.getValorTotal().subtract(valorParcela.multiply(BigDecimal.valueOf(numeroParcelas)));
+
+        for (int i = 0; i < numeroParcelas; i++) {
+            BigDecimal valorDaParcela = i == 0 ? valorParcela.add(resto) : valorParcela;
+            int numeroDaParcela = i + 1;
+            LancamentoFinanceiroEntity receita = LancamentoFinanceiroEntity.builder()
+                    .tipo(TipoLancamentoFinanceiro.RECEITA)
+                    .status(StatusLancamentoFinanceiro.PENDENTE)
+                    .descricao("Plano de tratamento: " + plano.getNomePlano() + " (parcela " + numeroDaParcela + "/" + numeroParcelas + ")")
+                    .categoria("Planos de tratamento")
+                    .valor(valorDaParcela)
+                    .dataRecebimento(paraInicioDoDia(plano.getDataInicio()).plusMonths(i))
+                    .cliente(plano.getCliente())
+                    .planoSessao(plano)
+                    .profissional(texto(profissionalResponsavel))
+                    .build();
+            LancamentoFinanceiroEntity salvo = lancamentoFinanceiroRepository.save(receita);
+            auditService.recordCreate(
+                    AuditModule.FINANCEIRO,
+                    "lancamento_financeiro",
+                    salvo,
+                    null,
+                    "Receita gerada automaticamente a partir da venda de plano de tratamento (parcela "
+                            + numeroDaParcela + "/" + numeroParcelas + ").",
+                    AuditEventOrigin.SISTEMA
+            );
+        }
+    }
+
     @Transactional(readOnly = true)
     public BigDecimal totalReceitasPendentes() {
         return somarPorFiltro(TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PENDENTE);
@@ -540,6 +599,8 @@ public class FinanceiroService {
         return totalReceitasPendentes().subtract(totalDespesasPendentes());
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional
     public void cancelar(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
@@ -569,6 +630,8 @@ public class FinanceiroService {
         );
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional
     public void marcarComoPago(UUID lancamentoId, MetodoPagamento metodoPagamento) {
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
@@ -600,6 +663,8 @@ public class FinanceiroService {
         );
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional
     public void cancelarBaixa(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
@@ -627,6 +692,8 @@ public class FinanceiroService {
         );
     }
 
+    // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
     @Transactional
     public void reabrir(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);

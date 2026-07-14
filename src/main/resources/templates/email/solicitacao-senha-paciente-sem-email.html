@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout('Paciente solicitou ajuda com a senha do portal', ~{::section})}">
+<section style="margin:0;padding:0;">
+    <p style="margin:0 0 18px;">Um paciente sem e-mail cadastrado pediu ajuda para acessar o portal de acompanhamento.</p>
+
+    <div style="border:1px solid #d9e7e3;border-radius:14px;padding:18px;background:#f7fbfa;margin-bottom:20px;">
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <td style="padding:6px 0;color:#4f6670;font-size:14px;width:110px;">Nome</td>
+                <td style="padding:6px 0;font-weight:700;color:#18323a;font-size:14px;" th:text="${nomePaciente}">Nome do Paciente</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;color:#4f6670;font-size:14px;">Telefone</td>
+                <td style="padding:6px 0;font-weight:700;color:#18323a;font-size:14px;" th:text="${telefonePaciente}">-</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;color:#4f6670;font-size:14px;">CPF</td>
+                <td style="padding:6px 0;font-weight:700;color:#18323a;font-size:14px;" th:text="${cpfPaciente}">-</td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="margin:0 0 12px;">
+        Entre em contato com o paciente para confirmar a identidade e, na tela de Pacientes,
+        gere um novo link do portal ou defina uma senha temporária para repassar por telefone.
+    </p>
+    <p style="margin:0;color:#6b7280;font-size:13px;">
+        Esta solicitação foi enviada porque o paciente não possui e-mail cadastrado no sistema,
+        então o link de redefinição automática não pôde ser enviado a ele.
+    </p>
+</section>
+</body>
+</html>

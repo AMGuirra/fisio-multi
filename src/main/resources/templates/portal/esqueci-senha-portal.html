@@ -15,7 +15,8 @@
         </div>
         <h1 class="pub-success-title pub-success-title--compact">Recuperar senha</h1>
         <p class="pub-success-text pub-text-tight">
-            Informe o e-mail cadastrado para receber as instruções de redefinição de senha.
+            Informe o e-mail, CPF ou telefone cadastrado. Se você tiver e-mail, enviaremos um
+            link de redefinição. Se não tiver, a equipe da clínica será avisada para te ajudar.
         </p>
 
         <div th:if="${successMessage}" class="pub-alert pub-alert-success pub-alert--spaced">
@@ -24,24 +25,24 @@
         </div>
 
         <form th:if="${successMessage == null}"
-              th:action="@{/paciente/{token}/esqueci-minha-senha(token=${token})}"
+              th:action="@{/paciente/esqueci-minha-senha}"
               method="post" class="pub-form-panel">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
             <div class="pub-form-group">
-                <label class="pub-label" for="email">E-mail</label>
-                <input type="email" id="email" name="email" class="pub-control"
-                       placeholder="seu@email.com" autofocus autocomplete="email" required>
+                <label class="pub-label" for="identificador">E-mail, CPF ou telefone</label>
+                <input type="text" id="identificador" name="identificador" class="pub-control"
+                       placeholder="seu@email.com, CPF ou telefone" autofocus autocomplete="username" required>
             </div>
 
             <button type="submit" class="pub-btn-primary pub-action-offset">
                 <i data-lucide="send"></i>
-                Enviar instruções
+                Enviar
             </button>
         </form>
 
         <p class="pub-footer-link">
-            <a th:href="@{/paciente/{token}/login(token=${token})}" class="pub-link-muted">
+            <a th:href="@{/paciente/login}" class="pub-link-muted">
                 &larr; Voltar para o login
             </a>
         </p>

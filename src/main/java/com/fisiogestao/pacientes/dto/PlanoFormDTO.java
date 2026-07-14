@@ -24,4 +24,6 @@ public class PlanoFormDTO {
     private LocalDate fimVigencia;
 
     private String status;
+
+    private Integer numeroParcelas;
 }

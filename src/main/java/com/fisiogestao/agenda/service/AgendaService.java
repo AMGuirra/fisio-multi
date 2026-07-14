@@ -757,7 +757,7 @@ public class AgendaService {
         }
 
         if (novoPlanoId != null && sessaoConsomePlano(sessao) && (!consumoAnteriorRegistrado || mudouPlano)) {
-            planoSessaoService.reservarSessao(novoPlanoId);
+            planoSessaoService.reservarSessaoParaConclusao(novoPlanoId);
             sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         } else if (!sessaoConsomePlano(sessao)) {
             if (consumoAnteriorRegistrado && planoAnteriorId != null && !consumoEstornado) {
@@ -876,7 +876,7 @@ public class AgendaService {
             }
         }
         if (plano != null) {
-            planoSessaoService.reservarSessao(plano.getId());
+            planoSessaoService.reservarSessaoParaConclusao(plano.getId());
             sessao.setPlanoConsumoRegistrado(Boolean.TRUE);
         }
     }

@@ -138,6 +138,7 @@
             if (novoC3) document.getElementById('c3b').innerHTML = novoC3.innerHTML;
             document.getElementById('c2s').textContent = rotuloModo(modo);
             if (window.lucide) lucide.createIcons();
+            initAgendamentoRecorrencia();
         }
 
         async function carregarPaciente(pacienteId, modo, planoId) {
@@ -372,6 +373,8 @@
             const preselected = document.querySelector('.prow.sel');
             if (preselected && !document.getElementById('card-configuracao')) {
                 selecionarPaciente(preselected);
+            } else {
+                initAgendamentoRecorrencia();
             }
         });
 
@@ -394,6 +397,65 @@
                 setAgendamentoSessaoModalOpen(false);
             }
         });
+
+        function initAgendamentoRecorrencia() {
+            const recorrenteInput = document.getElementById('pcAgendamentoRecorrente');
+            const recorrenciaBox = document.getElementById('pcAgendamentoRecorrenciaBox');
+            const dataInput = document.querySelector('#agendamentoSessaoModal input[name="data"]');
+            const dataFimInput = document.getElementById('pcAgendamentoRecorrenciaFim');
+            const maxInput = document.getElementById('pcAgendamentoMaxOcorrencias');
+            const preview = document.getElementById('pcAgendamentoRecorrenciaPreview');
+            const diasInputs = Array.from(document.querySelectorAll('#pcAgendamentoDiasSemana input[type="checkbox"]'));
+            if (!recorrenteInput || !recorrenciaBox || !preview) return;
+
+            const weekdayFromDate = (value) => {
+                const dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+                return dias[new Date(`${value}T00:00:00`).getDay()];
+            };
+
+            const ensureDefaultWeekday = () => {
+                if (diasInputs.some((input) => input.checked) || !dataInput?.value) return;
+                const input = diasInputs.find((item) => item.value === weekdayFromDate(dataInput.value));
+                if (input) input.checked = true;
+            };
+
+            const countWeeklyOccurrences = () => {
+                if (!dataInput?.value || !dataFimInput?.value) return 0;
+                const selectedDays = new Set(diasInputs.filter((input) => input.checked).map((input) => input.value));
+                if (!selectedDays.size) return 0;
+                const max = Math.max(1, Number(maxInput?.value || 52));
+                const start = new Date(`${dataInput.value}T00:00:00`);
+                const end = new Date(`${dataFimInput.value}T00:00:00`);
+                if (end < start) return 0;
+                let total = 0;
+                const cursor = new Date(start);
+                while (cursor <= end && total < max) {
+                    if (selectedDays.has(weekdayFromDate(cursor.toISOString().slice(0, 10)))) total += 1;
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+                return total;
+            };
+
+            const updateRecurrencePreview = () => {
+                const active = recorrenteInput.checked;
+                recorrenciaBox.classList.toggle('initially-hidden', !active);
+                recorrenciaBox.querySelectorAll('input').forEach((input) => { input.disabled = !active; });
+                if (!active) return;
+                ensureDefaultWeekday();
+                const total = countWeeklyOccurrences();
+                preview.textContent = total > 0
+                    ? `A série criará ${total} sessão(ões) até a data final.`
+                    : 'Selecione pelo menos um dia da semana e uma data final válida.';
+            };
+
+            recorrenteInput.addEventListener('change', updateRecurrencePreview);
+            [...diasInputs, dataFimInput, maxInput, dataInput].forEach((input) => {
+                if (!input) return;
+                input.addEventListener('change', updateRecurrencePreview);
+                input.addEventListener('input', updateRecurrencePreview);
+            });
+            updateRecurrencePreview();
+        }
 
         document.addEventListener('keydown', (event) => {
             const modal = document.getElementById('agendamentoSessaoModal');

@@ -8,8 +8,10 @@ import com.fisiogestao.pacientes.dto.PlanoFormDTO;
 import com.fisiogestao.pacientes.dto.PlanoListItemDTO;
 import com.fisiogestao.pacientes.dto.PlanoResumoDTO;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
+import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class PlanoService {
     private final PacienteService pacienteService;
     private final PlanoSessaoRepository planoSessaoRepository;
     private final PlanoSessaoService planoSessaoService;
+    private final FinanceiroService financeiroService;
 
     @Transactional(readOnly = true)
     public List<PacienteListaDTO> listarPacientesComResumoPlano() {
@@ -82,11 +85,20 @@ public class PlanoService {
                 .toList();
     }
 
+    /**
+     * A anotação {@code @PreAuthorize} é a segunda linha de defesa:
+     * garante que, mesmo que este método seja chamado fora do contexto HTTP
+     * (ex.: via injeção direta por outro serviço), a verificação de role
+     * ainda é enforced pelo Spring Security AOP.
+     * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
-    public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form) {
+    public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form, String profissionalResponsavel) {
         ClienteEntity paciente = pacienteService.buscarPorId(pacienteId);
+        boolean criandoNovoPlano = form.getPlanoId() == null;
         PlanoSessaoEntity plano;
-        if (form.getPlanoId() != null) {
+        if (!criandoNovoPlano) {
             plano = planoSessaoRepository.findById(form.getPlanoId())
                     .orElseThrow(() -> new BusinessException("Plano de tratamento não encontrado."));
         } else {
@@ -108,11 +120,17 @@ public class PlanoService {
         plano.setDataInicio(form.getInicioVigencia() == null ? LocalDate.now() : form.getInicioVigencia());
         plano.setDataValidade(form.getFimVigencia());
         plano.setStatus(status(form.getStatus(), plano, total));
-        return planoSessaoRepository.save(plano);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(plano);
+        if (criandoNovoPlano) {
+            registrarFaturamento(salvo, form.getNumeroParcelas(), profissionalResponsavel);
+        }
+        return salvo;
     }
 
+    // Segunda linha de defesa (ver comentário completo em salvarOuAtualizar acima).
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
-    public PlanoSessaoEntity renovarPlano(UUID planoAnteriorId, PlanoFormDTO form) {
+    public PlanoSessaoEntity renovarPlano(UUID planoAnteriorId, PlanoFormDTO form, String profissionalResponsavel) {
         PlanoSessaoEntity anterior = planoSessaoRepository.findById(planoAnteriorId)
                 .orElseThrow(() -> new BusinessException("Plano anterior não encontrado."));
         ClienteEntity paciente = anterior.getCliente();
@@ -128,7 +146,18 @@ public class PlanoService {
         novo.setDataInicio(form.getInicioVigencia() != null ? form.getInicioVigencia() : LocalDate.now());
         novo.setDataValidade(form.getFimVigencia());
         novo.setStatus(PlanoSessaoStatus.ATIVO);
-        return planoSessaoRepository.save(novo);
+        PlanoSessaoEntity salvo = planoSessaoRepository.save(novo);
+        registrarFaturamento(salvo, form.getNumeroParcelas(), profissionalResponsavel);
+        return salvo;
+    }
+
+    private void registrarFaturamento(PlanoSessaoEntity plano, Integer numeroParcelas, String profissionalResponsavel) {
+        int parcelas = numeroParcelas != null && numeroParcelas > 0 ? numeroParcelas : 1;
+        if (parcelas > 1) {
+            financeiroService.registrarReceitaPlanoParcelado(plano, parcelas, profissionalResponsavel);
+        } else {
+            financeiroService.registrarReceitaPlano(plano, profissionalResponsavel);
+        }
     }
 
     public PlanoResumoDTO paraPlanoResumo(PlanoSessaoEntity plano) {
