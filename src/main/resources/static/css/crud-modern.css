@@ -2806,9 +2806,9 @@ body.modal-open {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 5px;
-    border: 1px solid #d9e7e3;
+    border: 1px solid var(--stroke-soft);
     border-radius: 10px;
-    background: #f4f8f7;
+    background: var(--bg-soft);
 }
 
 .appointment-type-option input {
@@ -2824,10 +2824,10 @@ body.modal-open {
     gap: 8px;
     min-height: 40px;
     padding: 0 14px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--stroke-soft);
     border-radius: 8px;
-    background: var(--surface-card);
-    color: var(--text-primary);
+    background: var(--bg-surface);
+    color: var(--text-strong);
     font-weight: 700;
     cursor: pointer;
 }
@@ -2865,9 +2865,9 @@ body.modal-open {
     max-height: 420px;
     overflow: hidden;
     padding: 14px;
-    border: 1px solid #bfdbfe;
+    border: 1px solid var(--stroke-soft);
     border-radius: 8px;
-    background: #f8fbff;
+    background: var(--bg-surface);
     opacity: 1;
     transform: translateY(0);
     transition: max-height 0.24s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
@@ -2884,8 +2884,8 @@ body.modal-open {
 }
 
 .appointment-flow-panel.avulso-panel {
-    border-color: #bbf7d0;
-    background: #f7fef9;
+    border-color: var(--stroke-soft);
+    background: var(--bg-surface);
 }
 
 .flow-panel-head {
@@ -2928,7 +2928,7 @@ body.modal-open {
     display: grid;
     gap: 14px;
     padding: 14px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--stroke-soft);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.03);
     max-height: 520px;
@@ -3721,8 +3721,8 @@ body.modal-open {
 }
 
 .page-tab:hover {
-    background: var(--bg-subtle);
-    color: var(--text-primary);
+    background: var(--bg-soft);
+    color: var(--text-strong);
 }
 
 .page-tab.active {
@@ -4011,7 +4011,7 @@ body.modal-open {
 }
 
 .waitlist-chip.muted {
-    background: var(--bg-subtle);
+    background: var(--bg-soft);
     color: var(--text-soft);
 }
 
@@ -4193,7 +4193,22 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page {
-    background: #f2f5f4;
+    --sol-accent-text: var(--brand-700);
+    --sol-accent-strong: var(--brand-600);
+    --sol-warning-bg: #fdf0db;
+    --sol-warning-text: #854f0b;
+    --sol-danger-bg: #f8e1e1;
+    --sol-danger-text: #a32d2d;
+    background: var(--bg-canvas);
+}
+
+body[data-theme='dark'] .solicitacoes-page {
+    --sol-accent-text: #74e7cc;
+    --sol-accent-strong: #37c8aa;
+    --sol-warning-bg: rgba(209, 154, 16, 0.18);
+    --sol-warning-text: #ffe39b;
+    --sol-danger-bg: rgba(213, 83, 83, 0.18);
+    --sol-danger-text: #ffc7c7;
 }
 
 .solicitacoes-page .solicitacoes-content {
@@ -4219,15 +4234,15 @@ body[data-theme='dark'] .waitlist-action-danger {
     gap: 0.75rem;
     padding: 0.95rem 1rem;
     border-radius: 12px;
-    border: 1px solid #86d8bf;
-    background: #eaf7f2;
-    color: #0c5b4a;
+    border: 1px solid rgba(15, 143, 122, 0.28);
+    background: var(--color-background-success);
+    color: var(--color-text-success);
 }
 
 .solicitacoes-page .solicitacoes-flash.error {
-    background: #fff0f0;
-    border-color: #efb3b3;
-    color: #a32d2d;
+    background: var(--color-background-danger);
+    border-color: var(--color-border-danger);
+    color: var(--color-text-danger);
 }
 
 .solicitacoes-page .solicitacoes-flash i {
@@ -4283,7 +4298,7 @@ body[data-theme='dark'] .waitlist-action-danger {
     font-size: 0.88rem;
     font-weight: 400;
     line-height: 1.2;
-    color: #6a7d77;
+    color: var(--text-soft);
 }
 
 .solicitacoes-page .metric-value {
@@ -4294,24 +4309,24 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .metric-value.pending {
-    color: #854f0b;
+    color: var(--sol-warning-text);
 }
 
 .solicitacoes-page .metric-value.approved {
-    color: #085041;
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .metric-value.denied {
-    color: #a32d2d;
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .metric-value.total {
-    color: #0d4b3d;
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .metric-subtext {
     margin: 0;
-    color: #7b8c86;
+    color: var(--text-soft);
     font-size: 0.9rem;
     line-height: 1.25;
 }
@@ -4360,13 +4375,13 @@ body[data-theme='dark'] .waitlist-action-danger {
     margin: 0;
     font-size: 1.15rem;
     font-weight: 500;
-    color: #0a5a48;
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .sol-card-title-wrap i {
     width: 1.1rem;
     height: 1.1rem;
-    color: #0a5a48;
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .count-badge {
@@ -4376,8 +4391,8 @@ body[data-theme='dark'] .waitlist-action-danger {
     min-width: 2.1rem;
     padding: 0.32rem 0.7rem;
     border-radius: 999px;
-    background: #fdf0db;
-    color: #854f0b;
+    background: var(--sol-warning-bg);
+    color: var(--sol-warning-text);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -4401,7 +4416,7 @@ body[data-theme='dark'] .waitlist-action-danger {
     gap: 1rem;
     align-items: center;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #ecf1ef;
+    border-bottom: 1px solid var(--stroke-soft);
 }
 
 .solicitacoes-page .req-item:last-child {
@@ -4412,8 +4427,8 @@ body[data-theme='dark'] .waitlist-action-danger {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #f7ead5;
-    color: #8b5a18;
+    background: var(--sol-warning-bg);
+    color: var(--sol-warning-text);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4423,18 +4438,18 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .req-avatar.history-approved {
-    background: #dff3ed;
-    color: #085041;
+    background: var(--green-100);
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .req-avatar.history-denied {
-    background: #f7e2e2;
-    color: #a32d2d;
+    background: var(--sol-danger-bg);
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .req-avatar.history-neutral {
-    background: #edf2f0;
-    color: #4f5d59;
+    background: var(--bg-soft);
+    color: var(--text-body);
 }
 
 .solicitacoes-page .req-content {
@@ -4443,7 +4458,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 
 .solicitacoes-page .req-name {
     margin: 0;
-    color: #182321;
+    color: var(--text-strong);
     font-size: 1.05rem;
     font-weight: 500;
 }
@@ -4451,13 +4466,13 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .req-meta,
 .solicitacoes-page .req-note {
     margin: 0.2rem 0 0;
-    color: #6b7a76;
+    color: var(--text-body);
     font-size: 0.94rem;
     line-height: 1.35;
 }
 
 .solicitacoes-page .req-note {
-    color: #86948f;
+    color: var(--text-soft);
 }
 
 .solicitacoes-page .req-side {
@@ -4470,7 +4485,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .req-datetime {
     margin: 0;
     text-align: right;
-    color: #7b8c86;
+    color: var(--text-soft);
     font-size: 0.92rem;
     line-height: 1.3;
 }
@@ -4512,15 +4527,15 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .sol-btn-danger {
-    background: #fdf0f0;
-    border-color: #f1c9c9;
-    color: #a32d2d;
+    background: var(--sol-danger-bg);
+    border-color: var(--color-border-danger);
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .sol-btn-neutral {
-    background: #f5f7f6;
-    border-color: #d9e5e1;
-    color: #50615c;
+    background: var(--bg-soft);
+    border-color: var(--stroke-soft);
+    color: var(--text-body);
 }
 
 .solicitacoes-page .status-pill {
@@ -4535,24 +4550,24 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .status-pill.approved {
-    background: #dff3ed;
-    color: #085041;
+    background: var(--green-100);
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .status-pill.denied {
-    background: #f8e1e1;
-    color: #a32d2d;
+    background: var(--sol-danger-bg);
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .status-pill.pending {
-    background: #fdf0db;
-    color: #854f0b;
+    background: var(--sol-warning-bg);
+    color: var(--sol-warning-text);
 }
 
 .solicitacoes-page .empty-state {
     padding: 2rem 1.25rem;
     text-align: center;
-    color: #72827d;
+    color: var(--text-soft);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -4562,12 +4577,12 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .empty-state i {
     width: 1.4rem;
     height: 1.4rem;
-    color: #8fa09b;
+    color: var(--text-soft);
 }
 
 .solicitacoes-page .filter-card {
     overflow: hidden;
-    border-color: #d8e7e2;
+    border-color: var(--stroke-soft);
     box-shadow: 0 14px 30px rgba(17, 54, 48, 0.06);
 }
 
@@ -4575,12 +4590,12 @@ body[data-theme='dark'] .waitlist-action-danger {
     padding: 1.15rem 1.15rem 1rem;
     background:
         radial-gradient(circle at 100% 0%, rgba(29, 158, 117, 0.12), transparent 34%),
-        linear-gradient(180deg, #ffffff 0%, #f8fcfa 100%);
+        linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-soft) 100%);
 }
 
 .solicitacoes-page .filter-card .sol-card-title {
     font-weight: 700;
-    color: #064d3f;
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .filter-card .sol-card-title-wrap {
@@ -4591,7 +4606,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .filter-card .sol-card-title-wrap svg {
     width: 1.05rem;
     height: 1.05rem;
-    color: #0f7b61;
+    color: var(--sol-accent-strong);
 }
 
 .solicitacoes-page .filter-card .sol-card-body.compact {
@@ -4611,7 +4626,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .filter-field label {
-    color: #4f635d;
+    color: var(--text-body);
     font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -4620,15 +4635,15 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .filter-field .form-control {
     width: 100%;
     min-height: 42px;
-    border: 1px solid #cdded8;
+    border: 1px solid var(--stroke-soft);
     border-radius: 10px;
-    background: #f9fcfb;
-    color: #182321;
+    background: var(--bg-surface);
+    color: var(--text-strong);
     font: inherit;
     font-size: 0.92rem;
     line-height: 1.2;
     padding: 0.65rem 0.78rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
@@ -4637,18 +4652,18 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .filter-field .form-control::placeholder {
-    color: #8a9994;
+    color: var(--text-soft);
 }
 
 .solicitacoes-page .filter-field .form-control:hover {
-    border-color: #9ecfc0;
-    background: #ffffff;
+    border-color: var(--stroke-strong);
+    background: var(--bg-surface);
 }
 
 .solicitacoes-page .filter-field .form-control:focus {
     outline: 0;
-    border-color: #1d9e75;
-    background: #ffffff;
+    border-color: var(--brand-500);
+    background: var(--bg-surface);
     box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.14);
 }
 
@@ -4670,9 +4685,9 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .filter-actions .sol-btn-neutral:hover {
-    background: #eef5f2;
-    border-color: #bfd2cc;
-    color: #334943;
+    background: var(--bg-soft-strong, var(--bg-soft));
+    border-color: var(--stroke-strong);
+    color: var(--text-strong);
 }
 
 .solicitacoes-page .quick-rate {
@@ -4683,7 +4698,7 @@ body[data-theme='dark'] .waitlist-action-danger {
 
 .solicitacoes-page .quick-rate-value {
     margin: 0;
-    color: #085041;
+    color: var(--sol-accent-text);
     font-size: 2rem;
     font-weight: 600;
     line-height: 1;
@@ -4692,14 +4707,14 @@ body[data-theme='dark'] .waitlist-action-danger {
 .solicitacoes-page .quick-rate-caption,
 .solicitacoes-page .quick-rate-legend {
     margin: 0;
-    color: #6c7d78;
+    color: var(--text-soft);
     font-size: 0.92rem;
 }
 
 .solicitacoes-page .quick-rate-track {
     width: 100%;
     height: 10px;
-    background: #e5eeeb;
+    background: var(--bg-soft);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -4835,8 +4850,8 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .confirm-summary {
-    background: var(--card-bg, #1a2233);
-    border: 1px solid var(--border, #2a3547);
+    background: var(--bg-surface);
+    border: 1px solid var(--stroke-soft);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 1rem;
@@ -4848,7 +4863,7 @@ body[data-theme='dark'] .waitlist-action-danger {
     gap: 0.5rem;
     padding: 0.6rem 1rem;
     font-size: 0.875rem;
-    border-bottom: 1px solid var(--border, #2a3547);
+    border-bottom: 1px solid var(--stroke-soft);
 }
 
 .solicitacoes-page .confirm-summary-row:last-child {
@@ -4856,14 +4871,14 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .confirm-summary-label {
-    color: var(--text-muted, #8a99b3);
+    color: var(--text-soft);
     min-width: 5.5rem;
     flex-shrink: 0;
     font-size: 0.8rem;
 }
 
 .solicitacoes-page .confirm-summary-value {
-    color: var(--text-primary, #e2e8f0);
+    color: var(--text-strong);
     font-weight: 500;
 }
 
@@ -5434,7 +5449,7 @@ body[data-theme='dark'] .waitlist-action-danger {
     width: 34px;
     height: 34px;
     place-items: center;
-    color: var(--brand-700);
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .metric-corner-icon svg {
@@ -5444,11 +5459,11 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .metric-pendencias .metric-corner-icon {
-    color: #8a6400;
+    color: var(--sol-warning-text);
 }
 
 .solicitacoes-page .metric-despesa .metric-corner-icon {
-    color: #ad4040;
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .metric-mensagens .metric-corner-icon {
@@ -5460,16 +5475,16 @@ body[data-theme='dark'] .waitlist-action-danger {
 }
 
 .solicitacoes-page .metric-value.pending {
-    color: #8a6400;
+    color: var(--sol-warning-text);
 }
 
 .solicitacoes-page .metric-value.approved,
 .solicitacoes-page .metric-value.total {
-    color: var(--brand-700);
+    color: var(--sol-accent-text);
 }
 
 .solicitacoes-page .metric-value.denied {
-    color: #ad4040;
+    color: var(--sol-danger-text);
 }
 
 .solicitacoes-page .metric-subtext {
