@@ -306,11 +306,15 @@ public class PortalPacienteController {
     public String solicitarAgendamento(
             @PathVariable UUID token,
             @ModelAttribute("agendamentoForm") AgendamentoOnlineForm form,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
         if (paciente == null) {
             return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
         }
 
         preencherDadosPaciente(form, paciente);
@@ -329,11 +333,15 @@ public class PortalPacienteController {
     public String confirmarPresenca(
             @PathVariable UUID token,
             @PathVariable UUID sessaoId,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
         if (paciente == null) {
             return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
         }
 
         sessaoRepository.findByIdAndClienteIdAndStatus(sessaoId, paciente.getId(), SessaoStatus.AGENDADA)
@@ -351,11 +359,15 @@ public class PortalPacienteController {
     public String cancelarSessao(
             @PathVariable UUID token,
             @PathVariable UUID sessaoId,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
         if (paciente == null) {
             return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
         }
 
         SessaoEntity sessao = sessaoRepository
@@ -389,11 +401,15 @@ public class PortalPacienteController {
             @PathVariable UUID sessaoId,
             @RequestParam("eva") Integer eva,
             @RequestParam(value = "obs", required = false) String obs,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
         if (paciente == null) {
             return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
         }
 
         if (eva == null || eva < 0 || eva > 10) {
@@ -422,11 +438,15 @@ public class PortalPacienteController {
     @GetMapping("/{token}/recibos/{lancamentoId}")
     public ResponseEntity<String> baixarRecibo(
             @PathVariable UUID token,
-            @PathVariable UUID lancamentoId) {
+            @PathVariable UUID lancamentoId,
+            HttpSession session) {
 
         ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
         if (paciente == null) {
             return ResponseEntity.notFound().build();
+        }
+        if (!portalAutenticado(token, session)) {
+            return ResponseEntity.status(403).build();
         }
 
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository
@@ -450,6 +470,14 @@ public class PortalPacienteController {
                                 .toString())
                 .contentType(new MediaType("text", "plain", StandardCharsets.UTF_8))
                 .body(gerarReciboTexto(paciente, lancamento));
+    }
+
+    private boolean portalAutenticado(UUID token, HttpSession session) {
+        return session != null && Boolean.TRUE.equals(session.getAttribute(SESS_PREFIX + token));
+    }
+
+    private String redirectLogin() {
+        return "redirect:/paciente/login";
     }
 
     private String buildCalendarUrl(SessaoEntity sessao, String nomeClinica) {

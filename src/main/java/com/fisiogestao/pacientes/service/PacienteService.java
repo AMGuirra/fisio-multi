@@ -351,9 +351,10 @@ public class PacienteService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void definirSenhaPortal(UUID clienteId, String senhaRaw) {
+        String senhaNormalizada = PasswordPolicy.normalize(senhaRaw, true);
         ClienteEntity cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new BusinessException("Paciente não encontrado ao definir senha."));
-        cliente.setSenhaPortal(passwordEncoder.encode(senhaRaw));
+        cliente.setSenhaPortal(passwordEncoder.encode(senhaNormalizada));
         clienteRepository.save(cliente);
     }
 

@@ -5939,3 +5939,119 @@ body[data-theme='dark'] .weekday-grid input:checked + span {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* Responsive consolidation: operational tables become cards on phones. */
+@media (max-width: 768px) {
+    .data-table-wrap {
+        overflow-x: visible;
+    }
+
+    .data-table.responsive-data-table,
+    .data-table.responsive-data-table.compact {
+        display: block;
+        min-width: 0;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .data-table.responsive-data-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .data-table.responsive-data-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .data-table.responsive-data-table tbody tr {
+        display: block;
+        overflow: hidden;
+        border: 1px solid var(--stroke-soft);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .data-table.responsive-data-table tbody tr:hover {
+        background: var(--bg-surface);
+    }
+
+    .data-table.responsive-data-table tbody td {
+        display: grid;
+        grid-template-columns: minmax(92px, 38%) minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--stroke-soft);
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    .data-table.responsive-data-table tbody td:last-child {
+        border-bottom: 0;
+    }
+
+    .data-table.responsive-data-table tbody td::before {
+        content: attr(data-label);
+        min-width: 0;
+        color: var(--text-soft);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        line-height: 1.25;
+        text-transform: uppercase;
+    }
+
+    .data-table.responsive-data-table tbody td:empty::after {
+        content: "-";
+        color: var(--text-soft);
+    }
+
+    .data-table.responsive-data-table tbody td.finance-action-cell,
+    .data-table.responsive-data-table tbody td.td-actions,
+    .data-table.responsive-data-table tbody td:last-child:has(.action-button),
+    .data-table.responsive-data-table tbody td:last-child:has(form),
+    .data-table.responsive-data-table tbody td:last-child:has(a) {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+    }
+
+    .data-table.responsive-data-table tbody td.finance-action-cell::before,
+    .data-table.responsive-data-table tbody td.td-actions::before,
+    .data-table.responsive-data-table tbody td:last-child:has(.action-button)::before,
+    .data-table.responsive-data-table tbody td:last-child:has(form)::before,
+    .data-table.responsive-data-table tbody td:last-child:has(a)::before {
+        display: none;
+    }
+
+    .data-table.responsive-data-table .action-button,
+    .data-table.responsive-data-table .btn,
+    .data-table.responsive-data-table button,
+    .data-table.responsive-data-table a.action-button {
+        min-height: 42px;
+    }
+
+    .data-table.responsive-data-table .finance-action-cell {
+        display: grid;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .data-table.responsive-data-table tbody td {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .data-table.responsive-data-table tbody td::before {
+        letter-spacing: 0.04em;
+    }
+}

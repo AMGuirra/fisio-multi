@@ -1,5 +1,8 @@
 package com.fisiogestao.portal;
 
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,6 +45,9 @@ class PortalPacienteControllerTest {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private SessaoRepository sessaoRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -83,6 +90,24 @@ class PortalPacienteControllerTest {
         mockMvc.perform(get("/paciente/{token}", pacienteComSenha.getPortalToken()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/paciente/login"));
+    }
+
+    @Test
+    void confirmarPresencaSemSessaoDoPortalRedirecionaENaoAlteraSessao() throws Exception {
+        SessaoEntity sessao = sessaoRepository.save(SessaoEntity.builder()
+                .cliente(pacienteComSenha)
+                .dataHoraInicio(OffsetDateTime.now().plusDays(2))
+                .dataHoraFim(OffsetDateTime.now().plusDays(2).plusMinutes(50))
+                .status(SessaoStatus.AGENDADA)
+                .build());
+
+        mockMvc.perform(post("/paciente/{token}/sessao/{sessaoId}/confirmar",
+                        pacienteComSenha.getPortalToken(), sessao.getId())
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/paciente/login"));
+
+        assertFalse(sessaoRepository.findById(sessao.getId()).orElseThrow().getConfirmadoPeloPaciente());
     }
 
     @Test

@@ -189,8 +189,8 @@
                 <div class="pub-form-group">
                     <label class="pub-label" for="senha">Senha</label>
                     <input type="password" id="senha" class="pub-control" th:field="*{senha}"
-                           placeholder="Mínimo 4 caracteres e 1 número" autocomplete="new-password" minlength="4">
-                    <p class="pub-help">Mínimo de 4 caracteres com pelo menos 1 número. Use para entrar no seu portal depois.</p>
+                           placeholder="Mínimo 8 caracteres e 1 número" autocomplete="new-password" minlength="8" maxlength="120">
+                    <p class="pub-help">Mínimo de 8 caracteres com pelo menos 1 número. Use para entrar no seu portal depois.</p>
                     <p class="pub-error" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
                 </div>
 

@@ -3047,3 +3047,121 @@ body[data-theme='dark'] .session-item--avulso {
 body[data-theme='dark'] .agenda-legend {
     border-top-color: var(--stroke-soft);
 }
+
+/* Responsive consolidation for shared app chrome and dense page headers. */
+html,
+body {
+    overflow-x: clip;
+}
+
+.app-shell,
+.app-main,
+.dashboard-main,
+.crud-main,
+.section-card,
+.section-body,
+.section-head {
+    min-width: 0;
+}
+
+@media (max-width: 920px) {
+    .app-sidebar {
+        width: min(86vw, var(--sidebar-width));
+        max-width: 340px;
+        height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    .app-shell {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-main,
+    .dashboard-main {
+        padding-inline: max(12px, env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+
+    .dashboard-header,
+    .app-header,
+    .section-head {
+        min-width: 0;
+    }
+
+    .section-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-head-actions,
+    .header-actions,
+    .page-tabs,
+    .form-actions,
+    .modal-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .section-head-actions > *,
+    .header-actions > *,
+    .form-actions > *,
+    .modal-actions > * {
+        min-width: 0;
+    }
+
+    .page-tabs {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .page-tab {
+        flex: 0 0 auto;
+        min-height: 44px;
+        scroll-snap-align: start;
+    }
+
+    .action-button,
+    .header-toggle,
+    .user-menu-button,
+    .theme-option,
+    .modal-close {
+        min-height: 44px;
+    }
+
+    .flash-message {
+        align-items: flex-start;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-main,
+    .dashboard-main {
+        padding-inline: max(10px, env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+
+    .section-card {
+        border-radius: var(--radius-md);
+    }
+
+    .section-head,
+    .section-body {
+        padding-inline: 14px;
+    }
+
+    .action-button,
+    .page-tab,
+    .modal-actions .action-button {
+        width: 100%;
+        justify-content: center;
+    }
+}

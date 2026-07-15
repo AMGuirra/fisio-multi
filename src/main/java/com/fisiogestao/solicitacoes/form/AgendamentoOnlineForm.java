@@ -1,5 +1,6 @@
 package com.fisiogestao.solicitacoes.form;
 
+import com.fisiogestao.auth.PasswordPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -63,7 +64,7 @@ public class AgendamentoOnlineForm {
     private String observacoes;
 
     @NotBlank(message = "Crie uma senha para acessar o portal.")
-    @Size(min = 4, message = "A senha deve ter pelo menos 4 caracteres.")
+    @Size(min = PasswordPolicy.MIN_LENGTH, max = PasswordPolicy.MAX_LENGTH, message = PasswordPolicy.RANGE_MESSAGE)
     private String senha;
 
     private String confirmarSenha;

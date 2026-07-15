@@ -2570,3 +2570,73 @@ body.theme-dark.portal-premium .modal-close {
         left: 16px;
     }
 }
+
+/* Responsive consolidation for public and portal surfaces. */
+html,
+body {
+    max-width: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .pub-btn,
+    .pub-btn-primary,
+    .pub-btn-link,
+    .pub-secondary-btn,
+    .portal-btn,
+    .auth-btn {
+        min-height: 44px;
+    }
+
+    .pub-card,
+    .pub-success-card,
+    .auth-card.centered-card,
+    .portal-hero-main,
+    .portal-next-card,
+    .portal-kpi-card,
+    .portal-panel,
+    .portal-list-row,
+    .portal-timeline .timeline-card {
+        max-width: 100%;
+    }
+
+    body.portal-premium .modal-dialog,
+    body.portal-premium .modal-content {
+        max-height: min(92dvh, 100%);
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-body,
+    .pub-body.pub-centered,
+    .portal-body.centered {
+        align-items: stretch;
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .auth-card,
+    .pub-card,
+    .pub-success-card,
+    .auth-card.centered-card {
+        width: 100%;
+        border-radius: var(--radius-lg);
+    }
+
+    .portal-shell,
+    .pub-container {
+        padding-inline: max(12px, env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+}
