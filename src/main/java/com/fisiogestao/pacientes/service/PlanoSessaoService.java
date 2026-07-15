@@ -79,10 +79,19 @@ public class PlanoSessaoService {
     }
 
     public Optional<PlanoSessaoEntity> buscarPrimeiroLivreParaAgenda(UUID clienteId) {
+        return buscarPrimeiroLivreParaAgenda(clienteId, true);
+    }
+
+    /**
+     * @param considerarVigencia quando {@code false}, ignora a data de validade do plano —
+     *                           usado para agendamentos retroativos, que registram um fato já
+     *                           ocorrido e não devem ser bloqueados pela vigência atual do plano.
+     */
+    public Optional<PlanoSessaoEntity> buscarPrimeiroLivreParaAgenda(UUID clienteId, boolean considerarVigencia) {
         return listarPorCliente(clienteId).stream()
                 .filter(plano -> plano.getStatus() != PlanoSessaoStatus.CANCELADO)
                 .sorted(comparadorDiagnostico())
-                .filter(plano -> diagnosticarPlano(plano).disponivelParaAgenda())
+                .filter(plano -> diagnosticarPlano(plano, considerarVigencia).disponivelParaAgenda())
                 .findFirst();
     }
 
@@ -99,6 +108,16 @@ public class PlanoSessaoService {
     public PlanoDisponibilidadeDTO diagnosticarPlano(UUID planoId) {
         return diagnosticarPlano(planoSessaoRepository.findById(planoId)
                 .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado.")));
+    }
+
+    /**
+     * @param considerarVigencia quando {@code false}, ignora a data de validade do plano —
+     *                           usado para diagnosticar planos em agendamentos retroativos.
+     */
+    @Transactional(readOnly = true)
+    public PlanoDisponibilidadeDTO diagnosticarPlano(UUID planoId, boolean considerarVigencia) {
+        return diagnosticarPlano(planoSessaoRepository.findById(planoId)
+                .orElseThrow(() -> new BusinessException("Plano de tratamento nÃ£o encontrado.")), considerarVigencia);
     }
 
     /**
@@ -509,8 +528,17 @@ public class PlanoSessaoService {
     }
 
     public PlanoSessaoEntity resolverPlanoParaSessao(UUID clienteId, UUID planoId, UUID planoAtualId) {
+        return resolverPlanoParaSessao(clienteId, planoId, planoAtualId, true);
+    }
+
+    /**
+     * @param considerarVigencia quando {@code false}, ignora a data de validade do plano —
+     *                           usado para agendamentos retroativos, que registram um fato já
+     *                           ocorrido e não devem ser bloqueados pela vigência atual do plano.
+     */
+    public PlanoSessaoEntity resolverPlanoParaSessao(UUID clienteId, UUID planoId, UUID planoAtualId, boolean considerarVigencia) {
         if (planoId == null) {
-            return buscarPrimeiroLivreParaAgenda(clienteId)
+            return buscarPrimeiroLivreParaAgenda(clienteId, considerarVigencia)
                     .orElseThrow(() -> new BusinessException(
                             "O paciente não possui plano de tratamento disponível. Cadastre ou renove um plano antes de confirmar a sessão."
                     ));
@@ -524,7 +552,7 @@ public class PlanoSessaoService {
         if (planoAtualId != null && planoAtualId.equals(planoId)) {
             return plano;
         }
-        PlanoDisponibilidadeDTO disponibilidade = diagnosticarPlano(plano);
+        PlanoDisponibilidadeDTO disponibilidade = diagnosticarPlano(plano, considerarVigencia);
         if (!disponibilidade.disponivelParaAgenda()) {
             throw new BusinessException(disponibilidade.motivoIndisponibilidade());
         }
@@ -536,7 +564,11 @@ public class PlanoSessaoService {
     }
 
     public int calcularSessoesDisponiveisParaAgenda(PlanoSessaoEntity plano) {
-        return diagnosticarPlano(plano).sessoesLivresParaAgenda();
+        return calcularSessoesDisponiveisParaAgenda(plano, true);
+    }
+
+    public int calcularSessoesDisponiveisParaAgenda(PlanoSessaoEntity plano, boolean considerarVigencia) {
+        return diagnosticarPlano(plano, considerarVigencia).sessoesLivresParaAgenda();
     }
 
     public boolean isDisponivelParaUso(PlanoSessaoEntity plano) {
@@ -544,11 +576,15 @@ public class PlanoSessaoService {
     }
 
     private PlanoDisponibilidadeDTO diagnosticarPlano(PlanoSessaoEntity plano) {
+        return diagnosticarPlano(plano, true);
+    }
+
+    private PlanoDisponibilidadeDTO diagnosticarPlano(PlanoSessaoEntity plano, boolean considerarVigencia) {
         int contratadas = valorSeguro(plano.getSessoesContratadas());
         int consumidas = valorSeguro(plano.getSessoesConsumidas());
         int restantes = Math.max(0, contratadas - consumidas);
         int agendadas = plano.getId() == null ? 0 : (int) sessaoRepository.countAgendadasPorPlano(plano.getId());
-        String motivoBasico = motivoIndisponibilidadeBasica(plano);
+        String motivoBasico = motivoIndisponibilidadeBasica(plano, considerarVigencia);
         int livresParaAgenda = motivoBasico == null ? Math.max(0, restantes - agendadas) : 0;
         String motivoAgenda = motivoBasico;
         if (motivoAgenda == null && livresParaAgenda <= 0) {

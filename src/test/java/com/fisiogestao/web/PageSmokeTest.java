@@ -334,6 +334,72 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaPermiteSessaoRetroativaComPlanoVencido() throws Exception {
+        LocalDate dataRetroativa = LocalDate.now().minusDays(5);
+        PlanoSessaoEntity planoVencido = planoSessaoRepository.save(PlanoSessaoEntity.builder()
+                .cliente(clienteAgenda)
+                .nomePlano("Plano Vencido Teste")
+                .sessoesContratadas(5)
+                .sessoesConsumidas(0)
+                .valorTotal(new BigDecimal("500.00"))
+                .dataInicio(dataRetroativa.minusMonths(2))
+                .dataValidade(dataRetroativa.minusDays(1))
+                .status(PlanoSessaoStatus.ATIVO)
+                .build());
+
+        mockMvc.perform(post("/agenda/sessoes")
+                        .with(csrf())
+                        .param("clienteId", clienteAgenda.getId().toString())
+                        .param("planoSessaoId", planoVencido.getId().toString())
+                        .param("data", dataRetroativa.toString())
+                        .param("horario", "09:00")
+                        .param("tipoAgendamento", "PLANO")
+                        .param("tipoAtendimento", "Pilates"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("successMessage"));
+
+        boolean sessaoCriadaComPlanoVencido = sessaoRepository
+                .findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
+                .anyMatch(s -> s.getPlanoSessao() != null && s.getPlanoSessao().getId().equals(planoVencido.getId()));
+        org.junit.jupiter.api.Assertions.assertTrue(sessaoCriadaComPlanoVencido,
+                "Deveria permitir agendamento retroativo mesmo com o plano de tratamento vencido.");
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void agendaBloqueiaSessaoFuturaComPlanoVencido() throws Exception {
+        LocalDate dataFutura = LocalDate.now().plusDays(5);
+        PlanoSessaoEntity planoVencido = planoSessaoRepository.save(PlanoSessaoEntity.builder()
+                .cliente(clienteAgenda)
+                .nomePlano("Plano Vencido Futuro Teste")
+                .sessoesContratadas(5)
+                .sessoesConsumidas(0)
+                .valorTotal(new BigDecimal("500.00"))
+                .dataInicio(LocalDate.now().minusMonths(2))
+                .dataValidade(LocalDate.now().minusDays(1))
+                .status(PlanoSessaoStatus.ATIVO)
+                .build());
+
+        mockMvc.perform(post("/agenda/sessoes")
+                        .with(csrf())
+                        .param("clienteId", clienteAgenda.getId().toString())
+                        .param("planoSessaoId", planoVencido.getId().toString())
+                        .param("data", dataFutura.toString())
+                        .param("horario", "09:00")
+                        .param("tipoAgendamento", "PLANO")
+                        .param("tipoAtendimento", "Pilates"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("errorMessage"));
+
+        boolean sessaoCriadaComPlanoVencido = sessaoRepository
+                .findByClienteIdOrderByDataHoraInicioDesc(clienteAgenda.getId()).stream()
+                .anyMatch(s -> s.getPlanoSessao() != null && s.getPlanoSessao().getId().equals(planoVencido.getId()));
+        org.junit.jupiter.api.Assertions.assertFalse(sessaoCriadaComPlanoVencido,
+                "Agendamento futuro com plano vencido deve continuar bloqueado.");
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void agendaRenderizaComPlanoESessaoMesmoComOpenInViewDesabilitado() throws Exception {
         mockMvc.perform(get("/calendario")
                         .param("data", agendaDate.toString())

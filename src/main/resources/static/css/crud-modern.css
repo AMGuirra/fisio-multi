@@ -480,6 +480,10 @@
     border: 1px solid transparent;
 }
 
+.flash-message[hidden] {
+    display: none;
+}
+
 .flash-message.success {
     background: #dff8ea;
     color: #0d6a46;

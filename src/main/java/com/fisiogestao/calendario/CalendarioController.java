@@ -192,10 +192,13 @@ public class CalendarioController {
         model.addAttribute("pacientes", pacienteService.listarAtivos());
         model.addAttribute("planosAgenda", planoSessaoService.listarDisponiveisParaAgenda());
         List<com.fisiogestao.pacientes.PlanoSessaoEntity> planosDiagnostico = planoSessaoService.listarTodosParaDiagnosticoAgenda();
+        // Para o dia selecionado no passado, o agendamento eh retroativo (registra um fato ja
+        // ocorrido) e nao deve ser bloqueado pela vigencia do plano — apenas por saldo e status.
+        boolean considerarVigencia = !dataSelecionada.isBefore(LocalDate.now());
         Map<String, PlanoDisponibilidadeDTO> diagnosticosPlanosAgenda = planosDiagnostico.stream()
                 .collect(Collectors.toMap(
                         plano -> plano.getId().toString(),
-                        plano -> planoSessaoService.diagnosticarPlano(plano.getId())
+                        plano -> planoSessaoService.diagnosticarPlano(plano.getId(), considerarVigencia)
                 ));
         model.addAttribute("planosAgendaDiagnostico", planosDiagnostico);
         model.addAttribute("motivosPlanosAgenda", planosDiagnostico.stream()

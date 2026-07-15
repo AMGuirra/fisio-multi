@@ -784,14 +784,21 @@ public class AgendaService {
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
+        // Agendamento retroativo registra um fato ja ocorrido: a vigencia do plano nao deve
+        // bloquear o registro, apenas novos agendamentos para o futuro.
+        boolean considerarVigencia = !isRetroativo(form.getData());
         PlanoSessaoEntity plano = form.getPlanoSessaoId() == null
-                ? planoSessaoService.buscarPrimeiroLivreParaAgenda(form.getClienteId())
+                ? planoSessaoService.buscarPrimeiroLivreParaAgenda(form.getClienteId(), considerarVigencia)
                         .orElseThrow(() -> new BusinessException(
                                 "O paciente não possui plano de tratamento com saldo livre para agenda. Cadastre ou renove um plano antes de confirmar a sessão."
                         ))
-                : planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), null);
-        validarSaldoLivreParaNovoAgendamento(plano, 1);
+                : planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), null, considerarVigencia);
+        validarSaldoLivreParaNovoAgendamento(plano, 1, considerarVigencia);
         return plano;
+    }
+
+    private boolean isRetroativo(LocalDate data) {
+        return data.isBefore(LocalDate.now(zoneId(obterConfiguracaoAtiva())));
     }
 
     private PlanoSessaoEntity resolverPlanoParaEdicao(AgendaManualForm form, TipoAgendamento tipoAgendamento, UUID planoAtualId) {
@@ -799,9 +806,10 @@ public class AgendaService {
         if (tipoAgendamento == TipoAgendamento.AVULSO) {
             return null;
         }
-        PlanoSessaoEntity plano = planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), planoAtualId);
+        boolean considerarVigencia = !isRetroativo(form.getData());
+        PlanoSessaoEntity plano = planoSessaoService.resolverPlanoParaSessao(form.getClienteId(), form.getPlanoSessaoId(), planoAtualId, considerarVigencia);
         if (planoAtualId == null || !planoAtualId.equals(plano.getId())) {
-            validarSaldoLivreParaNovoAgendamento(plano, 1);
+            validarSaldoLivreParaNovoAgendamento(plano, 1, considerarVigencia);
         }
         return plano;
     }
@@ -843,8 +851,8 @@ public class AgendaService {
                 .collect(Collectors.joining(","));
     }
 
-    private void validarSaldoLivreParaNovoAgendamento(PlanoSessaoEntity plano, int novasSessoes) {
-        int sessoesLivres = planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano);
+    private void validarSaldoLivreParaNovoAgendamento(PlanoSessaoEntity plano, int novasSessoes, boolean considerarVigencia) {
+        int sessoesLivres = planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano, considerarVigencia);
         if (novasSessoes > sessoesLivres) {
             throw new BusinessException("O plano selecionado não possui saldo livre para novos agendamentos. "
                     + "Sessões já agendadas bloqueiam créditos futuros, mas só serão consumidas quando realizadas ou marcadas como falta faturada.");

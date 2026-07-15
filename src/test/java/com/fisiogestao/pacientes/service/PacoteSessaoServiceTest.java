@@ -428,6 +428,63 @@ class PlanoSessaoServiceTest {
     }
 
     @Test
+    void deveIgnorarPacoteVencidoAoBuscarLivreParaAgendaPorPadrao() {
+        UUID clienteId = UUID.randomUUID();
+        PlanoSessaoEntity vencido = pacoteAtivo(10, 2);
+        vencido.setDataValidade(LocalDate.now().minusDays(1));
+
+        when(planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+                .thenReturn(List.of(vencido));
+
+        Optional<PlanoSessaoEntity> resultado = planoSessaoService.buscarPrimeiroLivreParaAgenda(clienteId);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void deveConsiderarPacoteVencidoDisponivelQuandoVigenciaEhIgnorada() {
+        UUID clienteId = UUID.randomUUID();
+        PlanoSessaoEntity vencido = pacoteAtivo(10, 2);
+        vencido.setDataValidade(LocalDate.now().minusDays(1));
+
+        when(planoSessaoRepository.findByClienteIdOrderByCreatedAtDesc(clienteId))
+                .thenReturn(List.of(vencido));
+        when(sessaoRepository.countAgendadasPorPlano(vencido.getId())).thenReturn(0L);
+
+        Optional<PlanoSessaoEntity> resultado = planoSessaoService.buscarPrimeiroLivreParaAgenda(clienteId, false);
+
+        assertTrue(resultado.isPresent());
+        assertEquals(vencido.getId(), resultado.get().getId());
+    }
+
+    @Test
+    void resolverPlanoParaSessaoDeveAceitarPlanoVencidoQuandoVigenciaEhIgnorada() {
+        PlanoSessaoEntity vencido = pacoteAtivo(10, 2);
+        vencido.setDataValidade(LocalDate.now().minusDays(1));
+        UUID clienteId = vencido.getCliente().getId();
+
+        when(planoSessaoRepository.findById(vencido.getId())).thenReturn(Optional.of(vencido));
+        when(sessaoRepository.countAgendadasPorPlano(vencido.getId())).thenReturn(0L);
+
+        PlanoSessaoEntity resolvido = assertDoesNotThrow(() ->
+                planoSessaoService.resolverPlanoParaSessao(clienteId, vencido.getId(), null, false));
+
+        assertEquals(vencido.getId(), resolvido.getId());
+    }
+
+    @Test
+    void resolverPlanoParaSessaoDeveRejeitarPlanoVencidoPorPadrao() {
+        PlanoSessaoEntity vencido = pacoteAtivo(10, 2);
+        vencido.setDataValidade(LocalDate.now().minusDays(1));
+        UUID clienteId = vencido.getCliente().getId();
+
+        when(planoSessaoRepository.findById(vencido.getId())).thenReturn(Optional.of(vencido));
+
+        assertThrows(BusinessException.class,
+                () -> planoSessaoService.resolverPlanoParaSessao(clienteId, vencido.getId(), null));
+    }
+
+    @Test
     void diagnosticoDePlanoDeveDescontarSessoesAgendadasDoSaldoLivreParaAgenda() {
         PlanoSessaoEntity plano = pacoteAtivo(10, 2);
         when(planoSessaoRepository.findById(plano.getId())).thenReturn(Optional.of(plano));

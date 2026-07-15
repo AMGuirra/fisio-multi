@@ -212,7 +212,7 @@ class AgendaServiceTest {
                 .thenReturn(List.<HorarioBloqueadoEntity>of());
         when(bloqueioAgendaService.existeBloqueioAtivo(any(), any(), any())).thenReturn(false);
         when(pacienteService.buscarPorId(cliente.getId())).thenReturn(cliente);
-        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), plano.getId())).thenReturn(plano);
+        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), plano.getId(), false)).thenReturn(plano);
         when(auditService.snapshotOf(any())).thenReturn(Map.of());
         when(auditService.describeOf(any())).thenReturn("Sessão Teste");
 
@@ -267,8 +267,8 @@ class AgendaServiceTest {
         when(horarioBloqueadoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(any(), any(), any()))
                 .thenReturn(List.<HorarioBloqueadoEntity>of());
         when(bloqueioAgendaService.existeBloqueioAtivo(any(), any(), any())).thenReturn(false);
-        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), null)).thenReturn(plano);
-        when(planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano)).thenReturn(0);
+        when(planoSessaoService.resolverPlanoParaSessao(cliente.getId(), plano.getId(), null, false)).thenReturn(plano);
+        when(planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano, false)).thenReturn(0);
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> agendaService.agendarSessaoManual(form, "Administrador"));
