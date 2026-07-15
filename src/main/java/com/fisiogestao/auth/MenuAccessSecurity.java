@@ -1,8 +1,8 @@
 package com.fisiogestao.auth;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -14,13 +14,21 @@ import java.util.Arrays;
  * ({@link UserMenuAccessService}). Sem isso, uma role liberada para um menu pelo admin
  * (ex.: Financeiro liberado para Fisioterapeuta) continuaria batendo em um
  * {@code hasAnyRole(...)} fixo no código e recebendo 403 mesmo com o menu liberado.
+ *
+ * <p>A role é lida diretamente das authorities da sessão autenticada (formato
+ * {@code ROLE_<UserRole>}, atribuído em {@code SecurityConfig#userDetailsService}),
+ * e não por uma nova consulta ao catálogo de usuários — mantém o comportamento
+ * consistente com o restante do Spring Security (inclusive em testes com
+ * {@code @WithMockUser}).</p>
  */
 @Component("menuAccessSecurity")
-@RequiredArgsConstructor
 public class MenuAccessSecurity {
 
-    private final InMemoryUserCatalog userCatalog;
     private final UserMenuAccessService userMenuAccessService;
+
+    public MenuAccessSecurity(UserMenuAccessService userMenuAccessService) {
+        this.userMenuAccessService = userMenuAccessService;
+    }
 
     public boolean canAccess(String menuItem) {
         return canAccessAny(menuItem);
@@ -54,8 +62,21 @@ public class MenuAccessSecurity {
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken || !authentication.isAuthenticated()) {
             return null;
         }
-        return userCatalog.buscarCredenciais(authentication.getName())
-                .map(InMemoryUserCatalog.SystemUserCredentials::role)
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .map(authority -> authority.substring("ROLE_".length()))
+                .map(this::parseRole)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
                 .orElse(null);
+    }
+
+    private UserRole parseRole(String name) {
+        try {
+            return UserRole.valueOf(name);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }
