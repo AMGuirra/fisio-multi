@@ -251,6 +251,45 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    void apiCriarPacienteRetornaIdENomeParaSelecaoImediata() throws Exception {
+        mockMvc.perform(post("/api/pacientes")
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nomeCompleto\":\"Paciente Via Api\",\"telefone\":\"65988887777\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.nomeCompleto").value("Paciente Via Api"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.id").exists());
+
+        org.junit.jupiter.api.Assertions.assertTrue(
+                clienteRepository.findAll().stream().anyMatch(c -> "Paciente Via Api".equals(c.getNomeCompleto())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void apiCriarPacienteComNomeVazioRetorna400() throws Exception {
+        mockMvc.perform(post("/api/pacientes")
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nomeCompleto\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void apiCriarPacienteSemCsrfEhBloqueado() throws Exception {
+        mockMvc.perform(post("/api/pacientes")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nomeCompleto\":\"Paciente Sem Csrf\"}"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?expired"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(
+                clienteRepository.findAll().stream().noneMatch(c -> "Paciente Sem Csrf".equals(c.getNomeCompleto())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void paginaDeBloqueiosRenderizaSeparada() throws Exception {
         mockMvc.perform(get("/bloqueios"))
                 .andExpect(status().isOk());

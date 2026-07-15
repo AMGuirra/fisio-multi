@@ -267,18 +267,18 @@
                                     <button type="button" class="link-inline" id="novaSessaoBuscarPacienteBtn">
                                         <i data-lucide="search"></i>Buscar paciente
                                     </button>
-                                    <a href="/pacientes?novoPaciente=true" target="_blank" rel="noopener" class="link-inline">
+                                    <button type="button" class="link-inline" id="novaSessaoIncluirPacienteBtn">
                                         <i data-lucide="user-round-plus"></i>Incluir paciente
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                             <input type="text" id="novaSessaoPacienteBusca" class="form-control initially-hidden"
-                                   placeholder="Digite para buscar..." autocomplete="off">
+                                   placeholder="Digite o nome do paciente..." autocomplete="off">
+                            <div id="novaSessaoPacienteResultados" class="combobox-results initially-hidden"></div>
                             <select id="novaSessaoCliente" name="clienteId" class="form-select" required>
                                 <option value="">Selecione...</option>
                                 <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nomeCompleto}">Paciente</option>
                             </select>
-                            <p class="helper-text">Cadastrou um paciente agora? Reabra este modal para vê-lo na lista.</p>
                         </div>
 
                         <div class="form-field">
@@ -370,6 +370,55 @@
                             <button type="button" class="action-button ghost" data-modal-close>Cancelar</button>
                             <button type="submit" class="action-button primary" id="novaSessaoSalvar">
                                 <i data-lucide="calendar-check"></i>Confirmar agendamento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="novaSessaoIncluirPacienteModal" class="app-modal app-modal-nested" aria-hidden="true">
+        <div class="app-modal-backdrop" data-incluir-paciente-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="novaSessaoIncluirPacienteModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="novaSessaoIncluirPacienteModalTitle"><i data-lucide="user-round-plus"></i> Incluir paciente</h3>
+                        <p>Cadastre rapidamente e volte direto para o agendamento.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-incluir-paciente-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <div id="novaSessaoIncluirPacienteErro" class="flash-message error compact-banner" hidden>
+                        <i data-lucide="triangle-alert"></i>
+                        <span id="novaSessaoIncluirPacienteErroTexto"></span>
+                    </div>
+                    <form id="novaSessaoIncluirPacienteForm" class="modern-form">
+                        <div class="form-field">
+                            <label for="novaSessaoIncluirPacienteNome">Nome completo</label>
+                            <input id="novaSessaoIncluirPacienteNome" type="text" class="form-control" maxlength="160" required>
+                        </div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPacienteTelefone">Telefone</label>
+                                <input id="novaSessaoIncluirPacienteTelefone" type="text" class="form-control" maxlength="20" placeholder="(00) 00000-0000">
+                            </div>
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPacienteEmail">E-mail</label>
+                                <input id="novaSessaoIncluirPacienteEmail" type="email" class="form-control" maxlength="120" placeholder="paciente@email.com">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label for="novaSessaoIncluirPacienteNascimento">Data de nascimento</label>
+                            <input id="novaSessaoIncluirPacienteNascimento" type="date" class="form-control">
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-incluir-paciente-close>Cancelar</button>
+                            <button type="submit" class="action-button primary" id="novaSessaoIncluirPacienteSalvar">
+                                <i data-lucide="save"></i>Cadastrar e selecionar
                             </button>
                         </div>
                     </form>
@@ -688,6 +737,8 @@
                 const clienteSelect = document.getElementById('novaSessaoCliente');
                 const buscarPacienteBtn = document.getElementById('novaSessaoBuscarPacienteBtn');
                 const pacienteBusca = document.getElementById('novaSessaoPacienteBusca');
+                const pacienteResultados = document.getElementById('novaSessaoPacienteResultados');
+                const incluirPacienteBtn = document.getElementById('novaSessaoIncluirPacienteBtn');
                 const planoSelect = document.getElementById('novaSessaoPlano');
                 const tipoInputs = Array.from(document.querySelectorAll('#novaSessaoForm input[name="tipoAgendamento"]'));
                 const planoAlert = document.getElementById('novaSessaoPlanoAlert');
@@ -705,6 +756,17 @@
                     return;
                 }
 
+                const exitPacienteSearch = () => {
+                    if (!pacienteBusca || !pacienteResultados || !clienteSelect) {
+                        return;
+                    }
+                    pacienteBusca.classList.add('initially-hidden');
+                    pacienteResultados.classList.add('initially-hidden');
+                    pacienteBusca.value = '';
+                    pacienteResultados.innerHTML = '';
+                    clienteSelect.classList.remove('initially-hidden');
+                };
+
                 const setOpen = (open) => {
                     modal.classList.toggle('is-open', open);
                     modal.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -712,10 +774,8 @@
                     if (open && clienteSelect) {
                         window.setTimeout(() => clienteSelect.focus(), 60);
                     }
-                    if (open && pacienteBusca) {
-                        pacienteBusca.classList.add('initially-hidden');
-                        pacienteBusca.value = '';
-                        Array.from(clienteSelect.options).forEach((option) => { option.hidden = false; });
+                    if (open) {
+                        exitPacienteSearch();
                     }
                 };
 
@@ -885,34 +945,141 @@
                 if (clienteSelect) {
                     clienteSelect.addEventListener('change', syncPlanos);
                 }
-                if (buscarPacienteBtn && pacienteBusca && clienteSelect) {
+                const selecionarPaciente = (id, nome) => {
+                    clienteSelect.value = id;
+                    clienteSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    exitPacienteSearch();
+                    if (nome) {
+                        salvarBtn?.focus();
+                    }
+                };
+
+                const renderPacienteResultados = () => {
+                    if (!pacienteResultados || !clienteSelect) {
+                        return;
+                    }
+                    const termo = pacienteBusca.value.trim().toLocaleLowerCase('pt-BR');
+                    const opcoes = Array.from(clienteSelect.options).slice(1)
+                        .filter((option) => !termo || option.textContent.toLocaleLowerCase('pt-BR').includes(termo));
+
+                    if (!opcoes.length) {
+                        pacienteResultados.innerHTML = '<p class="combobox-result-empty">Nenhum paciente encontrado.</p>';
+                        return;
+                    }
+
+                    pacienteResultados.innerHTML = opcoes.map((option) =>
+                        `<button type="button" class="combobox-result" data-id="${option.value}">${option.textContent}</button>`
+                    ).join('');
+                };
+
+                if (buscarPacienteBtn && pacienteBusca && pacienteResultados && clienteSelect) {
                     buscarPacienteBtn.addEventListener('click', () => {
-                        const showing = !pacienteBusca.classList.contains('initially-hidden');
-                        if (showing) {
-                            pacienteBusca.classList.add('initially-hidden');
-                            pacienteBusca.value = '';
-                        } else {
-                            pacienteBusca.classList.remove('initially-hidden');
-                            window.setTimeout(() => pacienteBusca.focus(), 30);
+                        const emBusca = clienteSelect.classList.contains('initially-hidden');
+                        if (emBusca) {
+                            exitPacienteSearch();
+                            return;
                         }
-                        Array.from(clienteSelect.options).forEach((option) => { option.hidden = false; });
+                        clienteSelect.classList.add('initially-hidden');
+                        pacienteBusca.classList.remove('initially-hidden');
+                        pacienteResultados.classList.remove('initially-hidden');
+                        renderPacienteResultados();
+                        window.setTimeout(() => pacienteBusca.focus(), 30);
                     });
-                    pacienteBusca.addEventListener('input', () => {
-                        const termo = pacienteBusca.value.trim().toLocaleLowerCase('pt-BR');
-                        Array.from(clienteSelect.options).forEach((option, index) => {
-                            if (index === 0) {
-                                return;
-                            }
-                            const nome = option.textContent.toLocaleLowerCase('pt-BR');
-                            option.hidden = termo.length > 0 && !nome.includes(termo);
-                        });
-                    });
+                    pacienteBusca.addEventListener('input', renderPacienteResultados);
                     pacienteBusca.addEventListener('keydown', (event) => {
                         if (event.key === 'Enter') {
                             event.preventDefault();
+                        } else if (event.key === 'Escape') {
+                            event.stopPropagation();
+                            exitPacienteSearch();
+                        }
+                    });
+                    pacienteResultados.addEventListener('click', (event) => {
+                        const button = event.target.closest('.combobox-result');
+                        if (!button) {
+                            return;
+                        }
+                        selecionarPaciente(button.dataset.id, button.textContent);
+                    });
+                }
+
+                const incluirModal = document.getElementById('novaSessaoIncluirPacienteModal');
+                const incluirForm = document.getElementById('novaSessaoIncluirPacienteForm');
+                const incluirErro = document.getElementById('novaSessaoIncluirPacienteErro');
+                const incluirErroTexto = document.getElementById('novaSessaoIncluirPacienteErroTexto');
+                const incluirSalvarBtn = document.getElementById('novaSessaoIncluirPacienteSalvar');
+                const incluirNomeInput = document.getElementById('novaSessaoIncluirPacienteNome');
+
+                if (incluirPacienteBtn && incluirModal && incluirForm) {
+                    const setIncluirOpen = (open) => {
+                        incluirModal.classList.toggle('is-open', open);
+                        incluirModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                        if (open) {
+                            incluirErro.hidden = true;
+                            incluirForm.reset();
+                            window.setTimeout(() => incluirNomeInput?.focus(), 60);
+                        }
+                    };
+
+                    incluirPacienteBtn.addEventListener('click', () => setIncluirOpen(true));
+                    incluirModal.querySelectorAll('[data-incluir-paciente-close]').forEach((element) => {
+                        element.addEventListener('click', () => setIncluirOpen(false));
+                    });
+                    document.addEventListener('keydown', (event) => {
+                        if (event.key === 'Escape' && incluirModal.classList.contains('is-open')) {
+                            event.stopImmediatePropagation();
+                            setIncluirOpen(false);
+                        }
+                    });
+
+                    incluirForm.addEventListener('submit', async (event) => {
+                        event.preventDefault();
+                        incluirErro.hidden = true;
+                        incluirSalvarBtn.disabled = true;
+
+                        const csrfInput = form.querySelector('input[name="_csrf"]');
+                        const payload = {
+                            nomeCompleto: incluirNomeInput.value.trim(),
+                            telefone: document.getElementById('novaSessaoIncluirPacienteTelefone').value.trim() || null,
+                            email: document.getElementById('novaSessaoIncluirPacienteEmail').value.trim() || null,
+                            dataNascimento: document.getElementById('novaSessaoIncluirPacienteNascimento').value || null
+                        };
+
+                        try {
+                            const response = await fetch('/api/pacientes', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfInput ? csrfInput.value : ''
+                                },
+                                body: JSON.stringify(payload)
+                            });
+
+                            const data = await response.json().catch(() => null);
+
+                            if (!response.ok) {
+                                incluirErroTexto.textContent = data?.message || 'Não foi possível cadastrar o paciente.';
+                                incluirErro.hidden = false;
+                                return;
+                            }
+
+                            const option = document.createElement('option');
+                            option.value = data.id;
+                            option.textContent = data.nomeCompleto;
+                            clienteSelect.appendChild(option);
+
+                            setIncluirOpen(false);
+                            selecionarPaciente(data.id, data.nomeCompleto);
+                        } catch (error) {
+                            incluirErroTexto.textContent = 'Falha de conexão ao cadastrar o paciente. Tente novamente.';
+                            incluirErro.hidden = false;
+                        } finally {
+                            incluirSalvarBtn.disabled = false;
                         }
                     });
                 }
+
                 if (planoSelect) {
                     planoSelect.addEventListener('change', updateRecurrencePreview);
                 }

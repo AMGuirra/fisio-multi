@@ -1,5 +1,6 @@
 package com.fisiogestao.pacientes;
 
+import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.shared.web.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,12 +10,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -81,4 +89,25 @@ public class PacientesApiController {
             String cidade,
             String estado
     ) {}
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Cadastrar paciente rapidamente",
+            description = "Cria um novo paciente com os dados essenciais, usado pelo atalho de inclusão rápida na agenda.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Paciente cadastrado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = PacientesApiController.PacienteCriadoResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                    @ApiResponse(responseCode = "422", description = "Regra de negócio violada (ex: CPF já cadastrado)"),
+                    @ApiResponse(responseCode = "401", description = "Não autenticado")
+            }
+    )
+    public PacienteCriadoResponse criar(@Valid @RequestBody PacienteForm form) {
+        ClienteEntity cliente = pacienteService.cadastrar(form);
+        return new PacienteCriadoResponse(cliente.getId(), cliente.getNomeCompleto());
+    }
+
+    public record PacienteCriadoResponse(UUID id, String nomeCompleto) {}
 }

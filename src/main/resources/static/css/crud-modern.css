@@ -2676,6 +2676,10 @@ body.modal-open {
     padding: 24px;
 }
 
+.app-modal-nested {
+    z-index: 1300;
+}
+
 .app-modal-backdrop {
     position: absolute;
     inset: 0;
@@ -3012,6 +3016,43 @@ body.modal-open {
 .form-field-actions .link-inline i {
     width: 14px;
     height: 14px;
+}
+
+.combobox-results {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.combobox-result {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 12px;
+    border: none;
+    border-bottom: 1px solid var(--stroke-soft);
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.combobox-result:last-child {
+    border-bottom: none;
+}
+
+.combobox-result:hover,
+.combobox-result:focus-visible {
+    background: rgba(15, 143, 122, 0.1);
+    outline: none;
+}
+
+.combobox-result-empty {
+    padding: 9px 12px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
 }
 
 body[data-theme='dark'] .modern-form .form-control,
