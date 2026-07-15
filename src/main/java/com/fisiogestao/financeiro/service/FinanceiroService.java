@@ -226,11 +226,14 @@ public class FinanceiroService {
     /**
      * A anotação {@code @PreAuthorize} é a segunda linha de defesa:
      * garante que, mesmo que este método seja chamado fora do contexto HTTP
-     * (ex.: via injeção direta por outro serviço), a verificação de role
-     * ainda é enforced pelo Spring Security AOP.
+     * (ex.: via injeção direta por outro serviço), a verificação ainda é
+     * enforced pelo Spring Security AOP. A verificação delega para
+     * {@code menuAccessSecurity}, que respeita as permissões configuradas
+     * pelo administrador em "Funções de Usuários" (ver {@link com.fisiogestao.auth.UserMenuAccessService}),
+     * em vez de travar um conjunto fixo de roles.
      * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('FINANCEIRO')")
     @Transactional(readOnly = true)
     public ResumoFinanceiro calcularResumo(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
@@ -274,7 +277,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('CONTAS_RECEBER')")
     @Transactional(readOnly = true)
     public ContasAReceberView listarContasAReceber() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
@@ -317,7 +320,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('CONTAS_PAGAR')")
     @Transactional(readOnly = true)
     public ContasAPagarView listarContasAPagar() {
         List<LancamentoFinanceiroEntity> pendentes = lancamentoFinanceiroRepository
@@ -365,7 +368,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('FATURAMENTO')")
     @Transactional(readOnly = true)
     public RelatorioFaturamento gerarRelatorioFaturamento(LocalDate inicio, LocalDate fim) {
         PeriodoFinanceiro periodo = periodoFinanceiro(inicio, fim);
@@ -600,7 +603,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccessAny('FINANCEIRO', 'CONTAS_RECEBER', 'CONTAS_PAGAR', 'FATURAMENTO')")
     @Transactional
     public void cancelar(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
@@ -631,7 +634,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccessAny('FINANCEIRO', 'CONTAS_RECEBER', 'CONTAS_PAGAR', 'FATURAMENTO')")
     @Transactional
     public void marcarComoPago(UUID lancamentoId, MetodoPagamento metodoPagamento) {
         LancamentoFinanceiroEntity lancamento = lancamentoFinanceiroRepository.findById(lancamentoId)
@@ -664,7 +667,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccessAny('FINANCEIRO', 'CONTAS_RECEBER', 'CONTAS_PAGAR', 'FATURAMENTO')")
     @Transactional
     public void cancelarBaixa(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);
@@ -693,7 +696,7 @@ public class FinanceiroService {
     }
 
     // Segunda linha de defesa (ver comentário completo em calcularResumo acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccessAny('FINANCEIRO', 'CONTAS_RECEBER', 'CONTAS_PAGAR', 'FATURAMENTO')")
     @Transactional
     public void reabrir(UUID lancamentoId) {
         LancamentoFinanceiroEntity lancamento = buscarPorId(lancamentoId);

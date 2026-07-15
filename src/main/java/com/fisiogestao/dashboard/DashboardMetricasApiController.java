@@ -18,14 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
  * no frontend: ocupação mensal, performance financeira e retenção de pacotes.
  * Todos os agregados são computados via SQL nativo no PostgreSQL.</p>
  *
- * <p><strong>Acesso:</strong> restrito aos perfis ADMIN e FINANCEIRO —
- * ver {@code SecurityConfig#securityFilterChain}. A autenticação é baseada
- * em sessão (form-login); HTTP Basic está desabilitado nesta aplicação.</p>
+ * <p><strong>Acesso:</strong> ADMIN sempre tem acesso; para as demais roles, depende
+ * do menu "Financeiro" estar liberado em "Funções de Usuários" (ver
+ * {@code MenuAccessSecurity} e {@code UserMenuAccessService}). A autenticação é
+ * baseada em sessão (form-login); HTTP Basic está desabilitado nesta aplicação.</p>
  */
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
-@Tag(name = "Dashboard", description = "Métricas históricas para gráficos gerenciais — requer perfil ADMIN ou FINANCEIRO")
+@Tag(name = "Dashboard", description = "Métricas históricas para gráficos gerenciais — requer acesso ao menu Financeiro")
 public class DashboardMetricasApiController {
 
     private final DashboardMetricasService metricasService;

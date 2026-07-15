@@ -99,11 +99,13 @@ public class DashboardMetricasService {
      *
      * <p>A anotação {@code @PreAuthorize} é a segunda linha de defesa:
      * garante que, mesmo que este método seja chamado fora do contexto HTTP
-     * (ex.: via injeção direta por outro serviço), a verificação de role
-     * ainda é enforced pelo Spring Security AOP.
+     * (ex.: via injeção direta por outro serviço), a verificação ainda é
+     * enforced pelo Spring Security AOP. A verificação delega para
+     * {@code menuAccessSecurity}, respeitando as permissões configuradas pelo
+     * administrador em "Funções de Usuários" em vez de travar um conjunto fixo de roles.
      * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.</p>
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('FINANCEIRO')")
     @Transactional(readOnly = true)
     public MetricasDashboard carregarMetricas() {
         List<YearMonth> meses = ultimosDozeMeses();

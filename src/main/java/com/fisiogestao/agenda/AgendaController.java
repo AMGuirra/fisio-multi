@@ -169,7 +169,7 @@ public class AgendaController {
     }
 
     @PostMapping("/sessoes/{id}/falta-faturada")
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO')")
+    @PreAuthorize("@menuAccessSecurity.canAccess('FINANCEIRO')")
     public String registrarFaltaFaturada(
             @PathVariable UUID id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,

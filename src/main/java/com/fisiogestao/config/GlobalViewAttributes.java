@@ -86,6 +86,11 @@ public class GlobalViewAttributes {
                 .orElse(UserThemePreference.LIGHT);
     }
 
+    @ModelAttribute("hasAuthenticatedTheme")
+    public boolean hasAuthenticatedTheme(Authentication authentication, HttpServletRequest request) {
+        return resolveSessionUser(authentication, request).isPresent();
+    }
+
     @ModelAttribute("currentPath")
     public String currentPath(HttpServletRequest request) {
         return request != null ? request.getRequestURI() : "";

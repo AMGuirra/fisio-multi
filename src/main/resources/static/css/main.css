@@ -81,6 +81,34 @@
    esta versão cobre as páginas auth e o portal standalone) */
 @media (prefers-color-scheme: dark) {
     :root { color-scheme: dark; }
+
+    /* Visitante anônimo da página pública de agendamento: sem preferência
+       de tema salva (sem data-theme), então segue o esquema do sistema/navegador. */
+    body.pub-body:not([data-theme]) {
+        --bg-canvas:  #081116;
+        --bg-surface: #0f1b21;
+        --bg-soft:    #13242c;
+        --text-strong:#edf5f2;
+        --text-body:  #bac9c5;
+        --text-soft:  #8aa09b;
+        --stroke-soft:#243841;
+        --stroke-strong:#33505c;
+        --brand-50: rgba(15, 143, 122, 0.16);
+        --brand-100: rgba(15, 143, 122, 0.2);
+        --brand-200: rgba(79, 204, 176, 0.28);
+        --brand-300: rgba(104, 225, 198, 0.42);
+        --color-background-success: rgba(16, 108, 70, 0.22);
+        --color-background-warning: rgba(135, 98, 0, 0.22);
+        --color-background-danger: rgba(135, 43, 43, 0.22);
+        --color-border-warning: rgba(209, 154, 16, 0.32);
+        --color-border-danger: rgba(213, 83, 83, 0.32);
+        --color-text-success: #baf4d7;
+        --color-text-warning: #ffe39b;
+        --color-text-danger: #ffc7c7;
+        --focus-ring: 0 0 0 3px rgba(24, 176, 149, 0.18);
+        --external-accent-text: #9fe8d7;
+        color-scheme: dark;
+    }
 }
 
 body[data-theme='dark'],
@@ -2516,6 +2544,19 @@ body.theme-dark .portal-control,
 body.theme-dark.portal-premium .modal-close {
     background: var(--bg-soft);
     color: var(--text-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+    body.pub-body:not([data-theme]) .pub-card {
+        background: var(--bg-surface);
+        border-color: var(--stroke-soft);
+    }
+
+    body.pub-body:not([data-theme]) .pub-control,
+    body.pub-body:not([data-theme]) .pub-select {
+        background: var(--bg-soft);
+        color: var(--text-strong);
+    }
 }
 
 @media (max-width: 900px) {

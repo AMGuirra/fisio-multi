@@ -8,7 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
-<body class="pub-body" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
+<body class="pub-body"
+      th:attr="data-theme=${hasAuthenticatedTheme ? loggedUserTheme.cssValue : null}"
+      th:classappend="${hasAuthenticatedTheme and loggedUserTheme.name() == 'DARK'} ? ' theme-dark' : ''">
     <div class="pub-container">
         <div class="pub-card">
             <div class="pub-header">
