@@ -2010,6 +2010,12 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     gap: 10px;
 }
 
+.request-list-scrollable {
+    max-height: 640px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
 .session-card,
 .request-card {
     border: 1px solid var(--stroke-soft);
@@ -2253,6 +2259,16 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     background: #f7fbfa;
     border-style: dashed;
     border-color: var(--stroke-soft);
+}
+
+.calendar-day-clickable {
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.calendar-day-clickable:hover {
+    border-color: rgba(15, 143, 122, 0.4);
+    box-shadow: 0 0 0 2px rgba(15, 143, 122, 0.1);
 }
 
 .calendar-day.day-today {
@@ -2966,6 +2982,36 @@ body.modal-open {
     color: inherit;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.form-field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.form-field-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.form-field-actions .link-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+}
+
+.form-field-actions .link-inline:hover {
+    text-decoration: underline;
+}
+
+.form-field-actions .link-inline i {
+    width: 14px;
+    height: 14px;
 }
 
 body[data-theme='dark'] .modern-form .form-control,

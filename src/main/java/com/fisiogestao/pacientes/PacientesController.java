@@ -38,10 +38,12 @@ public class PacientesController {
     public String index(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String busca,
+            @RequestParam(name = "novoPaciente", defaultValue = "false") boolean abrirNovoPacienteModal,
             Model model
     ) {
         Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(page, busca);
         prepararPagina(model, pacientesPage, new PacienteForm(), busca);
+        model.addAttribute("abrirNovoPacienteModal", abrirNovoPacienteModal);
         return "pacientes/index";
     }
 
@@ -139,6 +141,7 @@ public class PacientesController {
         model.addAttribute("pacientesPage", pacientesPage);
         model.addAttribute("busca", busca != null ? busca : "");
         model.addAttribute("pacienteForm", pacienteForm);
+        model.addAttribute("abrirNovoPacienteModal", false);
         // Contagens globais (independentes da página/busca)
         model.addAttribute("totalPacientesAtivos", pacienteService.contarAtivos());
         model.addAttribute("totalPacientesComTelefone", pacienteService.contarAtivosComTelefone());

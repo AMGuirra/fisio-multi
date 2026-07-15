@@ -259,7 +259,9 @@
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
     <!-- Modal de cadastro de novo paciente -->
-    <div id="newPacienteModal" class="app-modal" aria-hidden="true">
+    <div id="newPacienteModal" class="app-modal"
+         th:classappend="${abrirNovoPacienteModal} ? ' is-open' : ''"
+         th:attr="aria-hidden=${abrirNovoPacienteModal ? 'false' : 'true'}">
         <div class="app-modal-backdrop" data-new-modal-close></div>
         <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="newPacienteModalTitle">
             <div class="app-modal-card app-modal-card-lg">
@@ -431,7 +433,7 @@
 
         // Re-abre o modal se o servidor retornou erros de validação
         var hasFormErrors = newModal.querySelector('.form-error') !== null;
-        if (hasFormErrors) { openNewModal(); }
+        if (hasFormErrors || newModal.classList.contains('is-open')) { openNewModal(); }
     })();
     </script>
     <script>

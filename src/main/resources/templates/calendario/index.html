@@ -156,7 +156,8 @@
                             <div class="calendar-grid-body">
                                 <th:block th:each="semana : ${calendarioSemanas}">
                                     <th:block th:each="dia : ${semana}">
-                                        <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : '') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}">
+                                        <article class="calendar-day" th:classappend="${(!dia.pertenceAoMes ? ' day-empty' : ' calendar-day-clickable') + (dia.hoje ? ' day-today' : '') + (dia.selecionado ? ' day-selected' : '')}"
+                                                  th:attr="data-day-href=${dia.pertenceAoMes} ? @{/calendario(data=${dia.data})} : null">
                                             <th:block th:if="${dia.pertenceAoMes}">
                                                 <div class="calendar-day-number">
                                                     <a class="calendar-day-number-link" th:href="@{/calendario(data=${dia.data})}" th:text="${dia.data.dayOfMonth}">1</a>
@@ -297,24 +298,6 @@
                 </article>
 
                 <div class="crud-layout agenda-support-stack">
-                    <article class="section-card agenda-blocks-card">
-                        <header class="section-head">
-                            <h3 class="section-title"><i data-lucide="calendar-x-2"></i> Gestão Oficial de Bloqueios</h3>
-                        </header>
-                        <div class="section-body">
-                            <div class="helper-card">
-                                <div class="helper-copy">
-                                    <h4>Bloqueie períodos com governança</h4>
-                                    <p>Use o módulo de bloqueios para cadastrar indisponibilidades por faixa de horário ou dia inteiro, com edição segura, histórico e integração real com agenda e agendamento online.</p>
-                                </div>
-                                <div class="form-actions">
-                                    <a th:href="@{/bloqueios(data=${dataSelecionada})}" class="action-button primary"><i data-lucide="plus-circle"></i>Novo Bloqueio</a>
-                                    <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="list-filter"></i>Gerenciar Bloqueios</a>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
                     <article class="section-card agenda-month-blocks-card">
                         <header class="section-head">
                             <h3 class="section-title"><i data-lucide="list-checks"></i> Bloqueios do Mês</h3>
@@ -329,7 +312,7 @@
                         </div>
 
                         <div class="section-body" th:unless="${bloqueiosAtivosMes == null or bloqueiosAtivosMes.empty}">
-                            <div class="request-list">
+                            <div class="request-list request-list-scrollable">
                                 <article class="request-card request-card-block" th:each="bloqueio : ${bloqueiosAtivosMes}">
                                     <div class="request-row align-start">
                                         <div class="request-detail">
@@ -408,6 +391,17 @@
             }
 
             syncViewportState();
+        })();
+
+        (() => {
+            document.querySelectorAll('.calendar-day-clickable[data-day-href]').forEach((day) => {
+                day.addEventListener('click', (event) => {
+                    if (event.target.closest('a')) {
+                        return;
+                    }
+                    window.location.href = day.dataset.dayHref;
+                });
+            });
         })();
     </script>
 </body>

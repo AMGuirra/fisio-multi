@@ -261,11 +261,24 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="novaSessaoCliente">Paciente</label>
+                            <div class="form-field-label-row">
+                                <label for="novaSessaoCliente">Paciente</label>
+                                <div class="form-field-actions">
+                                    <button type="button" class="link-inline" id="novaSessaoBuscarPacienteBtn">
+                                        <i data-lucide="search"></i>Buscar paciente
+                                    </button>
+                                    <a href="/pacientes?novoPaciente=true" target="_blank" rel="noopener" class="link-inline">
+                                        <i data-lucide="user-round-plus"></i>Incluir paciente
+                                    </a>
+                                </div>
+                            </div>
+                            <input type="text" id="novaSessaoPacienteBusca" class="form-control initially-hidden"
+                                   placeholder="Digite para buscar..." autocomplete="off">
                             <select id="novaSessaoCliente" name="clienteId" class="form-select" required>
                                 <option value="">Selecione...</option>
                                 <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nomeCompleto}">Paciente</option>
                             </select>
+                            <p class="helper-text">Cadastrou um paciente agora? Reabra este modal para vê-lo na lista.</p>
                         </div>
 
                         <div class="form-field">
@@ -339,7 +352,7 @@
                                 </div>
                                 <div class="form-field">
                                     <label for="novaSessaoMaxOcorrencias">Limite</label>
-                                    <input id="novaSessaoMaxOcorrencias" type="number" name="recorrencia.maxOcorrencias" class="form-control" min="1" max="365" value="52">
+                                    <input id="novaSessaoMaxOcorrencias" type="number" name="recorrencia.maxOcorrencias" class="form-control" min="1" max="365" value="10">
                                 </div>
                             </div>
                             <div class="flash-message success compact-banner" id="novaSessaoPreview">
@@ -673,6 +686,8 @@
                 const modal = document.getElementById('novaSessaoModal');
                 const form = document.getElementById('novaSessaoForm');
                 const clienteSelect = document.getElementById('novaSessaoCliente');
+                const buscarPacienteBtn = document.getElementById('novaSessaoBuscarPacienteBtn');
+                const pacienteBusca = document.getElementById('novaSessaoPacienteBusca');
                 const planoSelect = document.getElementById('novaSessaoPlano');
                 const tipoInputs = Array.from(document.querySelectorAll('#novaSessaoForm input[name="tipoAgendamento"]'));
                 const planoAlert = document.getElementById('novaSessaoPlanoAlert');
@@ -696,6 +711,11 @@
                     document.body.classList.toggle('modal-open', open);
                     if (open && clienteSelect) {
                         window.setTimeout(() => clienteSelect.focus(), 60);
+                    }
+                    if (open && pacienteBusca) {
+                        pacienteBusca.classList.add('initially-hidden');
+                        pacienteBusca.value = '';
+                        Array.from(clienteSelect.options).forEach((option) => { option.hidden = false; });
                     }
                 };
 
@@ -864,6 +884,34 @@
 
                 if (clienteSelect) {
                     clienteSelect.addEventListener('change', syncPlanos);
+                }
+                if (buscarPacienteBtn && pacienteBusca && clienteSelect) {
+                    buscarPacienteBtn.addEventListener('click', () => {
+                        const showing = !pacienteBusca.classList.contains('initially-hidden');
+                        if (showing) {
+                            pacienteBusca.classList.add('initially-hidden');
+                            pacienteBusca.value = '';
+                        } else {
+                            pacienteBusca.classList.remove('initially-hidden');
+                            window.setTimeout(() => pacienteBusca.focus(), 30);
+                        }
+                        Array.from(clienteSelect.options).forEach((option) => { option.hidden = false; });
+                    });
+                    pacienteBusca.addEventListener('input', () => {
+                        const termo = pacienteBusca.value.trim().toLocaleLowerCase('pt-BR');
+                        Array.from(clienteSelect.options).forEach((option, index) => {
+                            if (index === 0) {
+                                return;
+                            }
+                            const nome = option.textContent.toLocaleLowerCase('pt-BR');
+                            option.hidden = termo.length > 0 && !nome.includes(termo);
+                        });
+                    });
+                    pacienteBusca.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                        }
+                    });
                 }
                 if (planoSelect) {
                     planoSelect.addEventListener('change', updateRecurrencePreview);
