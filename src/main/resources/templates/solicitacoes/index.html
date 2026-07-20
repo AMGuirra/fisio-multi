@@ -54,12 +54,9 @@
                 <span class="hero-pill">Solicitações</span>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções da Agenda">
+            <nav class="page-tabs solicitacoes-view-tabs" aria-label="Seções da Agenda e Solicitações">
                 <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
-            </nav>
-
-            <nav class="page-tabs solicitacoes-view-tabs" aria-label="Visualização de solicitações">
+                <span class="page-tab-divider" aria-hidden="true"></span>
                 <button type="button" class="page-tab active" data-tab-target="sol"><i data-lucide="calendar-plus"></i> Pedidos</button>
                 <button type="button" class="page-tab" data-tab-target="fila">
                     <i data-lucide="clock"></i> Lista de Espera

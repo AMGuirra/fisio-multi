@@ -29,22 +29,32 @@
             </div>
 
             <ul class="sidebar-nav">
-                <li th:each="item : ${sidebarNavItems}"
-                    th:class="${item.section ? 'sidebar-section' : ''}">
-                    <span th:if="${item.section}"
-                          class="sidebar-section-label"
-                          th:text="${item.label}">Seção</span>
-                    <a th:unless="${item.section}"
-                       th:href="${item.href}"
-                       class="sidebar-link"
-                       th:classappend="${item.active ? ' active' : ''}"
-                       th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">
-                        <span class="sidebar-link-icon">
-                            <i th:attr="data-lucide=${item.icon}"></i>
-                        </span>
-                        <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
-                    </a>
-                </li>
+                <th:block th:each="item : ${sidebarNavItems}">
+                    <li th:class="${item.section ? 'sidebar-section' : ''}">
+                        <span th:if="${item.section}"
+                              class="sidebar-section-label"
+                              th:text="${item.label}">Seção</span>
+                        <a th:unless="${item.section}"
+                           th:href="${item.href}"
+                           class="sidebar-link"
+                           th:classappend="${item.active ? ' active' : ''}"
+                           th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">
+                            <span class="sidebar-link-icon">
+                                <i th:attr="data-lucide=${item.icon}"></i>
+                            </span>
+                            <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
+                        </a>
+                    </li>
+                    <li th:if="${!item.section and item.href == '/solicitacoes'}" class="sidebar-subitem">
+                        <a th:href="@{/solicitacoes}+'#lista-espera'"
+                           class="sidebar-link sidebar-link-sub">
+                            <span class="sidebar-link-icon">
+                                <i data-lucide="clock"></i>
+                            </span>
+                            <span class="sidebar-link-label">Lista de Espera</span>
+                        </a>
+                    </li>
+                </th:block>
             </ul>
 
             <div class="sidebar-footer">
