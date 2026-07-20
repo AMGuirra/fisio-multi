@@ -681,10 +681,20 @@
         window.toggleSidebar = toggleSidebar;
 
         document.querySelectorAll('.btn-show-more').forEach((btn) => {
+            const wrap = btn.closest('.section-block, .section-body, article')?.querySelector('.data-table-wrap');
+            const extraRows = wrap ? wrap.querySelectorAll('tr.table-extra-row') : [];
+            if (!wrap || !extraRows.length) {
+                return;
+            }
+            extraRows.forEach((row) => row.classList.add('row-hidden'));
+            const labelShowMore = btn.textContent.trim() || 'Mostrar mais';
             btn.addEventListener('click', () => {
-                const wrap = btn.closest('.section-block, .section-body, article')?.querySelector('.data-table-wrap');
-                wrap?.querySelectorAll('tr.row-hidden').forEach((row) => row.classList.remove('row-hidden'));
-                btn.remove();
+                const isExpanded = btn.classList.toggle('is-expanded');
+                extraRows.forEach((row) => row.classList.toggle('row-hidden', !isExpanded));
+                btn.textContent = isExpanded ? 'Mostrar menos' : labelShowMore;
+                if (isExpanded) {
+                    wrap.scrollIntoView({ block: 'nearest' });
+                }
             });
         });
 

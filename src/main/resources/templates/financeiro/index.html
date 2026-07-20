@@ -287,7 +287,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="lancamento, iter : ${lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
+                                <tr th:each="lancamento, iter : ${lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${#temporals.format(lancamento.dataRecebimento, 'dd/MM/yyyy')}">01/01/2026</td>
                                     <td>
                                         <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>

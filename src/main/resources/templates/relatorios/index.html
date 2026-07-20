@@ -420,7 +420,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item, iter : ${relatorio.analytics.pacientesRecentes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
+                                <tr th:each="item, iter : ${relatorio.analytics.pacientesRecentes}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${item.nome}">Paciente</td>
                                     <td th:text="${item.cadastroEm}">01/04/2026 08:00</td>
                                     <td th:text="${item.contato}">Contato</td>
@@ -448,7 +448,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="sessao, iter : ${relatorio.sessoes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
+                                <tr th:each="sessao, iter : ${relatorio.sessoes}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${sessao.cliente.nomeCompleto}">Paciente</td>
                                     <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
                                     <td th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</td>
@@ -481,7 +481,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item, iter : ${relatorio.lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
+                                <tr th:each="item, iter : ${relatorio.lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${item.descricao}">Desc</td>
                                     <td th:text="${item.categoria}">Categoria</td>
                                     <td><span class="chip" th:classappend="${item.tipo.name() == 'RECEITA' ? ' tipo-receita' : ' tipo-despesa'}" th:text="${item.tipo}">RECEITA</span></td>
@@ -509,7 +509,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item, iter : ${relatorio.solicitacoes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
+                                <tr th:each="item, iter : ${relatorio.solicitacoes}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${item.nomePaciente}">Paciente</td>
                                     <td th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
                                     <td th:text="${item.telefone}">Telefone</td>
