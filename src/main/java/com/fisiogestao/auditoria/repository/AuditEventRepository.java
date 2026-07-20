@@ -15,8 +15,6 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
     @EntityGraph(attributePaths = "fieldChanges")
     Optional<AuditEventEntity> findWithFieldChangesById(UUID id);
 
-    long countByUsuarioId(UUID usuarioId);
-
     @Query("""
             select distinct e.entidade
             from AuditEventEntity e

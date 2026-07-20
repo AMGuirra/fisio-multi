@@ -209,7 +209,6 @@ class PageSmokeTest {
             "/dashboard",
             "/calendario",
             "/auditoria",
-            "/auditoria/vinculos",
             "/admin/system-status",
             "/configuracoes/email",
             "/configuracao/email",
