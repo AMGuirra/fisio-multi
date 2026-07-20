@@ -58,9 +58,14 @@
                 <span class="hero-pill">Operação clínica</span>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções da Agenda">
-                <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <a th:href="@{/solicitacoes}" class="page-tab"><i data-lucide="calendar-plus"></i> Solicitações</a>
+            <nav class="page-tabs" aria-label="Seções Administrativas">
+                <a th:href="@{/configuracoes/clinica}" href="/configuracoes/clinica" class="page-tab"><i data-lucide="building-2"></i> Config. Clínica</a>
+                <a th:href="@{/bloqueios}" href="/bloqueios" class="page-tab active"><i data-lucide="calendar-x-2"></i> Bloqueios</a>
+                <a th:href="@{/admin/system-status}" href="/admin/system-status" class="page-tab"><i data-lucide="monitor-check"></i> Status do Sistema</a>
+                <a th:href="@{/usuarios}" href="/usuarios" class="page-tab"><i data-lucide="users"></i> Usuários</a>
+                <a th:href="@{/funcoes-usuarios}" href="/funcoes-usuarios" class="page-tab"><i data-lucide="sliders-horizontal"></i> Funções</a>
+                <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
+                <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
 
             <section class="summary-grid">
