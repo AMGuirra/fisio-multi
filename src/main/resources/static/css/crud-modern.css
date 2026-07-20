@@ -1314,6 +1314,16 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     scrollbar-width: thin;
 }
 
+.data-table tr.row-hidden {
+    display: none;
+}
+
+.table-show-more {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;

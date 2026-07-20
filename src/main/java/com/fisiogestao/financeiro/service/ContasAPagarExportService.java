@@ -63,7 +63,7 @@ public class ContasAPagarExportService {
             document.add(new Paragraph(" "));
 
             if (!view.grupos().isEmpty()) {
-                document.add(new Paragraph("Aging de Contas a Pagar",
+                document.add(new Paragraph("Relatório de Contas a Pagar",
                         FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12)));
                 document.add(new Paragraph(" "));
                 document.add(tabelaAging(view));
@@ -130,7 +130,7 @@ public class ContasAPagarExportService {
             r4.createCell(0).setCellValue("Grupos");
             r4.createCell(1).setCellValue(view.resumo().gruposCount());
 
-            Sheet agingSheet = workbook.createSheet("Aging de Contas a Pagar");
+            Sheet agingSheet = workbook.createSheet("Relatório de Contas a Pagar");
             Row header = agingSheet.createRow(0);
             header.createCell(0).setCellValue("Categoria");
             header.createCell(1).setCellValue("Lançamento");

@@ -287,7 +287,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="lancamento : ${lancamentos}">
+                                <tr th:each="lancamento, iter : ${lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
                                     <td th:text="${#temporals.format(lancamento.dataRecebimento, 'dd/MM/yyyy')}">01/01/2026</td>
                                     <td>
                                         <p class="entity-name" th:text="${lancamento.descricao}">Descrição</p>
@@ -404,6 +404,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="table-show-more" th:if="${lancamentos != null and lancamentos.size() > 10}">
+                        <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                     </div>
                 </article>
             </section>

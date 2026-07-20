@@ -680,6 +680,14 @@
 
         window.toggleSidebar = toggleSidebar;
 
+        document.querySelectorAll('.btn-show-more').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const wrap = btn.closest('.section-block, .section-body, article')?.querySelector('.data-table-wrap');
+                wrap?.querySelectorAll('tr.row-hidden').forEach((row) => row.classList.remove('row-hidden'));
+                btn.remove();
+            });
+        });
+
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
         }

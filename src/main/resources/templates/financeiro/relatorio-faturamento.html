@@ -54,13 +54,35 @@
             </nav>
 
             <div class="section-card period-filter-card">
-                <form method="get" th:action="@{/financeiro/relatorio-faturamento}" action="/financeiro/relatorio-faturamento" class="period-form">
-                    <span class="period-label">De</span>
-                    <input type="date" name="inicio" class="form-control" th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
-                    <span class="period-label">Até</span>
-                    <input type="date" name="fim" class="form-control" th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
-                    <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
-                </form>
+                <div class="period-filter-bar">
+                    <div class="period-quick-btns">
+                        <button type="button" class="period-quick-btn" data-periodo="mes-atual">Este mês</button>
+                        <button type="button" class="period-quick-btn" data-periodo="mes-anterior">Mês anterior</button>
+                        <button type="button" class="period-quick-btn" data-periodo="trimestre">Últimos 3 meses</button>
+                        <button type="button" class="period-quick-btn" data-periodo="ano">Este ano</button>
+                    </div>
+                    <form method="get" th:action="@{/financeiro/relatorio-faturamento}" action="/financeiro/relatorio-faturamento" class="period-form" id="periodForm">
+                        <div class="period-date-range">
+                            <span class="period-label">De</span>
+                            <div class="period-input-group">
+                                <input type="date" id="periodoInicioInput" name="inicio" class="form-control"
+                                       aria-label="Data de início do período"
+                                       th:value="${#temporals.format(periodoInicio, 'yyyy-MM-dd')}" required>
+                            </div>
+                            <span class="period-sep">—</span>
+                            <span class="period-label">Até</span>
+                            <div class="period-input-group">
+                                <input type="date" id="periodoFimInput" name="fim" class="form-control"
+                                       aria-label="Data de fim do período"
+                                       th:value="${#temporals.format(periodoFim, 'yyyy-MM-dd')}" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="action-button primary">
+                            <i data-lucide="search"></i>
+                            Filtrar
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <section class="summary-grid grid-5">
@@ -131,5 +153,53 @@
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script>
+    (() => {
+        const inicioInput = document.getElementById('periodoInicioInput');
+        const fimInput    = document.getElementById('periodoFimInput');
+        const form        = document.getElementById('periodForm');
+
+        const fmt = d => d.toISOString().slice(0, 10);
+        const hoje = new Date();
+
+        const periodos = {
+            'mes-atual':    () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth(), 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+            }),
+            'mes-anterior': () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth(), 0)
+            }),
+            'trimestre':    () => ({
+                inicio: new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1),
+                fim:    new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+            }),
+            'ano':          () => ({
+                inicio: new Date(hoje.getFullYear(), 0, 1),
+                fim:    new Date(hoje.getFullYear(), 11, 31)
+            }),
+        };
+
+        document.querySelectorAll('.period-quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const { inicio, fim } = periodos[btn.dataset.periodo]();
+                inicioInput.value = fmt(inicio);
+                fimInput.value    = fmt(fim);
+                form.submit();
+            });
+        });
+
+        // marcar botão ativo baseado nos valores atuais
+        const iniVal = inicioInput.value;
+        const fimVal = fimInput.value;
+        Object.entries(periodos).forEach(([key, fn]) => {
+            const { inicio, fim } = fn();
+            if (fmt(inicio) === iniVal && fmt(fim) === fimVal) {
+                document.querySelector(`[data-periodo="${key}"]`)?.classList.add('active');
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

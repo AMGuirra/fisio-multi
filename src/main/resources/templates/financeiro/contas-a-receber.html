@@ -39,7 +39,7 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Contas a Receber</h1>
-                    <p class="hero-subtitle">Acompanhe receitas pendentes por paciente e plano, com aging de atraso para priorizar cobranças.</p>
+                    <p class="hero-subtitle">Acompanhe receitas pendentes por paciente e plano, com detalhamento por faixas de atraso para priorizar cobranças.</p>
                 </div>
                 <span class="hero-pill" th:text="${inadimplencia.quantidade() > 0 ? inadimplencia.quantidade() + ' vencida(s)' : 'Em dia'}">Em dia</span>
             </section>
@@ -89,7 +89,7 @@
             <article class="section-card">
                 <header class="section-head">
                     <div>
-                        <h3 class="section-title"><i data-lucide="list-checks"></i> Aging de recebíveis</h3>
+                        <h3 class="section-title"><i data-lucide="list-checks"></i> Relatório de contas a receber</h3>
                         <p class="section-subtitle">Valores agrupados por paciente e plano de tratamento.</p>
                     </div>
                     <div class="section-actions" th:unless="${#lists.isEmpty(contasAReceber.grupos())}">

@@ -101,32 +101,55 @@
             </article>
         </section>
 
-        <section class="section-card">
-            <header class="section-head">
-                <div>
-                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros do relatório</h3>
-                    <p class="section-subtitle">A leitura analítica e os comparativos consideram o período atual contra um intervalo anterior com o mesmo tamanho.</p>
+        <section class="crud-layout two-column">
+            <article class="section-card">
+                <header class="section-head">
+                    <div>
+                        <h3 class="section-title"><i data-lucide="filter"></i> Filtros do relatório</h3>
+                        <p class="section-subtitle">A leitura analítica e os comparativos consideram o período atual contra um intervalo anterior com o mesmo tamanho.</p>
+                    </div>
+                </header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios}" th:object="${filtroRelatorioForm}" method="get" class="modern-form">
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="dataInicial">Data inicial</label><input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}"></div>
+                            <div class="form-field"><label for="dataFinal">Data final</label><input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}"></div>
+                        </div>
+                        <div class="form-grid form-grid-two">
+                            <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirPacientes}"> Pacientes</label>
+                            <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirAgenda}"> Agenda</label>
+                            <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirFinanceiro}"> Financeiro</label>
+                            <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirSolicitacoes}"> Solicitações</label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="action-button primary"><i data-lucide="search"></i>Atualizar painel</button>
+                            <a th:href="@{/relatorios/exportar(formato='PDF',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="file-text"></i>PDF</a>
+                            <a th:href="@{/relatorios/exportar(formato='EXCEL',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="sheet"></i>Excel</a>
+                        </div>
+                    </form>
                 </div>
-            </header>
-            <div class="section-body">
-                <form th:action="@{/relatorios}" th:object="${filtroRelatorioForm}" method="get" class="modern-form">
-                    <div class="form-grid form-grid-two">
-                        <div class="form-field"><label for="dataInicial">Data inicial</label><input id="dataInicial" type="date" class="form-control" th:field="*{dataInicial}"></div>
-                        <div class="form-field"><label for="dataFinal">Data final</label><input id="dataFinal" type="date" class="form-control" th:field="*{dataFinal}"></div>
-                    </div>
-                    <div class="form-grid form-grid-two">
-                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirPacientes}"> Pacientes</label>
-                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirAgenda}"> Agenda</label>
-                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirFinanceiro}"> Financeiro</label>
-                        <label class="checkbox-inline"><input type="checkbox" th:field="*{incluirSolicitacoes}"> Solicitações</label>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="action-button primary"><i data-lucide="search"></i>Atualizar painel</button>
-                        <a th:href="@{/relatorios/exportar(formato='PDF',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="file-text"></i>PDF</a>
-                        <a th:href="@{/relatorios/exportar(formato='EXCEL',dataInicial=${filtroRelatorioForm.dataInicial},dataFinal=${filtroRelatorioForm.dataFinal},incluirPacientes=${filtroRelatorioForm.incluirPacientes},incluirAgenda=${filtroRelatorioForm.incluirAgenda},incluirFinanceiro=${filtroRelatorioForm.incluirFinanceiro},incluirSolicitacoes=${filtroRelatorioForm.incluirSolicitacoes})}" class="action-button ghost"><i data-lucide="sheet"></i>Excel</a>
-                    </div>
-                </form>
-            </div>
+            </article>
+
+            <article class="section-card">
+                <header class="section-head"><h3 class="section-title"><i data-lucide="mail"></i> Enviar relatório</h3></header>
+                <div class="section-body">
+                    <form th:action="@{/relatorios/enviar}" th:object="${envioRelatorioForm}" method="post" class="modern-form">
+                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
+                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
+                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
+                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
+                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
+                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
+                        <div class="form-field"><label for="destinatario">Destinatário</label><input id="destinatario" type="email" class="form-control" th:field="*{destinatario}"></div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field"><label for="formato">Formato</label><select id="formato" class="form-select" th:field="*{formato}"><option value="PDF">PDF</option><option value="EXCEL">Excel</option></select></div>
+                            <div class="form-field"><label for="assunto">Assunto</label><input id="assunto" class="form-control" th:field="*{assunto}"></div>
+                        </div>
+                        <div class="form-field"><label for="mensagem">Mensagem</label><textarea id="mensagem" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
+                        <button type="submit" class="action-button primary"><i data-lucide="send"></i>Enviar relatório</button>
+                    </form>
+                </div>
+            </article>
         </section>
 
         <section class="report-kpi-grid">
@@ -377,29 +400,6 @@
 
         <section class="crud-layout">
             <article class="section-card">
-                <header class="section-head"><h3 class="section-title"><i data-lucide="mail"></i> Enviar relatório</h3></header>
-                <div class="section-body">
-                    <form th:action="@{/relatorios/enviar}" th:object="${envioRelatorioForm}" method="post" class="modern-form">
-                        <input type="hidden" name="dataInicial" th:value="${filtroRelatorioForm.dataInicial}">
-                        <input type="hidden" name="dataFinal" th:value="${filtroRelatorioForm.dataFinal}">
-                        <input type="hidden" name="incluirPacientes" th:value="${filtroRelatorioForm.incluirPacientes}">
-                        <input type="hidden" name="incluirAgenda" th:value="${filtroRelatorioForm.incluirAgenda}">
-                        <input type="hidden" name="incluirFinanceiro" th:value="${filtroRelatorioForm.incluirFinanceiro}">
-                        <input type="hidden" name="incluirSolicitacoes" th:value="${filtroRelatorioForm.incluirSolicitacoes}">
-                        <div class="form-field"><label for="destinatario">Destinatário</label><input id="destinatario" type="email" class="form-control" th:field="*{destinatario}"></div>
-                        <div class="form-grid form-grid-two">
-                            <div class="form-field"><label for="formato">Formato</label><select id="formato" class="form-select" th:field="*{formato}"><option value="PDF">PDF</option><option value="EXCEL">Excel</option></select></div>
-                            <div class="form-field"><label for="assunto">Assunto</label><input id="assunto" class="form-control" th:field="*{assunto}"></div>
-                        </div>
-                        <div class="form-field"><label for="mensagem">Mensagem</label><textarea id="mensagem" class="form-control" rows="3" th:field="*{mensagem}"></textarea></div>
-                        <button type="submit" class="action-button primary"><i data-lucide="send"></i>Enviar relatório</button>
-                    </form>
-                </div>
-            </article>
-        </section>
-
-        <section class="crud-layout">
-            <article class="section-card">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="table-properties"></i> Dados filtrados</h3>
@@ -420,7 +420,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item : ${relatorio.analytics.pacientesRecentes}">
+                                <tr th:each="item, iter : ${relatorio.analytics.pacientesRecentes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
                                     <td th:text="${item.nome}">Paciente</td>
                                     <td th:text="${item.cadastroEm}">01/04/2026 08:00</td>
                                     <td th:text="${item.contato}">Contato</td>
@@ -428,6 +428,9 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="table-show-more" th:if="${#lists.size(relatorio.analytics.pacientesRecentes) > 10}">
+                            <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                         </div>
                     </div>
 
@@ -445,7 +448,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="sessao : ${relatorio.sessoes}">
+                                <tr th:each="sessao, iter : ${relatorio.sessoes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
                                     <td th:text="${sessao.cliente.nomeCompleto}">Paciente</td>
                                     <td th:text="${#temporals.format(sessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
                                     <td th:text="${sessao.tipoAtendimento != null ? sessao.tipoAtendimento : 'Atendimento fisioterapêutico'}">Tipo</td>
@@ -458,6 +461,9 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="table-show-more" th:if="${#lists.size(relatorio.sessoes) > 10}">
+                            <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                         </div>
                     </div>
 
@@ -475,7 +481,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item : ${relatorio.lancamentos}">
+                                <tr th:each="item, iter : ${relatorio.lancamentos}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
                                     <td th:text="${item.descricao}">Desc</td>
                                     <td th:text="${item.categoria}">Categoria</td>
                                     <td><span class="chip" th:classappend="${item.tipo.name() == 'RECEITA' ? ' tipo-receita' : ' tipo-despesa'}" th:text="${item.tipo}">RECEITA</span></td>
@@ -484,6 +490,9 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="table-show-more" th:if="${#lists.size(relatorio.lancamentos) > 10}">
+                            <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                         </div>
                     </div>
 
@@ -500,7 +509,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item : ${relatorio.solicitacoes}">
+                                <tr th:each="item, iter : ${relatorio.solicitacoes}" th:classappend="${iter.index >= 10 ? 'row-hidden' : ''}">
                                     <td th:text="${item.nomePaciente}">Paciente</td>
                                     <td th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Data</td>
                                     <td th:text="${item.telefone}">Telefone</td>
@@ -512,6 +521,9 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="table-show-more" th:if="${#lists.size(relatorio.solicitacoes) > 10}">
+                            <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                         </div>
                     </div>
                 </div>

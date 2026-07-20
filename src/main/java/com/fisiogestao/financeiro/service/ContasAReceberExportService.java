@@ -65,7 +65,7 @@ public class ContasAReceberExportService {
 
             // Aging
             if (!view.grupos().isEmpty()) {
-                document.add(new Paragraph("Aging de Recebíveis",
+                document.add(new Paragraph("Relatório de Contas a Receber",
                         FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12)));
                 document.add(new Paragraph(" "));
                 document.add(tabelaAging(view));
@@ -134,7 +134,7 @@ public class ContasAReceberExportService {
             r4.createCell(1).setCellValue(view.resumo().gruposCount());
 
             // Aba Aging
-            Sheet agingSheet = workbook.createSheet("Aging de Recebíveis");
+            Sheet agingSheet = workbook.createSheet("Relatório de Contas a Receber");
             Row header = agingSheet.createRow(0);
             header.createCell(0).setCellValue("Paciente");
             header.createCell(1).setCellValue("Plano");
