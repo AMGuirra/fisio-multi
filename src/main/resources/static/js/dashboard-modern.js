@@ -465,18 +465,38 @@
         const setActiveSidebarLink = () => {
             const navLinks = document.querySelectorAll('.app-sidebar .sidebar-link[href]');
             const currentPath = window.location.pathname;
+            const currentHash = window.location.hash;
+
+            let bestMatchLength = -1;
+            const matchLengths = new Map();
 
             navLinks.forEach((link) => {
-                const targetPath = new URL(link.getAttribute('href'), window.location.origin).pathname;
-                let isActive = false;
+                const url = new URL(link.getAttribute('href'), window.location.origin);
+                const targetPath = url.pathname;
+                const targetHash = url.hash;
+                let matchLength = -1;
 
                 if (targetPath === '/dashboard') {
-                    isActive = currentPath === '/' || currentPath === '/dashboard';
-                } else {
-                    isActive = currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+                    if (currentPath === '/' || currentPath === '/dashboard') {
+                        matchLength = targetPath.length;
+                    }
+                } else if (currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)) {
+                    if (targetHash) {
+                        matchLength = currentHash === targetHash ? targetPath.length + targetHash.length : -1;
+                    } else {
+                        matchLength = targetPath.length;
+                    }
                 }
 
-                link.classList.toggle('active', isActive);
+                matchLengths.set(link, matchLength);
+                if (matchLength > bestMatchLength) {
+                    bestMatchLength = matchLength;
+                }
+            });
+
+            navLinks.forEach((link) => {
+                const matchLength = matchLengths.get(link);
+                link.classList.toggle('active', matchLength >= 0 && matchLength === bestMatchLength);
             });
         };
 

@@ -258,21 +258,6 @@ body.sidebar-collapsed .sidebar-section-label {
     background: #5af2cf;
 }
 
-.sidebar-subitem {
-    padding-left: 34px;
-}
-
-.sidebar-link-sub {
-    padding-top: 8px;
-    padding-bottom: 8px;
-    font-size: 0.86rem;
-    color: rgba(223, 243, 238, 0.62);
-}
-
-body.sidebar-collapsed .sidebar-subitem {
-    padding-left: 0;
-}
-
 .sidebar-link-icon {
     display: grid;
     place-items: center;

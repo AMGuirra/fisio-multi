@@ -45,9 +45,9 @@
                             <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
                         </a>
                     </li>
-                    <li th:if="${!item.section and item.href == '/solicitacoes'}" class="sidebar-subitem">
+                    <li th:if="${!item.section and item.href == '/solicitacoes'}">
                         <a th:href="@{/solicitacoes}+'#lista-espera'"
-                           class="sidebar-link sidebar-link-sub">
+                           class="sidebar-link">
                             <span class="sidebar-link-icon">
                                 <i data-lucide="clock"></i>
                             </span>
