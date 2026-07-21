@@ -189,7 +189,7 @@
                             <table class="data-table compact">
                                 <thead><tr><th>Tipo</th><th>Destinatário</th><th>Status</th><th>Quando</th></tr></thead>
                                 <tbody>
-                                <tr th:each="item : ${historicoEmails}">
+                                <tr th:each="item, iter : ${historicoEmails}" th:classappend="${iter.index >= 10 ? 'row-hidden table-extra-row' : ''}">
                                     <td th:text="${item.tipo}">TIPO</td>
                                     <td th:text="${item.destinatarioPrincipal}">email</td>
                                     <td><span class="chip" th:classappend="${item.status.name() == 'ENVIADO' ? 'status-approved' : 'status-danger'}" th:text="${item.status}">ENVIADO</span></td>
@@ -197,6 +197,9 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="table-show-more" th:if="${#lists.size(historicoEmails) > 10}">
+                            <button type="button" class="action-button ghost btn-show-more">Mostrar mais</button>
                         </div>
                     </div>
                 </div>
