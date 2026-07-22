@@ -19,7 +19,7 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuHref='/auditoria', extraMenuLabel='Auditoria', extraMenuIcon='shield-check')}"></th:block>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey=null, extraMenuHref='/auditoria', extraMenuLabel='Auditoria', extraMenuIcon='shield-check')}"></th:block>
 
         <main class="dashboard-main crud-main audit-main">
             <section class="hero-card crud-hero">

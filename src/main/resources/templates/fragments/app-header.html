@@ -4,9 +4,14 @@
     <!--
         Fragment reutilizavel do cabecalho dinamico (app-header).
 
-        Uso nas paginas:
-            <header th:replace="~{fragments/app-header :: header}"></header>
-            <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=false)}"></header>
+        Uso nas paginas (IMPORTANTE: o parser de fragmentos do Thymeleaf exige
+        que TODOS os parametros declarados na assinatura sejam informados
+        quando a chamada usa parametros nomeados — parametros omitidos causam
+        TemplateInputException "Cannot resolve fragment" em tempo de
+        renderizacao. Sempre informe os 5, usando null para os que nao se
+        aplicam):
+            <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey=null, extraMenuHref=null, extraMenuLabel=null, extraMenuIcon=null)}"></header>
+            <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=false, extraMenuKey=null, extraMenuHref=null, extraMenuLabel=null, extraMenuIcon=null)}"></header>
             <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey='RELATORIOS', extraMenuHref='/relatorios', extraMenuLabel='Relatórios', extraMenuIcon='file-text')}"></header>
 
         Parametros:

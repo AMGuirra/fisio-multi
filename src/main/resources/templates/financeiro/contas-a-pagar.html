@@ -17,7 +17,7 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true)}"></th:block>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey=null, extraMenuHref=null, extraMenuLabel=null, extraMenuIcon=null)}"></th:block>
 
         <main class="dashboard-main crud-main">
             <div class="flash-stack">
