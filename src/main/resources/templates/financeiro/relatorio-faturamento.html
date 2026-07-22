@@ -17,18 +17,7 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <header class="app-header">
-            <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
-                <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
-                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-clock skeletonable" id="liveClock">00:00</div>
-            </div>
-        </header>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true)}"></th:block>
 
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">

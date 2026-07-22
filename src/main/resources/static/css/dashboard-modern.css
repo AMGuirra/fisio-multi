@@ -1642,6 +1642,7 @@ body.sidebar-open .sidebar-toggle-btn svg {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-height: 138px;
     overflow: hidden;
     transition: transform var(--ease-standard), box-shadow var(--ease-standard), border-color var(--ease-standard);
 }
@@ -1689,18 +1690,26 @@ body.sidebar-open .sidebar-toggle-btn svg {
     border-radius: 999px;
     display: grid;
     place-items: center;
+    flex-shrink: 0;
 }
 
 .metric-label {
     margin: 0;
     font-size: 0.74rem;
+    line-height: 1.3;
     color: var(--text-soft);
     font-weight: 600;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: calc(1.3em * 2);
 }
 
 .metric-value {
     margin: 0;
     font-size: clamp(1.05rem, 1vw, 1.35rem);
+    line-height: 1.2;
     font-weight: 760;
     letter-spacing: -0.02em;
     color: var(--text-strong);

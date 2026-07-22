@@ -19,17 +19,7 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <header class="app-header">
-            <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar">
-                    <i data-lucide="panel-left" aria-hidden="true"></i>
-                </button>
-                <div class="header-copy">
-                    <h2 class="header-title">Status do Sistema</h2>
-                    <p class="header-date">Gerencie o status operacional do FisioGestao</p>
-                </div>
-            </div>
-        </header>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true)}"></th:block>
 
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
@@ -133,7 +123,7 @@
                 </div>
             </section>
 
-            <div class="two-col-layout">
+            <div class="crud-layout two-column">
                 <section class="section-card">
                     <header class="section-head">
                         <h3 class="section-title"><i data-lucide="settings"></i> Alterar Status</h3>

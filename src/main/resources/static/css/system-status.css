@@ -246,17 +246,3 @@ body[data-theme='dark'] .status-instabilidade,
 body[data-theme='dark'] .info-icon.status-instabilidade {
     color: var(--color-text-danger);
 }
-
-/* Layout 2 colunas: formulário + informações lado a lado */
-.two-col-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    align-items: start;
-}
-
-@media (max-width: 768px) {
-    .two-col-layout {
-        grid-template-columns: 1fr;
-    }
-}

@@ -56,6 +56,11 @@
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 20px;
+    --radius-pill: 999px; /* cápsula: .chip, badges de status/tipo/forma de pagamento */
+
+    /* Hover discreto de linha em .data-table: brand-500 (#0f8f7a) a 5% de opacidade,
+       já era usado assim em crud-modern.css — apenas nomeado aqui para reuso. */
+    --row-hover: rgba(15, 143, 122, 0.05);
 
     --ease-standard: 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -872,11 +877,6 @@ body.theme-dark {
     .quick-actions-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-}
-
-/* ── 16. Seção bloqueios (configurações) ─────────────────────────── */
-.section-bloqueios-spacer {
-    margin-top: var(--space-xl);
 }
 
 /* ── 17. Barra de progresso de plano (portal) ───────────────────── */

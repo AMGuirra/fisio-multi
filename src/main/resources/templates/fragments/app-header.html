@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!--
+        Fragment reutilizavel do cabecalho dinamico (app-header).
+
+        Uso nas paginas:
+            <header th:replace="~{fragments/app-header :: header}"></header>
+            <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=false)}"></header>
+            <header th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey='RELATORIOS', extraMenuHref='/relatorios', extraMenuLabel='Relatórios', extraMenuIcon='file-text')}"></header>
+
+        Parametros:
+            mostrarUserMenu (Boolean, opcional) - controla a exibicao do bloco
+            "user-menu" (avatar + nome + menu suspenso com Painel/Agenda/Sair).
+            Quando omitido ou null, o padrao e EXIBIR o menu do usuario (tratado
+            como true dentro do fragment). Passe explicitamente "false" apenas
+            se a pagina realmente precisar ocultar o menu do usuario.
+
+            extraMenuHref/extraMenuLabel/extraMenuIcon (String, opcionais) -
+            adicionam um item extra de atalho no menu do usuario (entre Agenda
+            e Sair), replicando os atalhos especificos que existiam nos
+            cabecalhos antigos de paginas como relatorios/index.html
+            ("Relatorios") e auditoria/index.html e auditoria/detalhe.html
+            ("Auditoria"). So sao renderizados quando extraMenuHref != null.
+
+            extraMenuKey (String, opcional) - quando informado, o item extra
+            so aparece se accessibleMenuKeys.contains(extraMenuKey) (mesma
+            regra usada por Painel/Agenda). Deixe null para um link sempre
+            visivel (como o antigo atalho de Auditoria).
+
+        Este markup replica fielmente o cabecalho ja usado em
+        dashboard/index.html e financeiro/index.html, incluindo todos os IDs
+        lidos por /js/dashboard-modern.js (dynamicGreeting, headerFullDate,
+        liveClock, infoDate, infoTime, systemStatus, userMenu, userMenuToggle).
+        Nao renomeie nenhum desses IDs.
+    -->
+    <header class="app-header dashboard-header" th:fragment="header(mostrarUserMenu, extraMenuKey, extraMenuHref, extraMenuLabel, extraMenuIcon)">
+        <div class="header-left">
+            <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+            <div class="header-copy">
+                <h2 class="header-title skeletonable" id="dynamicGreeting"
+                    th:attr="data-username=${loggedUserDisplayName}">
+                    Bom dia, Usuário
+                </h2>
+                <p class="header-context">Painel clínico em tempo real para a sua rotina.</p>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="header-insights" aria-label="Informações do sistema">
+                <div class="header-info-chip">
+                    <span class="header-info-icon status" th:classappend="${systemStatusAtual != null and systemStatusAtual.status.name() != 'ONLINE' ? 'text-' + systemStatusAtual.status.name().toLowerCase() : ''}">
+                        <i data-lucide="activity" aria-hidden="true"></i>
+                    </span>
+                    <span class="header-info-copy">
+                        <span class="header-info-label">Status do sistema</span>
+                        <span class="header-info-value skeletonable system-status"
+                              id="systemStatus"
+                              th:classappend="${systemStatusAtual != null and systemStatusAtual.status.name() != 'ONLINE' ? 'status-' + systemStatusAtual.status.name().toLowerCase() : ''}"
+                              th:text="${systemStatusAtual != null ? systemStatusAtual.status.label : 'Online'}">Online</span>
+                    </span>
+                </div>
+                <div class="header-info-chip">
+                    <span class="header-info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
+                    <span class="header-info-copy">
+                        <span class="header-info-label">Data atual</span>
+                        <span class="header-info-value skeletonable" id="infoDate">00/00/0000</span>
+                    </span>
+                </div>
+                <div class="header-info-chip">
+                    <span class="header-info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
+                    <span class="header-info-copy">
+                        <span class="header-info-label">Hora atual</span>
+                        <span class="header-info-value skeletonable" id="infoTime">00:00:00</span>
+                    </span>
+                </div>
+            </div>
+            <div class="user-menu" id="userMenu" th:if="${mostrarUserMenu == null or mostrarUserMenu}">
+                <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
+                    <span class="user-avatar"
+                          th:text="${loggedUserInitial}">U</span>
+                    <span class="user-menu-name"
+                          th:text="${loggedUserDisplayName}">Usuário</span>
+                    <span class="user-chevron"><i data-lucide="chevrons-up-down" aria-hidden="true"></i></span>
+                </button>
+                <div class="user-menu-panel" role="menu">
+                    <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem">
+                        <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+                        <span>Painel</span>
+                    </a>
+                    <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem">
+                        <i data-lucide="calendar-days" aria-hidden="true"></i>
+                        <span>Agenda</span>
+                    </a>
+                    <a th:if="${extraMenuHref != null and (extraMenuKey == null or accessibleMenuKeys.contains(extraMenuKey))}" th:href="@{${extraMenuHref}}" class="user-menu-item" role="menuitem">
+                        <i th:attr="data-lucide=${extraMenuIcon}" aria-hidden="true"></i>
+                        <span th:text="${extraMenuLabel}">Item</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="user-menu-item" role="menuitem">
+                            <i data-lucide="log-out" aria-hidden="true"></i>
+                            <span>Sair</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+</body>
+</html>

@@ -18,30 +18,7 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <header class="app-header">
-            <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
-                <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia, Usuário</h2>
-                    <p class="header-date skeletonable" id="headerFullDate">Domingo, 29 de março de 2026</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-clock skeletonable" id="liveClock">00:00</div>
-                <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
-                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
-                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
-                    </button>
-                    <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
-                        <form th:action="@{/logout}" method="post"><button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button></form>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true)}"></th:block>
 
         <main class="dashboard-main crud-main">
             <section class="hero-card crud-hero">
@@ -169,8 +146,14 @@
                     <div class="helper-card patient-spotlight">
                         <div class="helper-copy patient-spotlight-copy">
                             <h4 th:text="${pacienteSelecionado.nomeCompleto}">Paciente</h4>
-                            <p th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</p>
-                            <p th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</p>
+                            <p class="contact-line">
+                                <i data-lucide="phone" aria-hidden="true"></i>
+                                <span th:text="${pacienteSelecionado.telefone != null and !#strings.isEmpty(pacienteSelecionado.telefone) ? pacienteSelecionado.telefone : 'Telefone não informado'}">Telefone</span>
+                            </p>
+                            <p class="contact-line">
+                                <i data-lucide="mail" aria-hidden="true"></i>
+                                <span th:text="${pacienteSelecionado.email != null and !#strings.isEmpty(pacienteSelecionado.email) ? pacienteSelecionado.email : 'E-mail não informado'}">E-mail</span>
+                            </p>
                             <p th:text="${pacienteSelecionado.dataNascimento != null ? 'Nascimento: ' + #temporals.format(pacienteSelecionado.dataNascimento, 'dd/MM/yyyy') : 'Data de nascimento não informada'}">Nascimento</p>
                             <p class="helper-text" th:text="${#strings.isEmpty(pacienteSelecionado.enderecoCompleto) ? 'Sem endereço cadastrado para este paciente.' : pacienteSelecionado.enderecoCompleto}">Endereço</p>
                         </div>

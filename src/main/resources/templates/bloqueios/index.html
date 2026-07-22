@@ -17,40 +17,10 @@
     <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
 
     <div class="app-shell">
-        <header class="app-header">
-            <div class="header-left">
-                <button class="header-toggle sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Recolher ou expandir menu lateral" aria-expanded="true" aria-controls="appSidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
-                <div class="header-copy">
-                    <h2 class="header-title skeletonable" id="dynamicGreeting" th:attr="data-username=${loggedUserDisplayName}">Bom dia</h2>
-                    <p class="header-date skeletonable" id="headerFullDate"></p>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-clock skeletonable" id="liveClock"></div>
-                <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" id="userMenuToggle" aria-label="Abrir menu do usuário">
-                        <span class="user-avatar" th:text="${loggedUserInitial}">U</span>
-                        <span class="user-menu-name" th:text="${loggedUserDisplayName}">Usuário</span>
-                        <span class="user-chevron"><i data-lucide="chevrons-up-down"></i></span>
-                    </button>
-                    <div class="user-menu-panel" role="menu">
-                        <a th:if="${accessibleMenuKeys.contains('DASHBOARD')}" th:href="@{/dashboard}" href="/dashboard" class="user-menu-item" role="menuitem"><i data-lucide="layout-dashboard"></i><span>Painel</span></a>
-                        <a th:if="${accessibleMenuKeys.contains('AGENDA')}" th:href="@{/calendario}" href="/calendario" class="user-menu-item" role="menuitem"><i data-lucide="calendar-days"></i><span>Agenda</span></a>
-                        <form th:action="@{/logout}" method="post">
-                            <button type="submit" class="user-menu-item" role="menuitem"><i data-lucide="log-out"></i><span>Sair</span></button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true)}"></th:block>
 
         <main class="dashboard-main crud-main">
-            <div class="flash-stack">
-                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
-                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
-            </div>
-
-            <section id="secao-bloqueios" class="hero-card crud-hero section-bloqueios-spacer">
+            <section id="secao-bloqueios" class="hero-card crud-hero">
                 <div class="hero-content">
                     <h2 class="hero-title">Bloqueio de Horários</h2>
                     <p class="hero-subtitle">Cadastre indisponibilidades da clínica com segurança, sem conflitos com agenda interna e agendamento online.</p>
@@ -67,6 +37,11 @@
                 <a th:href="@{/configuracoes/email}" href="/configuracoes/email" class="page-tab"><i data-lucide="mail-check"></i> Config. E-mail</a>
                 <a th:href="@{/auditoria}" href="/auditoria" class="page-tab"><i data-lucide="shield-check"></i> Auditoria</a>
             </nav>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
+                <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
+            </div>
 
             <section class="summary-grid">
                 <article class="summary-card saldo">
