@@ -3891,6 +3891,14 @@ body.modal-open {
     --waitlist-accent-dark: #0b6f62;
 }
 
+.waitlist-section {
+    margin-top: 2rem;
+}
+
+.waitlist-section .section-title {
+    margin-bottom: 0.75rem;
+}
+
 .waitlist-metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

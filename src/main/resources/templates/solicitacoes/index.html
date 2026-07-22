@@ -31,17 +31,12 @@
                 <span class="hero-pill">Solicitações</span>
             </section>
 
-            <nav class="page-tabs solicitacoes-view-tabs" aria-label="Seções da Agenda e Solicitações">
+            <nav class="page-tabs" aria-label="Seções da Agenda e Solicitações">
                 <a th:href="@{/calendario}" class="page-tab"><i data-lucide="calendar-days"></i> Agenda</a>
-                <span class="page-tab-divider" aria-hidden="true"></span>
-                <button type="button" class="page-tab active" data-tab-target="sol"><i data-lucide="calendar-plus"></i> Solicitações</button>
-                <button type="button" class="page-tab" data-tab-target="fila">
-                    <i data-lucide="clock"></i> Lista de Espera
-                    <span th:if="${aguardandoListaEspera > 0}" class="tab-badge" th:text="${aguardandoListaEspera}">0</span>
-                </button>
+                <a th:href="@{/solicitacoes}" class="page-tab active"><i data-lucide="calendar-plus"></i> Solicitações</a>
             </nav>
 
-            <div id="tab-sol" class="solicitacoes-content">
+            <div class="solicitacoes-content">
                 <div class="solicitacoes-flash-stack flash-stack" id="solicitacoesFlashStack">
                     <div th:if="${successMessage}" class="solicitacoes-flash success" data-auto-dismiss="true">
                         <i data-lucide="circle-check"></i>
@@ -288,9 +283,12 @@
                         </article>
                     </aside>
                 </section>
-            </div><!-- /tab-sol -->
+            </div><!-- /solicitacoes-content -->
 
-            <div id="tab-fila" hidden>
+            <div class="waitlist-section">
+                <div class="section-divider" aria-hidden="true"></div>
+                <h2 class="section-title"><i data-lucide="clock"></i> Lista de Espera</h2>
+
                 <section class="waitlist-metrics" aria-label="Resumo da fila de espera">
                     <article class="waitlist-metric">
                         <span class="waitlist-metric-icon"><i data-lucide="users-round"></i></span>
@@ -392,7 +390,7 @@
                         </article>
                     </div>
                 </section>
-            </div><!-- /tab-fila -->
+            </div><!-- /waitlist-section -->
         </main>
 
         <!-- ════════════════════════════════════════════════════════════
@@ -1453,24 +1451,6 @@
                 mensagem
             );
         }
-    })();
-    </script>
-    <script>
-    (() => {
-        const tabs = document.querySelectorAll('[data-tab-target]');
-        const sections = { sol: document.getElementById('tab-sol'), fila: document.getElementById('tab-fila') };
-
-        const activateTab = target => {
-            tabs.forEach(b => b.classList.toggle('active', b.dataset.tabTarget === target));
-            Object.entries(sections).forEach(([k, el]) => { if (el) el.hidden = k !== target; });
-            if (window.lucide) lucide.createIcons({ nodes: [sections[target]] });
-        };
-
-        tabs.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.tabTarget)));
-
-        const syncTabFromHash = () => activateTab(location.hash === '#lista-espera' ? 'fila' : 'sol');
-        syncTabFromHash();
-        window.addEventListener('hashchange', syncTabFromHash);
     })();
     </script>
 </body>
