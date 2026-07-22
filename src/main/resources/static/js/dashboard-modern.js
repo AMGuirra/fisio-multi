@@ -533,6 +533,7 @@
         window.addEventListener('resize', syncSidebarLayout);
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
+        window.addEventListener('hashchange', setActiveSidebarLink);
 
         ensureSharedHeader();
         syncSidebarLayout();

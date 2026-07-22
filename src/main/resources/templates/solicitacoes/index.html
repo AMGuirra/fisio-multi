@@ -1468,7 +1468,9 @@
 
         tabs.forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.tabTarget)));
 
-        if (location.hash === '#lista-espera') activateTab('fila');
+        const syncTabFromHash = () => activateTab(location.hash === '#lista-espera' ? 'fila' : 'sol');
+        syncTabFromHash();
+        window.addEventListener('hashchange', syncTabFromHash);
     })();
     </script>
 </body>
