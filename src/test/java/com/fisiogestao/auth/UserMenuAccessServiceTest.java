@@ -137,6 +137,33 @@ class UserMenuAccessServiceTest {
     }
 
     @Test
+    void deveTratarPermissaoLegadaDeFaturamentoSemRelatoriosComoDependente() {
+        when(permissionRepository.findByRoleOrderByMenuKeyAsc(UserRole.FINANCEIRO)).thenReturn(List.of(
+                UserRoleMenuPermissionEntity.builder().role(UserRole.FINANCEIRO).menuKey(AppMenuItem.FATURAMENTO).build()
+        ));
+
+        EnumSet<AppMenuItem> menus = userMenuAccessService.listarMenusLiberados(UserRole.FINANCEIRO);
+
+        assertTrue(menus.contains(AppMenuItem.FATURAMENTO));
+        assertTrue(menus.contains(AppMenuItem.RELATORIOS));
+    }
+
+    @Test
+    void salvarPermissoesAdicionaRelatoriosAutomaticamenteQuandoFaturamentoConcedido() {
+        userMenuAccessService.salvarPermissoes(UserRole.FINANCEIRO, EnumSet.of(AppMenuItem.FATURAMENTO));
+
+        ArgumentCaptor<List<UserRoleMenuPermissionEntity>> captor = ArgumentCaptor.forClass(List.class);
+        verify(permissionRepository).saveAll(captor.capture());
+
+        List<AppMenuItem> menusSalvos = captor.getValue().stream()
+                .map(UserRoleMenuPermissionEntity::getMenuKey)
+                .toList();
+
+        assertTrue(menusSalvos.contains(AppMenuItem.FATURAMENTO));
+        assertTrue(menusSalvos.contains(AppMenuItem.RELATORIOS));
+    }
+
+    @Test
     void deveImpedirSalvarFuncaoSemMenuInterno() {
         BusinessException ex = assertThrows(
                 BusinessException.class,

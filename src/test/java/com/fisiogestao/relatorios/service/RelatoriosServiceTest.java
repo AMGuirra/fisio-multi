@@ -79,6 +79,16 @@ class RelatoriosServiceTest {
         when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(false);
 
         FiltroRelatorioForm filtro = filtroSomentePacientes();
+        filtro.setIncluirFinanceiro(true);
+        assertNull(relatoriosService.gerarFaturamentoDetalhado(filtro));
+        verify(financeiroService, never()).gerarRelatorioFaturamento(any(), any());
+    }
+
+    @Test
+    void gerarFaturamentoDetalhadoRetornaNuloQuandoFinanceiroExcluidoDoFiltro() {
+        FiltroRelatorioForm filtro = filtroSomentePacientes();
+        filtro.setIncluirFinanceiro(false);
+
         assertNull(relatoriosService.gerarFaturamentoDetalhado(filtro));
         verify(financeiroService, never()).gerarRelatorioFaturamento(any(), any());
     }
@@ -87,6 +97,7 @@ class RelatoriosServiceTest {
     void gerarFaturamentoDetalhadoConsultaFinanceiroQuandoAutorizado() {
         when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(true);
         FiltroRelatorioForm filtro = filtroSomentePacientes();
+        filtro.setIncluirFinanceiro(true);
         FinanceiroService.RelatorioFaturamento relatorioFaturamento = new FinanceiroService.RelatorioFaturamento(
                 filtro.getDataInicial(), filtro.getDataFinal(),
                 new FinanceiroService.FaturamentoResumo(BigDecimal.TEN, 1L, BigDecimal.TEN),
@@ -106,6 +117,7 @@ class RelatoriosServiceTest {
     void gerarFaturamentoDetalhadoRejeitaPeriodoInvertido() {
         when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(true);
         FiltroRelatorioForm filtro = filtroSomentePacientes();
+        filtro.setIncluirFinanceiro(true);
         filtro.setDataInicial(LocalDate.of(2026, 5, 20));
         filtro.setDataFinal(LocalDate.of(2026, 5, 1));
 

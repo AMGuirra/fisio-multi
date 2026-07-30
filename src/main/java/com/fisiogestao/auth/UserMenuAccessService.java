@@ -255,7 +255,7 @@ public class UserMenuAccessService {
                 .map(menu -> menu == AppMenuItem.CALENDARIO ? AppMenuItem.AGENDA : menu)
                 .filter(AppMenuItem::isConfiguravelParaNaoAdmin)
                 .forEach(normalizados::add);
-        return normalizados;
+        return aplicarDependenciasDeMenu(normalizados);
     }
 
     private EnumSet<AppMenuItem> normalizarMenusLegados(Set<AppMenuItem> menus) {
@@ -264,7 +264,24 @@ public class UserMenuAccessService {
             return normalizados;
         }
         menus.forEach(menu -> normalizados.add(menu == AppMenuItem.CALENDARIO ? AppMenuItem.AGENDA : menu));
-        return normalizados;
+        return aplicarDependenciasDeMenu(normalizados);
+    }
+
+    /**
+     * O Relatório de Faturamento foi unificado dentro da Central de Relatórios (aba
+     * "Faturamento detalhado" em {@code /relatorios}). Como a rota isolada
+     * {@code /financeiro/relatorio-faturamento} agora apenas redireciona para lá, quem tem
+     * FATURAMENTO mas não tem RELATORIOS ficaria bloqueado pelo {@link UserMenuAccessInterceptor}
+     * logo após o redirecionamento (path {@code /relatorios} exige RELATORIOS). Para não deixar
+     * essa combinação de permissões inacessível, FATURAMENTO passa a exigir RELATORIOS sempre
+     * que for concedido — tanto ao salvar em "Funções de Usuários" quanto ao ler permissões já
+     * persistidas antes desta regra existir.
+     */
+    private EnumSet<AppMenuItem> aplicarDependenciasDeMenu(EnumSet<AppMenuItem> menus) {
+        if (menus.contains(AppMenuItem.FATURAMENTO)) {
+            menus.add(AppMenuItem.RELATORIOS);
+        }
+        return menus;
     }
 
     private EnumSet<AppMenuItem> filtrarMenusDisponiveisNaInterface(Set<AppMenuItem> menus) {

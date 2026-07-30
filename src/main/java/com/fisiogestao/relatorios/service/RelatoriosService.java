@@ -62,7 +62,7 @@ public class RelatoriosService {
     }
 
     public FaturamentoDetalhado gerarFaturamentoDetalhado(FiltroRelatorioForm filtro) {
-        if (!isFaturamentoDetalhadoDisponivel()) {
+        if (!filtro.isIncluirFinanceiro() || !isFaturamentoDetalhadoDisponivel()) {
             return null;
         }
         validarFiltro(filtro);
