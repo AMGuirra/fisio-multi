@@ -43,8 +43,6 @@ public class FinanceiroController {
     private final ContasAReceberExportService contasAReceberExportService;
     private final ContasAPagarExportService contasAPagarExportService;
 
-    public record FaturamentoBloco(String titulo, List<FinanceiroService.FaturamentoGrupo> itens) {}
-
     @GetMapping
     public String index(
             @RequestParam(required = false) UUID editar,
@@ -116,28 +114,24 @@ public class FinanceiroController {
                 .body(new ByteArrayResource(content));
     }
 
+    /**
+     * Rota antiga do Relatório de Faturamento, unificada dentro da Central de Relatórios
+     * (aba "Faturamento detalhado"). Mantida apenas como redirecionamento para não quebrar
+     * favoritos/links antigos, preservando o período informado.
+     */
     @GetMapping("/relatorio-faturamento")
     public String relatorioFaturamento(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
-            Model model
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim
     ) {
-        LocalDate periodoInicio = inicio != null ? inicio : LocalDate.now().withDayOfMonth(1);
-        LocalDate periodoFim = fim != null ? fim : LocalDate.now();
-        FinanceiroService.RelatorioFaturamento relatorio = financeiroService.gerarRelatorioFaturamento(periodoInicio, periodoFim);
-        model.addAttribute("relatorio", relatorio);
-        model.addAttribute("blocosFaturamento", List.of(
-                new FaturamentoBloco("Categoria / tipo", relatorio.porCategoria()),
-                new FaturamentoBloco("Plano", relatorio.porPlano()),
-                new FaturamentoBloco("Profissional", relatorio.porProfissional()),
-                new FaturamentoBloco("Método de pagamento", relatorio.porMetodoPagamento()),
-                new FaturamentoBloco("Tipo de atendimento", relatorio.porTipoAtendimento())
-        ));
-        model.addAttribute("periodoInicio", periodoInicio);
-        model.addAttribute("periodoFim", periodoFim);
-        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
-        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
-        return "financeiro/relatorio-faturamento";
+        StringBuilder destino = new StringBuilder("redirect:/relatorios?aba=faturamento");
+        if (inicio != null) {
+            destino.append("&dataInicial=").append(inicio);
+        }
+        if (fim != null) {
+            destino.append("&dataFinal=").append(fim);
+        }
+        return destino.toString();
     }
 
     @PostMapping("/lancamentos")

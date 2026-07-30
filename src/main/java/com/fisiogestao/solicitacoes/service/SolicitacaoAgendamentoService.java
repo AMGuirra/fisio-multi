@@ -21,6 +21,7 @@ import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
+import com.fisiogestao.shared.util.DocumentoUtils;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
@@ -212,9 +213,9 @@ public class SolicitacaoAgendamentoService {
 
         SolicitacaoAgendamentoEntity solicitacao = SolicitacaoAgendamentoEntity.builder()
                 .nomePaciente(clienteExistente.getNomeCompleto())
-                .telefone(form.getTelefone().replaceAll("\\D", ""))
+                .telefone(DocumentoUtils.normalizarTelefone(form.getTelefone()))
                 .email(texto(form.getEmail()))
-                .cpf(normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos."))
+                .cpf(DocumentoUtils.normalizarCpf(form.getCpf()))
                 .dataHoraInicio(intervalo.inicio())
                 .dataHoraFim(intervalo.fim())
                 .observacoes(texto(form.getObservacoes()))
@@ -265,8 +266,8 @@ public class SolicitacaoAgendamentoService {
             throw new BusinessException("Informe o nome do paciente.");
         }
 
-        String telefone = form.getTelefone() == null ? null : form.getTelefone().replaceAll("\\D", "");
-        if (telefone == null || telefone.isBlank()) {
+        String telefone = DocumentoUtils.normalizarTelefone(form.getTelefone());
+        if (telefone == null) {
             throw new BusinessException("Informe o telefone.");
         }
 
@@ -734,17 +735,22 @@ public class SolicitacaoAgendamentoService {
     }
 
     private String normalizarBuscaTelefone(String buscaTexto) {
-        if (buscaTexto == null) {
-            return null;
-        }
-        String somenteDigitos = buscaTexto.replaceAll("\\D", "");
-        return somenteDigitos.isBlank() ? null : somenteDigitos;
+        return DocumentoUtils.somenteDigitos(buscaTexto);
     }
 
     private void validarFormularioPublico(AgendamentoOnlineForm form) {
         String localAtendimento = normalizarLocalAtendimento(form.getLocalAtendimento());
+
+        String telefoneNormalizado = DocumentoUtils.normalizarTelefone(form.getTelefone());
+        if (!DocumentoUtils.telefoneTemTamanhoValido(telefoneNormalizado)) {
+            throw new BusinessException("Informe um telefone válido com DDD (10 ou 11 dígitos).");
+        }
+
         if (form.getCpf() != null && !form.getCpf().isBlank()) {
-            normalizarDocumento(form.getCpf(), 11, "Informe um CPF válido com 11 dígitos.");
+            String cpfNormalizado = DocumentoUtils.normalizarCpf(form.getCpf());
+            if (!DocumentoUtils.cpfValido(cpfNormalizado)) {
+                throw new BusinessException("Informe um CPF válido.");
+            }
         }
         if ("DOMICILIO".equals(localAtendimento)) {
             String rua = resolverTexto(form.getRua(), null);
@@ -815,26 +821,9 @@ public class SolicitacaoAgendamentoService {
         return normalizarDocumentoOpcional(fallback, tamanho);
     }
 
-    private String normalizarDocumento(String valor, int tamanho, String mensagemErro) {
-        String digits = normalizarDocumentoOpcional(valor, tamanho);
-        if (digits == null) {
-            return null;
-        }
-        if (digits.length() != tamanho) {
-            throw new BusinessException(mensagemErro);
-        }
-        return digits;
-    }
-
     private String normalizarDocumentoOpcional(String valor, int tamanho) {
-        if (valor == null) {
-            return null;
-        }
-        String digits = valor.replaceAll("\\D", "");
-        if (digits.isBlank()) {
-            return null;
-        }
-        if (digits.length() != tamanho) {
+        String digits = DocumentoUtils.somenteDigitos(valor);
+        if (digits == null || digits.length() != tamanho) {
             return null;
         }
         return digits;

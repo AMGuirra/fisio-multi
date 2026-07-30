@@ -1,11 +1,13 @@
 package com.fisiogestao.relatorios.service;
 
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.auth.MenuAccessSecurity;
 import com.fisiogestao.email.service.SystemEmailService;
 import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.relatorios.form.FiltroRelatorioForm;
+import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,11 +16,14 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -41,6 +46,8 @@ class RelatoriosServiceTest {
     private RelatorioAnalyticsBuilder analyticsBuilder = new RelatorioAnalyticsBuilder();
     @Mock
     private RelatorioExportService exportService;
+    @Mock
+    private MenuAccessSecurity menuAccessSecurity;
 
     @InjectMocks
     private RelatoriosService relatoriosService;
@@ -65,6 +72,44 @@ class RelatoriosServiceTest {
         assertEquals("Ana Paciente", relatorio.analytics().pacientesRecentes().getFirst().nome());
         assertEquals("42", relatorio.analytics().metricas().getFirst().value());
         verify(pacienteService, never()).listarAtivos();
+    }
+
+    @Test
+    void gerarFaturamentoDetalhadoRetornaNuloSemPermissaoFaturamento() {
+        when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(false);
+
+        FiltroRelatorioForm filtro = filtroSomentePacientes();
+        assertNull(relatoriosService.gerarFaturamentoDetalhado(filtro));
+        verify(financeiroService, never()).gerarRelatorioFaturamento(any(), any());
+    }
+
+    @Test
+    void gerarFaturamentoDetalhadoConsultaFinanceiroQuandoAutorizado() {
+        when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(true);
+        FiltroRelatorioForm filtro = filtroSomentePacientes();
+        FinanceiroService.RelatorioFaturamento relatorioFaturamento = new FinanceiroService.RelatorioFaturamento(
+                filtro.getDataInicial(), filtro.getDataFinal(),
+                new FinanceiroService.FaturamentoResumo(BigDecimal.TEN, 1L, BigDecimal.TEN),
+                List.of(), List.of(), List.of(), List.of(), List.of());
+        FinanceiroService.InadimplenciaResumo inadimplencia = new FinanceiroService.InadimplenciaResumo(BigDecimal.ZERO, 0L, 0L);
+        when(financeiroService.gerarRelatorioFaturamento(filtro.getDataInicial(), filtro.getDataFinal()))
+                .thenReturn(relatorioFaturamento);
+        when(financeiroService.calcularInadimplencia()).thenReturn(inadimplencia);
+
+        RelatoriosService.FaturamentoDetalhado resultado = relatoriosService.gerarFaturamentoDetalhado(filtro);
+
+        assertEquals(relatorioFaturamento, resultado.relatorio());
+        assertEquals(inadimplencia, resultado.inadimplencia());
+    }
+
+    @Test
+    void gerarFaturamentoDetalhadoRejeitaPeriodoInvertido() {
+        when(menuAccessSecurity.canAccess("FATURAMENTO")).thenReturn(true);
+        FiltroRelatorioForm filtro = filtroSomentePacientes();
+        filtro.setDataInicial(LocalDate.of(2026, 5, 20));
+        filtro.setDataFinal(LocalDate.of(2026, 5, 1));
+
+        assertThrows(BusinessException.class, () -> relatoriosService.gerarFaturamentoDetalhado(filtro));
     }
 
     private FiltroRelatorioForm filtroSomentePacientes() {

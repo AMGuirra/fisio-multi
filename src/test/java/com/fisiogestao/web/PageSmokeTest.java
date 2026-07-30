@@ -218,7 +218,6 @@ class PageSmokeTest {
             "/financeiro",
             "/financeiro/contas-a-receber",
             "/financeiro/contas-a-pagar",
-            "/financeiro/relatorio-faturamento",
             "/pacientes",
             "/planos-consumo",
             "/prontuario",
@@ -230,6 +229,20 @@ class PageSmokeTest {
     void securedPagesRenderForAdmin(String path) throws Exception {
         mockMvc.perform(get(path))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void relatorioFaturamentoAntigoRedirecionaParaCentralDeRelatorios() throws Exception {
+        mockMvc.perform(get("/financeiro/relatorio-faturamento"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/relatorios?aba=faturamento"));
+
+        mockMvc.perform(get("/financeiro/relatorio-faturamento")
+                        .param("inicio", "2026-07-01")
+                        .param("fim", "2026-07-29"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/relatorios?aba=faturamento&dataInicial=2026-07-01&dataFinal=2026-07-29"));
     }
 
     @Test

@@ -197,7 +197,6 @@ public enum AppMenuItem {
                 FINANCEIRO,
                 CONTAS_RECEBER,
                 CONTAS_PAGAR,
-                FATURAMENTO,
                 RELATORIOS,
                 CONFIG_CLINICA,
                 BLOQUEIOS,

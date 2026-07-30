@@ -17,6 +17,7 @@ import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.SolicitacaoStatus;
+import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
 import org.junit.jupiter.api.Test;
@@ -156,6 +157,70 @@ class SolicitacaoAgendamentoServiceTest {
         assertEquals(TipoAgendamento.PLANO, resultado.getTipoAgendamento());
         assertSame(plano, resultado.getPlanoSessao());
         verify(sessaoRepository).save(argThat(sessao -> sessao.getTipoAgendamento() == TipoAgendamento.PLANO));
+    }
+
+    @Test
+    void deveRejeitarCpfInvalidoNoAgendamentoPublico() {
+        AgendamentoOnlineForm form = new AgendamentoOnlineForm();
+        form.setNomePaciente("Antonio");
+        form.setTelefone("67999999999");
+        form.setLocalAtendimento("CLINICA");
+        form.setCpf("111.111.111-11");
+
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> solicitacaoAgendamentoService.criarSolicitacaoPublica(form)
+        );
+
+        assertEquals("Informe um CPF válido.", ex.getMessage());
+    }
+
+    @Test
+    void deveRejeitarTelefoneInvalidoNoAgendamentoPublico() {
+        AgendamentoOnlineForm form = new AgendamentoOnlineForm();
+        form.setNomePaciente("Antonio");
+        form.setTelefone("999");
+        form.setLocalAtendimento("CLINICA");
+
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> solicitacaoAgendamentoService.criarSolicitacaoPublica(form)
+        );
+
+        assertEquals("Informe um telefone válido com DDD (10 ou 11 dígitos).", ex.getMessage());
+    }
+
+    @Test
+    void deveAceitarTelefoneECpfComMascaraNoAgendamentoPublico() {
+        AgendamentoOnlineForm form = new AgendamentoOnlineForm();
+        form.setNomePaciente("Antonio");
+        form.setTelefone("(67) 99999-9999");
+        form.setCpf("123.456.789-09");
+        form.setLocalAtendimento("CLINICA");
+        form.setData(java.time.LocalDate.now().plusDays(1));
+        form.setHorario("09:00");
+
+        when(agendaService.montarIntervalo(any(), any())).thenReturn(
+                new AgendaService.IntervaloAgenda(
+                        OffsetDateTime.now().plusDays(1),
+                        OffsetDateTime.now().plusDays(1).plusMinutes(50)));
+
+        ClienteEntity cliente = ClienteEntity.builder()
+                .nomeCompleto("Antonio")
+                .telefone("67999999999")
+                .cpf("12345678909")
+                .ativo(true)
+                .build();
+        cliente.setId(UUID.randomUUID());
+        when(pacienteService.localizarOuCriar(any(), eq(com.fisiogestao.auditoria.AuditEventOrigin.ONLINE), any(), any()))
+                .thenReturn(cliente);
+        when(solicitacaoAgendamentoRepository.save(any(SolicitacaoAgendamentoEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitacaoAgendamentoEntity resultado = solicitacaoAgendamentoService.criarSolicitacaoPublica(form);
+
+        assertEquals("67999999999", resultado.getTelefone());
+        assertEquals("12345678909", resultado.getCpf());
     }
 
     private SolicitacaoAgendamentoEntity solicitacaoPendente() {

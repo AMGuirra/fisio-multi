@@ -4,6 +4,7 @@ import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.relatorios.form.CobrancaEmailForm;
 import com.fisiogestao.relatorios.form.EnvioRelatorioForm;
 import com.fisiogestao.relatorios.form.FiltroRelatorioForm;
@@ -40,6 +41,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class RelatoriosController {
 
+    private static final String ABA_PADRAO = "visao-geral";
+
     private final RelatoriosService relatoriosService;
     private final AuditService auditService;
 
@@ -51,6 +54,7 @@ public class RelatoriosController {
             @RequestParam(name = "incluirAgenda", defaultValue = "true") boolean incluirAgenda,
             @RequestParam(name = "incluirFinanceiro", defaultValue = "true") boolean incluirFinanceiro,
             @RequestParam(name = "incluirSolicitacoes", defaultValue = "true") boolean incluirSolicitacoes,
+            @RequestParam(name = "aba", defaultValue = ABA_PADRAO) String aba,
             Model model) {
         FiltroRelatorioForm filtro = filtroPadrao();
         if (dataInicial != null) {
@@ -63,7 +67,7 @@ public class RelatoriosController {
         filtro.setIncluirAgenda(incluirAgenda);
         filtro.setIncluirFinanceiro(incluirFinanceiro);
         filtro.setIncluirSolicitacoes(incluirSolicitacoes);
-        prepararPagina(model, filtro);
+        prepararPagina(model, filtro, normalizarAba(aba));
         return "relatorios/index";
     }
 
@@ -71,7 +75,9 @@ public class RelatoriosController {
     public ResponseEntity<ByteArrayResource> exportar(
             @ModelAttribute FiltroRelatorioForm filtro,
             @RequestParam FormatoRelatorio formato) {
-        RelatorioDocumento documento = relatoriosService.exportar(relatoriosService.gerarRelatorio(filtro), formato);
+        RelatoriosService.FaturamentoDetalhado faturamento = relatoriosService.gerarFaturamentoDetalhado(filtro);
+        RelatorioDocumento documento = relatoriosService.exportar(
+                relatoriosService.gerarRelatorio(filtro), formato, faturamento);
         String rawContentType = documento.contentType();
         String contentType = rawContentType == null || rawContentType.isBlank()
                 ? MediaType.APPLICATION_OCTET_STREAM_VALUE
@@ -101,23 +107,28 @@ public class RelatoriosController {
             @Valid @ModelAttribute("envioRelatorioForm") EnvioRelatorioForm form,
             BindingResult bindingResult,
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
+            @RequestParam(name = "aba", defaultValue = ABA_PADRAO) String aba,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes) {
+        String abaAtiva = normalizarAba(aba);
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
         try {
+            RelatorioOperacional relatorio = relatoriosService.gerarRelatorio(filtro);
+            RelatoriosService.FaturamentoDetalhado faturamento = relatoriosService.gerarFaturamentoDetalhado(filtro);
             var result = relatoriosService.enviarRelatorioPorEmail(
-                    relatoriosService.gerarRelatorio(filtro),
+                    relatorio,
+                    faturamento,
                     form,
                     authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
-            return "redirect:/relatorios" + queryString(filtro);
+            return "redirect:/relatorios" + queryString(filtro, abaAtiva);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
     }
@@ -127,21 +138,23 @@ public class RelatoriosController {
             @Valid @ModelAttribute("lembreteEmailForm") LembreteEmailForm form,
             BindingResult bindingResult,
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
+            @RequestParam(name = "aba", defaultValue = ABA_PADRAO) String aba,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes) {
+        String abaAtiva = normalizarAba(aba);
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
         try {
             var result = relatoriosService.enviarLembrete(form,
                     authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
-            return "redirect:/relatorios" + queryString(filtro);
+            return "redirect:/relatorios" + queryString(filtro, abaAtiva);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
     }
@@ -151,34 +164,60 @@ public class RelatoriosController {
             @Valid @ModelAttribute("cobrancaEmailForm") CobrancaEmailForm form,
             BindingResult bindingResult,
             @ModelAttribute("filtroRelatorioForm") FiltroRelatorioForm filtro,
+            @RequestParam(name = "aba", defaultValue = ABA_PADRAO) String aba,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes) {
+        String abaAtiva = normalizarAba(aba);
         if (bindingResult.hasErrors()) {
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
         try {
             var result = relatoriosService.enviarCobranca(form,
                     authentication != null ? authentication.getName() : "sistema");
             redirectAttributes.addFlashAttribute(result.sent() ? "successMessage" : "errorMessage", result.message());
-            return "redirect:/relatorios" + queryString(filtro);
+            return "redirect:/relatorios" + queryString(filtro, abaAtiva);
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, filtro);
+            prepararPagina(model, filtro, abaAtiva);
             return "relatorios/index";
         }
     }
 
-    private void prepararPagina(Model model, FiltroRelatorioForm filtro) {
+    private void prepararPagina(Model model, FiltroRelatorioForm filtro, String aba) {
         RelatorioOperacional relatorio = relatoriosService.gerarRelatorio(filtro);
+        RelatoriosService.FaturamentoDetalhado faturamento = relatoriosService.gerarFaturamentoDetalhado(filtro);
+        String abaAtiva = "faturamento".equals(aba) && faturamento == null ? ABA_PADRAO : aba;
+
         model.addAttribute("filtroRelatorioForm", filtro);
         model.addAttribute("envioRelatorioForm", envioPadrao());
         model.addAttribute("lembreteEmailForm", lembretePadrao());
         model.addAttribute("cobrancaEmailForm", cobrancaPadrao());
         model.addAttribute("tiposLembrete", TipoLembrete.values());
         model.addAttribute("relatorio", relatorio);
+        model.addAttribute("activeTab", abaAtiva);
+        model.addAttribute("faturamentoDetalhado", faturamento);
+        model.addAttribute("blocosFaturamento", faturamento == null ? java.util.List.<FaturamentoBloco>of() : java.util.List.of(
+                new FaturamentoBloco("Categoria / tipo", faturamento.relatorio().porCategoria()),
+                new FaturamentoBloco("Plano", faturamento.relatorio().porPlano()),
+                new FaturamentoBloco("Profissional", faturamento.relatorio().porProfissional()),
+                new FaturamentoBloco("Método de pagamento", faturamento.relatorio().porMetodoPagamento()),
+                new FaturamentoBloco("Tipo de atendimento", faturamento.relatorio().porTipoAtendimento())
+        ));
     }
+
+    private String normalizarAba(String aba) {
+        if (aba == null) {
+            return ABA_PADRAO;
+        }
+        return switch (aba) {
+            case "faturamento", "dados", "exportar" -> aba;
+            default -> ABA_PADRAO;
+        };
+    }
+
+    private record FaturamentoBloco(String titulo, java.util.List<FinanceiroService.FaturamentoGrupo> itens) {}
 
     private FiltroRelatorioForm filtroPadrao() {
         FiltroRelatorioForm form = new FiltroRelatorioForm();
@@ -208,13 +247,14 @@ public class RelatoriosController {
         return form;
     }
 
-    private String queryString(FiltroRelatorioForm filtro) {
+    private String queryString(FiltroRelatorioForm filtro, String aba) {
         return "?dataInicial=" + filtro.getDataInicial()
                 + "&dataFinal=" + filtro.getDataFinal()
                 + "&incluirPacientes=" + filtro.isIncluirPacientes()
                 + "&incluirAgenda=" + filtro.isIncluirAgenda()
                 + "&incluirFinanceiro=" + filtro.isIncluirFinanceiro()
-                + "&incluirSolicitacoes=" + filtro.isIncluirSolicitacoes();
+                + "&incluirSolicitacoes=" + filtro.isIncluirSolicitacoes()
+                + "&aba=" + aba;
     }
 
     private LinkedHashMap<String, Object> payloadExportacao(FiltroRelatorioForm filtro, FormatoRelatorio formato) {

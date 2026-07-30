@@ -2,6 +2,7 @@ package com.fisiogestao.relatorios.service;
 
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.financeiro.LancamentoFinanceiroEntity;
+import com.fisiogestao.financeiro.service.FinanceiroService;
 import com.fisiogestao.relatorios.form.FormatoRelatorio;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
@@ -24,15 +25,24 @@ import java.util.List;
 public class RelatorioExportService {
 
     public RelatorioDocumento exportar(RelatorioOperacional relatorio, FormatoRelatorio formato) {
+        return exportar(relatorio, formato, null);
+    }
+
+    public RelatorioDocumento exportar(RelatorioOperacional relatorio, FormatoRelatorio formato,
+                                        FinanceiroService.RelatorioFaturamento faturamento) {
         return switch (formato) {
-            case PDF   -> gerarPdf(relatorio);
-            case EXCEL -> gerarExcel(relatorio);
+            case PDF   -> gerarPdf(relatorio, faturamento);
+            case EXCEL -> gerarExcel(relatorio, faturamento);
         };
     }
 
     // ── PDF ───────────────────────────────────────────────────────────────────
 
     RelatorioDocumento gerarPdf(RelatorioOperacional relatorio) {
+        return gerarPdf(relatorio, null);
+    }
+
+    RelatorioDocumento gerarPdf(RelatorioOperacional relatorio, FinanceiroService.RelatorioFaturamento faturamento) {
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             Document document = new Document();
             PdfWriter.getInstance(document, output);
@@ -73,6 +83,18 @@ public class RelatorioExportService {
                 document.add(new Paragraph("Solicitações", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12)));
                 document.add(tabelaSolicitacoes(relatorio.solicitacoes()));
             }
+            if (faturamento != null) {
+                document.add(new Paragraph(" "));
+                document.add(new Paragraph("Faturamento detalhado", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12)));
+                document.add(new Paragraph("Faturamento pago: " + RelatorioFormatUtil.formatCurrency(faturamento.resumo().total())
+                        + " | Receitas pagas: " + faturamento.resumo().quantidade()
+                        + " | Ticket médio: " + RelatorioFormatUtil.formatCurrency(faturamento.resumo().ticketMedio())));
+                adicionarBlocoFaturamento(document, "Por categoria / tipo", faturamento.porCategoria());
+                adicionarBlocoFaturamento(document, "Por plano", faturamento.porPlano());
+                adicionarBlocoFaturamento(document, "Por profissional", faturamento.porProfissional());
+                adicionarBlocoFaturamento(document, "Por método de pagamento", faturamento.porMetodoPagamento());
+                adicionarBlocoFaturamento(document, "Por tipo de atendimento", faturamento.porTipoAtendimento());
+            }
             document.close();
             return new RelatorioDocumento("relatorio-operacional.pdf", "application/pdf", output.toByteArray());
         } catch (Exception ex) {
@@ -80,9 +102,31 @@ public class RelatorioExportService {
         }
     }
 
+    private void adicionarBlocoFaturamento(Document document, String titulo,
+                                            List<FinanceiroService.FaturamentoGrupo> itens) throws Exception {
+        if (itens.isEmpty()) {
+            return;
+        }
+        document.add(new Paragraph(" "));
+        document.add(new Paragraph(titulo, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.addCell(celulaCabecalho("Grupo"));
+        table.addCell(celulaCabecalho("Qtd."));
+        table.addCell(celulaCabecalho("Total"));
+        table.addCell(celulaCabecalho("Participação"));
+        for (FinanceiroService.FaturamentoGrupo item : itens) {
+            table.addCell(celulaValor(item.nome()));
+            table.addCell(celulaValor(String.valueOf(item.quantidade())));
+            table.addCell(celulaValor(RelatorioFormatUtil.formatCurrency(item.total())));
+            table.addCell(celulaValor(item.participacao()));
+        }
+        document.add(table);
+    }
+
     // ── Excel ─────────────────────────────────────────────────────────────────
 
-    private RelatorioDocumento gerarExcel(RelatorioOperacional relatorio) {
+    private RelatorioDocumento gerarExcel(RelatorioOperacional relatorio, FinanceiroService.RelatorioFaturamento faturamento) {
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             Sheet resumo = workbook.createSheet("Resumo");
             Row row = resumo.createRow(0);
@@ -102,6 +146,7 @@ public class RelatorioExportService {
             if (!relatorio.sessoes().isEmpty())      popularAgendaSheet(workbook.createSheet("Agenda"), relatorio.sessoes());
             if (!relatorio.lancamentos().isEmpty())  popularFinanceiroSheet(workbook.createSheet("Financeiro"), relatorio.lancamentos());
             if (!relatorio.solicitacoes().isEmpty()) popularSolicitacaoSheet(workbook.createSheet("Solicitacoes"), relatorio.solicitacoes());
+            if (faturamento != null) popularFaturamentoSheet(workbook.createSheet("Faturamento"), faturamento);
 
             workbook.write(output);
             return new RelatorioDocumento(
@@ -210,6 +255,47 @@ public class RelatorioExportService {
             r.createCell(3).setCellValue(RelatorioFormatUtil.formatDateTime(item.getDataRecebimento()));
             r.createCell(4).setCellValue(item.getValor().doubleValue());
         }
+    }
+
+    private void popularFaturamentoSheet(Sheet sheet, FinanceiroService.RelatorioFaturamento faturamento) {
+        Row resumo = sheet.createRow(0);
+        resumo.createCell(0).setCellValue("Faturamento pago");
+        resumo.createCell(1).setCellValue(faturamento.resumo().total().doubleValue());
+        resumo = sheet.createRow(1);
+        resumo.createCell(0).setCellValue("Receitas pagas");
+        resumo.createCell(1).setCellValue(faturamento.resumo().quantidade());
+        resumo = sheet.createRow(2);
+        resumo.createCell(0).setCellValue("Ticket médio");
+        resumo.createCell(1).setCellValue(faturamento.resumo().ticketMedio().doubleValue());
+
+        int idx = 4;
+        idx = popularGrupoFaturamento(sheet, idx, "Por categoria / tipo", faturamento.porCategoria());
+        idx = popularGrupoFaturamento(sheet, idx, "Por plano", faturamento.porPlano());
+        idx = popularGrupoFaturamento(sheet, idx, "Por profissional", faturamento.porProfissional());
+        idx = popularGrupoFaturamento(sheet, idx, "Por método de pagamento", faturamento.porMetodoPagamento());
+        popularGrupoFaturamento(sheet, idx, "Por tipo de atendimento", faturamento.porTipoAtendimento());
+    }
+
+    private int popularGrupoFaturamento(Sheet sheet, int startRow, String titulo,
+                                         List<FinanceiroService.FaturamentoGrupo> itens) {
+        if (itens.isEmpty()) {
+            return startRow;
+        }
+        int idx = startRow;
+        sheet.createRow(idx++).createCell(0).setCellValue(titulo);
+        Row header = sheet.createRow(idx++);
+        header.createCell(0).setCellValue("Grupo");
+        header.createCell(1).setCellValue("Quantidade");
+        header.createCell(2).setCellValue("Total");
+        header.createCell(3).setCellValue("Participação");
+        for (FinanceiroService.FaturamentoGrupo item : itens) {
+            Row r = sheet.createRow(idx++);
+            r.createCell(0).setCellValue(item.nome());
+            r.createCell(1).setCellValue(item.quantidade());
+            r.createCell(2).setCellValue(item.total().doubleValue());
+            r.createCell(3).setCellValue(item.participacao());
+        }
+        return idx + 1;
     }
 
     private void popularSolicitacaoSheet(Sheet sheet, List<SolicitacaoAgendamentoEntity> solicitacoes) {

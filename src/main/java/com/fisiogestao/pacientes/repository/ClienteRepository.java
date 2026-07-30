@@ -29,6 +29,12 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
 
     Optional<ClienteEntity> findFirstByTelefone(String telefone);
 
+    /**
+     * Todos os pacientes com o celular informado. Usado no login por celular para detectar
+     * ambiguidade (mais de um cadastro com o mesmo número) antes de autenticar.
+     */
+    List<ClienteEntity> findAllByTelefone(String telefone);
+
     Optional<ClienteEntity> findFirstByEmailIgnoreCase(String email);
 
     Optional<ClienteEntity> findByPortalToken(UUID portalToken);

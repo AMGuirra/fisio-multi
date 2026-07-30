@@ -22,6 +22,7 @@ import com.fisiogestao.portal.PacientePasswordResetTokenEntity;
 import com.fisiogestao.portal.PacientePasswordResetTokenRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioAnexoRepository;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
+import com.fisiogestao.shared.util.DocumentoUtils;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
@@ -366,15 +367,83 @@ public class PacienteService {
     private static final String DUMMY_BCRYPT_HASH =
             "$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5L0EmZUsD3dqU/rM0lVn8DYWs8yjW";
 
+    /** Resultado da tentativa de login do portal do paciente por CPF ou celular. */
+    public enum StatusAutenticacaoPortal {
+        SUCESSO,
+        INVALIDO,
+        /** Celular pertence a mais de um cadastro nesta clínica: login por celular fica ambíguo. */
+        CELULAR_AMBIGUO
+    }
+
+    public record ResultadoAutenticacaoPortal(StatusAutenticacaoPortal status, ClienteEntity paciente) {
+        static ResultadoAutenticacaoPortal sucesso(ClienteEntity paciente) {
+            return new ResultadoAutenticacaoPortal(StatusAutenticacaoPortal.SUCESSO, paciente);
+        }
+
+        static ResultadoAutenticacaoPortal invalido() {
+            return new ResultadoAutenticacaoPortal(StatusAutenticacaoPortal.INVALIDO, null);
+        }
+
+        static ResultadoAutenticacaoPortal celularAmbiguo() {
+            return new ResultadoAutenticacaoPortal(StatusAutenticacaoPortal.CELULAR_AMBIGUO, null);
+        }
+    }
+
     /**
-     * Autentica um paciente no portal por identificador (e-mail ou CPF) + senha.
+     * Autentica um paciente no portal por CPF ou celular (conforme {@code tipoIdentificador}) + senha.
      *
-     * <p>Substitui o acesso apenas por link secreto: a senha é sempre exigida (contas sem
-     * senha definida não conseguem logar — devem usar "esqueci minha senha" primeiro).</p>
+     * <p>A senha é sempre exigida: contas sem senha definida não conseguem logar — devem usar
+     * "esqueci minha senha" primeiro. Não diferencia "identificador inexistente" de "senha
+     * incorreta" na resposta (ambos retornam {@link StatusAutenticacaoPortal#INVALIDO}), para
+     * evitar enumeração de pacientes cadastrados.</p>
+     *
+     * @param tipoIdentificador {@code "cpf"} ou {@code "celular"} — define qual campo é consultado.
      */
     @Transactional(readOnly = true)
-    public Optional<ClienteEntity> autenticarPortal(String identificador, String senhaRaw) {
-        ClienteEntity cliente = buscarPorIdentificadorPortal(identificador).orElse(null);
+    public ResultadoAutenticacaoPortal autenticarPortalPorTipo(String tipoIdentificador, String identificador, String senhaRaw) {
+        if ("celular".equalsIgnoreCase(tipoIdentificador == null ? "" : tipoIdentificador.trim())) {
+            return autenticarPortalPorCelular(identificador, senhaRaw);
+        }
+        return autenticarPortalPorCpf(identificador, senhaRaw);
+    }
+
+    /**
+     * Login por CPF. Também aceita e-mail no mesmo campo por compatibilidade com contas
+     * criadas antes da divisão explícita CPF/celular na tela de login — o e-mail não é mais
+     * oferecido como opção visível, mas continua funcionando para quem já usava esse acesso.
+     */
+    private ResultadoAutenticacaoPortal autenticarPortalPorCpf(String identificador, String senhaRaw) {
+        if (identificador != null && identificador.contains("@")) {
+            ClienteEntity porEmail = clienteRepository.findFirstByEmailIgnoreCase(identificador.trim().toLowerCase())
+                    .orElse(null);
+            return validarSenhaPortal(porEmail, senhaRaw);
+        }
+        String cpfNormalizado = DocumentoUtils.normalizarCpf(identificador);
+        ClienteEntity cliente = DocumentoUtils.cpfTemTamanhoValido(cpfNormalizado)
+                ? clienteRepository.findFirstByCpf(cpfNormalizado).orElse(null)
+                : null;
+        return validarSenhaPortal(cliente, senhaRaw);
+    }
+
+    private ResultadoAutenticacaoPortal autenticarPortalPorCelular(String identificador, String senhaRaw) {
+        String telefoneNormalizado = DocumentoUtils.normalizarTelefone(identificador);
+        if (!DocumentoUtils.telefoneTemTamanhoValido(telefoneNormalizado)) {
+            return validarSenhaPortal(null, senhaRaw);
+        }
+
+        List<ClienteEntity> encontrados = clienteRepository.findAllByTelefone(telefoneNormalizado);
+        if (encontrados.size() > 1) {
+            // Compara com um hash descartável só para não vazar, por tempo de resposta, que este
+            // caminho é diferente do "identificador não encontrado".
+            passwordEncoder.matches(senhaRaw == null ? "" : senhaRaw, DUMMY_BCRYPT_HASH);
+            return ResultadoAutenticacaoPortal.celularAmbiguo();
+        }
+
+        ClienteEntity cliente = encontrados.isEmpty() ? null : encontrados.get(0);
+        return validarSenhaPortal(cliente, senhaRaw);
+    }
+
+    private ResultadoAutenticacaoPortal validarSenhaPortal(ClienteEntity cliente, String senhaRaw) {
         boolean temSenhaDefinida = cliente != null
                 && cliente.getSenhaPortal() != null
                 && !cliente.getSenhaPortal().isBlank();
@@ -382,25 +451,10 @@ public class PacienteService {
         boolean senhaConfere = senhaRaw != null && !senhaRaw.isBlank()
                 && passwordEncoder.matches(senhaRaw, hashParaComparar);
 
-        if (!temSenhaDefinida || !senhaConfere || !Boolean.TRUE.equals(cliente.getAtivo())) {
-            return Optional.empty();
+        if (!temSenhaDefinida || !senhaConfere || cliente == null || !Boolean.TRUE.equals(cliente.getAtivo())) {
+            return ResultadoAutenticacaoPortal.invalido();
         }
-        return Optional.of(cliente);
-    }
-
-    private Optional<ClienteEntity> buscarPorIdentificadorPortal(String identificador) {
-        if (identificador == null || identificador.isBlank()) {
-            return Optional.empty();
-        }
-        String valor = identificador.trim();
-        if (valor.contains("@")) {
-            return clienteRepository.findFirstByEmailIgnoreCase(valor.toLowerCase());
-        }
-        String digits = valor.replaceAll("\\D", "");
-        if (digits.length() == 11) {
-            return clienteRepository.findFirstByCpf(digits);
-        }
-        return Optional.empty();
+        return ResultadoAutenticacaoPortal.sucesso(cliente);
     }
 
     /**
@@ -656,33 +710,23 @@ public class PacienteService {
     }
 
     private String normalizarTelefone(String telefone) {
-        if (telefone == null) {
-            return null;
-        }
-        String digits = telefone.replaceAll("\\D", "");
-        return digits.isBlank() ? null : digits;
+        return DocumentoUtils.normalizarTelefone(telefone);
     }
 
     private String normalizarCpf(String cpf) {
-        if (cpf == null) {
+        String digits = DocumentoUtils.normalizarCpf(cpf);
+        if (digits == null) {
             return null;
         }
-        String digits = cpf.replaceAll("\\D", "");
-        if (digits.isBlank()) {
-            return null;
-        }
-        if (digits.length() != 11) {
+        if (!DocumentoUtils.cpfTemTamanhoValido(digits)) {
             throw new BusinessException("Informe um CPF válido com 11 dígitos.");
         }
         return digits;
     }
 
     private String normalizarCep(String cep) {
-        if (cep == null) {
-            return null;
-        }
-        String digits = cep.replaceAll("\\D", "");
-        if (digits.isBlank()) {
+        String digits = DocumentoUtils.somenteDigitos(cep);
+        if (digits == null) {
             return null;
         }
         if (digits.length() != 8) {

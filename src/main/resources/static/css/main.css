@@ -2687,3 +2687,98 @@ button {
         padding-inline: max(12px, env(safe-area-inset-left), env(safe-area-inset-right));
     }
 }
+
+/* Login do Portal do Paciente: alternância CPF/celular + mostrar senha (telas grandes e legíveis para idosos) */
+.pub-id-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: var(--space-md);
+}
+
+.pub-id-switch-btn {
+    border: 2px solid rgba(49, 95, 111, 0.18);
+    background: #ffffff;
+    color: #27414d;
+    border-radius: 0.7rem;
+    padding: 0.85rem 0.6rem;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 52px;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.pub-id-switch-btn[aria-pressed="true"] {
+    border-color: #1ea387;
+    background: #eafbf6;
+    color: #12604f;
+}
+
+.pub-id-switch-btn:focus-visible {
+    outline: 3px solid rgba(49, 201, 169, 0.55);
+    outline-offset: 2px;
+}
+
+.pub-password-wrap {
+    position: relative;
+}
+
+.pub-password-wrap .pub-control {
+    padding-right: 3.2rem;
+}
+
+.pub-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #27414d;
+    cursor: pointer;
+    padding: 0.5rem;
+    min-height: 40px;
+    min-width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+}
+
+.pub-password-toggle:hover {
+    background: rgba(49, 95, 111, 0.08);
+}
+
+.pub-password-toggle:focus-visible {
+    outline: 3px solid rgba(49, 201, 169, 0.55);
+    outline-offset: 2px;
+}
+
+body.theme-dark .pub-id-switch-btn {
+    background: var(--bg-soft);
+    color: var(--text-strong);
+    border-color: var(--stroke-soft);
+}
+
+body.theme-dark .pub-id-switch-btn[aria-pressed="true"] {
+    border-color: #31c9a9;
+    background: rgba(49, 201, 169, 0.16);
+}
+
+body.theme-dark .pub-password-toggle {
+    color: var(--text-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+    body.pub-body:not([data-theme]) .pub-id-switch-btn {
+        background: var(--bg-soft);
+        color: var(--text-strong);
+        border-color: var(--stroke-soft);
+    }
+
+    body.pub-body:not([data-theme]) .pub-password-toggle {
+        color: var(--text-strong);
+    }
+}

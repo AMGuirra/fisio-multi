@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar no Portal - FisioGestao</title>
+    <title>Acessar Portal do Paciente - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
@@ -13,29 +13,52 @@
         <div class="pub-header-icon pub-header-icon--centered">
             <i data-lucide="lock-keyhole"></i>
         </div>
-        <h1 class="pub-success-title pub-success-title--compact">Acesse seu portal</h1>
-        <p class="pub-success-text pub-text-tight">
-            Informe seu e-mail ou CPF e sua senha para continuar.
-        </p>
+        <h1 class="pub-success-title pub-success-title--compact">Acessar Portal do Paciente</h1>
 
         <div th:if="${erroLogin}" class="pub-alert pub-alert-danger pub-alert--spaced">
             <i data-lucide="triangle-alert"></i>
             <span th:text="${erroLogin}"></span>
         </div>
 
-        <form th:action="@{/paciente/login}" method="post" class="pub-form-panel">
-            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+        <div class="pub-id-switch" role="tablist" aria-label="Como você prefere entrar">
+            <button type="button" id="tabCpf" class="pub-id-switch-btn" role="tab" aria-pressed="true">
+                Entrar com CPF
+            </button>
+            <button type="button" id="tabCelular" class="pub-id-switch-btn" role="tab" aria-pressed="false">
+                Entrar com celular
+            </button>
+        </div>
 
-            <div class="pub-form-group">
-                <label class="pub-label" for="identificador">E-mail ou CPF</label>
-                <input type="text" id="identificador" name="identificador" class="pub-control"
-                       placeholder="seu@email.com ou CPF" autofocus autocomplete="username" required>
+        <form th:action="@{/paciente/login}" method="post" class="pub-form-panel" id="formLoginPaciente" novalidate>
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <input type="hidden" name="tipoIdentificador" id="tipoIdentificador" th:value="${tipoIdentificador} ?: 'cpf'">
+
+            <div class="pub-form-group" id="grupoCpf">
+                <label class="pub-label" for="identificadorCpf">Digite seu CPF</label>
+                <input type="text" id="identificadorCpf" class="pub-control"
+                       placeholder="000.000.000-00" autocomplete="username"
+                       inputmode="numeric" maxlength="14" required>
             </div>
 
+            <div class="pub-form-group d-none" id="grupoCelular">
+                <label class="pub-label" for="identificadorCelular">Digite seu celular com DDD</label>
+                <input type="text" id="identificadorCelular" class="pub-control"
+                       placeholder="(00) 00000-0000" autocomplete="username"
+                       inputmode="numeric" maxlength="15" required>
+            </div>
+
+            <input type="hidden" name="identificador" id="identificador">
+
             <div class="pub-form-group">
-                <label class="pub-label" for="senha">Senha</label>
-                <input type="password" id="senha" name="senha" class="pub-control"
-                       placeholder="Sua senha" autocomplete="current-password" required>
+                <label class="pub-label" for="senha">Digite sua senha</label>
+                <div class="pub-password-wrap">
+                    <input type="password" id="senha" name="senha" class="pub-control"
+                           placeholder="Sua senha" autocomplete="current-password" required>
+                    <button type="button" class="pub-password-toggle" id="btnMostrarSenha"
+                            aria-label="Mostrar senha" aria-pressed="false">
+                        <i data-lucide="eye"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="pub-btn-primary pub-action-offset">
@@ -47,13 +70,103 @@
         <p class="pub-footer-link">
             <a th:href="@{/paciente/esqueci-minha-senha}" class="pub-link-muted">Esqueci minha senha / primeiro acesso</a>
         </p>
+        <p class="pub-help pub-text-tight">
+            Não consegue entrar? Entre em contato com a clínica.
+        </p>
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script>
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-        }
+        (() => {
+            const tabCpf = document.getElementById('tabCpf');
+            const tabCelular = document.getElementById('tabCelular');
+            const grupoCpf = document.getElementById('grupoCpf');
+            const grupoCelular = document.getElementById('grupoCelular');
+            const campoCpf = document.getElementById('identificadorCpf');
+            const campoCelular = document.getElementById('identificadorCelular');
+            const tipoIdentificadorInput = document.getElementById('tipoIdentificador');
+            const identificadorInput = document.getElementById('identificador');
+            const form = document.getElementById('formLoginPaciente');
+            const senhaInput = document.getElementById('senha');
+            const btnMostrarSenha = document.getElementById('btnMostrarSenha');
+
+            const somenteDigitos = (value) => (value || '').replace(/\D/g, '');
+
+            const mascaraCpf = (value) => somenteDigitos(value).slice(0, 11)
+                .replace(/^(\d{3})(\d)/, '$1.$2')
+                .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                .replace(/\.(\d{3})(\d)/, '.$1-$2');
+
+            const mascaraCelular = (value) => {
+                const digits = somenteDigitos(value).slice(0, 11);
+                if (digits.length <= 10) {
+                    return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+                }
+                return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+            };
+
+            const selecionarTipo = (tipo) => {
+                const ehCelular = tipo === 'celular';
+                tipoIdentificadorInput.value = ehCelular ? 'celular' : 'cpf';
+                tabCpf.setAttribute('aria-pressed', String(!ehCelular));
+                tabCelular.setAttribute('aria-pressed', String(ehCelular));
+                grupoCpf.classList.toggle('d-none', ehCelular);
+                grupoCelular.classList.toggle('d-none', !ehCelular);
+                const campoAtivo = ehCelular ? campoCelular : campoCpf;
+                if (campoAtivo) {
+                    campoAtivo.focus();
+                }
+            };
+
+            if (campoCpf) {
+                campoCpf.addEventListener('input', () => {
+                    campoCpf.value = mascaraCpf(campoCpf.value);
+                });
+            }
+            if (campoCelular) {
+                campoCelular.addEventListener('input', () => {
+                    campoCelular.value = mascaraCelular(campoCelular.value);
+                });
+            }
+
+            if (tabCpf) {
+                tabCpf.addEventListener('click', () => selecionarTipo('cpf'));
+            }
+            if (tabCelular) {
+                tabCelular.addEventListener('click', () => selecionarTipo('celular'));
+            }
+
+            if (btnMostrarSenha && senhaInput) {
+                btnMostrarSenha.addEventListener('click', () => {
+                    const mostrando = senhaInput.type === 'text';
+                    senhaInput.type = mostrando ? 'password' : 'text';
+                    btnMostrarSenha.setAttribute('aria-pressed', String(!mostrando));
+                    btnMostrarSenha.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+                    btnMostrarSenha.innerHTML = mostrando
+                        ? '<i data-lucide="eye"></i>'
+                        : '<i data-lucide="eye-off"></i>';
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                        window.lucide.createIcons();
+                    }
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', () => {
+                    const ehCelular = tipoIdentificadorInput.value === 'celular';
+                    const valorBruto = ehCelular ? campoCelular.value : campoCpf.value;
+                    identificadorInput.value = somenteDigitos(valorBruto);
+                });
+            }
+
+            // Restaura a opção usada na última tentativa (ex.: após erro de login).
+            const tipoInicial = tipoIdentificadorInput.value === 'celular' ? 'celular' : 'cpf';
+            selecionarTipo(tipoInicial);
+
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        })();
     </script>
 </body>
 </html>

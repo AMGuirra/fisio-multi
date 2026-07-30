@@ -83,7 +83,10 @@ class UserMenuAccessServiceTest {
         assertTrue(labels.contains("Financeiro"));
         assertTrue(labels.contains("Contas a Receber"));
         assertTrue(labels.contains("Contas a Pagar"));
-        assertTrue(labels.contains("Faturamento"));
+        // "Faturamento" foi unificado dentro da Central de Relatórios (aba "Faturamento detalhado")
+        // e não é mais um item de sidebar separado; a permissão FATURAMENTO continua existindo
+        // e controlando o acesso a essa aba.
+        assertTrue(labels.stream().noneMatch(label -> label.equals("Faturamento")));
         assertTrue(labels.stream().anyMatch(label -> label.startsWith("Relat")));
     }
 

@@ -78,9 +78,9 @@ public class PortalPacienteController {
     private static final String SESS_PREFIX = "portalAutenticado_";
 
     /**
-     * Login do portal por identificador (e-mail ou CPF) + senha — não depende de o visitante
-     * conhecer o link secreto do paciente. A senha é sempre exigida: contas sem senha definida
-     * precisam passar por "esqueci minha senha" antes de conseguir entrar.
+     * Login do portal por CPF ou celular (definido por {@code tipoIdentificador}) + senha —
+     * não depende de o visitante conhecer o link secreto do paciente. A senha é sempre exigida:
+     * contas sem senha definida precisam passar por "esqueci minha senha" antes de conseguir entrar.
      */
     @GetMapping("/login")
     public String loginForm() {
@@ -89,20 +89,28 @@ public class PortalPacienteController {
 
     @PostMapping("/login")
     public String loginSubmit(
+            @RequestParam(defaultValue = "cpf") String tipoIdentificador,
             @RequestParam String identificador,
             @RequestParam String senha,
             Model model,
             HttpSession session
     ) {
-        ClienteEntity paciente = pacienteService.autenticarPortal(identificador, senha).orElse(null);
+        PacienteService.ResultadoAutenticacaoPortal resultado =
+                pacienteService.autenticarPortalPorTipo(tipoIdentificador, identificador, senha);
 
-        if (paciente == null) {
-            model.addAttribute("erroLogin", "Identificador ou senha inválidos.");
-            return "portal/login";
+        switch (resultado.status()) {
+            case SUCESSO -> {
+                ClienteEntity paciente = resultado.paciente();
+                session.setAttribute(SESS_PREFIX + paciente.getPortalToken(), Boolean.TRUE);
+                return "redirect:/paciente/" + paciente.getPortalToken();
+            }
+            case CELULAR_AMBIGUO -> model.addAttribute("erroLogin",
+                    "Este celular está vinculado a mais de um cadastro. Entre com seu CPF ou procure a clínica.");
+            default -> model.addAttribute("erroLogin", "CPF, celular ou senha inválidos.");
         }
 
-        session.setAttribute(SESS_PREFIX + paciente.getPortalToken(), Boolean.TRUE);
-        return "redirect:/paciente/" + paciente.getPortalToken();
+        model.addAttribute("tipoIdentificador", tipoIdentificador);
+        return "portal/login";
     }
 
     @GetMapping("/{token}/sair")

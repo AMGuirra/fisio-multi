@@ -430,7 +430,7 @@
 
                     <div class="portal-form-field">
                         <label for="cpf">CPF</label>
-                        <input type="text" id="cpf" class="portal-control" th:field="*{cpf}" maxlength="14" required inputmode="numeric">
+                        <input type="text" id="cpf" class="portal-control" th:field="*{cpf}" maxlength="14" inputmode="numeric">
                     </div>
 
                     <div class="portal-form-field">
@@ -644,6 +644,16 @@
                 cepInput.value = somenteDigitos(cepInput.value).slice(0, 8).replace(/^(\d{5})(\d)/, '$1-$2');
             });
         }
+
+        // Os valores pré-preenchidos vêm do cadastro do paciente sem máscara (só dígitos);
+        // aplicamos a máscara aqui para exibi-los formatados assim que a página carrega.
+        if (cpfInput && cpfInput.value) {
+            cpfInput.value = mascaraCpf(cpfInput.value);
+        }
+        if (telefoneInput && telefoneInput.value) {
+            telefoneInput.value = mascaraTelefone(telefoneInput.value);
+        }
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && modal.classList.contains('show')) {
                 fecharModal();

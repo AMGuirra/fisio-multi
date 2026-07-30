@@ -2,6 +2,7 @@ package com.fisiogestao.relatorios.service;
 
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.auth.MenuAccessSecurity;
 import com.fisiogestao.config.ClinicTimezoneHolder;
 import com.fisiogestao.email.EmailLogType;
 import com.fisiogestao.email.service.EmailAttachment;
@@ -43,6 +44,33 @@ public class RelatoriosService {
     private final SystemEmailService systemEmailService;
     private final RelatorioAnalyticsBuilder analyticsBuilder;
     private final RelatorioExportService exportService;
+    private final MenuAccessSecurity menuAccessSecurity;
+
+    /**
+     * Faturamento detalhado (antigo {@code /financeiro/relatorio-faturamento}), agora incorporado
+     * à aba "Faturamento detalhado" da Central de Relatórios. Continua protegido pela permissão
+     * de menu FATURAMENTO (independente de RELATORIOS), pois papéis como Fisioterapeuta e
+     * Assessoria acessam /relatorios sem ter acesso a dados financeiros detalhados.
+     */
+    public record FaturamentoDetalhado(
+            FinanceiroService.RelatorioFaturamento relatorio,
+            FinanceiroService.InadimplenciaResumo inadimplencia
+    ) {}
+
+    public boolean isFaturamentoDetalhadoDisponivel() {
+        return menuAccessSecurity.canAccess("FATURAMENTO");
+    }
+
+    public FaturamentoDetalhado gerarFaturamentoDetalhado(FiltroRelatorioForm filtro) {
+        if (!isFaturamentoDetalhadoDisponivel()) {
+            return null;
+        }
+        validarFiltro(filtro);
+        return new FaturamentoDetalhado(
+                financeiroService.gerarRelatorioFaturamento(filtro.getDataInicial(), filtro.getDataFinal()),
+                financeiroService.calcularInadimplencia()
+        );
+    }
 
     // ── API pública (contrato com RelatoriosController, inalterado) ────────────
 
@@ -83,12 +111,14 @@ public class RelatoriosService {
                 sessoes, lancamentos, solicitacoes, totalReceitas, totalDespesas, analytics);
     }
 
-    public RelatorioDocumento exportar(RelatorioOperacional relatorio, FormatoRelatorio formato) {
-        return exportService.exportar(relatorio, formato);
+    public RelatorioDocumento exportar(RelatorioOperacional relatorio, FormatoRelatorio formato, FaturamentoDetalhado faturamento) {
+        return exportService.exportar(relatorio, formato, faturamento != null ? faturamento.relatorio() : null);
     }
 
-    public EmailDispatchResult enviarRelatorioPorEmail(RelatorioOperacional relatorio, EnvioRelatorioForm form, String usuario) {
-        RelatorioDocumento documento = exportService.exportar(relatorio, form.getFormato());
+    public EmailDispatchResult enviarRelatorioPorEmail(RelatorioOperacional relatorio, FaturamentoDetalhado faturamento,
+                                                        EnvioRelatorioForm form, String usuario) {
+        RelatorioDocumento documento = exportService.exportar(
+                relatorio, form.getFormato(), faturamento != null ? faturamento.relatorio() : null);
         return systemEmailService.send(EmailRequest.builder()
                 .type(EmailLogType.RELATORIO)
                 .subject(form.getAssunto())
