@@ -837,3 +837,11 @@ body[data-theme='dark'] .ranking-item {
     background: rgba(12, 22, 28, 0.94);
     border-color: var(--stroke-soft);
 }
+
+/* Ritmo vertical entre as seções de cada aba (cards, ritmo diário, distribuições etc.),
+   alinhado ao gap de 24px já usado pelo .crud-main entre os blocos de topo da página. */
+[data-tab-panel] {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
