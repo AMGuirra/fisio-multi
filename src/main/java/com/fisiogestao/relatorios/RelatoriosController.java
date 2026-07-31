@@ -45,6 +45,7 @@ public class RelatoriosController {
 
     private final RelatoriosService relatoriosService;
     private final AuditService auditService;
+    private final FinanceiroService financeiroService;
 
     @GetMapping
     public String index(
@@ -197,6 +198,8 @@ public class RelatoriosController {
         model.addAttribute("tiposLembrete", TipoLembrete.values());
         model.addAttribute("relatorio", relatorio);
         model.addAttribute("activeTab", abaAtiva);
+        model.addAttribute("inadimplencia", financeiroService.calcularInadimplencia());
+        model.addAttribute("contasAPagarPendentes", financeiroService.contarContasAPagarPendentes());
         model.addAttribute("faturamentoDetalhado", faturamento);
         model.addAttribute("blocosFaturamento", faturamento == null ? java.util.List.<FaturamentoBloco>of() : java.util.List.of(
                 new FaturamentoBloco("Categoria / tipo", faturamento.relatorio().porCategoria()),

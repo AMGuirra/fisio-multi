@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="mainNav(active)" class="page-tabs" aria-label="Seções de Gestão">
+    <a th:href="@{/financeiro}" href="/financeiro" class="page-tab" th:classappend="${active == 'financeiro'} ? ' active' : ''">
+        <i data-lucide="wallet"></i> Financeiro
+    </a>
+    <a th:href="@{/financeiro/contas-a-receber}" href="/financeiro/contas-a-receber" class="page-tab" th:classappend="${active == 'contas-receber'} ? ' active' : ''">
+        <i data-lucide="badge-dollar-sign"></i> Contas a Receber
+        <span th:if="${inadimplencia != null and inadimplencia.quantidade() > 0}" class="tab-badge" th:text="${inadimplencia.quantidade()}">0</span>
+    </a>
+    <a th:href="@{/financeiro/contas-a-pagar}" href="/financeiro/contas-a-pagar" class="page-tab" th:classappend="${active == 'contas-pagar'} ? ' active' : ''">
+        <i data-lucide="receipt"></i> Contas a Pagar
+        <span th:if="${contasAPagarPendentes != null and contasAPagarPendentes > 0}" class="tab-badge" th:text="${contasAPagarPendentes}">0</span>
+    </a>
+    <a th:href="@{/relatorios}" href="/relatorios" class="page-tab" th:classappend="${active == 'relatorios'} ? ' active' : ''">
+        <i data-lucide="file-text"></i> Relatórios
+    </a>
+</nav>
+</body>
+</html>

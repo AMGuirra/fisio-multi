@@ -44,8 +44,9 @@
                 </div>
             </section>
 
-        <nav class="page-tabs" aria-label="Seções de Gestão">
-            <a th:href="@{/financeiro}" href="/financeiro" class="page-tab"><i data-lucide="wallet"></i> Financeiro</a>
+        <th:block th:replace="~{fragments/financeiro-nav :: mainNav('relatorios')}"></th:block>
+
+        <nav class="page-tabs" aria-label="Seções do Relatório">
             <button type="button" class="page-tab" data-tab-btn="visao-geral"><i data-lucide="layout-dashboard"></i> Visão geral</button>
             <button type="button" class="page-tab" th:if="${faturamentoDetalhado != null}" data-tab-btn="faturamento"><i data-lucide="bar-chart-3"></i> Faturamento detalhado</button>
             <button type="button" class="page-tab" data-tab-btn="dados"><i data-lucide="table-properties"></i> Dados detalhados</button>
