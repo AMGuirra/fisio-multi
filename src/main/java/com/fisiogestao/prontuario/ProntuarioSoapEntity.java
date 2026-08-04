@@ -5,6 +5,8 @@ import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.shared.persistence.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -34,16 +36,34 @@ public class ProntuarioSoapEntity extends BaseEntity {
     @JoinColumn(name = "sessao_id")
     private SessaoEntity sessao;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    /**
+     * Discrimina se este registro é a Avaliação principal do paciente (única, editável)
+     * ou uma entrada de Evolução (diário clínico, um registro novo por salvamento).
+     * Registros legados (anteriores à V50) são tratados como EVOLUCAO.
+     */
+    @Column(name = "tipo_registro", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private TipoRegistroProntuario tipoRegistro = TipoRegistroProntuario.EVOLUCAO;
+
+    /**
+     * Texto livre do fluxo simplificado de Avaliação/Evolução.
+     * Registros SOAP legados não usam este campo — continuam representados por
+     * subjetivo/objetivo/avaliacao/plano.
+     */
+    @Column(name = "texto_registro", columnDefinition = "TEXT")
+    private String textoRegistro;
+
+    @Column(columnDefinition = "TEXT")
     private String subjetivo;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String objetivo;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String avaliacao;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String plano;
 
     @Column(name = "criado_por", nullable = false, length = 80)

@@ -205,10 +205,16 @@ public class AuditSnapshotFactory {
         map.put("clienteId", prontuario.getCliente() != null ? prontuario.getCliente().getId() : null);
         map.put("clienteNome", prontuario.getCliente() != null ? prontuario.getCliente().getNomeCompleto() : null);
         map.put("sessaoId", prontuario.getSessao() != null ? prontuario.getSessao().getId() : null);
+        map.put("tipoRegistro", prontuario.getTipoRegistro());
+        map.put("textoRegistro", prontuario.getTextoRegistro());
         map.put("subjetivo", prontuario.getSubjetivo());
         map.put("objetivo", prontuario.getObjetivo());
         map.put("avaliacao", prontuario.getAvaliacao());
         map.put("plano", prontuario.getPlano());
+        map.put("escalaEvaDor", prontuario.getEscalaEvaDor());
+        map.put("regiaoCorporal", prontuario.getRegiaoCorporal());
+        map.put("tecnicasUtilizadas", prontuario.getTecnicasUtilizadas());
+        map.put("obsEvolucao", prontuario.getObsEvolucao());
         map.put("criadoPor", prontuario.getCriadoPor());
         return map;
     }
@@ -224,6 +230,10 @@ public class AuditSnapshotFactory {
         map.put("tamanhoBytes", anexo.getTamanhoBytes());
         map.put("descricao", anexo.getDescricao());
         map.put("criadoPor", anexo.getCriadoPor());
+        map.put("tipoAnexo", anexo.getTipoAnexo());
+        map.put("regiaoCorporal", anexo.getRegiaoCorporal());
+        map.put("consentimentoConfirmadoEm", anexo.getConsentimentoConfirmadoEm());
+        map.put("hashSha256", anexo.getHashSha256());
         // campo "dados" (BYTEA) intencionalmente omitido do snapshot de auditoria
         return map;
     }

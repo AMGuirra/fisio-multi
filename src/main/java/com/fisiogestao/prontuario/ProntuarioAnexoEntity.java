@@ -5,6 +5,8 @@ import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.shared.persistence.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -78,4 +81,25 @@ public class ProntuarioAnexoEntity extends BaseEntity {
     /** Login do usuário que realizou o upload. */
     @Column(name = "criado_por", nullable = false, length = 80)
     private String criadoPor;
+
+    /** DOCUMENTO (laudo/PDF/DOCX genérico) ou FOTO_CLINICA (acompanhamento fotográfico). */
+    @Column(name = "tipo_anexo", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private TipoAnexoProntuario tipoAnexo = TipoAnexoProntuario.DOCUMENTO;
+
+    /** Região corporal fotografada. Aplicável apenas a FOTO_CLINICA. */
+    @Column(name = "regiao_corporal", length = 120)
+    private String regiaoCorporal;
+
+    /**
+     * Data/hora em que o profissional confirmou que o paciente autorizou o registro
+     * fotográfico para acompanhamento clínico. Aplicável apenas a FOTO_CLINICA.
+     */
+    @Column(name = "consentimento_confirmado_em")
+    private OffsetDateTime consentimentoConfirmadoEm;
+
+    /** Hash SHA-256 do conteúdo do arquivo, para verificação de integridade. */
+    @Column(name = "hash_sha256", length = 64)
+    private String hashSha256;
 }

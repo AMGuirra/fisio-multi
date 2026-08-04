@@ -1,5 +1,7 @@
 package com.fisiogestao.prontuario.dto;
 
+import com.fisiogestao.prontuario.TipoAnexoProntuario;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ public class ProntuarioAnexoResumoDto {
     private final String criadoPor;
     private final OffsetDateTime createdAt;
     private final UUID prontuarioSoapId;
+    private final TipoAnexoProntuario tipoAnexo;
+    private final String regiaoCorporal;
 
     public ProntuarioAnexoResumoDto(
             UUID id,
@@ -28,7 +32,9 @@ public class ProntuarioAnexoResumoDto {
             String descricao,
             String criadoPor,
             OffsetDateTime createdAt,
-            UUID prontuarioSoapId
+            UUID prontuarioSoapId,
+            TipoAnexoProntuario tipoAnexo,
+            String regiaoCorporal
     ) {
         this.id = id;
         this.nomeOriginal = nomeOriginal;
@@ -38,6 +44,8 @@ public class ProntuarioAnexoResumoDto {
         this.criadoPor = criadoPor;
         this.createdAt = createdAt;
         this.prontuarioSoapId = prontuarioSoapId;
+        this.tipoAnexo = tipoAnexo;
+        this.regiaoCorporal = regiaoCorporal;
     }
 
     public UUID getId() { return id; }
@@ -48,6 +56,13 @@ public class ProntuarioAnexoResumoDto {
     public String getCriadoPor() { return criadoPor; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public UUID getProntuarioSoapId() { return prontuarioSoapId; }
+    public TipoAnexoProntuario getTipoAnexo() { return tipoAnexo; }
+    public String getRegiaoCorporal() { return regiaoCorporal; }
+
+    /** Indica se este anexo é uma fotografia de acompanhamento clínico (não um documento genérico). */
+    public boolean isFotoClinica() {
+        return tipoAnexo == TipoAnexoProntuario.FOTO_CLINICA;
+    }
 
     /** Tamanho formatado para exibição (B / KB / MB). */
     public String getTamanhoFormatado() {
