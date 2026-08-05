@@ -14,11 +14,14 @@ import com.fisiogestao.prontuario.form.EvolucaoForm;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +30,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ProntuarioService {
+
+    /**
+     * Nome do índice único parcial criado na V50 (uma AVALIACAO por cliente). Usado para
+     * distinguir, dentro do catch de {@link #salvarAvaliacao}, a corrida de duplo
+     * salvamento de qualquer outra violação de integridade — que não deve ser mascarada
+     * com a mesma mensagem amigável.
+     */
+    private static final String INDICE_UNICO_AVALIACAO_POR_CLIENTE = "uq_prontuario_soap_avaliacao_por_cliente";
 
     private final ProntuarioSoapRepository prontuarioSoapRepository;
     private final PacienteService pacienteService;
@@ -90,7 +101,24 @@ public class ProntuarioService {
                 .textoRegistro(texto)
                 .criadoPor(usuario)
                 .build();
-        ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(avaliacao);
+        ProntuarioSoapEntity salvo;
+        try {
+            // saveAndFlush (não save) é essencial aqui: save() apenas registra a entidade no
+            // contexto de persistência e pode adiar o INSERT até o commit da transação, fora
+            // deste try/catch. O flush força a execução do INSERT agora, dentro do escopo em
+            // que a violação de constraint pode ser capturada e traduzida.
+            salvo = prontuarioSoapRepository.saveAndFlush(avaliacao);
+        } catch (DataIntegrityViolationException ex) {
+            if (!violaIndiceUnicoDeAvaliacao(ex)) {
+                throw ex;
+            }
+            // Duplo clique / duplo envio: duas requisições concorrentes viram "sem avaliação
+            // existente" antes de qualquer uma commitar e tentam inserir ao mesmo tempo,
+            // colidindo com o índice único parcial uq_prontuario_soap_avaliacao_por_cliente
+            // (V50). Sem este catch, a exceção do banco subiria crua como 500.
+            throw new BusinessException(
+                    "Esta avaliação já foi salva em outra requisição. Atualize a página e confira o conteúdo antes de salvar novamente.");
+        }
         auditService.recordCreate(
                 AuditModule.PRONTUARIO,
                 "prontuario_soap",
@@ -100,6 +128,30 @@ public class ProntuarioService {
                 AuditEventOrigin.MANUAL
         );
         return salvo;
+    }
+
+    /**
+     * Confirma que a violação veio especificamente do índice único de avaliação por cliente,
+     * e não de outra constraint (ex.: FK de cliente inválido). Evita mascarar um erro de
+     * integridade diferente com a mensagem de "duplo salvamento".
+     *
+     * <p>O nome de constraint reportado pelo driver/dialeto vem qualificado com o schema
+     * (confirmado em teste contra H2: {@code "public.uq_prontuario_soap_avaliacao_por_cliente"}),
+     * por isso a comparação usa {@code endsWith} sobre o nome sem qualificação, em vez de
+     * igualdade exata — uma comparação exata teria falhado silenciosamente e deixado a
+     * exceção crua subir mesmo no caso que este catch existe para tratar.
+     */
+    private boolean violaIndiceUnicoDeAvaliacao(DataIntegrityViolationException ex) {
+        Throwable causa = ex;
+        while (causa != null) {
+            if (causa instanceof ConstraintViolationException constraintViolation) {
+                String nomeConstraint = constraintViolation.getConstraintName();
+                return nomeConstraint != null
+                        && nomeConstraint.toLowerCase(Locale.ROOT).endsWith(INDICE_UNICO_AVALIACAO_POR_CLIENTE);
+            }
+            causa = causa.getCause();
+        }
+        return false;
     }
 
     /**

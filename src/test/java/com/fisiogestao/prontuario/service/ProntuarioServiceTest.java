@@ -16,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
@@ -61,7 +63,7 @@ class ProntuarioServiceTest {
         when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente);
         when(prontuarioSoapRepository.findFirstByClienteIdAndTipoRegistro(clienteId, TipoRegistroProntuario.AVALIACAO))
                 .thenReturn(Optional.empty());
-        when(prontuarioSoapRepository.save(any(ProntuarioSoapEntity.class)))
+        when(prontuarioSoapRepository.saveAndFlush(any(ProntuarioSoapEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         AvaliacaoForm form = new AvaliacaoForm();
@@ -106,6 +108,73 @@ class ProntuarioServiceTest {
         assertEquals("Texto atualizado", salvo.getTextoRegistro());
         verify(auditService, never()).recordCreate(any(), any(), any(), any(), any(), any());
         verify(auditService).recordUpdate(any(), any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+    /**
+     * Regressão: duas requisições concorrentes de criação de avaliação (duplo clique/duplo
+     * envio) leem "sem avaliação existente" antes de qualquer commit e tentam inserir ao
+     * mesmo tempo. A segunda colide com o índice único parcial
+     * uq_prontuario_soap_avaliacao_por_cliente (migração V50) e o repositório propaga
+     * DataIntegrityViolationException — que antes subia crua até o usuário como HTTP 500.
+     * A cobertura ponta a ponta com duas transações reais concorrentes está em
+     * {@link ProntuarioServiceConcurrencyTest}; este teste isola só a tradução da exceção.
+     */
+    @Test
+    void deveConverterViolacaoDoIndiceUnicoDeAvaliacaoEmBusinessException() {
+        UUID clienteId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+
+        when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(prontuarioSoapRepository.findFirstByClienteIdAndTipoRegistro(clienteId, TipoRegistroProntuario.AVALIACAO))
+                .thenReturn(Optional.empty());
+        when(prontuarioSoapRepository.saveAndFlush(any(ProntuarioSoapEntity.class)))
+                .thenThrow(violacaoDeConstraint("uq_prontuario_soap_avaliacao_por_cliente"));
+
+        AvaliacaoForm form = new AvaliacaoForm();
+        form.setClienteId(clienteId);
+        form.setTexto("Avaliação enviada duas vezes.");
+
+        BusinessException ex = assertThrows(BusinessException.class, () -> service.salvarAvaliacao(form, "fisio1"));
+
+        assertEquals(
+                "Esta avaliação já foi salva em outra requisição. Atualize a página e confira o conteúdo antes de salvar novamente.",
+                ex.getMessage());
+        verify(auditService, never()).recordCreate(any(), any(), any(), any(), any(), any());
+    }
+
+    /**
+     * Uma DataIntegrityViolationException de OUTRA constraint (ex.: FK de cliente, corrompida
+     * por uma condição de corrida externa) não deve ser mascarada com a mensagem de "duplo
+     * salvamento" — isso enganaria quem for investigar um problema diferente. O serviço deve
+     * deixar a exceção original subir intacta.
+     */
+    @Test
+    void naoConverteViolacaoDeOutraConstraintComoDuploSalvamento() {
+        UUID clienteId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+
+        when(pacienteService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(prontuarioSoapRepository.findFirstByClienteIdAndTipoRegistro(clienteId, TipoRegistroProntuario.AVALIACAO))
+                .thenReturn(Optional.empty());
+        DataIntegrityViolationException outraViolacao = violacaoDeConstraint("fk_prontuario_soap_cliente");
+        when(prontuarioSoapRepository.saveAndFlush(any(ProntuarioSoapEntity.class)))
+                .thenThrow(outraViolacao);
+
+        AvaliacaoForm form = new AvaliacaoForm();
+        form.setClienteId(clienteId);
+        form.setTexto("Avaliação qualquer.");
+
+        DataIntegrityViolationException propagada = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> service.salvarAvaliacao(form, "fisio1"));
+
+        assertEquals(outraViolacao, propagada);
+    }
+
+    private DataIntegrityViolationException violacaoDeConstraint(String nomeConstraint) {
+        ConstraintViolationException causa = new ConstraintViolationException(
+                "constraint violada", null, nomeConstraint);
+        return new DataIntegrityViolationException("violação de integridade", causa);
     }
 
     @Test
