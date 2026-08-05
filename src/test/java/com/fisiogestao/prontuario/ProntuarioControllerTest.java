@@ -1,5 +1,8 @@
 package com.fisiogestao.prontuario;
 
+import com.fisiogestao.agenda.SessaoEntity;
+import com.fisiogestao.agenda.SessaoStatus;
+import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.auth.UserRole;
 import com.fisiogestao.auth.UsuarioSistemaEntity;
 import com.fisiogestao.auth.UsuarioSistemaRepository;
@@ -16,6 +19,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
@@ -63,6 +67,9 @@ class ProntuarioControllerTest {
 
     @Autowired
     private UsuarioSistemaRepository usuarioSistemaRepository;
+
+    @Autowired
+    private SessaoRepository sessaoRepository;
 
     private ClienteEntity paciente;
     private ClienteEntity outroPaciente;
@@ -192,6 +199,57 @@ class ProntuarioControllerTest {
                 .andExpect(view().name("prontuario/index"));
 
         assertTrue(prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId()).isEmpty());
+    }
+
+    /**
+     * Regressão: evolução vinculada a uma sessão real fazia o histórico renderizar
+     * {@code registro.sessao.dataHoraInicio}/{@code feedbackEvaPaciente} fora de uma
+     * transação (open-in-view=false), disparando LazyInitializationException a meio
+     * do fluxo Thymeleaf — a resposta HTTP 200 já estava parcialmente enviada, e o
+     * tratamento global de erro injetava a página de erro dentro do card de histórico.
+     *
+     * Propagation.NOT_SUPPORTED é necessário aqui: a classe usa @Transactional, o que
+     * mantém uma única sessão Hibernate aberta durante toda a requisição MockMvc
+     * (controller + renderização da view), mascarando o bug. Em produção, com
+     * open-in-view=false, cada chamada de repositório abre/fecha sua própria transação
+     * e a view é renderizada sem sessão ativa — só sem a transação de teste isso se
+     * reproduz de verdade.
+     */
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void adminAbrePaginaComEvolucaoVinculadaASessaoRealSemErro() throws Exception {
+        ClienteEntity pacienteLocal = clienteRepository.save(ClienteEntity.builder()
+                .nomeCompleto("Paciente Sessao Prontuario Teste")
+                .telefone("65999990003")
+                .email("paciente.sessao.prontuario.teste@example.com")
+                .ativo(true)
+                .build());
+
+        SessaoEntity sessao = sessaoRepository.save(SessaoEntity.builder()
+                .cliente(pacienteLocal)
+                .dataHoraInicio(java.time.OffsetDateTime.now())
+                .dataHoraFim(java.time.OffsetDateTime.now().plusMinutes(50))
+                .status(SessaoStatus.REALIZADA)
+                .build());
+
+        try {
+            mockMvc.perform(post("/prontuario/evolucao")
+                            .with(csrf())
+                            .param("clienteId", pacienteLocal.getId().toString())
+                            .param("sessaoId", sessao.getId().toString())
+                            .param("texto", "Evolução vinculada à sessão."))
+                    .andExpect(status().is3xxRedirection());
+
+            mockMvc.perform(get("/prontuario").param("paciente", pacienteLocal.getId().toString()))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("prontuario/index"));
+        } finally {
+            prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(pacienteLocal.getId())
+                    .forEach(registro -> prontuarioSoapRepository.deleteById(registro.getId()));
+            sessaoRepository.deleteById(sessao.getId());
+            clienteRepository.deleteById(pacienteLocal.getId());
+        }
     }
 
     @Test
