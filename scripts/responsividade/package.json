@@ -1,0 +1,14 @@
+{
+  "name": "fisiogestao-responsividade",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Suite de auditoria visual de responsividade do FisioGestao (overflow horizontal, zoom e orientacao) via Playwright/Chromium headless.",
+  "type": "module",
+  "scripts": {
+    "install-browser": "playwright install chromium",
+    "audit": "node audit.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
