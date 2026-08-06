@@ -264,7 +264,7 @@ body.theme-dark {
     border: 2px solid var(--stroke-soft);
     border-radius: var(--radius-md);
     padding: clamp(0.75rem, 1.5vw, 0.875rem) 1rem;
-    font-size: var(--text-base);
+    font-size: max(16px, var(--text-base));
     font-family: inherit;
     width: 100%;
     background: var(--bg-surface);
@@ -1884,6 +1884,8 @@ body.portal-premium .modal-title {
     border-radius: var(--external-control-radius);
     padding: 0.7rem 0.85rem;
     font: inherit;
+    /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+    font-size: max(16px, 1em);
     color: var(--text-strong);
     background: var(--bg-surface);
     transition: border-color var(--ease-standard), box-shadow var(--ease-standard), background var(--ease-standard);

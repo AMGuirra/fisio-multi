@@ -979,6 +979,8 @@
     .period-input-group .form-control {
         width: 100%;
         min-width: 0;
+        /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+        font-size: 16px;
     }
 
     .period-form .action-button.primary {
@@ -4838,6 +4840,13 @@ body[data-theme='dark'] .solicitacoes-page {
     border-color: var(--brand-500);
     background: var(--bg-surface);
     box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.14);
+}
+
+@media (max-width: 480px) {
+    /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+    .solicitacoes-page .filter-field .form-control {
+        font-size: 16px;
+    }
 }
 
 .solicitacoes-page .filter-actions {
