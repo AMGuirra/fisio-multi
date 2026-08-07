@@ -278,7 +278,7 @@
 
                 <div class="section-body" th:unless="${evolucoes == null or evolucoes.empty}">
                     <div class="soap-history-stack">
-                        <article class="request-card soap-entry-card" th:each="registro : ${evolucoes}">
+                        <article class="request-card soap-entry-card" th:each="registro : ${evolucoes}" th:id="${'evolucao-' + registro.id}">
                             <div class="soap-entry-head">
                                 <div class="request-row align-start">
                                     <span class="entity-avatar"><i data-lucide="notebook-pen"></i></span>
@@ -288,6 +288,29 @@
                                             <p class="request-text" th:text="${'Registrado por ' + registro.criadoPor}">Registrado por</p>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="prontuario-entry-actions">
+                                    <button type="button" class="action-button ghost prontuario-entry-edit-toggle"
+                                            th:attr="data-target=${'evolucao-' + registro.id}">
+                                        <i data-lucide="pencil"></i>
+                                        Editar
+                                    </button>
+                                    <form th:action="@{/prontuario/evolucao/{id}/excluir(id=${registro.id})}"
+                                          method="post"
+                                          class="d-inline"
+                                          data-confirm-modal
+                                          data-confirm-title="Excluir evolução"
+                                          data-confirm-message="Excluir esta evolução permanentemente? Esta ação não pode ser desfeita."
+                                          data-confirm-helper-title="Exclusão definitiva"
+                                          data-confirm-helper-message="O registro será removido do histórico do paciente depois da confirmação."
+                                          data-confirm-action-label="Excluir">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+                                        <button type="submit" class="action-button ghost text-danger">
+                                            <i data-lucide="trash-2"></i>
+                                            Excluir
+                                        </button>
+                                    </form>
                                 </div>
                                 <div class="soap-entry-badges">
                                     <span class="chip status-approved" th:if="${registro.sessao != null}">Sessão vinculada</span>
@@ -310,34 +333,34 @@
                                 </div>
                             </div>
 
-                            <!-- Fluxo simplificado: texto livre da evolução -->
-                            <p class="prontuario-history-text"
-                               th:if="${registro.textoRegistro != null and !#strings.isEmpty(registro.textoRegistro)}"
-                               th:text="${registro.textoRegistro}">Texto da evolução</p>
+                            <!-- Texto da evolução, em bloco único -->
+                            <p class="prontuario-history-text" data-role="entry-read" th:text="${registro.textoRegistro}">Texto da evolução</p>
 
-                            <!-- Registro SOAP legado: grade S/O/A/P -->
-                            <div class="soap-entry-grid" th:if="${registro.textoRegistro == null or #strings.isEmpty(registro.textoRegistro)}">
-                                <article class="soap-entry-block" th:if="${registro.subjetivo != null and !#strings.isEmpty(registro.subjetivo)}">
-                                    <span class="soap-entry-label">S</span>
-                                    <p class="soap-entry-title">Subjetivo</p>
-                                    <p class="soap-entry-text" th:text="${registro.subjetivo}">Subjetivo</p>
-                                </article>
-                                <article class="soap-entry-block" th:if="${registro.objetivo != null and !#strings.isEmpty(registro.objetivo)}">
-                                    <span class="soap-entry-label">O</span>
-                                    <p class="soap-entry-title">Objetivo</p>
-                                    <p class="soap-entry-text" th:text="${registro.objetivo}">Objetivo</p>
-                                </article>
-                                <article class="soap-entry-block" th:if="${registro.avaliacao != null and !#strings.isEmpty(registro.avaliacao)}">
-                                    <span class="soap-entry-label">A</span>
-                                    <p class="soap-entry-title">Avaliação</p>
-                                    <p class="soap-entry-text" th:text="${registro.avaliacao}">Avaliação</p>
-                                </article>
-                                <article class="soap-entry-block" th:if="${registro.plano != null and !#strings.isEmpty(registro.plano)}">
-                                    <span class="soap-entry-label">P</span>
-                                    <p class="soap-entry-title">Plano</p>
-                                    <p class="soap-entry-text" th:text="${registro.plano}">Plano</p>
-                                </article>
-                            </div>
+                            <!-- Edição inline (oculta por padrão) -->
+                            <form th:action="@{/prontuario/evolucao/{id}/editar(id=${registro.id})}"
+                                  method="post"
+                                  class="modern-form prontuario-entry-edit-form"
+                                  data-role="entry-edit"
+                                  data-submit-guard
+                                  hidden>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+                                <div class="form-field">
+                                    <label th:for="${'editarTexto-' + registro.id}" class="sr-only-label">Editar evolução</label>
+                                    <textarea th:id="${'editarTexto-' + registro.id}" name="texto" class="form-control prontuario-textarea"
+                                              data-autogrow maxlength="8000" th:text="${registro.textoRegistro}"></textarea>
+                                </div>
+                                <div class="prontuario-form-actions">
+                                    <button type="button" class="action-button ghost prontuario-entry-edit-cancel"
+                                            th:attr="data-target=${'evolucao-' + registro.id}">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" class="action-button primary">
+                                        <i data-lucide="save"></i>
+                                        Salvar alterações
+                                    </button>
+                                </div>
+                            </form>
 
                             <div th:if="${registro.tecnicasUtilizadas != null and !#strings.isEmpty(registro.tecnicasUtilizadas)}" class="prontuario-tecnicas">
                                 <p class="prontuario-label">Técnicas utilizadas</p>

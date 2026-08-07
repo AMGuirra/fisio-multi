@@ -54,18 +54,6 @@ public class ProntuarioSoapEntity extends BaseEntity {
     @Column(name = "texto_registro", columnDefinition = "TEXT")
     private String textoRegistro;
 
-    @Column(columnDefinition = "TEXT")
-    private String subjetivo;
-
-    @Column(columnDefinition = "TEXT")
-    private String objetivo;
-
-    @Column(columnDefinition = "TEXT")
-    private String avaliacao;
-
-    @Column(columnDefinition = "TEXT")
-    private String plano;
-
     @Column(name = "criado_por", nullable = false, length = 80)
     private String criadoPor;
 
