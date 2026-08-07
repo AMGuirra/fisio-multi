@@ -339,6 +339,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.section-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
@@ -834,19 +843,20 @@
 .period-form {
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 8px;
     margin-left: auto;
     background: var(--bg-soft);
     border: 1px solid var(--stroke-soft);
     border-radius: 10px;
     padding: 4px 4px 4px 12px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .period-date-range {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
 }
 
 .period-input-group {
@@ -955,6 +965,28 @@
     .period-form {
         margin-left: 0;
         width: 100%;
+    }
+
+    .period-date-range {
+        width: 100%;
+    }
+
+    .period-input-group {
+        flex: 1 1 120px;
+        min-width: 0;
+    }
+
+    .period-input-group .form-control {
+        width: 100%;
+        min-width: 0;
+        /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+        font-size: 16px;
+    }
+
+    .period-form .action-button.primary {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -2213,6 +2245,7 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
     white-space: nowrap;
 }
@@ -4807,6 +4840,13 @@ body[data-theme='dark'] .solicitacoes-page {
     border-color: var(--brand-500);
     background: var(--bg-surface);
     box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.14);
+}
+
+@media (max-width: 480px) {
+    /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+    .solicitacoes-page .filter-field .form-control {
+        font-size: 16px;
+    }
 }
 
 .solicitacoes-page .filter-actions {

@@ -33,3 +33,7 @@ tmp-validate-transfer.pid
 .codex/
 .opencode/
 .cursor/
+
+# Suite de auditoria de responsividade (scripts/responsividade) - saida gerada
+node_modules/
+scripts/responsividade/out/

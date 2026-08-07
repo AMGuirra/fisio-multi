@@ -217,6 +217,43 @@
     }
 
     // ---------------------------------------------------------------
+    // Histórico: alterna cada evolução entre leitura e edição inline
+    // ---------------------------------------------------------------
+
+    const alternarEdicaoEvolucao = (targetId, editando) => {
+        const entry = document.getElementById(targetId);
+        if (!entry) {
+            return;
+        }
+        const leitura = entry.querySelector('[data-role="entry-read"]');
+        const edicao = entry.querySelector('[data-role="entry-edit"]');
+        if (!leitura || !edicao) {
+            return;
+        }
+        leitura.hidden = editando;
+        edicao.hidden = !editando;
+        if (editando) {
+            const textarea = edicao.querySelector('textarea');
+            if (textarea) {
+                autoGrow(textarea);
+                textarea.focus();
+            }
+        }
+    };
+
+    document.querySelectorAll('.prontuario-entry-edit-toggle').forEach((botao) => {
+        botao.addEventListener('click', () => {
+            alternarEdicaoEvolucao(botao.getAttribute('data-target'), true);
+        });
+    });
+
+    document.querySelectorAll('.prontuario-entry-edit-cancel').forEach((botao) => {
+        botao.addEventListener('click', () => {
+            alternarEdicaoEvolucao(botao.getAttribute('data-target'), false);
+        });
+    });
+
+    // ---------------------------------------------------------------
     // Impede duplo envio nos formulários do prontuário
     // ---------------------------------------------------------------
 

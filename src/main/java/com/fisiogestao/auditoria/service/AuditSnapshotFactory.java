@@ -207,10 +207,6 @@ public class AuditSnapshotFactory {
         map.put("sessaoId", prontuario.getSessao() != null ? prontuario.getSessao().getId() : null);
         map.put("tipoRegistro", prontuario.getTipoRegistro());
         map.put("textoRegistro", prontuario.getTextoRegistro());
-        map.put("subjetivo", prontuario.getSubjetivo());
-        map.put("objetivo", prontuario.getObjetivo());
-        map.put("avaliacao", prontuario.getAvaliacao());
-        map.put("plano", prontuario.getPlano());
         map.put("escalaEvaDor", prontuario.getEscalaEvaDor());
         map.put("regiaoCorporal", prontuario.getRegiaoCorporal());
         map.put("tecnicasUtilizadas", prontuario.getTecnicasUtilizadas());

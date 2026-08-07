@@ -262,6 +262,33 @@
     margin: var(--space-sm) 0;
 }
 
+.soap-entry-head {
+    flex-wrap: wrap;
+}
+
+.prontuario-entry-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.soap-entry-badges {
+    flex-basis: 100%;
+}
+
+.soap-entry-badges:empty {
+    display: none;
+}
+
+.prontuario-entry-edit-form {
+    margin: var(--space-sm) 0;
+}
+
+.prontuario-entry-edit-form[hidden] {
+    display: none;
+}
+
 .prontuario-photo-thumbs {
     display: flex;
     flex-wrap: wrap;

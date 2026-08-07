@@ -7,6 +7,7 @@ import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.dto.ProntuarioAnexoResumoDto;
 import com.fisiogestao.prontuario.form.AvaliacaoForm;
+import com.fisiogestao.prontuario.form.EvolucaoEditForm;
 import com.fisiogestao.prontuario.form.EvolucaoForm;
 import com.fisiogestao.prontuario.service.ProntuarioAnexoService;
 import com.fisiogestao.prontuario.service.ProntuarioService;
@@ -146,6 +147,51 @@ public class ProntuarioController {
             prepararPagina(model, pacientes, pacienteSelecionadoId, new AvaliacaoForm(), form);
             return "prontuario/index";
         }
+    }
+
+    @PostMapping("/evolucao/{id}/editar")
+    @PreAuthorize("@menuAccessSecurity.canAccess('PRONTUARIO')")
+    public String editarEvolucao(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("evolucaoEditForm") EvolucaoEditForm form,
+            BindingResult bindingResult,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            String mensagem = bindingResult.getFieldError() != null
+                    ? bindingResult.getFieldError().getDefaultMessage()
+                    : "Não foi possível editar a evolução.";
+            redirectAttributes.addFlashAttribute("errorMessage", mensagem);
+            return "redirect:/prontuario?paciente=" + form.getClienteId() + "#historicoEvolucao";
+        }
+
+        try {
+            String usuario = authentication != null ? authentication.getName() : "sistema";
+            prontuarioService.atualizarEvolucao(id, form, usuario);
+            redirectAttributes.addFlashAttribute("successMessage", "Evolução atualizada com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/prontuario?paciente=" + form.getClienteId() + "#historicoEvolucao";
+    }
+
+    @PostMapping("/evolucao/{id}/excluir")
+    @PreAuthorize("@menuAccessSecurity.canAccess('PRONTUARIO')")
+    public String excluirEvolucao(
+            @PathVariable UUID id,
+            @RequestParam("clienteId") UUID clienteId,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            String usuario = authentication != null ? authentication.getName() : "sistema";
+            prontuarioService.excluirEvolucao(id, clienteId, usuario);
+            redirectAttributes.addFlashAttribute("successMessage", "Evolução excluída com sucesso.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/prontuario?paciente=" + clienteId + "#historicoEvolucao";
     }
 
     // -------------------------------------------------------------------------

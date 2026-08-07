@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -270,6 +271,106 @@ class ProntuarioControllerTest {
         List<ProntuarioSoapEntity> evolucoes = prontuarioSoapRepository
                 .findByClienteIdAndTipoRegistroOrderByCreatedAtDesc(paciente.getId(), TipoRegistroProntuario.EVOLUCAO);
         assertEquals(2, evolucoes.size());
+    }
+
+    // -------------------------------------------------------------------------
+    // Evolução: editar e excluir
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void adminEditaTextoDeEvolucaoExistente() throws Exception {
+        UUID evolucaoId = registrarEvolucao(paciente.getId(), "Texto original.");
+
+        mockMvc.perform(post("/prontuario/evolucao/{id}/editar", evolucaoId)
+                        .with(csrf())
+                        .param("clienteId", paciente.getId().toString())
+                        .param("texto", "Texto corrigido."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("successMessage"));
+
+        ProntuarioSoapEntity atualizado = prontuarioSoapRepository.findById(evolucaoId).orElseThrow();
+        assertEquals("Texto corrigido.", atualizado.getTextoRegistro());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void adminExcluiEvolucaoExistente() throws Exception {
+        UUID evolucaoId = registrarEvolucao(paciente.getId(), "Evolução a ser excluída.");
+
+        mockMvc.perform(post("/prontuario/evolucao/{id}/excluir", evolucaoId)
+                        .with(csrf())
+                        .param("clienteId", paciente.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("successMessage"));
+
+        assertTrue(prontuarioSoapRepository.findById(evolucaoId).isEmpty());
+    }
+
+    @Test
+    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    void roleSemPermissaoEhRedirecionadaAoExcluirEvolucao() throws Exception {
+        UUID evolucaoId = registrarEvolucaoComoAdmin(paciente.getId(), "Evolução protegida.");
+
+        mockMvc.perform(post("/prontuario/evolucao/{id}/excluir", evolucaoId)
+                        .with(csrf())
+                        .param("clienteId", paciente.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard?acessoNegado=1"));
+
+        assertTrue(prontuarioSoapRepository.findById(evolucaoId).isPresent());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void naoPermiteExcluirEvolucaoDeOutroPaciente() throws Exception {
+        UUID evolucaoId = registrarEvolucao(paciente.getId(), "Evolução do paciente correto.");
+
+        mockMvc.perform(post("/prontuario/evolucao/{id}/excluir", evolucaoId)
+                        .with(csrf())
+                        .param("clienteId", outroPaciente.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("errorMessage"));
+
+        assertTrue(prontuarioSoapRepository.findById(evolucaoId).isPresent());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void excluirEvolucaoInexistenteNaoLancaErroEMostraFlashDeErro() throws Exception {
+        mockMvc.perform(post("/prontuario/evolucao/{id}/excluir", UUID.randomUUID())
+                        .with(csrf())
+                        .param("clienteId", paciente.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    private UUID registrarEvolucao(UUID clienteId, String texto) throws Exception {
+        mockMvc.perform(post("/prontuario/evolucao")
+                        .with(csrf())
+                        .param("clienteId", clienteId.toString())
+                        .param("texto", texto))
+                .andExpect(status().is3xxRedirection());
+
+        return prontuarioSoapRepository
+                .findByClienteIdAndTipoRegistroOrderByCreatedAtDesc(clienteId, TipoRegistroProntuario.EVOLUCAO)
+                .get(0)
+                .getId();
+    }
+
+    /** Registra a evolução como admin, independente do usuário autenticado no teste em execução. */
+    private UUID registrarEvolucaoComoAdmin(UUID clienteId, String texto) throws Exception {
+        mockMvc.perform(post("/prontuario/evolucao")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("clienteId", clienteId.toString())
+                        .param("texto", texto))
+                .andExpect(status().is3xxRedirection());
+
+        return prontuarioSoapRepository
+                .findByClienteIdAndTipoRegistroOrderByCreatedAtDesc(clienteId, TipoRegistroProntuario.EVOLUCAO)
+                .get(0)
+                .getId();
     }
 
     // -------------------------------------------------------------------------

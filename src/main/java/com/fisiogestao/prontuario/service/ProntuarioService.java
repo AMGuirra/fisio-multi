@@ -2,6 +2,7 @@ package com.fisiogestao.prontuario.service;
 
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
 import com.fisiogestao.auditoria.service.AuditService;
@@ -10,6 +11,7 @@ import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.prontuario.TipoRegistroProntuario;
 import com.fisiogestao.prontuario.form.AvaliacaoForm;
+import com.fisiogestao.prontuario.form.EvolucaoEditForm;
 import com.fisiogestao.prontuario.form.EvolucaoForm;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
@@ -223,5 +225,77 @@ public class ProntuarioService {
         }
 
         return salvo;
+    }
+
+    /**
+     * Edita o texto de uma entrada já registrada no diário clínico. A auditoria grava o
+     * valor anterior e o novo, como retificação — nunca uma sobrescrita silenciosa.
+     */
+    @Transactional
+    public ProntuarioSoapEntity atualizarEvolucao(UUID id, EvolucaoEditForm form, String usuario) {
+        String texto = form.getTexto() != null ? form.getTexto().trim() : "";
+        if (texto.isEmpty()) {
+            throw new BusinessException("A evolução não pode ficar vazia.");
+        }
+
+        ProntuarioSoapEntity evolucao = buscarEvolucao(id, form.getClienteId());
+
+        Map<String, Object> snapshotAnterior = auditService.snapshotOf(evolucao);
+        evolucao.setTextoRegistro(texto);
+        ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(evolucao);
+
+        auditService.recordUpdate(
+                AuditModule.PRONTUARIO,
+                "prontuario_soap",
+                salvo.getId().toString(),
+                "Evolução de " + salvo.getCliente().getNomeCompleto() + " editada.",
+                snapshotAnterior,
+                auditService.snapshotOf(salvo),
+                null,
+                "Evolução retificada pelo usuário " + usuario + ".",
+                AuditEventOrigin.MANUAL
+        );
+
+        return salvo;
+    }
+
+    /**
+     * Exclui permanentemente uma entrada do diário clínico e registra o evento na auditoria.
+     */
+    @Transactional
+    public void excluirEvolucao(UUID id, UUID clienteId, String usuario) {
+        ProntuarioSoapEntity evolucao = buscarEvolucao(id, clienteId);
+
+        Map<String, Object> snapshotAnterior = auditService.snapshotOf(evolucao);
+        String clienteNome = evolucao.getCliente().getNomeCompleto();
+
+        prontuarioSoapRepository.delete(evolucao);
+
+        auditService.recordAction(
+                AuditModule.PRONTUARIO,
+                "prontuario_soap",
+                id.toString(),
+                "Evolução de " + clienteNome + " excluída.",
+                AuditActionType.DELETE_PHYSICAL,
+                snapshotAnterior,
+                null,
+                null,
+                "Exclusão de evolução pelo usuário " + usuario + ".",
+                AuditEventOrigin.MANUAL
+        );
+    }
+
+    private ProntuarioSoapEntity buscarEvolucao(UUID id, UUID clienteId) {
+        ProntuarioSoapEntity evolucao = prontuarioSoapRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Registro de evolução não encontrado."));
+
+        if (evolucao.getTipoRegistro() != TipoRegistroProntuario.EVOLUCAO) {
+            throw new BusinessException("Registro de evolução não encontrado.");
+        }
+        if (!evolucao.getCliente().getId().equals(clienteId)) {
+            throw new BusinessException("A evolução informada não pertence ao paciente selecionado.");
+        }
+
+        return evolucao;
     }
 }

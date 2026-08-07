@@ -8,6 +8,7 @@ import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.prontuario.TipoRegistroProntuario;
 import com.fisiogestao.prontuario.form.AvaliacaoForm;
+import com.fisiogestao.prontuario.form.EvolucaoEditForm;
 import com.fisiogestao.prontuario.form.EvolucaoForm;
 import com.fisiogestao.prontuario.repository.ProntuarioSoapRepository;
 import com.fisiogestao.shared.web.BusinessException;
@@ -270,6 +271,129 @@ class ProntuarioServiceTest {
                 ex.getMessage());
         verify(prontuarioSoapRepository, never()).save(any());
         verify(prontuarioAnexoService, never()).salvarFotosClinicas(any(), any(), any(), any(), any(), any(), anyBoolean());
+    }
+
+    @Test
+    void deveAtualizarTextoDeEvolucaoExistenteComAuditoria() {
+        UUID clienteId = UUID.randomUUID();
+        UUID evolucaoId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+
+        ProntuarioSoapEntity existente = ProntuarioSoapEntity.builder()
+                .cliente(cliente)
+                .tipoRegistro(TipoRegistroProntuario.EVOLUCAO)
+                .textoRegistro("Texto original")
+                .criadoPor("fisio1")
+                .build();
+        existente.setId(evolucaoId);
+
+        when(prontuarioSoapRepository.findById(evolucaoId)).thenReturn(Optional.of(existente));
+        when(prontuarioSoapRepository.save(any(ProntuarioSoapEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of("textoRegistro", "Texto original"));
+
+        EvolucaoEditForm form = new EvolucaoEditForm();
+        form.setClienteId(clienteId);
+        form.setTexto("Texto atualizado");
+
+        ProntuarioSoapEntity salvo = service.atualizarEvolucao(evolucaoId, form, "fisio2");
+
+        assertEquals("Texto atualizado", salvo.getTextoRegistro());
+        verify(auditService).recordUpdate(any(), any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void deveRejeitarEdicaoDeEvolucaoVazia() {
+        UUID clienteId = UUID.randomUUID();
+        UUID evolucaoId = UUID.randomUUID();
+
+        EvolucaoEditForm form = new EvolucaoEditForm();
+        form.setClienteId(clienteId);
+        form.setTexto("   ");
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.atualizarEvolucao(evolucaoId, form, "fisio1"));
+
+        assertEquals("A evolução não pode ficar vazia.", ex.getMessage());
+        verify(prontuarioSoapRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRejeitarEdicaoDeEvolucaoDeOutroPaciente() {
+        UUID clienteId = UUID.randomUUID();
+        UUID evolucaoId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+        ClienteEntity outroCliente = clienteComId(UUID.randomUUID());
+
+        ProntuarioSoapEntity existente = ProntuarioSoapEntity.builder()
+                .cliente(cliente)
+                .tipoRegistro(TipoRegistroProntuario.EVOLUCAO)
+                .textoRegistro("Texto original")
+                .criadoPor("fisio1")
+                .build();
+        existente.setId(evolucaoId);
+
+        when(prontuarioSoapRepository.findById(evolucaoId)).thenReturn(Optional.of(existente));
+
+        EvolucaoEditForm form = new EvolucaoEditForm();
+        form.setClienteId(outroCliente.getId());
+        form.setTexto("Tentativa de edição cruzada.");
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.atualizarEvolucao(evolucaoId, form, "fisio1"));
+
+        assertEquals("A evolução informada não pertence ao paciente selecionado.", ex.getMessage());
+        verify(prontuarioSoapRepository, never()).save(any());
+    }
+
+    @Test
+    void deveExcluirEvolucaoComAuditoria() {
+        UUID clienteId = UUID.randomUUID();
+        UUID evolucaoId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+
+        ProntuarioSoapEntity existente = ProntuarioSoapEntity.builder()
+                .cliente(cliente)
+                .tipoRegistro(TipoRegistroProntuario.EVOLUCAO)
+                .textoRegistro("Texto a excluir")
+                .criadoPor("fisio1")
+                .build();
+        existente.setId(evolucaoId);
+
+        when(prontuarioSoapRepository.findById(evolucaoId)).thenReturn(Optional.of(existente));
+        when(auditService.snapshotOf(any())).thenReturn(Map.of("textoRegistro", "Texto a excluir"));
+
+        service.excluirEvolucao(evolucaoId, clienteId, "fisio2");
+
+        verify(prontuarioSoapRepository).delete(existente);
+        verify(auditService).recordAction(any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void naoPermiteEditarRegistroDeAvaliacaoComoEvolucao() {
+        UUID clienteId = UUID.randomUUID();
+        UUID avaliacaoId = UUID.randomUUID();
+        ClienteEntity cliente = clienteComId(clienteId);
+
+        ProntuarioSoapEntity avaliacao = ProntuarioSoapEntity.builder()
+                .cliente(cliente)
+                .tipoRegistro(TipoRegistroProntuario.AVALIACAO)
+                .textoRegistro("Avaliação principal")
+                .criadoPor("fisio1")
+                .build();
+        avaliacao.setId(avaliacaoId);
+
+        when(prontuarioSoapRepository.findById(avaliacaoId)).thenReturn(Optional.of(avaliacao));
+
+        EvolucaoEditForm form = new EvolucaoEditForm();
+        form.setClienteId(clienteId);
+        form.setTexto("Tentando editar avaliação pelo fluxo de evolução.");
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.atualizarEvolucao(avaliacaoId, form, "fisio1"));
+
+        assertEquals("Registro de evolução não encontrado.", ex.getMessage());
+        verify(prontuarioSoapRepository, never()).save(any());
     }
 
     private ClienteEntity clienteComId(UUID id) {

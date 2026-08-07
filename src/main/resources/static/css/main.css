@@ -148,6 +148,15 @@ body.theme-dark {
 /* ── 3. Páginas Auth (login, recuperar senha, reset) ─────────────── */
 
 /* Body das páginas de autenticação (sem sidebar) */
+/* The decorative orbs below are positioned outside the body's own box; a
+   non-'visible' overflow on <body> alone propagates to the viewport per the
+   CSS Overflow spec and stops removing the scrollbar, but headless/real
+   testing shows the viewport can still be scrolled to reveal them unless
+   <html> itself also clips — so both are set explicitly. */
+html:has(> body.auth-body) {
+    overflow-x: clip;
+}
+
 .auth-body {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0d9488 180%);
@@ -156,7 +165,7 @@ body.theme-dark {
     align-items: center;
     justify-content: center;
     padding: var(--space-xl) var(--space-lg);
-    overflow-x: hidden;
+    overflow-x: clip;
     position: relative;
 }
 
@@ -264,7 +273,7 @@ body.theme-dark {
     border: 2px solid var(--stroke-soft);
     border-radius: var(--radius-md);
     padding: clamp(0.75rem, 1.5vw, 0.875rem) 1rem;
-    font-size: var(--text-base);
+    font-size: max(16px, var(--text-base));
     font-family: inherit;
     width: 100%;
     background: var(--bg-surface);
@@ -1884,6 +1893,8 @@ body.portal-premium .modal-title {
     border-radius: var(--external-control-radius);
     padding: 0.7rem 0.85rem;
     font: inherit;
+    /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+    font-size: max(16px, 1em);
     color: var(--text-strong);
     background: var(--bg-surface);
     transition: border-color var(--ease-standard), box-shadow var(--ease-standard), background var(--ease-standard);
