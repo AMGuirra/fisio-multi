@@ -48,11 +48,8 @@ public class PasswordResetService {
     private final SystemEmailService systemEmailService;
     private final AuditService auditService;
 
-    @Value("${app.base-url:http://localhost:8083}")
-    private String baseUrl;
-
-    @Value("${app.security.log-sensitive-reset-links:false}")
-    private boolean logSensitiveResetLinks;
+    @Value("${app.base-url}")
+    private URI trustedBaseUri;
 
     @Transactional
     public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent) {
@@ -61,6 +58,7 @@ public class PasswordResetService {
 
     @Transactional
     public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent, String requestBaseUrl) {
+        // Mantido por retrocompatibilidade binaria; bases vindas da requisicao sao deliberadamente ignoradas.
         if (email == null || email.isBlank()) {
             return EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
         }
@@ -159,7 +157,7 @@ public class PasswordResetService {
                                 "email", usuario.getEmail(),
                                 "linkRedefinicao", link.link(),
                                 "expiraEm", link.expiresAt(),
-                                "baseUrl", baseUrl
+                                "baseUrl", trustedBaseUri.toString()
                         ))
                         .build()
         );
@@ -220,29 +218,21 @@ public class PasswordResetService {
                 .build();
         passwordResetTokenRepository.save(entity);
 
-        return new PasswordResetLink(token, montarLink(token, requestBaseUrl), entity.getExpiresAt());
+        return new PasswordResetLink(token, montarLink(token), entity.getExpiresAt());
     }
 
-    private String montarLink(String token, String requestBaseUrl) {
-        String effectiveBaseUrl = sanitizeBaseUrl(requestBaseUrl);
-        if (effectiveBaseUrl == null) {
-            effectiveBaseUrl = sanitizeBaseUrl(baseUrl);
-        }
-        if (effectiveBaseUrl == null) {
-            effectiveBaseUrl = "http://localhost:8083";
-        }
-        return effectiveBaseUrl + "/resetar-senha?token=" + token;
+    private String montarLink(String token) {
+        URI base = validarBaseConfiavel(trustedBaseUri);
+        return base.resolve("/resetar-senha?token=" + token).toString();
     }
 
-    private String sanitizeBaseUrl(String candidate) {
-        if (candidate == null || candidate.isBlank()) {
-            return null;
+    private URI validarBaseConfiavel(URI candidate) {
+        if (candidate == null || !candidate.isAbsolute() || candidate.getHost() == null
+                || candidate.getUserInfo() != null || candidate.getQuery() != null || candidate.getFragment() != null
+                || !("http".equalsIgnoreCase(candidate.getScheme()) || "https".equalsIgnoreCase(candidate.getScheme()))) {
+            throw new IllegalStateException("app.base-url deve ser uma URL HTTP(S) absoluta e confiavel.");
         }
-        String normalized = candidate.trim();
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
-        }
-        return normalized.isBlank() ? null : normalized;
+        return candidate;
     }
 
     private void logFallbackLinkIfNeeded(
@@ -254,20 +244,10 @@ public class PasswordResetService {
         if (result.sent() || !isLocalDevelopmentLink(link.link())) {
             return;
         }
-        if (logSensitiveResetLinks) {
-            LOGGER.warn(
-                    "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local: {}",
-                    tipo,
-                    usuario.getEmail(),
-                    link.link()
-            );
-            return;
-        }
         LOGGER.warn(
-                "Falha ao enviar e-mail {} para {}. Link de redefinição disponível para desenvolvimento local com token oculto: {}. "
-                        + "Ative app.security.log-sensitive-reset-links=true apenas em ambiente local se precisar inspecionar a URL completa.",
+                "Falha ao enviar e-mail {} para {}. Link local gerado com token permanentemente oculto: {}.",
                 tipo,
-                usuario.getEmail(),
+                mascararEmail(usuario.getEmail()),
                 maskSensitiveResetLink(link.link())
         );
     }
@@ -298,12 +278,20 @@ public class PasswordResetService {
     private Map<String, Object> snapshotResetUsuario(UsuarioSistemaEntity usuario, OffsetDateTime redefinicao) {
         LinkedHashMap<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("id", usuario.getId());
-        snapshot.put("nome", usuario.getNome());
-        snapshot.put("username", usuario.getUsername());
-        snapshot.put("email", usuario.getEmail());
+        snapshot.put("emailConfigurado", usuario.getEmail() != null && !usuario.getEmail().isBlank());
         snapshot.put("senhaRedefinida", redefinicao != null);
         snapshot.put("senhaRedefinidaEm", redefinicao);
         return snapshot;
+    }
+
+    private String mascararEmail(String email) {
+        if (email == null || email.isBlank() || !email.contains("@")) {
+            return "[EMAIL_REDACTED]";
+        }
+        int at = email.indexOf('@');
+        String local = email.substring(0, at);
+        String domain = email.substring(at + 1);
+        return local.charAt(0) + "***@" + domain;
     }
 
     public record PasswordResetLink(String token, String link, OffsetDateTime expiresAt) {

@@ -56,9 +56,9 @@
                         </div>
 
                         <div class="filter-row">
-                            <button type="button" class="fbtn on" onclick="setFiltro('todos', this)">Todos</button>
-                            <button type="button" class="fbtn" onclick="setFiltro('plano', this)">Com plano</button>
-                            <button type="button" class="fbtn" onclick="setFiltro('sem', this)">Sem plano</button>
+                            <button type="button" class="fbtn on" data-filter="todos">Todos</button>
+                            <button type="button" class="fbtn" data-filter="plano">Com plano</button>
+                            <button type="button" class="fbtn" data-filter="sem">Sem plano</button>
                         </div>
 
                         <div th:replace="~{planos-consumo/fragmentos :: lista-pacientes}"></div>
@@ -108,7 +108,7 @@
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
 
         function rotuloModo(modo) {
@@ -123,61 +123,71 @@
             const doc = new DOMParser().parseFromString(html, 'text/html');
             const novoC2 = doc.getElementById('card-configuracao');
             const novoC3 = doc.getElementById('card-consumo');
-            if (novoC2) document.getElementById('c2b').innerHTML = novoC2.innerHTML;
-            if (novoC3) document.getElementById('c3b').innerHTML = novoC3.innerHTML;
+            const importarFilhos = (source) => Array.from(source.childNodes)
+                .map((node) => document.importNode(node, true));
+            if (novoC2) document.getElementById('c2b').replaceChildren(...importarFilhos(novoC2));
+            if (novoC3) document.getElementById('c3b').replaceChildren(...importarFilhos(novoC3));
             document.getElementById('c2s').textContent = rotuloModo(modo);
             if (window.lucide) lucide.createIcons();
             initAgendamentoRecorrencia();
         }
 
+        function painelCarregando() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'skeleton-panel';
+            for (let index = 0; index < 2; index += 1) {
+                const card = document.createElement('div');
+                card.className = 'skeleton-card skeleton-pulse-anim';
+                const circle = document.createElement('div');
+                circle.className = 'skeleton-circle';
+                const content = document.createElement('div');
+                content.className = 'skeleton-content';
+                const title = document.createElement('div');
+                title.className = 'skeleton-line title';
+                const line = document.createElement('div');
+                line.className = `skeleton-line ${index === 0 ? 'medium' : 'short'}`;
+                content.append(title, line);
+                card.append(circle, content);
+                wrapper.appendChild(card);
+            }
+            return wrapper;
+        }
+
+        function mostrarErroCarregamento(message, pacienteId, modo, planoId, iconName) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder';
+            const icon = document.createElement('i');
+            icon.dataset.lucide = iconName;
+            icon.setAttribute('aria-hidden', 'true');
+            const text = document.createElement('p');
+            text.textContent = message;
+            const retry = document.createElement('button');
+            retry.type = 'button';
+            retry.className = 'btn-sec';
+            retry.dataset.retryPatientId = String(pacienteId);
+            retry.dataset.retryMode = modo;
+            if (planoId) retry.dataset.retryPlanId = String(planoId);
+            retry.textContent = 'Tentar novamente';
+            placeholder.append(icon, text, retry);
+            document.getElementById('c2b').replaceChildren(placeholder);
+            if (window.lucide) lucide.createIcons();
+        }
+
         async function carregarPaciente(pacienteId, modo, planoId) {
-            // Exibir Skeleton Loaders pulsantes durante a requisição AJAX
-            const skeletonHtml = `
-                <div style="padding: 16px 20px;">
-                    <div class="skeleton-card skeleton-pulse-anim">
-                        <div class="skeleton-circle"></div>
-                        <div style="flex: 1;">
-                            <div class="skeleton-line title" style="width: 50%;"></div>
-                            <div class="skeleton-line medium"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-card skeleton-pulse-anim" style="opacity: 0.85;">
-                        <div class="skeleton-circle"></div>
-                        <div style="flex: 1;">
-                            <div class="skeleton-line title" style="width: 35%;"></div>
-                            <div class="skeleton-line short"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.getElementById('c2b').innerHTML = skeletonHtml;
-            document.getElementById('c3b').innerHTML = skeletonHtml;
+            document.getElementById('c2b').replaceChildren(painelCarregando());
+            document.getElementById('c3b').replaceChildren(painelCarregando());
 
             let url = `/planos-consumo/${pacienteId}/selecionar?modo=${modo}`;
             if (planoId) url += `&planoId=${planoId}`;
             try {
                 const res = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
                 if (!res.ok) {
-                    document.getElementById('c2b').innerHTML = `
-                        <div class="placeholder">
-                            <i data-lucide="triangle-alert" aria-hidden="true" style="color: var(--status-error-bg, #ef4444); margin-bottom: 8px;"></i>
-                            <p>Erro ao carregar paciente (${res.status}).</p>
-                            <button type="button" class="btn-sec" style="margin-top: 12px; padding: 6px 12px; font-size: 0.875rem;" onclick="carregarPaciente(${pacienteId}, '${modo}', ${planoId ? `'${planoId}'` : 'null'})">Tentar novamente</button>
-                        </div>
-                    `;
-                    if (window.lucide) lucide.createIcons();
+                    mostrarErroCarregamento(`Erro ao carregar paciente (${res.status}).`, pacienteId, modo, planoId, 'triangle-alert');
                     return;
                 }
                 atualizarPaineis(await res.text(), modo);
             } catch (err) {
-                document.getElementById('c2b').innerHTML = `
-                    <div class="placeholder">
-                        <i data-lucide="wifi-off" aria-hidden="true" style="color: var(--status-error-bg, #ef4444); margin-bottom: 8px;"></i>
-                        <p>Falha de conexão com o servidor.</p>
-                        <button type="button" class="btn-sec" style="margin-top: 12px; padding: 6px 12px; font-size: 0.875rem;" onclick="carregarPaciente(${pacienteId}, '${modo}', ${planoId ? `'${planoId}'` : 'null'})">Tentar novamente</button>
-                    </div>
-                `;
-                if (window.lucide) lucide.createIcons();
+                mostrarErroCarregamento('Falha de conexão com o servidor.', pacienteId, modo, planoId, 'wifi-off');
             }
         }
 
@@ -535,22 +545,33 @@
             FALTA_FATURADA: 'Falta faturada'
         };
 
-        function sessaoDetalheAcoesHtml(status) {
+        function sessaoDetalheAcoes(status) {
             const botoes = [];
+            const criarBotao = (acao, classe, iconName, label) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = classe;
+                button.dataset.sessaoAcao = acao;
+                const icon = document.createElement('i');
+                icon.dataset.lucide = iconName;
+                icon.setAttribute('aria-hidden', 'true');
+                button.append(icon, document.createTextNode(label));
+                return button;
+            };
             if (status === 'AGENDADA') {
-                botoes.push('<button type="button" class="btn-ag" data-sessao-acao="realizar"><i data-lucide="check-circle" aria-hidden="true"></i>Marcar como realizada</button>');
+                botoes.push(criarBotao('realizar', 'btn-ag', 'check-circle', 'Marcar como realizada'));
             }
             if (status === 'REALIZADA') {
-                botoes.push('<button type="button" class="btn-sec btn-renovar" data-sessao-acao="reabrir"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reverter para agendada</button>');
+                botoes.push(criarBotao('reabrir', 'btn-sec btn-renovar', 'rotate-ccw', 'Reverter para agendada'));
             }
             if (status === 'CANCELADA') {
-                botoes.push('<button type="button" class="btn-sec btn-renovar" data-sessao-acao="restaurar"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Restaurar sessão</button>');
+                botoes.push(criarBotao('restaurar', 'btn-sec btn-renovar', 'rotate-ccw', 'Restaurar sessão'));
             }
             if (status !== 'CANCELADA') {
-                botoes.push('<button type="button" class="btn-sec btn-cancelar-sessao" data-sessao-acao="cancelar"><i data-lucide="ban" aria-hidden="true"></i>Cancelar sessão</button>');
+                botoes.push(criarBotao('cancelar', 'btn-sec btn-cancelar-sessao', 'ban', 'Cancelar sessão'));
             }
-            botoes.push('<button type="button" class="btn-sec btn-excluir-sessao" data-sessao-acao="excluir"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir sessão</button>');
-            return botoes.join('');
+            botoes.push(criarBotao('excluir', 'btn-sec btn-excluir-sessao', 'trash-2', 'Excluir sessão'));
+            return botoes;
         }
 
         function sessaoDetalheRow(label, value) {
@@ -576,10 +597,10 @@
             if (!statusEl || !loadingEl || !form || !feedbackEl || !acoesEl || !salvarBtn) return;
 
             form.dataset.sessaoId = id;
-            statusEl.innerHTML = '';
+            statusEl.replaceChildren();
             feedbackEl.hidden = true;
-            feedbackEl.innerHTML = '';
-            acoesEl.innerHTML = '';
+            feedbackEl.replaceChildren();
+            acoesEl.replaceChildren();
             form.hidden = true;
             salvarBtn.hidden = true;
             loadingEl.hidden = false;
@@ -614,7 +635,7 @@
                     feedbackEl.hidden = false;
                 }
 
-                acoesEl.innerHTML = sessaoDetalheAcoesHtml(dto.status);
+                acoesEl.replaceChildren(...sessaoDetalheAcoes(dto.status));
                 if (window.lucide) lucide.createIcons();
 
                 loadingEl.hidden = true;
@@ -843,6 +864,33 @@
             }
             lucide.createIcons();
             if (window.showToast) window.showToast('Saldo reconciliado com sucesso!', 'success');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-stop-propagation]')) {
+                event.stopPropagation();
+                return;
+            }
+            const filter = event.target.closest('[data-filter]');
+            if (filter) return setFiltro(filter.dataset.filter, filter);
+            const patient = event.target.closest('[data-select-patient]');
+            if (patient) return selecionarPaciente(patient);
+            const flow = event.target.closest('[data-flow-mode]');
+            if (flow) return iniciarFluxo(flow.dataset.flowMode);
+            const mode = event.target.closest('[data-set-mode]');
+            if (mode) return setModo(mode.dataset.setMode);
+            const renew = event.target.closest('[data-renew-plan-id]');
+            if (renew) return iniciarRenovacao(renew.dataset.renewPlanId);
+            const historyToggle = event.target.closest('[data-toggle-plan-history]');
+            if (historyToggle) return toggleHistoricoPlanos(historyToggle);
+            const plan = event.target.closest('[data-select-plan]');
+            if (plan) return selecionarPlano(plan.dataset.patientId, plan.dataset.planId);
+            const retry = event.target.closest('[data-retry-patient-id]');
+            if (retry) return carregarPaciente(
+                retry.dataset.retryPatientId,
+                retry.dataset.retryMode,
+                retry.dataset.retryPlanId || null
+            );
         });
     </script>
 </body>

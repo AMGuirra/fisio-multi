@@ -5,6 +5,8 @@ import com.fisiogestao.agenda.SessaoStatus;
 import com.fisiogestao.agenda.repository.SessaoRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
+import com.fisiogestao.email.service.EmailRequest;
+import com.fisiogestao.email.service.SystemEmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -51,6 +55,9 @@ class PortalPacienteControllerTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private SystemEmailService systemEmailService;
 
     private ClienteEntity pacienteComSenha;
     private ClienteEntity pacienteSemEmail;
@@ -183,5 +190,21 @@ class PortalPacienteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("portal/esqueci-senha-portal"));
         assertTrue(true);
+    }
+
+    @Test
+    void resetDoPacienteIgnoraHostEncaminhado() throws Exception {
+        mockMvc.perform(post("/paciente/esqueci-minha-senha")
+                        .with(csrf())
+                        .header("X-Forwarded-Host", "host-controlado.invalid")
+                        .header("X-Forwarded-Proto", "https")
+                        .param("identificador", pacienteComSenha.getEmail()))
+                .andExpect(status().isOk());
+
+        org.mockito.ArgumentCaptor<EmailRequest> captor = org.mockito.ArgumentCaptor.forClass(EmailRequest.class);
+        verify(systemEmailService).send(captor.capture());
+        String link = (String) captor.getValue().templateVariables().get("linkRedefinicao");
+        assertTrue(link.startsWith("http://localhost:8083/paciente/resetar-senha?token="));
+        assertFalse(link.contains("host-controlado.invalid"));
     }
 }

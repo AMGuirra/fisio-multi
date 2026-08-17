@@ -26,6 +26,7 @@ public class EmailConfiguracaoService {
     private final SecretCryptoService secretCryptoService;
     private final SystemEmailService systemEmailService;
     private final AuditService auditService;
+    private final SmtpEndpointValidator smtpEndpointValidator;
 
     public Optional<EmailConfiguracaoEntity> buscarAtiva() {
         return emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
@@ -68,8 +69,8 @@ public class EmailConfiguracaoService {
 
         entity.setNomeRemetente(textoObrigatorio(nomeRemetente, "Informe o nome do remetente."));
         entity.setEmailRemetente(email(emailRemetente, "Informe o e-mail do remetente."));
-        entity.setSmtpHost(textoObrigatorio(smtpHost, "Informe o host SMTP."));
-        entity.setSmtpPort(validarPorta(smtpPort));
+        entity.setSmtpHost(smtpEndpointValidator.validar(smtpHost, smtpPort));
+        entity.setSmtpPort(smtpPort);
         entity.setUsaAutenticacao(usaAutenticacao);
         entity.setUsaTls(usaTls);
         entity.setUsaSsl(usaSsl);
@@ -188,13 +189,6 @@ public class EmailConfiguracaoService {
                             AuditEventOrigin.MANUAL
                     );
                 });
-    }
-
-    private Integer validarPorta(Integer porta) {
-        if (porta == null || porta < 1 || porta > 65535) {
-            throw new BusinessException("Informe uma porta SMTP válida.");
-        }
-        return porta;
     }
 
     private String textoObrigatorio(String valor, String mensagem) {

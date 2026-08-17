@@ -44,6 +44,10 @@ public class UserMenuAccessInterceptor implements HandlerInterceptor {
         }
 
         String destino = userMenuAccessService.resolverDestinoInicial(role);
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
         response.sendRedirect(destino + (destino.contains("?") ? "&" : "?") + "acessoNegado=1");
         return false;
     }

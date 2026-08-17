@@ -214,7 +214,7 @@
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
             const dataInput = document.getElementById('data');
             const horarioSelect = document.getElementById('horario');
@@ -273,7 +273,7 @@
             };
 
             const limparHorarios = () => {
-                horarioSelect.innerHTML = '';
+                horarioSelect.replaceChildren();
                 horarioSelect.appendChild(criarOpcao('', 'Selecione um horário'));
             };
 
@@ -338,11 +338,11 @@
                     return;
                 }
 
-                cidadeSelect.innerHTML = '';
+                cidadeSelect.replaceChildren();
                 cidadeSelect.appendChild(criarOpcao('', 'Carregando cidades...'));
 
                 if (!estado) {
-                    cidadeSelect.innerHTML = '';
+                    cidadeSelect.replaceChildren();
                     cidadeSelect.appendChild(criarOpcao('', 'Selecione o estado primeiro'));
                     return;
                 }
@@ -359,7 +359,7 @@
                         cidadeCache.set(estado, cidades);
                     }
 
-                    cidadeSelect.innerHTML = '';
+                    cidadeSelect.replaceChildren();
                     cidadeSelect.appendChild(criarOpcao('', 'Selecione a cidade'));
                     cidades.forEach((cidade) => cidadeSelect.appendChild(criarOpcao(cidade, cidade)));
 
@@ -367,7 +367,7 @@
                         cidadeSelect.value = cidadeSelecionada;
                     }
                 } catch (error) {
-                    cidadeSelect.innerHTML = '';
+                    cidadeSelect.replaceChildren();
                     cidadeSelect.appendChild(criarOpcao('', 'Não foi possível carregar as cidades'));
                 }
             };

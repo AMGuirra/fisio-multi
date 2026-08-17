@@ -16,12 +16,6 @@
       "description": "Chave de criptografia AES-GCM para dados sensíveis (ex: senha SMTP)."
     },
     {
-      "name": "app.security.log-sensitive-reset-links",
-      "type": "java.lang.Boolean",
-      "description": "Se true, loga links de reset de senha no console (apenas para desenvolvimento).",
-      "defaultValue": false
-    },
-    {
       "name": "app.bootstrap-admin.enabled",
       "type": "java.lang.Boolean",
       "description": "Habilita a criação automática do primeiro usuário administrador na inicialização.",

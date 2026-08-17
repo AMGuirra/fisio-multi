@@ -47,18 +47,32 @@
         toast.className = `toast toast--${safeType}`;
         toast.setAttribute('role', 'status');
 
-        toast.innerHTML = `
-            <span class="toast__icon">
-                <i data-lucide="${ICONS[safeType]}" aria-hidden="true"></i>
-            </span>
-            <span class="toast__body">
-                <span class="toast__label">${LABELS[safeType]}</span>
-                <span class="toast__msg">${message}</span>
-            </span>
-            <button class="toast__close" aria-label="Fechar notificação" type="button">
-                <i data-lucide="x" aria-hidden="true"></i>
-            </button>
-        `;
+        const iconWrap = document.createElement('span');
+        iconWrap.className = 'toast__icon';
+        const statusIcon = document.createElement('i');
+        statusIcon.dataset.lucide = ICONS[safeType];
+        statusIcon.setAttribute('aria-hidden', 'true');
+        iconWrap.appendChild(statusIcon);
+
+        const body = document.createElement('span');
+        body.className = 'toast__body';
+        const label = document.createElement('span');
+        label.className = 'toast__label';
+        label.textContent = LABELS[safeType];
+        const text = document.createElement('span');
+        text.className = 'toast__msg';
+        text.textContent = String(message ?? '');
+        body.append(label, text);
+
+        const close = document.createElement('button');
+        close.className = 'toast__close';
+        close.setAttribute('aria-label', 'Fechar notificação');
+        close.type = 'button';
+        const closeIcon = document.createElement('i');
+        closeIcon.dataset.lucide = 'x';
+        closeIcon.setAttribute('aria-hidden', 'true');
+        close.appendChild(closeIcon);
+        toast.append(iconWrap, body, close);
 
         portal.appendChild(toast);
 

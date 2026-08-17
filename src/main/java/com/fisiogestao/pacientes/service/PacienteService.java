@@ -41,6 +41,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
@@ -72,8 +73,8 @@ public class PacienteService {
     private final SystemEmailService systemEmailService;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
-    @Value("${app.base-url:http://localhost:8083}")
-    private String baseUrl;
+    @Value("${app.base-url}")
+    private URI trustedBaseUri;
 
     private static final int RESET_TOKEN_TTL_MINUTES = 60;
 
@@ -467,6 +468,7 @@ public class PacienteService {
      */
     @Transactional
     public void solicitarAjudaSenhaPaciente(String identificador, String requestIp, String userAgent, String requestBaseUrl) {
+        // Mantido por retrocompatibilidade; requestBaseUrl nunca participa de links de seguranca.
         if (identificador == null || identificador.isBlank()) {
             return;
         }
@@ -553,7 +555,7 @@ public class PacienteService {
                     .build();
             pacientePasswordResetTokenRepository.save(entity);
 
-            String link = montarLinkResetPaciente(rawToken, requestBaseUrl);
+            String link = montarLinkResetPaciente(rawToken);
             systemEmailService.send(
                     EmailRequest.builder()
                             .type(EmailLogType.RESET_SENHA_PACIENTE)
@@ -568,7 +570,7 @@ public class PacienteService {
                                     "nomePaciente", cliente.getNomeCompleto(),
                                     "linkRedefinicao", link,
                                     "expiraEm", entity.getExpiresAt(),
-                                    "baseUrl", sanitizeBaseUrl(requestBaseUrl) != null ? sanitizeBaseUrl(requestBaseUrl) : baseUrl
+                                    "baseUrl", trustedBaseUri.toString()
                             ))
                             .build()
             );
@@ -647,20 +649,18 @@ public class PacienteService {
         }
     }
 
-    private String montarLinkResetPaciente(String rawToken, String requestBaseUrl) {
-        String effective = sanitizeBaseUrl(requestBaseUrl);
-        if (effective == null) effective = sanitizeBaseUrl(baseUrl);
-        if (effective == null) effective = "http://localhost:8083";
-        return effective + "/paciente/resetar-senha?token=" + rawToken;
+    private String montarLinkResetPaciente(String rawToken) {
+        URI base = validarBaseConfiavel(trustedBaseUri);
+        return base.resolve("/paciente/resetar-senha?token=" + rawToken).toString();
     }
 
-    private String sanitizeBaseUrl(String candidate) {
-        if (candidate == null || candidate.isBlank()) return null;
-        String normalized = candidate.trim();
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
+    private URI validarBaseConfiavel(URI candidate) {
+        if (candidate == null || !candidate.isAbsolute() || candidate.getHost() == null
+                || candidate.getUserInfo() != null || candidate.getQuery() != null || candidate.getFragment() != null
+                || !("http".equalsIgnoreCase(candidate.getScheme()) || "https".equalsIgnoreCase(candidate.getScheme()))) {
+            throw new IllegalStateException("app.base-url deve ser uma URL HTTP(S) absoluta e confiavel.");
         }
-        return normalized.isBlank() ? null : normalized;
+        return candidate;
     }
 
     /**

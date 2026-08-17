@@ -752,7 +752,7 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
     (() => {
         'use strict';
 
@@ -1228,9 +1228,12 @@
             const preencherModal = ({ id = null, nome = '', telefone = '', email = '', data = '', horario = '', local = 'CLINICA', observacoes = '' }) => {
                 solicitacaoId      = id;
                 criando            = !id;
-                title.innerHTML    = criando
-                    ? '<i data-lucide="plus"></i> Nova Solicitação'
-                    : '<i data-lucide="pencil"></i> Editar Solicitação';
+                const titleIcon = document.createElement('i');
+                titleIcon.dataset.lucide = criando ? 'plus' : 'pencil';
+                title.replaceChildren(
+                    titleIcon,
+                    document.createTextNode(criando ? ' Nova Solicitação' : ' Editar Solicitação')
+                );
                 submitLabel.textContent = criando ? 'Criar solicitação' : 'Salvar alterações';
                 edMotivoLabel.textContent = criando ? 'Observação interna (opcional)' : 'Motivo da alteração (opcional)';
                 edMotivo.placeholder = criando ? 'Ex: Solicitação registrada pela recepção' : 'Ex: Solicitado pelo paciente';
@@ -1375,7 +1378,19 @@
             const icon = type === 'error' ? 'circle-alert' : 'circle-check';
             div.className = `solicitacoes-flash ${type === 'error' ? 'error' : 'success'}`;
             div.dataset.autoDismiss = 'true';
-            div.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span><button type="button" class="flash-close" data-flash-close aria-label="Fechar mensagem"><i data-lucide="x"></i></button>`;
+            const statusIcon = document.createElement('i');
+            statusIcon.dataset.lucide = icon;
+            const message = document.createElement('span');
+            message.textContent = String(text);
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'flash-close';
+            close.dataset.flashClose = '';
+            close.setAttribute('aria-label', 'Fechar mensagem');
+            const closeIcon = document.createElement('i');
+            closeIcon.dataset.lucide = 'x';
+            close.appendChild(closeIcon);
+            div.append(statusIcon, message, close);
             flashStack.prepend(div);
             wireFlash(div);
             if (window.lucide) lucide.createIcons({ nodes: [div] });

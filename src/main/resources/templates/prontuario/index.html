@@ -59,7 +59,7 @@
                     <form method="get" th:action="@{/prontuario}" class="modern-form">
                         <div class="form-field">
                             <label for="paciente">Selecione o paciente para trabalhar</label>
-                            <select id="paciente" name="paciente" class="form-select" onchange="this.form.submit()">
+                            <select id="paciente" name="paciente" class="form-select" data-submit-on-change>
                                 <option value="">Selecione...</option>
                                 <option th:each="paciente : ${pacientes}"
                                         th:value="${paciente.id}"

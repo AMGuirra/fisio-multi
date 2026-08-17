@@ -324,7 +324,7 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
             const cepInput     = document.getElementById('cep');
             const btnBuscar    = document.getElementById('btnBuscarCep');
@@ -356,7 +356,9 @@
                 }
 
                 btnBuscar.disabled = true;
-                btnBuscar.innerHTML = '<i data-lucide="loader-circle"></i>Buscando…';
+                const loadingIcon = document.createElement('i');
+                loadingIcon.dataset.lucide = 'loader-circle';
+                btnBuscar.replaceChildren(loadingIcon, document.createTextNode('Buscando…'));
                 if (window.lucide) lucide.createIcons();
                 setFeedback('', false);
 
@@ -376,7 +378,9 @@
                     setFeedback(e.message === 'CEP não encontrado' ? 'CEP não encontrado.' : 'Erro ao buscar CEP. Tente novamente.', true);
                 } finally {
                     btnBuscar.disabled = false;
-                    btnBuscar.innerHTML = '<i data-lucide="search"></i>Buscar';
+                    const searchIcon = document.createElement('i');
+                    searchIcon.dataset.lucide = 'search';
+                    btnBuscar.replaceChildren(searchIcon, document.createTextNode('Buscar'));
                     if (window.lucide) lucide.createIcons();
                 }
             };

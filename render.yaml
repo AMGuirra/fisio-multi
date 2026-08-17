@@ -12,6 +12,8 @@ services:
     plan: free
     region: ohio
     envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: "prod"
       - key: DATABASE_URL
         sync: false
       - key: SPRING_DATASOURCE_URL

@@ -1,8 +1,7 @@
 package com.fisiogestao.email.form;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -34,9 +33,12 @@ public class EmailConfiguracaoForm {
     private String smtpHost;
 
     @NotNull(message = "Informe a porta SMTP.")
-    @Min(value = 1, message = "Informe uma porta SMTP válida.")
-    @Max(value = 65535, message = "Informe uma porta SMTP válida.")
     private Integer smtpPort;
+
+    @AssertTrue(message = "Use somente as portas SMTP seguras 465 ou 587.")
+    public boolean isSmtpPortPermitida() {
+        return smtpPort == null || smtpPort == 465 || smtpPort == 587;
+    }
 
     private boolean usaAutenticacao = true;
 

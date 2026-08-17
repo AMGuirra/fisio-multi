@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 
 @Component
 public class AuditSnapshotFactory {
@@ -69,20 +72,19 @@ public class AuditSnapshotFactory {
             return null;
         }
         if (source instanceof ClienteEntity cliente) {
-            return cliente.getNomeCompleto();
+            return identificar("Paciente", cliente.getId());
         }
         if (source instanceof SessaoEntity sessao) {
-            String nomePaciente = sessao.getCliente() != null ? sessao.getCliente().getNomeCompleto() : "Paciente não identificado";
-            return nomePaciente + " - " + sessao.getDataHoraInicio();
+            return identificar("Sessao", sessao.getId()) + " - " + sessao.getDataHoraInicio();
         }
         if (source instanceof BloqueioAgendaEntity bloqueio) {
             return bloqueio.getMotivo();
         }
         if (source instanceof UsuarioSistemaEntity usuario) {
-            return usuario.getNome();
+            return identificar("Usuario", usuario.getId());
         }
         if (source instanceof InMemoryUserCatalog.SystemUserView usuarioView) {
-            return usuarioView.nome();
+            return identificar("Usuario", usuarioView.id());
         }
         if (source instanceof PlanoSessaoEntity plano) {
             return plano.getNomePlano();
@@ -91,13 +93,13 @@ public class AuditSnapshotFactory {
             return lancamento.getDescricao();
         }
         if (source instanceof ProntuarioSoapEntity prontuario) {
-            return prontuario.getCliente() != null ? prontuario.getCliente().getNomeCompleto() : "Registro SOAP";
+            return identificar("Registro SOAP", prontuario.getId());
         }
         if (source instanceof SolicitacaoAgendamentoEntity solicitacao) {
-            return solicitacao.getNomePaciente();
+            return identificar("Solicitacao", solicitacao.getId());
         }
         if (source instanceof EmailConfiguracaoEntity emailConfiguracao) {
-            return emailConfiguracao.getNomeRemetente() + " - " + emailConfiguracao.getEmailRemetente();
+            return identificar("Configuracao de e-mail", emailConfiguracao.getId());
         }
         return String.valueOf(source);
     }
@@ -105,11 +107,9 @@ public class AuditSnapshotFactory {
     private Map<String, Object> snapshotCliente(ClienteEntity cliente) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", cliente.getId());
-        map.put("nomeCompleto", cliente.getNomeCompleto());
-        map.put("telefone", cliente.getTelefone());
-        map.put("email", cliente.getEmail());
-        map.put("dataNascimento", cliente.getDataNascimento());
-        map.put("observacoes", cliente.getObservacoes());
+        map.put("possuiTelefone", preenchido(cliente.getTelefone()));
+        map.put("possuiEmail", preenchido(cliente.getEmail()));
+        map.put("possuiObservacoes", preenchido(cliente.getObservacoes()));
         map.put("ativo", cliente.getAtivo());
         return map;
     }
@@ -118,14 +118,13 @@ public class AuditSnapshotFactory {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", sessao.getId());
         map.put("clienteId", sessao.getCliente() != null ? sessao.getCliente().getId() : null);
-        map.put("clienteNome", sessao.getCliente() != null ? sessao.getCliente().getNomeCompleto() : null);
         map.put("planoId", sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getId() : null);
         map.put("planoNome", sessao.getPlanoSessao() != null ? sessao.getPlanoSessao().getNomePlano() : null);
         map.put("dataHoraInicio", sessao.getDataHoraInicio());
         map.put("dataHoraFim", sessao.getDataHoraFim());
         map.put("status", sessao.getStatus());
         map.put("tipoAtendimento", sessao.getTipoAtendimento());
-        map.put("observacoes", sessao.getObservacoes());
+        map.put("possuiObservacoes", preenchido(sessao.getObservacoes()));
         map.put("planoConsumoRegistrado", sessao.getPlanoConsumoRegistrado());
         return map;
     }
@@ -149,9 +148,7 @@ public class AuditSnapshotFactory {
     private Map<String, Object> snapshotUsuario(UsuarioSistemaEntity usuario) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", usuario.getId());
-        map.put("nome", usuario.getNome());
-        map.put("username", usuario.getUsername());
-        map.put("email", usuario.getEmail());
+        map.put("possuiEmail", preenchido(usuario.getEmail()));
         map.put("role", usuario.getRole());
         return map;
     }
@@ -159,11 +156,8 @@ public class AuditSnapshotFactory {
     private Map<String, Object> snapshotUsuarioView(InMemoryUserCatalog.SystemUserView usuario) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", usuario.id());
-        map.put("nome", usuario.nome());
-        map.put("username", usuario.username());
-        map.put("email", usuario.email());
+        map.put("possuiEmail", preenchido(usuario.email()));
         map.put("role", usuario.role());
-        map.put("label", usuario.label());
         return map;
     }
 
@@ -171,7 +165,6 @@ public class AuditSnapshotFactory {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", plano.getId());
         map.put("clienteId", plano.getCliente() != null ? plano.getCliente().getId() : null);
-        map.put("clienteNome", plano.getCliente() != null ? plano.getCliente().getNomeCompleto() : null);
         map.put("nomePlano", plano.getNomePlano());
         map.put("sessoesContratadas", plano.getSessoesContratadas());
         map.put("sessoesConsumidas", plano.getSessoesConsumidas());
@@ -193,7 +186,6 @@ public class AuditSnapshotFactory {
         map.put("dataRecebimento", lancamento.getDataRecebimento());
         map.put("dataPagamento", lancamento.getDataPagamento());
         map.put("clienteId", lancamento.getCliente() != null ? lancamento.getCliente().getId() : null);
-        map.put("clienteNome", lancamento.getCliente() != null ? lancamento.getCliente().getNomeCompleto() : null);
         map.put("planoId", lancamento.getPlanoSessao() != null ? lancamento.getPlanoSessao().getId() : null);
         map.put("planoNome", lancamento.getPlanoSessao() != null ? lancamento.getPlanoSessao().getNomePlano() : null);
         return map;
@@ -203,14 +195,10 @@ public class AuditSnapshotFactory {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", prontuario.getId());
         map.put("clienteId", prontuario.getCliente() != null ? prontuario.getCliente().getId() : null);
-        map.put("clienteNome", prontuario.getCliente() != null ? prontuario.getCliente().getNomeCompleto() : null);
         map.put("sessaoId", prontuario.getSessao() != null ? prontuario.getSessao().getId() : null);
         map.put("tipoRegistro", prontuario.getTipoRegistro());
-        map.put("textoRegistro", prontuario.getTextoRegistro());
-        map.put("escalaEvaDor", prontuario.getEscalaEvaDor());
-        map.put("regiaoCorporal", prontuario.getRegiaoCorporal());
-        map.put("tecnicasUtilizadas", prontuario.getTecnicasUtilizadas());
-        map.put("obsEvolucao", prontuario.getObsEvolucao());
+        map.put("conteudoClinicoHash", hashConteudoClinico(prontuario));
+        map.put("possuiConteudoClinico", preenchido(prontuario.getTextoRegistro()));
         map.put("criadoPor", prontuario.getCriadoPor());
         return map;
     }
@@ -219,12 +207,11 @@ public class AuditSnapshotFactory {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", anexo.getId());
         map.put("clienteId", anexo.getCliente() != null ? anexo.getCliente().getId() : null);
-        map.put("clienteNome", anexo.getCliente() != null ? anexo.getCliente().getNomeCompleto() : null);
         map.put("prontuarioSoapId", anexo.getProntuarioSoapId());
-        map.put("nomeOriginal", anexo.getNomeOriginal());
+        map.put("nomeOriginalHash", hashTexto(anexo.getNomeOriginal()));
         map.put("tipoMime", anexo.getTipoMime());
         map.put("tamanhoBytes", anexo.getTamanhoBytes());
-        map.put("descricao", anexo.getDescricao());
+        map.put("possuiDescricao", preenchido(anexo.getDescricao()));
         map.put("criadoPor", anexo.getCriadoPor());
         map.put("tipoAnexo", anexo.getTipoAnexo());
         map.put("regiaoCorporal", anexo.getRegiaoCorporal());
@@ -237,13 +224,12 @@ public class AuditSnapshotFactory {
     private Map<String, Object> snapshotSolicitacao(SolicitacaoAgendamentoEntity solicitacao) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", solicitacao.getId());
-        map.put("nomePaciente", solicitacao.getNomePaciente());
-        map.put("telefone", solicitacao.getTelefone());
-        map.put("email", solicitacao.getEmail());
+        map.put("possuiTelefone", preenchido(solicitacao.getTelefone()));
+        map.put("possuiEmail", preenchido(solicitacao.getEmail()));
         map.put("dataHoraInicio", solicitacao.getDataHoraInicio());
         map.put("dataHoraFim", solicitacao.getDataHoraFim());
         map.put("status", solicitacao.getStatus());
-        map.put("observacoes", solicitacao.getObservacoes());
+        map.put("possuiObservacoes", preenchido(solicitacao.getObservacoes()));
         map.put("clienteId", solicitacao.getCliente() != null ? solicitacao.getCliente().getId() : null);
         return map;
     }
@@ -252,16 +238,53 @@ public class AuditSnapshotFactory {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("id", configuracao.getId());
         map.put("nomeRemetente", configuracao.getNomeRemetente());
-        map.put("emailRemetente", configuracao.getEmailRemetente());
-        map.put("smtpHost", configuracao.getSmtpHost());
+        map.put("emailRemetenteConfigurado", preenchido(configuracao.getEmailRemetente()));
+        map.put("smtpHostConfigurado", preenchido(configuracao.getSmtpHost()));
         map.put("smtpPort", configuracao.getSmtpPort());
         map.put("usaAutenticacao", configuracao.getUsaAutenticacao());
         map.put("usaTls", configuracao.getUsaTls());
         map.put("usaSsl", configuracao.getUsaSsl());
-        map.put("replyTo", configuracao.getReplyTo());
+        map.put("replyToConfigurado", preenchido(configuracao.getReplyTo()));
         map.put("ativo", configuracao.getAtivo());
-        map.put("observacoes", configuracao.getObservacoes());
+        map.put("possuiObservacoes", preenchido(configuracao.getObservacoes()));
         map.put("senhaConfigurada", configuracao.getSenhaAppCriptografada() != null && !configuracao.getSenhaAppCriptografada().isBlank());
         return map;
+    }
+
+    private boolean preenchido(String valor) {
+        return valor != null && !valor.isBlank();
+    }
+
+    private String hashConteudoClinico(ProntuarioSoapEntity prontuario) {
+        String conteudo = String.join("\u001f",
+                valorSeguro(prontuario.getTextoRegistro()),
+                valorSeguro(prontuario.getRegiaoCorporal()),
+                valorSeguro(prontuario.getTecnicasUtilizadas()),
+                valorSeguro(prontuario.getObsEvolucao()));
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(conteudo.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Nao foi possivel resumir o conteudo clinico para auditoria.", ex);
+        }
+    }
+
+    private String valorSeguro(String valor) {
+        return valor == null ? "" : valor;
+    }
+
+    private String identificar(String tipo, Object id) {
+        return id == null ? tipo : tipo + " #" + id;
+    }
+
+    private String hashTexto(String valor) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(valorSeguro(valor).getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Nao foi possivel resumir o campo para auditoria.", ex);
+        }
     }
 }

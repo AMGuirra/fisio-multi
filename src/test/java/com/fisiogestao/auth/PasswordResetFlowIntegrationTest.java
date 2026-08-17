@@ -83,9 +83,9 @@ class PasswordResetFlowIntegrationTest {
 
         assertTrue(passwordResetTokenRepository.findByUsuarioIdAndUsedAtIsNull(usuario.getId()).size() == 1);
         verify(systemEmailService).send(argThat(emailRequestComLinkDeResetPara(usuario)));
-        assertTrue(output.getOut().contains("Link de redefinição disponível para desenvolvimento local com token oculto"));
+        assertTrue(output.getOut().contains("Link local gerado com token permanentemente oculto"));
         assertTrue(output.getOut().contains("http://localhost:8083/resetar-senha?token=<oculto>"));
-        assertTrue(output.getOut().contains("app.security.log-sensitive-reset-links=true"));
+        assertFalse(output.getOut().contains(usuario.getEmail()));
     }
 
     @Test
@@ -118,20 +118,23 @@ class PasswordResetFlowIntegrationTest {
     }
 
     @Test
-    void forgotPasswordUsaBaseUrlEncaminhadaQuandoDisponivel() throws Exception {
+    void forgotPasswordIgnoraHostEncaminhadoENaoEnvenenaLink() throws Exception {
         UsuarioSistemaEntity usuario = criarUsuarioTeste();
         when(systemEmailService.send(any())).thenReturn(EmailDispatchResult.failure("SMTP indisponível para o teste."));
 
         mockMvc.perform(post("/esqueci-minha-senha")
                         .with(csrf())
                         .header("X-Forwarded-Proto", "https")
-                        .header("X-Forwarded-Host", "fisiogestao.exemplo.com")
+                        .header("X-Forwarded-Host", "host-controlado.invalid")
                         .header("X-Forwarded-Port", "443")
                         .param("email", usuario.getEmail()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/esqueci-minha-senha"));
 
-        verify(systemEmailService).send(argThat(emailRequestComLinkDeResetPara(usuario, "https://fisiogestao.exemplo.com/resetar-senha?token=")));
+        verify(systemEmailService).send(argThat(emailRequestComLinkDeResetPara(
+                usuario,
+                "http://localhost:8083/resetar-senha?token="
+        )));
     }
 
     private UsuarioSistemaEntity criarUsuarioTeste() {

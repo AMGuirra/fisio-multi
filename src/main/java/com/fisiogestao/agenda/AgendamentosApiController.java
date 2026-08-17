@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/agendamentos")
 @RequiredArgsConstructor
+@PreAuthorize("@menuAccessSecurity.canAccess('AGENDA')")
 @Tag(name = "Agendamentos", description = "Criação de sessões avulsas e séries recorrentes na agenda")
 @SecurityRequirement(name = "basicAuth")
 public class AgendamentosApiController {

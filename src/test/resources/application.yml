@@ -17,6 +17,7 @@ spring:
   thymeleaf:
     cache: false
 app:
+  base-url: http://localhost:8083
   bootstrap-admin:
     enabled: true
     nome: Administrador Teste

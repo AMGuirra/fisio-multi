@@ -162,6 +162,8 @@ class RateLimitingFilterTest {
                 filter.resolverRota(post("/esqueci-minha-senha", "1.2.3.4")));
         assertEquals(RateLimitingFilter.RotaProtegida.AGENDAMENTO_ONLINE,
                 filter.resolverRota(postAgendamento("1.2.3.4")));
+        assertEquals(RateLimitingFilter.RotaProtegida.LISTA_ESPERA_PUBLICA,
+                filter.resolverRota(post("/lista-espera-publica", "1.2.3.4")));
         assertEquals(null,
                 filter.resolverRota(new MockHttpServletRequest("GET", "/login")));
         assertEquals(null,

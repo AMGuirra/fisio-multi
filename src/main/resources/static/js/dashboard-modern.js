@@ -6,6 +6,22 @@
         }
     };
 
+    const lucideIcon = (name, className = '') => {
+        const icon = document.createElement('i');
+        icon.dataset.lucide = name;
+        if (className) icon.className = className;
+        icon.setAttribute('aria-hidden', 'true');
+        return icon;
+    };
+
+    const replaceWithMessage = (container, message, tagName = 'p') => {
+        if (!container) return;
+        const element = document.createElement(tagName);
+        element.className = 'analytics-empty';
+        element.textContent = message;
+        container.replaceChildren(element);
+    };
+
     window.setTimeout(finishDashboardLoading, 380);
 
     try {
@@ -90,29 +106,30 @@
                 const insights = document.createElement('div');
                 insights.className = 'header-insights';
                 insights.setAttribute('aria-label', 'Informações do sistema');
-                insights.innerHTML = `
-                    <div class="header-info-chip">
-                        <span class="header-info-icon status"><i data-lucide="activity" aria-hidden="true"></i></span>
-                        <span class="header-info-copy">
-                            <span class="header-info-label">Status do sistema</span>
-                            <span class="header-info-value skeletonable system-status" id="systemStatus">Online</span>
-                        </span>
-                    </div>
-                    <div class="header-info-chip">
-                        <span class="header-info-icon calendar"><i data-lucide="calendar-days" aria-hidden="true"></i></span>
-                        <span class="header-info-copy">
-                            <span class="header-info-label">Data atual</span>
-                            <span class="header-info-value skeletonable" id="infoDate">00/00/0000</span>
-                        </span>
-                    </div>
-                    <div class="header-info-chip">
-                        <span class="header-info-icon clock"><i data-lucide="timer-reset" aria-hidden="true"></i></span>
-                        <span class="header-info-copy">
-                            <span class="header-info-label">Hora atual</span>
-                            <span class="header-info-value skeletonable" id="infoTime">00:00:00</span>
-                        </span>
-                    </div>
-                `;
+                const createChip = (iconName, iconClass, label, value, id, valueClass = '') => {
+                    const chip = document.createElement('div');
+                    chip.className = 'header-info-chip';
+                    const iconWrap = document.createElement('span');
+                    iconWrap.className = `header-info-icon ${iconClass}`;
+                    iconWrap.appendChild(lucideIcon(iconName));
+                    const copy = document.createElement('span');
+                    copy.className = 'header-info-copy';
+                    const labelElement = document.createElement('span');
+                    labelElement.className = 'header-info-label';
+                    labelElement.textContent = label;
+                    const valueElement = document.createElement('span');
+                    valueElement.className = `header-info-value skeletonable ${valueClass}`.trim();
+                    valueElement.id = id;
+                    valueElement.textContent = value;
+                    copy.append(labelElement, valueElement);
+                    chip.append(iconWrap, copy);
+                    return chip;
+                };
+                insights.append(
+                    createChip('activity', 'status', 'Status do sistema', 'Online', 'systemStatus', 'system-status'),
+                    createChip('calendar-days', 'calendar', 'Data atual', '00/00/0000', 'infoDate'),
+                    createChip('timer-reset', 'clock', 'Hora atual', '00:00:00', 'infoTime')
+                );
                 headerRight.insertBefore(insights, headerRight.firstChild);
 
                 infoDateElement = insights.querySelector('#infoDate');
@@ -215,25 +232,35 @@
             }
 
             if (!items || items.length === 0) {
-                container.innerHTML = '<p class="analytics-empty">Sem dados no periodo.</p>';
+                replaceWithMessage(container, 'Sem dados no periodo.');
                 return;
             }
 
             const max = Math.max(...items.map(options.value), 1);
-            container.innerHTML = items.map((item) => {
+            const rows = items.map((item) => {
                 const value = options.value(item);
                 const percent = Math.max(4, Math.round((value / max) * 100));
                 const label = options.labelFn ? options.labelFn(item) : monthLabel(item.mes);
-                return `
-                    <div class="chart-row">
-                        <span class="chart-label" title="${label}">${label}</span>
-                        <span class="chart-track" title="${options.title(item)}">
-                            <span class="chart-fill ${options.fillClass || ''}" style="width:${percent}%"></span>
-                        </span>
-                        <span class="chart-value">${options.display(item)}</span>
-                    </div>
-                `;
-            }).join('');
+                const row = document.createElement('div');
+                row.className = 'chart-row';
+                const labelElement = document.createElement('span');
+                labelElement.className = 'chart-label';
+                labelElement.title = String(label ?? '');
+                labelElement.textContent = String(label ?? '');
+                const track = document.createElement('span');
+                track.className = 'chart-track';
+                track.title = String(options.title(item) ?? '');
+                const fill = document.createElement('span');
+                fill.className = `chart-fill ${options.fillClass || ''}`.trim();
+                fill.style.width = `${percent}%`;
+                const display = document.createElement('span');
+                display.className = 'chart-value';
+                display.textContent = String(options.display(item) ?? '');
+                track.appendChild(fill);
+                row.append(labelElement, track, display);
+                return row;
+            });
+            container.replaceChildren(...rows);
         };
 
         const statusBadge = (status) => {
@@ -244,7 +271,10 @@
                 FALTA_FATURADA: { label: 'Falta Fat.', cls: 'session-badge--falta-faturada' }
             };
             const info = map[status] || { label: status, cls: '' };
-            return `<span class="session-badge ${info.cls}">${info.label}</span>`;
+            const badge = document.createElement('span');
+            badge.className = `session-badge ${info.cls}`.trim();
+            badge.textContent = String(info.label ?? '');
+            return badge;
         };
 
         const tipoClass = (tipo) => {
@@ -275,17 +305,23 @@
             }
 
             if (sessoes.length === 0) {
-                list.innerHTML = '<p class="analytics-empty">Nenhuma sessão para hoje.</p>';
+                replaceWithMessage(list, 'Nenhuma sessão para hoje.');
                 return;
             }
 
-            list.innerHTML = sessoes.map((s) => `
-                <div class="session-item ${tipoClass(s.tipo)}">
-                    <span class="session-time">${s.horario}</span>
-                    <span class="session-patient">${s.nomePaciente}</span>
-                    ${statusBadge(s.status)}
-                </div>
-            `).join('');
+            const items = sessoes.map((s) => {
+                const item = document.createElement('div');
+                item.className = `session-item ${tipoClass(s.tipo)}`.trim();
+                const horario = document.createElement('span');
+                horario.className = 'session-time';
+                horario.textContent = String(s.horario ?? '');
+                const paciente = document.createElement('span');
+                paciente.className = 'session-patient';
+                paciente.textContent = String(s.nomePaciente ?? '');
+                item.append(horario, paciente, statusBadge(s.status));
+                return item;
+            });
+            list.replaceChildren(...items);
         };
 
         const carregarMetricasDashboard = async () => {
@@ -371,18 +407,12 @@
                 });
 
                 if (frequencia.length === 0 && frequenciaChart) {
-                    frequenciaChart.innerHTML = '<p class="analytics-empty">Nenhuma atividade registrada no período.</p>';
+                    replaceWithMessage(frequenciaChart, 'Nenhuma atividade registrada no período.');
                 }
             } catch (error) {
-                if (ocupacaoChart) {
-                    ocupacaoChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
-                }
-                if (receitaChart) {
-                    receitaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
-                }
-                if (frequenciaChart) {
-                    frequenciaChart.innerHTML = '<p class="analytics-empty">Nao foi possivel carregar os indicadores.</p>';
-                }
+                replaceWithMessage(ocupacaoChart, 'Nao foi possivel carregar os indicadores.');
+                replaceWithMessage(receitaChart, 'Nao foi possivel carregar os indicadores.');
+                replaceWithMessage(frequenciaChart, 'Nao foi possivel carregar os indicadores.');
                 console.error('Falha ao carregar metricas do dashboard.', error);
             }
         };
@@ -639,20 +669,25 @@
                 matches = allItems.filter(item => item.label.toLowerCase().includes(query));
                 activeIndex = 0;
 
-                cpResults.innerHTML = '';
+                cpResults.replaceChildren();
                 if (matches.length === 0) {
-                    cpResults.innerHTML = '<li style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Nenhum comando ou página encontrada.</li>';
+                    const empty = document.createElement('li');
+                    empty.className = 'cp-item-empty';
+                    empty.textContent = 'Nenhum comando ou página encontrada.';
+                    cpResults.appendChild(empty);
                     return;
                 }
 
                 matches.forEach((item, index) => {
                     const li = document.createElement('li');
                     li.className = `cp-item ${index === activeIndex ? 'is-active' : ''}`;
-                    li.innerHTML = `
-                        <i data-lucide="${item.icon || 'link'}" class="cp-item-icon"></i>
-                        <span class="cp-item-label">${item.label}</span>
-                        <span class="cp-item-shortcut">⏎</span>
-                    `;
+                    const label = document.createElement('span');
+                    label.className = 'cp-item-label';
+                    label.textContent = String(item.label ?? '');
+                    const shortcut = document.createElement('span');
+                    shortcut.className = 'cp-item-shortcut';
+                    shortcut.textContent = '⏎';
+                    li.append(lucideIcon(item.icon || 'link', 'cp-item-icon'), label, shortcut);
                     li.addEventListener('click', () => executeItem(item));
                     cpResults.appendChild(li);
                 });

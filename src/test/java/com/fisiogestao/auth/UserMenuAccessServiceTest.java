@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -172,5 +173,16 @@ class UserMenuAccessServiceTest {
 
         assertEquals("Selecione ao menos um menu interno para Financeiro.", ex.getMessage());
         verify(permissionRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void rotaInternaDesconhecidaDeveFalharFechada() {
+        assertEquals(false, userMenuAccessService.podeAcessar(UserRole.RECEPCAO, "/api/rota-nao-mapeada"));
+    }
+
+    @Test
+    void APIsDePacientesEAgendamentosDevemResolverParaSeusMenus() {
+        assertEquals(Optional.of(AppMenuItem.PACIENTES), AppMenuItem.fromPath("/api/pacientes/por-cpf"));
+        assertEquals(Optional.of(AppMenuItem.AGENDA), AppMenuItem.fromPath("/api/agendamentos/recorrentes"));
     }
 }

@@ -572,8 +572,15 @@
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
+            const setButtonContent = (button, iconName, label) => {
+                if (!button) return;
+                const icon = document.createElement('i');
+                icon.dataset.lucide = iconName;
+                button.replaceChildren(icon, document.createTextNode(` ${label}`));
+            };
+
             (() => {
                 const modal = document.getElementById('faltaModal');
                 const subtitle = document.getElementById('faltaModalSubtitle');
@@ -763,7 +770,7 @@
                     pacienteBusca.classList.add('initially-hidden');
                     pacienteResultados.classList.add('initially-hidden');
                     pacienteBusca.value = '';
-                    pacienteResultados.innerHTML = '';
+                    pacienteResultados.replaceChildren();
                     clienteSelect.classList.remove('initially-hidden');
                 };
 
@@ -963,13 +970,22 @@
                         .filter((option) => !termo || option.textContent.toLocaleLowerCase('pt-BR').includes(termo));
 
                     if (!opcoes.length) {
-                        pacienteResultados.innerHTML = '<p class="combobox-result-empty">Nenhum paciente encontrado.</p>';
+                        const vazio = document.createElement('p');
+                        vazio.className = 'combobox-result-empty';
+                        vazio.textContent = 'Nenhum paciente encontrado.';
+                        pacienteResultados.replaceChildren(vazio);
                         return;
                     }
 
-                    pacienteResultados.innerHTML = opcoes.map((option) =>
-                        `<button type="button" class="combobox-result" data-id="${option.value}">${option.textContent}</button>`
-                    ).join('');
+                    const botoes = opcoes.map((option) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'combobox-result';
+                        button.dataset.id = option.value;
+                        button.textContent = option.textContent;
+                        return button;
+                    });
+                    pacienteResultados.replaceChildren(...botoes);
                 };
 
                 if (buscarPacienteBtn && pacienteBusca && pacienteResultados && clienteSelect) {
@@ -1219,7 +1235,7 @@
                         if (!sessaoId || !editarSessaoSalvarBtn) return;
 
                         editarSessaoSalvarBtn.disabled = true;
-                        editarSessaoSalvarBtn.innerHTML = '<i data-lucide="loader-2"></i> Carregando...';
+                        setButtonContent(editarSessaoSalvarBtn, 'loader-2', 'Carregando...');
                         if (window.lucide) lucide.createIcons();
 
                         try {
@@ -1256,7 +1272,7 @@
                             editarSessaoError.style.display = 'block';
                         } finally {
                             editarSessaoSalvarBtn.disabled = false;
-                            editarSessaoSalvarBtn.innerHTML = '<i data-lucide="save"></i> Salvar alterações';
+                            setButtonContent(editarSessaoSalvarBtn, 'save', 'Salvar alterações');
                             if (window.lucide) lucide.createIcons();
                         }
                     });
@@ -1305,7 +1321,7 @@
                         }
 
                         editarSessaoSalvarBtn.disabled = true;
-                        editarSessaoSalvarBtn.innerHTML = '<i data-lucide="loader-2"></i> Salvando...';
+                        setButtonContent(editarSessaoSalvarBtn, 'loader-2', 'Salvando...');
                         if (window.lucide) lucide.createIcons();
 
                         try {
@@ -1331,7 +1347,7 @@
                             editarSessaoError.style.display = 'block';
                         } finally {
                             editarSessaoSalvarBtn.disabled = false;
-                            editarSessaoSalvarBtn.innerHTML = '<i data-lucide="save"></i> Salvar alterações';
+                            setButtonContent(editarSessaoSalvarBtn, 'save', 'Salvar alterações');
                             if (window.lucide) lucide.createIcons();
                         }
                     });

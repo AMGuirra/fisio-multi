@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+app:
+  base-url: ${APP_BASE_URL}
+  security:
+    encryption-key: ${APP_ENCRYPTION_KEY}
+    remember-me-key: ${APP_SECURITY_REMEMBER_ME_KEY}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: lax

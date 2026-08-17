@@ -282,7 +282,7 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
             const checkbox = document.getElementById('bloqueioDiaInteiro');
             const horariosGrid = document.getElementById('horariosGrid');

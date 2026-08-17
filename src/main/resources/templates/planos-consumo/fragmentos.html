@@ -11,7 +11,7 @@
          class="prow"
          th:classappend="${p.id == pacienteSelecionadoId} ? ' sel' : ''"
          th:attr="data-id=${p.id},data-plan=${p.tipoPlano},data-name=${p.nomeCompleto},data-phone=${p.telefone},data-email=${p.email}"
-         onclick="selecionarPaciente(this)">
+         data-select-patient>
         <div class="av" th:style="'background:' + ${p.corAvatar} + ';color:' + ${p.corTextoAvatar}">
             <span th:text="${p.iniciais}">A</span>
         </div>
@@ -47,12 +47,12 @@
     <div th:if="${modo == 'ESCOLHA'}" class="flow-choice">
         <div class="divider">Escolha de modalidade</div>
         <div class="choice-grid">
-            <button type="button" class="choice-card choice-primary" onclick="iniciarFluxo('CRIAR_PLANO')">
+            <button type="button" class="choice-card choice-primary" data-flow-mode="CRIAR_PLANO">
                 <i data-lucide="package-plus" aria-hidden="true"></i>
                 <span class="choice-title">Criar Plano</span>
                 <span class="choice-sub">Cadastre sessões, valor e validade antes de usar saldo.</span>
             </button>
-            <button type="button" class="choice-card choice-outline" onclick="iniciarFluxo('AVULSO')">
+            <button type="button" class="choice-card choice-outline" data-flow-mode="AVULSO">
                 <i data-lucide="coins" aria-hidden="true"></i>
                 <span class="choice-title">Atendimento Avulso</span>
                 <span class="choice-sub">Registre uma cobrança pontual sem plano ativo.</span>
@@ -63,12 +63,12 @@
     <div th:if="${modo != 'ESCOLHA' and modo != 'CRIAR_PLANO'}">
         <div class="divider">Tipo de atendimento</div>
         <div class="toggle-wrap">
-            <button type="button" class="tgl" th:classappend="${modo == 'PLANO'} ? ' on-p'" onclick="setModo('PLANO')">
+            <button type="button" class="tgl" th:classappend="${modo == 'PLANO'} ? ' on-p'" data-set-mode="PLANO">
                 <i data-lucide="package" aria-hidden="true"></i>
                 <span class="tgl-lbl">Usar plano</span>
                 <span class="tgl-sub">Debita do saldo</span>
             </button>
-            <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" onclick="setModo('AVULSO')">
+            <button type="button" class="tgl" th:classappend="${modo == 'AVULSO'} ? ' on-a'" data-set-mode="AVULSO">
                 <i data-lucide="coins" aria-hidden="true"></i>
                 <span class="tgl-lbl">Avulso</span>
                 <span class="tgl-sub">Cobrança única</span>
@@ -139,24 +139,24 @@
         </form>
 
         <div th:if="${modo == 'PLANO'}" class="plano-acoes-secundarias">
-            <button type="button" class="btn-sec" onclick="iniciarFluxo('CRIAR_PLANO')">
+            <button type="button" class="btn-sec" data-flow-mode="CRIAR_PLANO">
                 <i data-lucide="package-plus" aria-hidden="true"></i>Criar Novo Plano
             </button>
             <button type="button" class="btn-sec btn-renovar"
                     th:if="${plano != null and (plano.status == 'EXPIRADO' or plano.status == 'CONCLUIDO')}"
-                    th:attr="onclick='iniciarRenovacao(\'' + ${plano.id} + '\''  + ')'">
+                    th:attr="data-renew-plan-id=${plano.id}">
                 <i data-lucide="refresh-cw" aria-hidden="true"></i>Renovar Plano
             </button>
         </div>
 
         <div th:if="${modo == 'RENOVAR'}" class="plano-acoes-secundarias">
-            <button type="button" class="btn-ghost" onclick="setModo('PLANO')">
+            <button type="button" class="btn-ghost" data-set-mode="PLANO">
                 <i data-lucide="arrow-left" aria-hidden="true"></i>Voltar
             </button>
         </div>
 
         <div th:if="${planosList != null and !#lists.isEmpty(planosList)}" class="plano-hist-section">
-            <button type="button" class="plano-hist-toggle" onclick="toggleHistoricoPlanos(this)">
+            <button type="button" class="plano-hist-toggle" data-toggle-plan-history>
                 <i data-lucide="history" aria-hidden="true"></i>
                 <span>Histórico de planos (<span th:text="${#lists.size(planosList)}">0</span>)</span>
                 <i data-lucide="chevron-down" class="phist-chevron" aria-hidden="true"></i>
@@ -165,7 +165,8 @@
                 <div th:each="item : ${planosList}"
                      class="plano-hist-item"
                      th:classappend="${plano != null and plano.id == item.id} ? ' phist-active' : ''"
-                     th:attr="onclick='selecionarPlano(\'' + ${paciente.id} + '\', \'' + ${item.id} + '\')'">
+                     th:attr="data-patient-id=${paciente.id},data-plan-id=${item.id}"
+                     data-select-plan>
                     <div class="phist-info">
                         <span class="phist-nome" th:text="${item.nomePlano}">Plano de 10 Sessões</span>
                         <span class="phist-datas" th:text="${item.dataInicioFormatada() + ' – ' + item.dataValidadeFormatada()}">01/01/2026 – 31/03/2026</span>
@@ -179,7 +180,7 @@
                     <form th:action="@{/planos-consumo/{id}/excluir(id=${item.id})}"
                           method="post"
                           class="plano-delete-form"
-                          onclick="event.stopPropagation()"
+                          data-stop-propagation
                           th:attr="data-plano-nome=${item.nomePlano}">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                         <input type="hidden" name="pacienteId" th:value="${paciente.id}">
@@ -406,7 +407,7 @@
             <i data-lucide="calendar-plus" aria-hidden="true"></i>Agendar nova sessão
         </button>
 
-        <button th:if="${motivoIndisponibilidadeAgenda != null}" type="button" class="btn-ajuste-sessoes" onclick="iniciarFluxo('CRIAR_PLANO')">
+        <button th:if="${motivoIndisponibilidadeAgenda != null}" type="button" class="btn-ajuste-sessoes" data-flow-mode="CRIAR_PLANO">
             <i data-lucide="package-plus" aria-hidden="true"></i>Criar novo plano
         </button>
 

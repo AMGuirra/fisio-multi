@@ -48,11 +48,16 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SolicitacaoAgendamentoService {
+
+    private static final Pattern BLOCO_HTML_EXECUTAVEL = Pattern.compile(
+            "(?is)<(script|style|iframe|object|embed|svg|math)\\b[^>]*>.*?</\\1\\s*>");
+    private static final Pattern TAG_HTML = Pattern.compile("(?s)<[^>]*>");
 
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final HorarioBloqueadoRepository horarioBloqueadoRepository;
@@ -191,7 +196,7 @@ public class SolicitacaoAgendamentoService {
         agendaService.validarHorarioDisponivel(intervalo.inicio(), intervalo.fim(), null, null);
 
         PacienteForm pacienteForm = new PacienteForm();
-        pacienteForm.setNomeCompleto(form.getNomePaciente() != null ? form.getNomePaciente().strip() : null);
+        pacienteForm.setNomeCompleto(texto(form.getNomePaciente()));
         pacienteForm.setTelefone(form.getTelefone());
         pacienteForm.setEmail(form.getEmail());
         pacienteForm.setCpf(form.getCpf());
@@ -731,7 +736,12 @@ public class SolicitacaoAgendamentoService {
     }
 
     private String texto(String valor) {
-        return valor == null || valor.isBlank() ? null : valor.trim();
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        String semBlocosExecutaveis = BLOCO_HTML_EXECUTAVEL.matcher(valor).replaceAll("");
+        String textoPlano = TAG_HTML.matcher(semBlocosExecutaveis).replaceAll("").trim();
+        return textoPlano.isBlank() ? null : textoPlano;
     }
 
     private String normalizarBuscaTelefone(String buscaTexto) {

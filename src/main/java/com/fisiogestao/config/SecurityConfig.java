@@ -17,10 +17,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+
+import java.net.URI;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 @Configuration
 @EnableMethodSecurity   // habilita @PreAuthorize / @PostAuthorize para proteção em profundidade nos services/controllers
@@ -53,6 +59,77 @@ public class SecurityConfig {
         throw new IllegalStateException(
                 "Configure APP_SECURITY_REMEMBER_ME_KEY com um valor aleatorio longo antes de iniciar em producao."
         );
+    }
+
+    @PostConstruct
+    void validarAppBaseUrl() {
+        if (!isRuntimeProducao()) {
+            return;
+        }
+        try {
+            URI baseUri = URI.create(appBaseUrl);
+            String scheme = baseUri.getScheme();
+            String host = baseUri.getHost();
+            String normalizedHost = host == null ? null : host.toLowerCase(java.util.Locale.ROOT);
+            boolean esquemaSeguro = "https".equalsIgnoreCase(scheme);
+            boolean hostPublico = normalizedHost != null
+                    && !"localhost".equals(normalizedHost)
+                    && !normalizedHost.endsWith(".localhost")
+                    && !normalizedHost.startsWith("127.")
+                    && !"::1".equals(normalizedHost)
+                    && !isIpv4PrivadoOuLocal(normalizedHost)
+                    && !isIpv6PrivadoOuLocal(normalizedHost);
+            if (!baseUri.isAbsolute() || !esquemaSeguro || !hostPublico
+                    || baseUri.getUserInfo() != null || baseUri.getQuery() != null || baseUri.getFragment() != null) {
+                throw new IllegalArgumentException("base-url insegura");
+            }
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException(
+                    "Configure APP_BASE_URL com uma URL HTTPS publica e canonica antes de iniciar em producao."
+            );
+        }
+    }
+
+    private boolean isIpv4PrivadoOuLocal(String host) {
+        String[] partes = host.split("\\.");
+        if (partes.length != 4) {
+            return false;
+        }
+        try {
+            int first = Integer.parseInt(partes[0]);
+            int second = Integer.parseInt(partes[1]);
+            return first == 0 || first == 10 || first == 127
+                    || (first == 100 && second >= 64 && second <= 127)
+                    || (first == 169 && second == 254)
+                    || (first == 172 && second >= 16 && second <= 31)
+                    || (first == 192 && second == 168);
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
+
+    private boolean isIpv6PrivadoOuLocal(String host) {
+        if (!host.contains(":")) {
+            return false;
+        }
+        String literal = host.startsWith("[") && host.endsWith("]")
+                ? host.substring(1, host.length() - 1)
+                : host;
+        try {
+            InetAddress address = InetAddress.getByName(literal);
+            if (!(address instanceof Inet6Address)) {
+                return false;
+            }
+            byte[] bytes = address.getAddress();
+            return address.isAnyLocalAddress()
+                    || address.isLoopbackAddress()
+                    || address.isLinkLocalAddress()
+                    || address.isSiteLocalAddress()
+                    || address.isMulticastAddress()
+                    || (bytes[0] & 0xfe) == 0xfc;
+        } catch (UnknownHostException ex) {
+            return true;
+        }
     }
 
     private boolean isRuntimeProducao() {
@@ -164,29 +241,6 @@ public class SecurityConfig {
                         .referrerPolicy(rp -> rp
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                         )
-                        // ── Content-Security-Policy ──────────────────────────────────────
-                        // connect-src: permite fetch para IBGE (cidades) e ViaCEP (CEP)
-                        //   usados na página pública de agendamento online.
-                        // font-src: Google Fonts é carregado via fonts.gstatic.com.
-                        // style-src: Google Fonts stylesheet vem de fonts.googleapis.com;
-                        //   'unsafe-inline' é necessário enquanto houver inline styles residuais.
-                        //   Remover 'unsafe-inline' de style-src quando todo CSS estiver externalizado.
-                        // script-src: 'unsafe-inline' cobre scripts <script> inline no Thymeleaf
-                        //   (ex: lucide.createIcons()). Migrar para nonce quando possível.
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives(
-                                        "default-src 'self'; " +
-                                        "script-src 'self' 'unsafe-inline'; " +
-                                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                                        "font-src 'self' https://fonts.gstatic.com; " +
-                                        "img-src 'self' data:; " +
-                                        "connect-src 'self' " +
-                                            "https://servicodados.ibge.gov.br " +
-                                            "https://viacep.com.br; " +
-                                        "frame-ancestors 'self'; " +
-                                        "form-action 'self'"
-                                )
-                        )
                 )
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler((request, response, denied) -> {
@@ -197,6 +251,8 @@ public class SecurityConfig {
                             }
                         })
                 );
+
+        http.addFilterBefore(new CspNonceFilter(), HeaderWriterFilter.class);
 
         return http.build();
     }
@@ -238,6 +294,7 @@ public class SecurityConfig {
                 "/login",
                 "/esqueci-minha-senha",
                 "/agendamento-online",
+                "/lista-espera-publica",
                 "/paciente/login",
                 "/paciente/esqueci-minha-senha"
         );

@@ -4,6 +4,10 @@
     const MAX_FOTOS = 6;
     const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 
+    document.querySelectorAll('[data-submit-on-change]').forEach((element) => {
+        element.addEventListener('change', () => element.form?.submit());
+    });
+
     // ---------------------------------------------------------------
     // Textareas: crescimento automático + contador de caracteres
     // ---------------------------------------------------------------
@@ -117,7 +121,7 @@
             return;
         }
         limparPreviewUrls();
-        previewContainer.innerHTML = '';
+        previewContainer.replaceChildren();
 
         arquivosSelecionados.forEach((arquivo, index) => {
             const url = URL.createObjectURL(arquivo);
@@ -134,7 +138,9 @@
             const removerBtn = document.createElement('button');
             removerBtn.type = 'button';
             removerBtn.setAttribute('aria-label', 'Remover esta foto da seleção');
-            removerBtn.innerHTML = '<i data-lucide="x"></i>';
+            const removerIcon = document.createElement('i');
+            removerIcon.dataset.lucide = 'x';
+            removerBtn.appendChild(removerIcon);
             removerBtn.addEventListener('click', () => {
                 arquivosSelecionados.splice(index, 1);
                 sincronizarInputFotos();

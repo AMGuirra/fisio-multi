@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,7 @@ public class SystemEmailService {
     private final EmailTemplateService emailTemplateService;
     private final SecretCryptoService secretCryptoService;
     private final AuditService auditService;
+    private final SmtpEndpointValidator smtpEndpointValidator;
 
     public EmailDispatchResult send(EmailRequest request) {
         Optional<EmailConfiguracaoEntity> configuracao = emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
@@ -59,7 +61,9 @@ public class SystemEmailService {
         }
 
         try {
-            JavaMailSenderImpl mailSender = buildMailSender(configuracao);
+            SmtpEndpointValidator.SmtpEndpoint endpoint = smtpEndpointValidator.validarEResolver(
+                    configuracao.getSmtpHost(), configuracao.getSmtpPort());
+            JavaMailSenderImpl mailSender = buildMailSender(configuracao, endpoint);
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
 
@@ -109,17 +113,22 @@ public class SystemEmailService {
             registrarAuditoria(request, EmailLogStatus.ENVIADO, null, true);
             return EmailDispatchResult.success("E-mail enviado com sucesso.");
         } catch (Exception ex) {
-            LOGGER.error("Falha ao enviar e-mail tipo {} para {}", request.type(), destinatarios, ex);
-            String mensagemErro = mensagemLimpa(ex);
+            String incidentId = UUID.randomUUID().toString();
+            LOGGER.error("Falha SMTP. incidente={} tipo={} destinatarios={}",
+                    incidentId, request.type(), destinatarios.stream().map(this::mascararEmail).toList());
+            String mensagemErro = "Falha no envio. incidente=" + incidentId;
             registrarLog(configuracao, request, EmailLogStatus.FALHA, mensagemErro);
             registrarAuditoria(request, EmailLogStatus.FALHA, mensagemErro, false);
-            return EmailDispatchResult.failure("Falha SMTP: " + mensagemErro);
+            return EmailDispatchResult.failure("Nao foi possivel enviar o e-mail. Referencia: " + incidentId);
         }
     }
 
-    private JavaMailSenderImpl buildMailSender(EmailConfiguracaoEntity configuracao) {
+    private JavaMailSenderImpl buildMailSender(
+            EmailConfiguracaoEntity configuracao,
+            SmtpEndpointValidator.SmtpEndpoint endpoint
+    ) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(configuracao.getSmtpHost());
+        sender.setHost(endpoint.host());
         sender.setPort(configuracao.getSmtpPort());
         sender.setUsername(configuracao.getEmailRemetente());
         sender.setPassword(secretCryptoService.decrypt(configuracao.getSenhaAppCriptografada()));
@@ -138,9 +147,9 @@ public class SystemEmailService {
         properties.put("mail.smtp.starttls.enable", String.valueOf(usaTls));
         properties.put("mail.smtp.starttls.required", String.valueOf(usaTls));
         properties.put("mail.smtp.ssl.enable", String.valueOf(usaSsl));
-        if (usaSsl) {
-            properties.put("mail.smtp.ssl.trust", configuracao.getSmtpHost());
-        }
+        properties.put("mail.smtp.socketFactory", new PinnedSmtpSocketFactory(endpoint.pinnedAddress()));
+        properties.put("mail.smtp.socketFactory.fallback", "false");
+        properties.put("mail.smtp.ssl.checkserveridentity", "true");
         properties.put("mail.debug", "false");
         properties.put("mail.smtp.connectiontimeout", "10000");
         properties.put("mail.smtp.timeout", "10000");
@@ -156,8 +165,10 @@ public class SystemEmailService {
     ) {
         EmailLogEntity entity = EmailLogEntity.builder()
                 .tipo(request.type())
-                .destinatarioPrincipal(request.to() == null || request.to().isEmpty() ? null : request.to().getFirst())
-                .destinatarios(request.to() == null ? null : String.join(", ", request.to()))
+                .destinatarioPrincipal(request.to() == null || request.to().isEmpty()
+                        ? null : mascararEmail(request.to().getFirst()))
+                .destinatarios(request.to() == null
+                        ? null : request.to().stream().map(this::mascararEmail).collect(java.util.stream.Collectors.joining(", ")))
                 .assunto(request.subject())
                 .status(status)
                 .mensagemErro(mensagemErro)
@@ -181,12 +192,17 @@ public class SystemEmailService {
                 .toList();
     }
 
-    private String mensagemLimpa(Exception ex) {
-        String mensagem = ex.getMessage();
-        if (mensagem == null || mensagem.isBlank()) {
-            return ex.getClass().getSimpleName();
+    private String mascararEmail(String email) {
+        if (email == null || email.isBlank() || !email.contains("@")) {
+            return "[EMAIL_REDACTED]";
         }
-        return mensagem.length() > 400 ? mensagem.substring(0, 400) : mensagem;
+        int at = email.indexOf('@');
+        String local = email.substring(0, at);
+        String domain = email.substring(at + 1);
+        if (local.length() <= 2) {
+            return local.charAt(0) + "***@" + domain;
+        }
+        return local.charAt(0) + "***" + local.charAt(local.length() - 1) + "@" + domain;
     }
 
     private void registrarAuditoria(
@@ -198,9 +214,9 @@ public class SystemEmailService {
         LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
         payload.put("tipoEmail", request.type() != null ? request.type().name() : null);
         payload.put("assunto", request.subject());
-        payload.put("destinatarios", request.to());
-        payload.put("cc", request.cc());
-        payload.put("bcc", request.bcc());
+        payload.put("destinatarios", mascararDestinatarios(request.to()));
+        payload.put("cc", mascararDestinatarios(request.cc()));
+        payload.put("bcc", mascararDestinatarios(request.bcc()));
         payload.put("template", request.templateId() != null ? request.templateId() : request.templateName());
         payload.put("entityType", request.entityType());
         payload.put("entityId", request.entityId());
@@ -242,5 +258,9 @@ public class SystemEmailService {
             return AuditEventOrigin.SISTEMA;
         }
         return AuditEventOrigin.MANUAL;
+    }
+
+    private List<String> mascararDestinatarios(List<String> destinatarios) {
+        return destinatarios == null ? List.of() : destinatarios.stream().map(this::mascararEmail).toList();
     }
 }

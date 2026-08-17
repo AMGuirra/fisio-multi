@@ -137,7 +137,7 @@
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
             const cards = document.querySelectorAll('.permissions-card');
             if (cards.length === 0) {
@@ -166,7 +166,6 @@
     </script>
 </body>
 </html>
-
 
 
 

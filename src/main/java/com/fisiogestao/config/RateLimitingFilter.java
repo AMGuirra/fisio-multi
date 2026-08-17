@@ -54,6 +54,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         LOGIN("/login", 10, Duration.ofMinutes(15), true),
         ESQUECI_SENHA("/esqueci-minha-senha", 5, Duration.ofMinutes(1), false),
         AGENDAMENTO_ONLINE("/agendamento-online", 5, Duration.ofMinutes(1), false),
+        LISTA_ESPERA_PUBLICA("/lista-espera-publica", 5, Duration.ofMinutes(1), false),
         PACIENTE_LOGIN("/paciente/login", 10, Duration.ofMinutes(15), false),
         PACIENTE_ESQUECI_SENHA("/paciente/esqueci-minha-senha", 5, Duration.ofMinutes(1), false);
 

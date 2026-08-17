@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -221,6 +222,40 @@ class SolicitacaoAgendamentoServiceTest {
 
         assertEquals("67999999999", resultado.getTelefone());
         assertEquals("12345678909", resultado.getCpf());
+    }
+
+    @Test
+    void devePersistirSomenteTextoPlanoEmCamposDaSolicitacaoPublica() {
+        AgendamentoOnlineForm form = new AgendamentoOnlineForm();
+        form.setNomePaciente("<strong>Paciente Ficticio</strong>");
+        form.setTelefone("67999999999");
+        form.setLocalAtendimento("CLINICA");
+        form.setData(java.time.LocalDate.now().plusDays(1));
+        form.setHorario("09:00");
+        form.setObservacoes("Texto seguro<script>conteudo_executavel()</script>");
+
+        when(agendaService.montarIntervalo(any(), any())).thenReturn(
+                new AgendaService.IntervaloAgenda(
+                        OffsetDateTime.now().plusDays(1),
+                        OffsetDateTime.now().plusDays(1).plusMinutes(50)));
+        ClienteEntity pacienteFicticio = ClienteEntity.builder()
+                .nomeCompleto("Paciente Ficticio")
+                .telefone("67999999999")
+                .ativo(true)
+                .build();
+        pacienteFicticio.setId(UUID.randomUUID());
+        when(pacienteService.localizarOuCriar(any(), eq(com.fisiogestao.auditoria.AuditEventOrigin.ONLINE), any(), any()))
+                .thenReturn(pacienteFicticio);
+        when(solicitacaoAgendamentoRepository.save(any(SolicitacaoAgendamentoEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitacaoAgendamentoEntity resultado = solicitacaoAgendamentoService.criarSolicitacaoPublica(form);
+
+        verify(pacienteService).localizarOuCriar(
+                argThat(paciente -> "Paciente Ficticio".equals(paciente.getNomeCompleto())),
+                eq(com.fisiogestao.auditoria.AuditEventOrigin.ONLINE), any(), any());
+        assertEquals("Texto seguro", resultado.getObservacoes());
+        assertFalse(resultado.getObservacoes().contains("<"));
     }
 
     private SolicitacaoAgendamentoEntity solicitacaoPendente() {

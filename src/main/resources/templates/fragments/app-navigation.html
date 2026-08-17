@@ -2,7 +2,7 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body>
     <th:block th:fragment="sidebar">
-        <script th:inline="javascript">
+        <script th:inline="javascript" th:attr="nonce=${cspNonce}">
             (() => {
                 const preferredTheme = /*[[${loggedUserTheme.cssValue}]]*/ 'light';
                 document.documentElement.style.colorScheme = preferredTheme === 'dark' ? 'dark' : 'light';

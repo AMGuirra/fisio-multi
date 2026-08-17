@@ -134,7 +134,7 @@ public class PortalPacienteController {
                 identificador,
                 request.getRemoteAddr(),
                 request.getHeader("User-Agent"),
-                resolveBaseUrl(request)
+                null
         );
         model.addAttribute("successMessage",
                 "Se os dados informados estiverem cadastrados, você receberá um e-mail com instruções — "
@@ -167,42 +167,6 @@ public class PortalPacienteController {
             model.addAttribute("errorMessage", ex.getMessage());
             return "portal/resetar-senha-portal";
         }
-    }
-
-    private String resolveBaseUrl(HttpServletRequest request) {
-        String forwardedProto = headerFirstValue(request, "X-Forwarded-Proto");
-        String forwardedHost = headerFirstValue(request, "X-Forwarded-Host");
-        String forwardedPort = headerFirstValue(request, "X-Forwarded-Port");
-        if (forwardedHost == null && isAmbiguousLocalRequest(request)) return null;
-        String scheme = forwardedProto != null ? forwardedProto : request.getScheme();
-        String host = forwardedHost != null ? forwardedHost : request.getServerName();
-        int port = parsePort(forwardedPort, request.getServerPort());
-        String normalizedHost = host;
-        if (normalizedHost != null && normalizedHost.contains(",")) {
-            normalizedHost = normalizedHost.split(",")[0].trim();
-        }
-        if (normalizedHost != null && normalizedHost.contains(":")) {
-            return scheme + "://" + normalizedHost;
-        }
-        boolean defaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
-                || ("https".equalsIgnoreCase(scheme) && port == 443);
-        return defaultPort ? scheme + "://" + normalizedHost : scheme + "://" + normalizedHost + ":" + port;
-    }
-
-    private String headerFirstValue(HttpServletRequest request, String headerName) {
-        String value = request.getHeader(headerName);
-        if (value == null || value.isBlank()) return null;
-        return value.split(",")[0].trim();
-    }
-
-    private int parsePort(String forwardedPort, int defaultPort) {
-        if (forwardedPort == null || forwardedPort.isBlank()) return defaultPort;
-        try { return Integer.parseInt(forwardedPort.trim()); } catch (NumberFormatException ex) { return defaultPort; }
-    }
-
-    private boolean isAmbiguousLocalRequest(HttpServletRequest request) {
-        String host = request.getServerName();
-        return ("localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host)) && request.getServerPort() == 80;
     }
 
     @GetMapping("/{token}")

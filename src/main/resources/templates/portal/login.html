@@ -76,7 +76,7 @@
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
-    <script>
+    <script th:attr="nonce=${cspNonce}">
         (() => {
             const tabCpf = document.getElementById('tabCpf');
             const tabCelular = document.getElementById('tabCelular');
@@ -142,9 +142,9 @@
                     senhaInput.type = mostrando ? 'password' : 'text';
                     btnMostrarSenha.setAttribute('aria-pressed', String(!mostrando));
                     btnMostrarSenha.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
-                    btnMostrarSenha.innerHTML = mostrando
-                        ? '<i data-lucide="eye"></i>'
-                        : '<i data-lucide="eye-off"></i>';
+                    const icon = document.createElement('i');
+                    icon.dataset.lucide = mostrando ? 'eye' : 'eye-off';
+                    btnMostrarSenha.replaceChildren(icon);
                     if (window.lucide && typeof window.lucide.createIcons === 'function') {
                         window.lucide.createIcons();
                     }

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RestController
 @RequestMapping("/api/pacientes")
 @RequiredArgsConstructor
+@PreAuthorize("@menuAccessSecurity.canAccess('PACIENTES')")
 @Tag(name = "Pacientes", description = "Consulta de dados de pacientes cadastrados")
 @SecurityRequirement(name = "basicAuth")
 public class PacientesApiController {

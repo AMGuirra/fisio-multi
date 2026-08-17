@@ -145,7 +145,7 @@ public class UserMenuAccessService {
                     }
                     return listarMenusLiberados(role).contains(menu);
                 })
-                .orElse(true);
+                .orElse(false);
     }
 
     @Transactional
