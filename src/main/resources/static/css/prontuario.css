@@ -435,6 +435,46 @@
 
 /* ---- Responsividade ---- */
 
+.prontuario-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 0;
+    margin: 16px 0;
+    border-bottom: 1px solid var(--border-color, #dbe4e7);
+}
+
+.prontuario-tab {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+}
+
+.prontuario-tab.active { background: var(--primary-soft, #e4efff); color: var(--primary, #245ca8); }
+.prontuario-tab i { width: 16px; vertical-align: text-bottom; margin-right: 5px; }
+.prontuario-overview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.prontuario-avaliacao-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 var(--space-md); }
+.prontuario-avaliacao-nav a { color: var(--text-muted); background: var(--color-background, #f5f7f8); border-radius: var(--radius-sm); padding: 7px 9px; font-size: .8rem; text-decoration: none; }
+.prontuario-avaliacao-nav a:hover { color: var(--primary, #245ca8); }
+.prontuario-next-steps { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.prontuario-quick-info p { margin: 0 0 10px; }
+.prontuario-timeline-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.prontuario-timeline-filters button { border: 0; cursor: pointer; }
+.prontuario-timeline-filters .active { outline: 2px solid var(--primary, #245ca8); }
+.portal-timeline .timeline-icon.avaliacao { background: #e4efff; color: #245ca8; }
+.portal-timeline .timeline-icon.evolucao { background: #dcf7ea; color: #127247; }
+.portal-timeline .timeline-icon.documento { background: #fef2c8; color: #8e6600; }
+.portal-timeline .timeline-icon.foto { background: #efe5ff; color: #6b33a8; }
+
+body[data-theme='dark'] .prontuario-tab.active { background: rgba(47, 111, 236, .22); color: #b9d3ff; }
+body[data-theme='dark'] .prontuario-tabs { border-color: rgba(255,255,255,.14); }
+
 @media (max-width: 1024px) {
     .prontuario-main-grid {
         grid-template-columns: minmax(0, 1fr);
@@ -442,6 +482,7 @@
 }
 
 @media (max-width: 640px) {
+    .prontuario-overview { grid-template-columns: 1fr; }
     .prontuario-context-bar {
         flex-direction: column;
         align-items: flex-start;

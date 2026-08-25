@@ -171,7 +171,7 @@ class ProntuarioControllerTest {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
                         .param("clienteId", paciente.getId().toString())
-                        .param("texto", "Avaliação inicial do paciente."))
+                        .param("queixaPrincipal", "Avaliação inicial do paciente."))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("successMessage"));
 
@@ -180,13 +180,13 @@ class ProntuarioControllerTest {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
                         .param("clienteId", paciente.getId().toString())
-                        .param("texto", "Avaliação retificada."))
+                        .param("queixaPrincipal", "Avaliação retificada."))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("successMessage"));
 
         List<ProntuarioSoapEntity> registros = prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId());
         assertEquals(1, registros.size(), "Avaliação deve ser atualizada in-place, não duplicada");
-        assertEquals("Avaliação retificada.", registros.get(0).getTextoRegistro());
+        assertEquals("Avaliação retificada.", registros.get(0).getQueixaPrincipal());
     }
 
     @Test
@@ -195,7 +195,7 @@ class ProntuarioControllerTest {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
                         .param("clienteId", paciente.getId().toString())
-                        .param("texto", "   "))
+                        .param("queixaPrincipal", "   "))
                 .andExpect(status().isOk())
                 .andExpect(view().name("prontuario/index"));
 

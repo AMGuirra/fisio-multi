@@ -37,30 +37,43 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
+            <form method="get" th:action="@{/pacientes}" class="patients-search-panel" id="searchForm">
+                <div class="search-input-wrap">
+                    <span class="search-input-icon"><i data-lucide="search"></i></span>
+                    <label class="sr-only" for="searchInput">Buscar pacientes</label>
+                    <input type="search" id="searchInput" name="busca" th:value="${busca}"
+                           placeholder="Buscar por nome, CPF ou telefone..." class="search-input" autocomplete="off">
+                    <kbd aria-hidden="true">Enter</kbd>
+                    <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/pacientes(status=${status})}"
+                       class="search-clear-btn" title="Limpar busca" aria-label="Limpar busca"><i data-lucide="x"></i></a>
+                </div>
+                <div class="patients-filter-field">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter" name="status">
+                        <option value="TODOS" th:selected="${status == 'TODOS'}">Todos</option>
+                        <option value="ATIVOS" th:selected="${status == 'ATIVOS'}">Ativos</option>
+                        <option value="INATIVOS" th:selected="${status == 'INATIVOS'}">Inativos</option>
+                    </select>
+                </div>
+                <button type="submit" class="patients-search-submit"><i data-lucide="search"></i><span>Buscar</span></button>
+            </form>
+
             <section class="summary-grid grid-4" aria-label="Indicadores de pacientes">
-                <article class="summary-card receita">
+                <article class="summary-card receita patient-metric-card">
                     <span class="summary-icon"><i data-lucide="users-round"></i></span>
-                    <p class="summary-label">Pacientes Ativos</p>
-                    <p class="summary-value" th:text="${totalPacientesAtivos}">0</p>
-                    <p class="summary-detail">Cadastros ativos na clínica</p>
+                    <div><p class="summary-value" th:text="${totalPacientesAtivos}">0</p><p class="summary-label">Pacientes ativos</p><p class="summary-detail">Total de pacientes ativos</p></div>
                 </article>
-                <article class="summary-card saldo">
+                <article class="summary-card saldo patient-metric-card">
                     <span class="summary-icon"><i data-lucide="mail-x"></i></span>
-                    <p class="summary-label">Sem e-mail</p>
-                    <p class="summary-value" th:text="${totalPacientesSemEmail}">0</p>
-                    <p class="summary-detail">Ativos sem contato por e-mail</p>
+                    <div><p class="summary-value" th:text="${totalPacientesSemEmail}">0</p><p class="summary-label">Sem e-mail</p><p class="summary-detail">Precisam atualizar cadastro</p></div>
                 </article>
-                <article class="summary-card despesa">
+                <article class="summary-card despesa patient-metric-card patient-metric-treatment">
                     <span class="summary-icon"><i data-lucide="heart-pulse"></i></span>
-                    <p class="summary-label">Em tratamento</p>
-                    <p class="summary-value" th:text="${totalPacientesEmTratamento}">0</p>
-                    <p class="summary-detail">Pacientes com plano ativo</p>
+                    <div><p class="summary-value" th:text="${totalPacientesEmTratamento}">0</p><p class="summary-label">Em tratamento</p><p class="summary-detail">Com planos ativos</p></div>
                 </article>
-                <article class="summary-card receita">
+                <article class="summary-card receita patient-metric-card patient-metric-sessions">
                     <span class="summary-icon"><i data-lucide="calendar-days"></i></span>
-                    <p class="summary-label">Sessões hoje</p>
-                    <p class="summary-value" th:text="${totalSessoesHoje}">0</p>
-                    <p class="summary-detail">Agendadas ou já realizadas</p>
+                    <div><p class="summary-value" th:text="${totalSessoesHoje}">0</p><p class="summary-label">Sessões hoje</p><p class="summary-detail">Agendadas para hoje</p></div>
                 </article>
             </section>
 
@@ -72,40 +85,6 @@
                             <p class="section-subtitle">Encontre e acompanhe os cadastros da clínica.</p>
                         </div>
                     </header>
-
-                    <!-- Barra de busca -->
-                    <div class="section-body">
-                        <form method="get" th:action="@{/pacientes}" class="search-bar-modern" id="searchForm">
-                            <div class="search-input-wrap">
-                                <span class="search-input-icon"><i data-lucide="search"></i></span>
-                                <label class="sr-only" for="searchInput">Buscar pacientes</label>
-                                <input type="search"
-                                       id="searchInput"
-                                       name="busca"
-                                       th:value="${busca}"
-                                       placeholder="Buscar por nome, CPF ou telefone..."
-                                       class="search-input"
-                                       autocomplete="off">
-                                <a th:if="${busca != null and !#strings.isEmpty(busca)}"
-                                   th:href="@{/pacientes(status=${status})}"
-                                   class="search-clear-btn"
-                                   title="Limpar busca"
-                                   aria-label="Limpar busca">
-                                    <i data-lucide="x"></i>
-                                </a>
-                            </div>
-                            <label class="sr-only" for="statusFilter">Status do paciente</label>
-                            <select id="statusFilter" name="status" class="patient-status-filter">
-                                <option value="TODOS" th:selected="${status == 'TODOS'}">Todos os status</option>
-                                <option value="ATIVOS" th:selected="${status == 'ATIVOS'}">Ativos</option>
-                                <option value="INATIVOS" th:selected="${status == 'INATIVOS'}">Inativos</option>
-                            </select>
-                            <button type="submit" class="search-submit-btn">
-                                <i data-lucide="search"></i>
-                                <span>Buscar</span>
-                            </button>
-                        </form>
-                    </div>
 
                     <div class="section-body" th:if="${pacientesPage.numberOfElements == 0}">
                         <div class="empty-box">

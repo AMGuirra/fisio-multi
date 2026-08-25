@@ -1122,6 +1122,49 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
 }
 
 /* Listagem de pacientes: informações densas no desktop e cards legíveis no celular. */
+.patients-search-panel {
+    display: grid;
+    grid-template-columns: minmax(280px, 1.7fr) minmax(160px, .65fr) auto;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 24px;
+    padding: 12px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.patients-search-panel .search-input-wrap { min-height: 48px; }
+.patients-search-panel .search-input-wrap kbd {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    padding: 3px 8px; border: 1px solid var(--stroke-soft); border-radius: 6px;
+    color: var(--text-soft); background: var(--bg-soft); font-size: var(--text-xs); font-family: inherit;
+}
+.patients-search-panel .search-clear-btn { right: 58px; }
+.patients-filter-field { display: grid; gap: 2px; padding: 7px 12px; border: 1px solid var(--stroke-soft); border-radius: var(--radius-sm); background: var(--bg-surface); }
+.patients-filter-field label { color: var(--text-soft); font-size: var(--text-xs); font-weight: 700; }
+.patients-filter-field select { min-width: 0; border: 0; outline: 0; color: var(--text-strong); background: transparent; font: inherit; font-weight: 650; }
+.patients-search-submit { min-width: 44px; border: 1px solid var(--brand-500); border-radius: var(--radius-sm); padding: 0 14px; color: #fff; background: var(--brand-500); font: inherit; font-weight: 700; cursor: pointer; }
+.patients-search-submit:hover, .patients-search-submit:focus-visible { background: var(--brand-600); outline: none; box-shadow: var(--focus-ring); }
+
+.patient-metric-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-height: 132px;
+    padding: 20px;
+}
+.patient-metric-card::after { display: none; }
+.patient-metric-card .summary-icon { width: 48px; height: 48px; margin: 0; }
+.patient-metric-card .summary-icon svg { width: 22px; height: 22px; }
+.patient-metric-card .summary-value { margin: 0; color: var(--text-strong); font-size: 1.45rem; line-height: 1.1; }
+.patient-metric-card .summary-label { margin: 5px 0 0; color: var(--text-strong); font-size: var(--text-sm); }
+.patient-metric-card .summary-detail { margin-top: 5px; font-size: var(--text-xs); }
+.patient-metric-treatment .summary-icon { color: #7c3fd1; background: #f1e8ff; }
+.patient-metric-sessions .summary-icon { color: #e88910; background: #fff2df; }
+
 .patient-status-filter {
     min-height: 42px;
     border: 1px solid var(--stroke-soft);
@@ -1154,6 +1197,8 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
 .session-hint { display: block; margin-top: 2px; color: var(--brand-600); font-size: var(--text-xs); font-weight: 750; }
 
 @media (max-width: 768px) {
+    .patients-search-panel { grid-template-columns: 1fr; margin-bottom: 16px; }
+    .patients-search-submit { min-height: 44px; }
     .patient-row-actions { justify-content: stretch; }
     .patient-row-actions > .action-button { flex: 1; }
     .patient-action-menu { flex: 0 0 auto; }
@@ -1507,6 +1552,11 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 .chip.status-danger {
     background: #ffe5e5;
     color: #9a3d3d;
+}
+
+.chip.status-info {
+    background: #e4efff;
+    color: #245ca8;
 }
 
 .entity-inline {
@@ -3401,6 +3451,11 @@ body[data-theme='dark'] .chip.tipo-despesa,
 body[data-theme='dark'] .chip.status-danger {
     background: rgba(213, 83, 83, 0.2);
     color: #ffc7c7;
+}
+
+body[data-theme='dark'] .chip.status-info {
+    background: rgba(47, 111, 236, 0.22);
+    color: #b9d3ff;
 }
 
 body[data-theme='dark'] .calendar-grid-head .day-head,
