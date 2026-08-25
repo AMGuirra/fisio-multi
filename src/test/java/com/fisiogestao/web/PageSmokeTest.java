@@ -209,7 +209,6 @@ class PageSmokeTest {
             "/dashboard",
             "/calendario",
             "/auditoria",
-            "/admin/system-status",
             "/configuracoes/email",
             "/configuracao/email",
             "/configuracoes/clinica",
@@ -702,7 +701,6 @@ class PageSmokeTest {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("header-insights")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Status do sistema")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Data atual")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Hora atual")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/pacientes\"")))

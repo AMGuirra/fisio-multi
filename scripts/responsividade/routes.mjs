@@ -15,7 +15,6 @@ export const AUTHENTICATED_ROUTES = [
     { name: 'relatorios', path: '/relatorios' },
     { name: 'config-clinica', path: '/configuracoes/clinica' },
     { name: 'bloqueios', path: '/bloqueios' },
-    { name: 'status-sistema', path: '/admin/system-status' },
     { name: 'usuarios', path: '/usuarios' },
     { name: 'auditoria', path: '/auditoria' },
 ];

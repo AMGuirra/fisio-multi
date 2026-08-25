@@ -38,7 +38,6 @@
         let infoDateElement = document.getElementById('infoDate');
         let liveClockElement = document.getElementById('liveClock');
         let infoTimeElement = document.getElementById('infoTime');
-        let systemStatusElement = document.getElementById('systemStatus');
 
         const SIDEBAR_STORAGE_KEY = 'sidebarCollapsed';
         const MOBILE_BREAKPOINT = 920;
@@ -126,7 +125,6 @@
                     return chip;
                 };
                 insights.append(
-                    createChip('activity', 'status', 'Status do sistema', 'Online', 'systemStatus', 'system-status'),
                     createChip('calendar-days', 'calendar', 'Data atual', '00/00/0000', 'infoDate'),
                     createChip('timer-reset', 'clock', 'Hora atual', '00:00:00', 'infoTime')
                 );
@@ -134,7 +132,6 @@
 
                 infoDateElement = insights.querySelector('#infoDate');
                 infoTimeElement = insights.querySelector('#infoTime');
-                systemStatusElement = insights.querySelector('#systemStatus');
             }
 
             if (liveClockElement) {
@@ -193,17 +190,7 @@
             }
         };
 
-        const updateConnectionStatus = () => {
-            if (!systemStatusElement) {
-                return;
-            }
-
-            const online = navigator.onLine;
-            systemStatusElement.classList.toggle('offline', !online);
-            systemStatusElement.textContent = online ? 'Online' : 'Offline';
-        };
-
-        const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', {
+const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL',
             maximumFractionDigits: 0
@@ -561,14 +548,11 @@
         });
 
         window.addEventListener('resize', syncSidebarLayout);
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
         window.addEventListener('hashchange', setActiveSidebarLink);
 
         ensureSharedHeader();
         syncSidebarLayout();
         setActiveSidebarLink();
-        updateConnectionStatus();
         updateDateTime();
         carregarMetricasDashboard();
         setInterval(updateDateTime, 1000);

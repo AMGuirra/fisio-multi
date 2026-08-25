@@ -6,8 +6,6 @@ import com.fisiogestao.auth.UserMenuAccessService;
 import com.fisiogestao.auth.UserRole;
 import com.fisiogestao.listaespera.ListaEsperaRepository;
 import com.fisiogestao.listaespera.StatusListaEspera;
-import com.fisiogestao.status.SystemStatusEntity;
-import com.fisiogestao.status.SystemStatusService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,18 +22,15 @@ public class GlobalViewAttributes {
 
     private final InMemoryUserCatalog userCatalog;
     private final UserMenuAccessService userMenuAccessService;
-    private final SystemStatusService systemStatusService;
     private final ListaEsperaRepository listaEsperaRepository;
 
     public GlobalViewAttributes(
             InMemoryUserCatalog userCatalog,
             UserMenuAccessService userMenuAccessService,
-            SystemStatusService systemStatusService,
             ListaEsperaRepository listaEsperaRepository
     ) {
         this.userCatalog = userCatalog;
         this.userMenuAccessService = userMenuAccessService;
-        this.systemStatusService = systemStatusService;
         this.listaEsperaRepository = listaEsperaRepository;
     }
 
@@ -171,11 +166,6 @@ public class GlobalViewAttributes {
             resolved.ifPresent(user -> request.setAttribute("loggedUserSessionResolved", user));
         }
         return resolved;
-    }
-
-    @ModelAttribute("systemStatusAtual")
-    public SystemStatusEntity systemStatusAtual() {
-        return systemStatusService.getStatusAtual();
     }
 
     @ModelAttribute("aguardandoListaEspera")

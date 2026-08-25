@@ -19,7 +19,6 @@ public enum AppMenuItem {
     FATURAMENTO("Faturamento",       "/financeiro/relatorio-faturamento", "bar-chart-3", false, false, true, false, MenuSection.GESTAO, List.of("/financeiro/relatorio-faturamento")),
     RELATORIOS("Relatórios",         "/relatorios",          "file-text",           false, false, true,  false, MenuSection.GESTAO,  List.of("/relatorios", "/relatorio")),
     CONFIG_CLINICA("Config. Clínica",  "/configuracoes/clinica", "building-2",      false, false, true,  false, MenuSection.ADMIN,   List.of("/configuracoes/clinica", "/configuracao/clinica")),
-    SYSTEM_STATUS("Status do Sistema", "/admin/system-status",   "monitor-check",   false, false, true,  false, MenuSection.ADMIN,   List.of("/admin/system-status")),
     USUARIOS("Usuários",             "/usuarios",            "users",               false, false, true,  false, MenuSection.ADMIN,   List.of("/usuarios")),
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, true, false, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
     CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, true,  false, MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
@@ -150,8 +149,6 @@ public enum AppMenuItem {
                 return "Reune relatorios e consultas gerenciais do sistema.";
             case CONFIG_CLINICA:
                 return "Permite ajustar dados e configuracoes gerais da clinica.";
-            case SYSTEM_STATUS:
-                return "Gerencia o status operacional exibido no topo do sistema.";
             case USUARIOS:
                 return "Gerencia o cadastro de usuarios que acessam o sistema.";
             case FUNCOES_USUARIOS:
@@ -200,7 +197,6 @@ public enum AppMenuItem {
                 RELATORIOS,
                 CONFIG_CLINICA,
                 BLOQUEIOS,
-                SYSTEM_STATUS,
                 USUARIOS,
                 FUNCOES_USUARIOS,
                 CONFIG_EMAIL,

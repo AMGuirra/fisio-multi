@@ -1441,11 +1441,6 @@ body.sidebar-open .sidebar-toggle-btn svg {
     flex: 0 0 auto;
 }
 
-.header-info-icon.status {
-    color: #0d7653;
-    background: #ddf7ea;
-}
-
 .header-info-icon.calendar {
     color: #2454b4;
     background: var(--blue-100);
@@ -2148,49 +2143,6 @@ body.sidebar-open .sidebar-toggle-btn svg {
     font-size: 0.92rem;
     color: var(--text-body);
     font-weight: 600;
-}
-
-.system-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #0d7653;
-}
-
-.system-status::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #20b26d;
-    box-shadow: 0 0 0 5px rgba(32, 178, 109, 0.16);
-}
-
-.system-status.status-manutencao {
-    color: #936a16;
-}
-
-.system-status.status-manutencao::before {
-    background: #d4a628;
-    box-shadow: 0 0 0 5px rgba(212, 166, 40, 0.16);
-}
-
-.system-status.status-instabilidade {
-    color: #8e4a4a;
-}
-
-.system-status.status-instabilidade::before {
-    background: #ca5a5a;
-    box-shadow: 0 0 0 5px rgba(202, 90, 90, 0.15);
-}
-
-.system-status.offline {
-    color: #8e4a4a;
-}
-
-.system-status.offline::before {
-    background: #ca5a5a;
-    box-shadow: 0 0 0 5px rgba(202, 90, 90, 0.15);
 }
 
 .app-footer {
