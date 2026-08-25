@@ -5359,6 +5359,87 @@ body[data-theme='dark'] .solicitacoes-page {
     vertical-align: top;
 }
 
+/* Menu contextual dos lançamentos: evita que as ações comprimam a tabela. */
+.finance-action-menu {
+    display: inline-flex;
+    justify-content: flex-end;
+}
+
+.finance-action-trigger {
+    width: auto;
+    min-width: 104px;
+    justify-content: center;
+}
+
+.finance-action-popover {
+    position: fixed;
+    z-index: 110;
+    display: grid;
+    min-width: 210px;
+    padding: 6px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.finance-action-popover[hidden] {
+    display: none;
+}
+
+.finance-action-popover .inline-form {
+    display: contents;
+}
+
+.finance-action-menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 38px;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-strong);
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.25;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.finance-action-menu-item:hover,
+.finance-action-menu-item:focus-visible {
+    background: var(--bg-soft);
+    outline: none;
+}
+
+.finance-action-menu-item.danger { color: var(--danger-600, #c24141); }
+.finance-action-menu-item.danger:hover,
+.finance-action-menu-item.danger:focus-visible { background: rgba(220, 38, 38, 0.10); }
+.finance-action-menu-item.success { color: var(--brand-600, #0f7f6c); }
+.finance-action-menu-item.success:hover,
+.finance-action-menu-item.success:focus-visible { background: rgba(15, 143, 122, 0.10); }
+
+.finance-action-menu-item svg,
+.finance-action-menu-item [data-lucide] {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
+.finance-payment-field {
+    margin: 0 0 20px;
+}
+
+body[data-theme='dark'] .finance-action-popover {
+    border-color: var(--stroke-soft);
+    background: var(--bg-surface);
+}
+
 .finance-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5418,6 +5499,12 @@ body[data-theme='dark'] .solicitacoes-page {
 @media (max-width: 760px) {
     .financeiro-page .crud-layout.form-table > .section-card:first-child .modern-form {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .finance-action-popover {
+        min-width: min(260px, calc(100vw - 24px));
     }
 }
 

@@ -630,8 +630,14 @@ class PageSmokeTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void financeiroExibeEditarCancelarEMarcarPagoParaLancamentoPendente() throws Exception {
+    void financeiroExibeMenusDeAcaoParaTodosOsStatusDeLancamento() throws Exception {
         UUID lancamentoId = criarLancamentoFinanceiroPendente().getId();
+        LancamentoFinanceiroEntity pago = criarLancamentoFinanceiroPendente();
+        pago.setStatus(StatusLancamentoFinanceiro.PAGO);
+        lancamentoFinanceiroRepository.save(pago);
+        LancamentoFinanceiroEntity cancelado = criarLancamentoFinanceiroPendente();
+        cancelado.setStatus(StatusLancamentoFinanceiro.CANCELADO);
+        lancamentoFinanceiroRepository.save(cancelado);
 
         mockMvc.perform(get("/financeiro")
                         .param("inicio", agendaDate.withDayOfMonth(1).toString())
@@ -640,8 +646,14 @@ class PageSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Editar Lançamento")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Salvar alterações")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Baixa")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Ações")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Dar baixa")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar lançamento")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Baixar recibo")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cancelar baixa")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Reverter cancelamento")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"financePaymentModal\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"metodoPagamento\"")));
     }
 
     @Test

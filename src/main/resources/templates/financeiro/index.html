@@ -280,13 +280,20 @@
                                     </td>
                                     <td class="text-right"><strong th:text="${'R$ ' + #numbers.formatDecimal(lancamento.valor, 1, 'COMMA', 2, 'POINT')}">R$ 0,00</strong></td>
                                     <td class="text-right finance-action-cell">
-                                        <div class="table-actions finance-actions">
-                                            <a th:if="${lancamento.status.name() != 'CANCELADO'}"
-                                               th:href="@{/financeiro(editar=${lancamento.id})}"
-                                               class="action-button ghost">
-                                                <i data-lucide="square-pen"></i>
-                                                Editar
-                                            </a>
+                                        <div class="finance-action-menu">
+                                            <button type="button" class="action-button ghost finance-action-trigger"
+                                                    aria-haspopup="menu" aria-expanded="false"
+                                                    th:attr="aria-controls=${'finance-actions-' + lancamento.id}">
+                                                <i data-lucide="ellipsis"></i>
+                                                Ações
+                                            </button>
+                                            <div class="finance-action-popover" role="menu" hidden
+                                                 th:id="${'finance-actions-' + lancamento.id}">
+                                                <a th:if="${lancamento.status.name() != 'CANCELADO'}"
+                                                   th:href="@{/financeiro(editar=${lancamento.id})}"
+                                                   class="finance-action-menu-item" role="menuitem">
+                                                    <i data-lucide="square-pen"></i> Editar
+                                                </a>
                                             <form th:if="${lancamento.status.name() == 'PENDENTE'}"
                                                   th:action="@{/financeiro/lancamentos/{id}/cancelar(id=${lancamento.id})}"
                                                   method="post"
@@ -298,39 +305,23 @@
                                                   data-confirm-helper-message="Ele permanecerá no histórico com status cancelado."
                                                   data-confirm-action-label="Cancelar lançamento">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <button type="submit" class="action-button danger">
-                                                    <i data-lucide="x-circle"></i>
-                                                    Cancelar
+                                                <button type="submit" class="finance-action-menu-item danger" role="menuitem">
+                                                    <i data-lucide="x-circle"></i> Cancelar lançamento
                                                 </button>
                                             </form>
-                                            <form th:if="${lancamento.status.name() == 'PENDENTE'}"
-                                                  th:action="@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}"
-                                                  method="post"
-                                                  class="inline-form baixa-form">
-                                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <select name="metodoPagamento" class="baixa-select" title="Forma de pagamento" required>
-                                                    <option value="">Forma de pgto</option>
-                                                    <option value="PIX">PIX</option>
-                                                    <option value="DINHEIRO">Dinheiro</option>
-                                                    <option value="CARTAO_CREDITO">Cartão crédito</option>
-                                                    <option value="CARTAO_DEBITO">Cartão débito</option>
-                                                    <option value="TRANSFERENCIA">Transferência</option>
-                                                    <option value="CHEQUE">Cheque</option>
-                                                    <option value="CONVENIO">Convênio</option>
-                                                    <option value="OUTRO">Outro</option>
-                                                </select>
-                                                <button type="submit" class="action-button success">
-                                                    <i data-lucide="check-check"></i>
-                                                    Baixa
-                                                </button>
-                                            </form>
+                                            <button th:if="${lancamento.status.name() == 'PENDENTE'}"
+                                                    type="button" class="finance-action-menu-item success js-open-finance-payment-modal"
+                                                    role="menuitem"
+                                                    th:attr="data-payment-url=@{/financeiro/lancamentos/{id}/pagar(id=${lancamento.id})}">
+                                                <i data-lucide="check-check"></i> Dar baixa
+                                            </button>
                                             <a th:if="${lancamento.status.name() == 'PAGO'}"
                                                th:href="@{/financeiro/lancamentos/{id}/recibo.pdf(id=${lancamento.id})}"
-                                               class="action-button ghost"
+                                               class="finance-action-menu-item"
+                                               role="menuitem"
                                                target="_blank"
                                                title="Baixar recibo em PDF">
-                                                <i data-lucide="file-down"></i>
-                                                Recibo
+                                                <i data-lucide="file-down"></i> Baixar recibo
                                             </a>
                                             <form th:if="${lancamento.status.name() == 'PAGO'}"
                                                   th:action="@{/financeiro/lancamentos/{id}/cancelar-baixa(id=${lancamento.id})}"
@@ -343,9 +334,8 @@
                                                   data-confirm-helper-message="Use esta ação quando precisar revisar ou refazer o pagamento."
                                                   data-confirm-action-label="Cancelar baixa">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <button type="submit" class="action-button ghost">
-                                                    <i data-lucide="rotate-ccw"></i>
-                                                    Cancelar baixa
+                                                <button type="submit" class="finance-action-menu-item" role="menuitem">
+                                                    <i data-lucide="rotate-ccw"></i> Cancelar baixa
                                                 </button>
                                             </form>
                                             <form th:if="${lancamento.status.name() == 'CANCELADO'}"
@@ -359,11 +349,11 @@
                                                   data-confirm-helper-message="Use esta ação para corrigir um cancelamento feito por engano."
                                                   data-confirm-action-label="Reverter cancelamento">
                                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                                <button type="submit" class="action-button ghost">
-                                                    <i data-lucide="rotate-ccw"></i>
-                                                    Reverter cancelamento
+                                                <button type="submit" class="finance-action-menu-item" role="menuitem">
+                                                    <i data-lucide="rotate-ccw"></i> Reverter cancelamento
                                                 </button>
                                             </form>
+                                        </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -382,9 +372,46 @@
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
+    <div id="financePaymentModal" class="app-modal" aria-hidden="true">
+        <div class="app-modal-backdrop" data-finance-payment-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="financePaymentModalTitle">
+            <form id="financePaymentModalForm" method="post" class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="financePaymentModalTitle">Registrar pagamento</h3>
+                        <p>Selecione a forma de pagamento para dar baixa no lançamento.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-finance-payment-close aria-label="Fechar modal"><i data-lucide="x"></i></button>
+                </header>
+                <div class="app-modal-body">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                    <div class="form-field finance-payment-field">
+                        <label for="financePaymentMethod">Forma de pagamento</label>
+                        <select id="financePaymentMethod" name="metodoPagamento" class="form-select" required>
+                            <option value="" selected>Selecione uma opção</option>
+                            <option value="PIX">PIX</option>
+                            <option value="DINHEIRO">Dinheiro</option>
+                            <option value="CARTAO_CREDITO">Cartão crédito</option>
+                            <option value="CARTAO_DEBITO">Cartão débito</option>
+                            <option value="TRANSFERENCIA">Transferência</option>
+                            <option value="CHEQUE">Cheque</option>
+                            <option value="CONVENIO">Convênio</option>
+                            <option value="OUTRO">Outro</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="action-button ghost" data-finance-payment-close>Voltar</button>
+                        <button type="submit" class="action-button success"><i data-lucide="check-check"></i> Confirmar baixa</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script th:src="@{/js/finance-action-menu.js}" src="/js/finance-action-menu.js"></script>
     <script th:attr="nonce=${cspNonce}">
     (() => {
         const inicioInput = document.getElementById('periodoInicioInput');
