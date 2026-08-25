@@ -36,6 +36,37 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
 
     long countByDataHoraInicioBetween(OffsetDateTime inicio, OffsetDateTime fim);
 
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.cliente.id IN :clienteIds
+              AND s.status = com.fisiogestao.agenda.SessaoStatus.REALIZADA
+              AND s.dataHoraInicio = (
+                  SELECT MAX(anterior.dataHoraInicio) FROM SessaoEntity anterior
+                  WHERE anterior.cliente.id = s.cliente.id
+                    AND anterior.status = com.fisiogestao.agenda.SessaoStatus.REALIZADA
+              )
+            """)
+    List<SessaoEntity> findUltimasRealizadasPorClientes(@Param("clienteIds") List<UUID> clienteIds);
+
+    @EntityGraph(attributePaths = {"cliente", "planoSessao"})
+    @Query("""
+            SELECT s FROM SessaoEntity s
+            WHERE s.cliente.id IN :clienteIds
+              AND s.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+              AND s.dataHoraInicio >= :agora
+              AND s.dataHoraInicio = (
+                  SELECT MIN(proxima.dataHoraInicio) FROM SessaoEntity proxima
+                  WHERE proxima.cliente.id = s.cliente.id
+                    AND proxima.status = com.fisiogestao.agenda.SessaoStatus.AGENDADA
+                    AND proxima.dataHoraInicio >= :agora
+              )
+            """)
+    List<SessaoEntity> findProximasAgendadasPorClientes(
+            @Param("clienteIds") List<UUID> clienteIds,
+            @Param("agora") OffsetDateTime agora
+    );
+
     @EntityGraph(attributePaths = {"cliente", "planoSessao", "recorrencia", "recorrenciaPai"})
     List<SessaoEntity> findByClienteIdOrderByDataHoraInicioDesc(UUID clienteId);
 

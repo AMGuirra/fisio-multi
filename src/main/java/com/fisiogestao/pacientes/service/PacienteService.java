@@ -3,6 +3,7 @@ package com.fisiogestao.pacientes.service;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
+import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.auth.PasswordPolicy;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
@@ -16,6 +17,7 @@ import com.fisiogestao.financeiro.repository.LancamentoFinanceiroRepository;
 import com.fisiogestao.listaespera.ListaEsperaRepository;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.form.PacienteForm;
+import com.fisiogestao.pacientes.dto.PacienteListagemDTO;
 import com.fisiogestao.pacientes.repository.ClienteRepository;
 import com.fisiogestao.pacientes.repository.PlanoSessaoRepository;
 import com.fisiogestao.portal.PacientePasswordResetTokenEntity;
@@ -45,10 +47,12 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -98,9 +102,54 @@ public class PacienteService {
      */
     @Transactional(readOnly = true)
     public Page<ClienteEntity> listarAtivosPaginado(int page, String busca) {
+        return listarPaginado(page, busca, "ATIVOS");
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteEntity> listarPaginado(int page, String busca, String status) {
         Pageable pageable = PageRequest.of(Math.max(page, 0), TAMANHO_PAGINA);
         String buscaNormalizada = (busca == null || busca.isBlank()) ? null : busca.strip();
-        return clienteRepository.findAtivosPaginado(buscaNormalizada, pageable);
+        Boolean ativo = switch (status == null ? "ATIVOS" : status) {
+            case "TODOS" -> null;
+            case "INATIVOS" -> false;
+            default -> true;
+        };
+        return clienteRepository.findPaginado(buscaNormalizada, ativo, pageable);
+    }
+
+    /**
+     * Complementa a página já paginada em três consultas por conjunto, evitando uma consulta
+     * para cada paciente ao renderizar tratamento e sessões.
+     */
+    @Transactional(readOnly = true)
+    public List<PacienteListagemDTO> montarListagem(Page<ClienteEntity> pagina) {
+        List<ClienteEntity> clientes = pagina.getContent();
+        if (clientes.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> ids = clientes.stream().map(ClienteEntity::getId).toList();
+        Map<UUID, com.fisiogestao.pacientes.PlanoSessaoEntity> planos = new HashMap<>();
+        planoSessaoRepository.findByClienteIdInAndStatusOrderByClienteIdAscCreatedAtDesc(ids, com.fisiogestao.pacientes.PlanoSessaoStatus.ATIVO)
+                .forEach(plano -> planos.putIfAbsent(plano.getCliente().getId(), plano));
+
+        Map<UUID, SessaoEntity> ultimas = new HashMap<>();
+        sessaoRepository.findUltimasRealizadasPorClientes(ids)
+                .forEach(sessao -> ultimas.putIfAbsent(sessao.getCliente().getId(), sessao));
+        Map<UUID, SessaoEntity> proximas = new HashMap<>();
+        sessaoRepository.findProximasAgendadasPorClientes(ids, ClinicTimezoneHolder.now())
+                .forEach(sessao -> proximas.putIfAbsent(sessao.getCliente().getId(), sessao));
+
+        return clientes.stream()
+                .map(cliente -> new PacienteListagemDTO(
+                        cliente,
+                        planos.get(cliente.getId()),
+                        ultimas.get(cliente.getId()),
+                        proximas.get(cliente.getId()),
+                        DocumentoUtils.formatarCpf(cliente.getCpf()),
+                        DocumentoUtils.formatarTelefone(cliente.getTelefone())
+                ))
+                .toList();
     }
 
     /** Conta pacientes ativos. Usa índice do banco para evitar full scan. */
@@ -138,6 +187,24 @@ public class PacienteService {
                 "SELECT COUNT(*) FROM cliente WHERE ativo = true AND email IS NOT NULL AND email <> ''",
                 Long.class);
         return count != null ? count : 0L;
+    }
+
+    @Transactional(readOnly = true)
+    public long contarAtivosSemEmail() {
+        return Math.max(0, contarAtivos() - contarAtivosComEmail());
+    }
+
+    @Transactional(readOnly = true)
+    public long contarAtivosComPlanoAtivo() {
+        return planoSessaoRepository.countPacientesAtivosComPlanoAtivo();
+    }
+
+    @Transactional(readOnly = true)
+    public long contarSessoesHoje() {
+        LocalDate hoje = ClinicTimezoneHolder.today();
+        OffsetDateTime inicio = hoje.atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+        OffsetDateTime fim = hoje.plusDays(1).atStartOfDay(ClinicTimezoneHolder.zoneId()).toOffsetDateTime();
+        return sessaoRepository.countNaoCanceladasNoPeriodo(inicio, fim);
     }
 
     @Transactional(readOnly = true)

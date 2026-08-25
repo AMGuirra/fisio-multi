@@ -74,4 +74,26 @@ public final class DocumentoUtils {
         return telefoneNormalizado != null
                 && (telefoneNormalizado.length() == 10 || telefoneNormalizado.length() == 11);
     }
+
+    public static String formatarCpf(String cpf) {
+        if (cpf == null || cpf.length() != 11) {
+            return cpf;
+        }
+        return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "."
+                + cpf.substring(6, 9) + "-" + cpf.substring(9);
+    }
+
+    public static String formatarTelefone(String telefone) {
+        if (telefone == null || telefone.isBlank()) {
+            return telefone;
+        }
+        String digits = somenteDigitos(telefone);
+        if (digits == null || (digits.length() != 10 && digits.length() != 11)) {
+            return telefone;
+        }
+        String prefixo = "(" + digits.substring(0, 2) + ") ";
+        return digits.length() == 11
+                ? prefixo + digits.substring(2, 7) + "-" + digits.substring(7)
+                : prefixo + digits.substring(2, 6) + "-" + digits.substring(6);
+    }
 }

@@ -32,4 +32,16 @@ public interface PlanoSessaoRepository extends JpaRepository<PlanoSessaoEntity, 
 
     List<PlanoSessaoEntity> findByPlanoAnteriorId(UUID planoAnteriorId);
 
+    List<PlanoSessaoEntity> findByClienteIdInAndStatusOrderByClienteIdAscCreatedAtDesc(
+            List<UUID> clienteIds,
+            PlanoSessaoStatus status
+    );
+
+    @Query("""
+            SELECT COUNT(DISTINCT p.cliente.id) FROM PlanoSessaoEntity p
+            WHERE p.status = com.fisiogestao.pacientes.PlanoSessaoStatus.ATIVO
+              AND p.cliente.ativo = true
+            """)
+    long countPacientesAtivosComPlanoAtivo();
+
 }

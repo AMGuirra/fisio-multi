@@ -24,37 +24,43 @@
             <section class="hero-card crud-hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Pacientes</h1>
-                    <p class="hero-subtitle">Cadastre e mantenha a base de pacientes da clínica em um único lugar.</p>
+                    <p class="hero-subtitle">Gerencie os pacientes da clínica de forma rápida e eficiente.</p>
                 </div>
-                <span class="hero-pill">Cadastro</span>
+                <button type="button" class="action-button primary" id="openNewPacienteModal">
+                    <i data-lucide="user-round-plus"></i> Novo Paciente
+                </button>
             </section>
 
-            <nav class="page-tabs" aria-label="Seções de Pacientes">
-                <a th:href="@{/pacientes}" href="/pacientes" class="page-tab active"><i data-lucide="stethoscope"></i> Pacientes</a>
-                <a th:href="@{/planos-consumo}" href="/planos-consumo" class="page-tab"><i data-lucide="package-open"></i> Planos de Tratamento</a>
-                <a th:href="@{/prontuario}" href="/prontuario" class="page-tab"><i data-lucide="clipboard-pen-line"></i> Prontuário</a>
-            </nav>
 
             <div class="flash-stack">
                 <div th:if="${successMessage}" class="flash-message success"><i data-lucide="circle-check"></i><span th:text="${successMessage}">Sucesso</span></div>
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <section class="summary-grid">
+            <section class="summary-grid grid-4" aria-label="Indicadores de pacientes">
                 <article class="summary-card receita">
                     <span class="summary-icon"><i data-lucide="users-round"></i></span>
                     <p class="summary-label">Pacientes Ativos</p>
                     <p class="summary-value" th:text="${totalPacientesAtivos}">0</p>
+                    <p class="summary-detail">Cadastros ativos na clínica</p>
                 </article>
                 <article class="summary-card saldo">
-                    <span class="summary-icon"><i data-lucide="phone"></i></span>
-                    <p class="summary-label">Com Telefone</p>
-                    <p class="summary-value" th:text="${totalPacientesComTelefone}">0</p>
+                    <span class="summary-icon"><i data-lucide="mail-x"></i></span>
+                    <p class="summary-label">Sem e-mail</p>
+                    <p class="summary-value" th:text="${totalPacientesSemEmail}">0</p>
+                    <p class="summary-detail">Ativos sem contato por e-mail</p>
                 </article>
                 <article class="summary-card despesa">
-                    <span class="summary-icon"><i data-lucide="mail"></i></span>
-                    <p class="summary-label">Com E-mail</p>
-                    <p class="summary-value" th:text="${totalPacientesComEmail}">0</p>
+                    <span class="summary-icon"><i data-lucide="heart-pulse"></i></span>
+                    <p class="summary-label">Em tratamento</p>
+                    <p class="summary-value" th:text="${totalPacientesEmTratamento}">0</p>
+                    <p class="summary-detail">Pacientes com plano ativo</p>
+                </article>
+                <article class="summary-card receita">
+                    <span class="summary-icon"><i data-lucide="calendar-days"></i></span>
+                    <p class="summary-label">Sessões hoje</p>
+                    <p class="summary-value" th:text="${totalSessoesHoje}">0</p>
+                    <p class="summary-detail">Agendadas ou já realizadas</p>
                 </article>
             </section>
 
@@ -62,13 +68,9 @@
                 <article class="section-card">
                     <header class="section-head">
                         <div>
-                            <h3 class="section-title"><i data-lucide="list"></i> Pacientes Cadastrados</h3>
-                            <p class="section-subtitle" th:text="${pacientesPage.totalElements + ' registros'}">0 registros</p>
+                            <h3 class="section-title"><i data-lucide="list"></i> Lista de pacientes</h3>
+                            <p class="section-subtitle">Encontre e acompanhe os cadastros da clínica.</p>
                         </div>
-                        <button type="button" class="action-button primary" id="openNewPacienteModal">
-                            <i data-lucide="user-round-plus"></i>
-                            Novo Paciente
-                        </button>
                     </header>
 
                     <!-- Barra de busca -->
@@ -76,21 +78,28 @@
                         <form method="get" th:action="@{/pacientes}" class="search-bar-modern" id="searchForm">
                             <div class="search-input-wrap">
                                 <span class="search-input-icon"><i data-lucide="search"></i></span>
-                                <input type="text"
+                                <label class="sr-only" for="searchInput">Buscar pacientes</label>
+                                <input type="search"
                                        id="searchInput"
                                        name="busca"
                                        th:value="${busca}"
-                                       placeholder="Buscar por nome, CPF, telefone ou e-mail…"
+                                       placeholder="Buscar por nome, CPF ou telefone..."
                                        class="search-input"
                                        autocomplete="off">
                                 <a th:if="${busca != null and !#strings.isEmpty(busca)}"
-                                   th:href="@{/pacientes}"
+                                   th:href="@{/pacientes(status=${status})}"
                                    class="search-clear-btn"
                                    title="Limpar busca"
                                    aria-label="Limpar busca">
                                     <i data-lucide="x"></i>
                                 </a>
                             </div>
+                            <label class="sr-only" for="statusFilter">Status do paciente</label>
+                            <select id="statusFilter" name="status" class="patient-status-filter">
+                                <option value="TODOS" th:selected="${status == 'TODOS'}">Todos os status</option>
+                                <option value="ATIVOS" th:selected="${status == 'ATIVOS'}">Ativos</option>
+                                <option value="INATIVOS" th:selected="${status == 'INATIVOS'}">Inativos</option>
+                            </select>
                             <button type="submit" class="search-submit-btn">
                                 <i data-lucide="search"></i>
                                 <span>Buscar</span>
@@ -110,65 +119,47 @@
                     </div>
 
                     <div class="data-table-wrap" th:unless="${pacientesPage.numberOfElements == 0}">
-                        <table class="data-table compact">
+                        <table class="data-table compact patient-table">
                             <thead>
                                 <tr>
                                     <th>Paciente</th>
-                                    <th>Contato</th>
-                                    <th class="text-right">Ação</th>
+                                    <th>CPF</th><th>Telefone</th><th>Tratamento</th><th>Última sessão</th><th>Próxima sessão</th><th>Status</th>
+                                    <th class="text-right">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="paciente : ${pacientes}">
                                     <td>
                                         <div class="entity-inline">
-                                            <span class="entity-avatar" th:text="${#strings.substring(paciente.nomeCompleto, 0, 1)}">P</span>
+                                            <span class="entity-avatar" th:text="${#strings.substring(paciente.cliente.nomeCompleto, 0, 1)}">P</span>
                                             <div>
-                                                <p class="entity-name" th:text="${paciente.nomeCompleto}">Paciente</p>
-                                                <p class="entity-meta" th:text="${paciente.dataNascimento != null ? #temporals.format(paciente.dataNascimento, 'dd/MM/yyyy') : 'Sem data de nascimento'}">Data</p>
+                                                <a class="entity-name patient-name-link" th:href="@{/prontuario(pacienteId=${paciente.cliente.id})}" th:text="${paciente.cliente.nomeCompleto}">Paciente</a>
+                                                <p class="entity-meta" th:text="${paciente.cliente.dataNascimento != null ? #temporals.format(paciente.cliente.dataNascimento, 'dd/MM/yyyy') : 'Sem data de nascimento'}">Data</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <p class="entity-name contact-line">
-                                            <i data-lucide="phone" aria-hidden="true"></i>
-                                            <span th:text="${paciente.telefone != null and !#strings.isEmpty(paciente.telefone) ? paciente.telefone : '-'}">-</span>
-                                        </p>
-                                        <p class="entity-meta contact-line">
-                                            <i data-lucide="mail" aria-hidden="true"></i>
-                                            <span th:text="${paciente.email != null and !#strings.isEmpty(paciente.email) ? paciente.email : 'Sem e-mail'}">Sem e-mail</span>
-                                        </p>
-                                    </td>
+                                    <td th:text="${paciente.cpfFormatado != null ? paciente.cpfFormatado : '-'}">-</td>
+                                    <td><span th:text="${paciente.telefoneFormatado != null ? paciente.telefoneFormatado : '-'}">-</span><p class="entity-meta" th:text="${paciente.cliente.email != null ? paciente.cliente.email : 'Sem e-mail'}">Sem e-mail</p></td>
+                                    <td th:text="${paciente.planoAtivo != null ? paciente.planoAtivo.nomePlano : 'Sem plano ativo'}">Sem plano ativo</td>
+                                    <td th:text="${paciente.ultimaSessao != null ? #temporals.format(paciente.ultimaSessao.dataHoraInicio, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                                    <td><span th:if="${paciente.proximaSessao != null}" th:text="${#temporals.format(paciente.proximaSessao.dataHoraInicio, 'dd/MM HH:mm')}">-</span><span th:if="${paciente.proximaSessao != null and paciente.proximaSessao.dataHoraInicio.toLocalDate() == hoje}" class="session-hint">Hoje</span><span th:if="${paciente.proximaSessao != null and paciente.proximaSessao.dataHoraInicio.toLocalDate() == hoje.plusDays(1)}" class="session-hint">Amanhã</span><span th:if="${paciente.proximaSessao == null}">-</span></td>
+                                    <td><span class="chip" th:classappend="${paciente.cliente.ativo ? ' status-success' : ' status-muted'}" th:text="${paciente.cliente.ativo ? 'Ativo' : 'Inativo'}">Ativo</span></td>
                                     <td class="text-right">
-                                        <div class="table-actions">
-                                        <a th:href="@{/paciente/{token}(token=${paciente.portalToken})}"
-                                           target="_blank"
-                                           class="action-button ghost"
-                                           title="Abrir portal do paciente">
-                                            <i data-lucide="external-link"></i>
-                                            Portal
-                                        </a>
+                                        <div class="patient-row-actions">
+                                        <a th:href="@{/prontuario(pacienteId=${paciente.cliente.id})}" class="action-button ghost">Ver</a>
+                                        <details class="patient-action-menu"><summary aria-label="Mais ações para o paciente"><i data-lucide="ellipsis"></i></summary><div class="patient-action-popover">
+                                        <a th:href="@{/prontuario(pacienteId=${paciente.cliente.id})}" class="patient-action-menu-item"><i data-lucide="clipboard-pen-line"></i>Prontuário</a>
+                                        <a th:href="@{/planos-consumo(pacienteId=${paciente.cliente.id})}" class="patient-action-menu-item"><i data-lucide="package-open"></i>Plano de tratamento</a>
+                                        <a th:href="@{/paciente/{token}(token=${paciente.cliente.portalToken})}" target="_blank" rel="noopener" class="patient-action-menu-item"><i data-lucide="external-link"></i>Portal do paciente</a>
                                         <button type="button"
-                                                class="action-button session-action-edit"
+                                                class="patient-action-menu-item"
                                                 data-edit-paciente
-                                                th:data-id="${paciente.id}"
-                                                th:data-nome="${paciente.nomeCompleto}"
-                                                th:data-telefone="${paciente.telefone}"
-                                                th:data-email="${paciente.email}"
-                                                th:data-cpf="${paciente.cpf}"
-                                                th:data-nascimento="${paciente.dataNascimento}"
-                                                th:data-cep="${paciente.cep}"
-                                                th:data-rua="${paciente.rua}"
-                                                th:data-numero="${paciente.numero}"
-                                                th:data-bairro="${paciente.bairro}"
-                                                th:data-cidade="${paciente.cidade}"
-                                                th:data-estado="${paciente.estado}"
-                                                th:data-observacoes="${paciente.observacoes}"
+                                                th:data-id="${paciente.cliente.id}" th:data-nome="${paciente.cliente.nomeCompleto}" th:data-telefone="${paciente.cliente.telefone}" th:data-email="${paciente.cliente.email}" th:data-cpf="${paciente.cliente.cpf}" th:data-nascimento="${paciente.cliente.dataNascimento}" th:data-cep="${paciente.cliente.cep}" th:data-rua="${paciente.cliente.rua}" th:data-numero="${paciente.cliente.numero}" th:data-bairro="${paciente.cliente.bairro}" th:data-cidade="${paciente.cliente.cidade}" th:data-estado="${paciente.cliente.estado}" th:data-observacoes="${paciente.cliente.observacoes}"
                                                 title="Editar paciente">
                                             <i data-lucide="pencil"></i>
                                             Editar
                                         </button>
-                                        <form th:action="@{/pacientes/{id}/excluir(id=${paciente.id})}"
+                                        <form th:action="@{/pacientes/{id}/excluir(id=${paciente.cliente.id})}"
                                               method="post"
                                               class="inline-form"
                                               data-confirm-modal
@@ -182,11 +173,12 @@
                                               data-confirm-second-helper-title="Essa ação não pode ser desfeita"
                                               data-confirm-second-helper-message="Todos os vínculos serão apagados em cascata junto com o cadastro do paciente."
                                               data-confirm-second-action-label="Sim, excluir tudo">
-                                            <button type="submit" class="action-button danger">
+                                            <button type="submit" class="patient-action-menu-item danger">
                                                 <i data-lucide="trash-2"></i>
                                                 Excluir
                                             </button>
                                         </form>
+                                        </div></details>
                                         </div>
                                     </td>
                                 </tr>
@@ -199,34 +191,27 @@
                              class="pagination-bar">
 
                             <a th:if="${pacientesPage.number > 0}"
-                               th:href="@{/pacientes(page=0, busca=${busca})}"
+                               th:href="@{/pacientes(page=0, busca=${busca}, status=${status})}"
                                class="action-button ghost pagination-btn" title="Primeira página">
                                 <i data-lucide="chevrons-left"></i>
                             </a>
 
                             <a th:if="${pacientesPage.hasPrevious()}"
-                               th:href="@{/pacientes(page=${pacientesPage.number - 1}, busca=${busca})}"
+                               th:href="@{/pacientes(page=${pacientesPage.number - 1}, busca=${busca}, status=${status})}"
                                class="action-button ghost pagination-btn" title="Página anterior">
                                 <i data-lucide="chevron-left"></i>
                             </a>
 
-                            <span class="pagination-info">
-                                Página
-                                <strong th:text="${pacientesPage.number + 1}">1</strong>
-                                de
-                                <strong th:text="${pacientesPage.totalPages}">1</strong>
-                                &nbsp;·&nbsp;
-                                <span th:text="${pacientesPage.totalElements}">0</span> registros
-                            </span>
+                            <span class="pagination-info" th:text="${'Mostrando ' + (pacientesPage.number * pacientesPage.size + 1) + ' a ' + (pacientesPage.number * pacientesPage.size + pacientesPage.numberOfElements) + ' de ' + pacientesPage.totalElements + ' registros'}">Mostrando 1 a 20 de 20 registros</span>
 
                             <a th:if="${pacientesPage.hasNext()}"
-                               th:href="@{/pacientes(page=${pacientesPage.number + 1}, busca=${busca})}"
+                               th:href="@{/pacientes(page=${pacientesPage.number + 1}, busca=${busca}, status=${status})}"
                                class="action-button ghost pagination-btn" title="Próxima página">
                                 <i data-lucide="chevron-right"></i>
                             </a>
 
                             <a th:if="${pacientesPage.number < pacientesPage.totalPages - 1}"
-                               th:href="@{/pacientes(page=${pacientesPage.totalPages - 1}, busca=${busca})}"
+                               th:href="@{/pacientes(page=${pacientesPage.totalPages - 1}, busca=${busca}, status=${status})}"
                                class="action-button ghost pagination-btn" title="Última página">
                                 <i data-lucide="chevrons-right"></i>
                             </a>

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
+import com.fisiogestao.config.ClinicTimezoneHolder;
 
 @Controller
 @RequestMapping("/pacientes")
@@ -38,11 +39,16 @@ public class PacientesController {
     public String index(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String busca,
+            @RequestParam(defaultValue = "ATIVOS") String status,
             @RequestParam(name = "novoPaciente", defaultValue = "false") boolean abrirNovoPacienteModal,
             Model model
     ) {
-        Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(page, busca);
-        prepararPagina(model, pacientesPage, new PacienteForm(), busca);
+        status = switch (status) {
+            case "TODOS", "ATIVOS", "INATIVOS" -> status;
+            default -> "ATIVOS";
+        };
+        Page<ClienteEntity> pacientesPage = pacienteService.listarPaginado(page, busca, status);
+        prepararPagina(model, pacientesPage, new PacienteForm(), busca, status);
         model.addAttribute("abrirNovoPacienteModal", abrirNovoPacienteModal);
         return "pacientes/index";
     }
@@ -56,7 +62,7 @@ public class PacientesController {
     ) {
         if (bindingResult.hasErrors()) {
             Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
-            prepararPagina(model, pacientesPage, form, null);
+            prepararPagina(model, pacientesPage, form, null, "ATIVOS");
             return "pacientes/index";
         }
 
@@ -67,7 +73,7 @@ public class PacientesController {
         } catch (BusinessException ex) {
             Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
             model.addAttribute("errorMessage", ex.getMessage());
-            prepararPagina(model, pacientesPage, form, null);
+            prepararPagina(model, pacientesPage, form, null, "ATIVOS");
             return "pacientes/index";
         }
     }
@@ -82,7 +88,7 @@ public class PacientesController {
     ) {
         if (bindingResult.hasErrors()) {
             Page<ClienteEntity> pacientesPage = pacienteService.listarAtivosPaginado(0, null);
-            prepararPagina(model, pacientesPage, form, null);
+            prepararPagina(model, pacientesPage, form, null, "ATIVOS");
             model.addAttribute("errorMessage", "Corrija os campos inválidos antes de salvar.");
             return "pacientes/index";
         }
@@ -135,16 +141,20 @@ public class PacientesController {
             Model model,
             Page<ClienteEntity> pacientesPage,
             PacienteForm pacienteForm,
-            String busca
+            String busca,
+            String status
     ) {
-        model.addAttribute("pacientes", pacientesPage.getContent());
+        model.addAttribute("pacientes", pacienteService.montarListagem(pacientesPage));
         model.addAttribute("pacientesPage", pacientesPage);
         model.addAttribute("busca", busca != null ? busca : "");
+        model.addAttribute("status", status);
+        model.addAttribute("hoje", ClinicTimezoneHolder.today());
         model.addAttribute("pacienteForm", pacienteForm);
         model.addAttribute("abrirNovoPacienteModal", false);
         // Contagens globais (independentes da página/busca)
         model.addAttribute("totalPacientesAtivos", pacienteService.contarAtivos());
-        model.addAttribute("totalPacientesComTelefone", pacienteService.contarAtivosComTelefone());
-        model.addAttribute("totalPacientesComEmail", pacienteService.contarAtivosComEmail());
+        model.addAttribute("totalPacientesSemEmail", pacienteService.contarAtivosSemEmail());
+        model.addAttribute("totalPacientesEmTratamento", pacienteService.contarAtivosComPlanoAtivo());
+        model.addAttribute("totalSessoesHoje", pacienteService.contarSessoesHoje());
     }
 }

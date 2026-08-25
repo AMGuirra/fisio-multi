@@ -40,7 +40,7 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
     Optional<ClienteEntity> findByPortalToken(UUID portalToken);
 
     /**
-     * Lista paginada de pacientes ativos com busca opcional por nome, CPF, telefone ou e-mail.
+     * Lista paginada de pacientes com busca opcional por nome, CPF, telefone ou e-mail.
      *
      * <p>Quando {@code busca} é nulo ou vazio, retorna todos os ativos ordenados por nome.
      * Quando preenchido, filtra com ILIKE (case-insensitive) em quatro campos.</p>
@@ -50,7 +50,7 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
      */
     @Query("""
             SELECT c FROM ClienteEntity c
-            WHERE c.ativo = true
+            WHERE (:ativo IS NULL OR c.ativo = :ativo)
               AND (
                 :busca IS NULL OR :busca = ''
                 OR LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
@@ -60,5 +60,9 @@ public interface ClienteRepository extends JpaRepository<ClienteEntity, UUID> {
               )
             ORDER BY c.nomeCompleto ASC
             """)
-    Page<ClienteEntity> findAtivosPaginado(@Param("busca") String busca, Pageable pageable);
+    Page<ClienteEntity> findPaginado(
+            @Param("busca") String busca,
+            @Param("ativo") Boolean ativo,
+            Pageable pageable
+    );
 }

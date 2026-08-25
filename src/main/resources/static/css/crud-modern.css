@@ -1121,6 +1121,45 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
     }
 }
 
+/* Listagem de pacientes: informações densas no desktop e cards legíveis no celular. */
+.patient-status-filter {
+    min-height: 42px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius-sm);
+    padding: 0 0.7rem;
+    color: var(--text-strong);
+    background: var(--bg-surface);
+    font: inherit;
+}
+
+.summary-detail { margin: 0.35rem 0 0; color: var(--text-soft); font-size: var(--text-xs); line-height: 1.35; }
+
+.patient-name-link { color: var(--text-strong); text-decoration: none; }
+.patient-name-link:hover, .patient-name-link:focus-visible { color: var(--brand-600); text-decoration: underline; }
+.patient-row-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: 0.4rem; }
+.patient-action-menu { position: relative; }
+.patient-action-menu summary {
+    display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius-sm); color: var(--text-strong); background: var(--bg-surface); cursor: pointer; list-style: none;
+}
+.patient-action-menu summary::-webkit-details-marker { display: none; }
+.patient-action-menu summary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.patient-action-popover {
+    position: absolute; z-index: 110; right: 0; top: calc(100% + 6px); display: grid; min-width: 220px;
+    padding: 6px; border: 1px solid var(--stroke-soft); border-radius: var(--radius-md); background: var(--bg-surface); box-shadow: var(--shadow-lg);
+}
+.patient-action-menu-item { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text-strong); font: inherit; font-size: .84rem; font-weight: 650; text-align: left; text-decoration: none; cursor: pointer; }
+.patient-action-menu-item:hover, .patient-action-menu-item:focus-visible { background: var(--bg-soft); outline: none; }
+.patient-action-menu-item.danger { color: var(--color-text-danger); }
+.session-hint { display: block; margin-top: 2px; color: var(--brand-600); font-size: var(--text-xs); font-weight: 750; }
+
+@media (max-width: 768px) {
+    .patient-row-actions { justify-content: stretch; }
+    .patient-row-actions > .action-button { flex: 1; }
+    .patient-action-menu { flex: 0 0 auto; }
+    .patient-action-popover { position: fixed; right: 12px; left: 12px; top: auto; }
+}
+
 body[data-theme='dark'] .metric-badge.tone-success {
     background: rgba(19, 121, 75, 0.18);
     color: #34d399;
