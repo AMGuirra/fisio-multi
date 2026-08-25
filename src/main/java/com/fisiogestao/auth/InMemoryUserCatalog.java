@@ -3,7 +3,9 @@ package com.fisiogestao.auth;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
+import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auditoria.service.AuditService;
+import com.fisiogestao.email.repository.EmailLogRepository;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,9 @@ public class InMemoryUserCatalog {
     private final PasswordEncoder passwordEncoder;
     private final UsuarioSistemaRepository repository;
     private final AuditService auditService;
+    private final AuditEventRepository auditEventRepository;
+    private final EmailLogRepository emailLogRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final BootstrapAdminProperties bootstrapAdminProperties;
 
     @PostConstruct
@@ -194,7 +199,6 @@ public class InMemoryUserCatalog {
     public void excluir(UUID id, String loggedUsername) {
         UsuarioSistemaEntity existing = repository.findById(id)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
-        var snapshotAnterior = auditService.snapshotOf(existing);
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
         if (normalizedLoggedUsername != null && existing.getUsername().equals(normalizedLoggedUsername)) {
@@ -205,18 +209,13 @@ public class InMemoryUserCatalog {
             throw new BusinessException("Não é possível excluir o único administrador do sistema.");
         }
 
-        auditService.recordManual(
-                AuditModule.USUARIOS,
-                "usuario_sistema",
-                existing.getId().toString(),
-                existing.getNome(),
-                AuditActionType.DELETE_PHYSICAL,
-                snapshotAnterior,
-                null,
-                null,
-                "Exclusão física de usuário.",
-                AuditEventOrigin.MANUAL
-        );
+        // A exclusão é definitiva: remove tokens, e-mails e toda a auditoria em
+        // que o usuário aparece como autor ou como registro afetado. Os campos
+        // de auditoria filhos são removidos em cascata pela própria entidade.
+        passwordResetTokenRepository.deleteByUsuarioId(id);
+        emailLogRepository.deleteByEntidadeTipoAndEntidadeId("usuario_sistema", id);
+        auditEventRepository.deleteAll(auditEventRepository
+                .findByUsuarioIdOrEntidadeAndEntidadeId(id, "usuario_sistema", id.toString()));
         repository.delete(existing);
     }
 

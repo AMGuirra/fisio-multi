@@ -128,10 +128,15 @@
                                                   class="inline-form"
                                                   data-confirm-modal
                                                   data-confirm-title="Excluir usuário?"
-                                                  data-confirm-message="Deseja excluir este usuário?"
-                                                  data-confirm-helper-title="O acesso será removido"
-                                                  data-confirm-helper-message="Depois da confirmação, esse usuário não poderá mais entrar no sistema."
-                                                  data-confirm-action-label="Excluir usuário">
+                                                  th:attr="data-confirm-message=${'Deseja excluir permanentemente o usuário ' + user.nome + '?'}"
+                                                  data-confirm-helper-title="Todos os dados relacionados serão excluídos"
+                                                  data-confirm-helper-message="Serão removidos o acesso, tokens de redefinição de senha, registros de e-mail e o histórico de auditoria relacionado. Esta ação não poderá ser desfeita."
+                                                  data-confirm-action-label="Continuar"
+                                                  data-confirm-second-title="Confirmar exclusão permanente?"
+                                                  data-confirm-second-message="Revise o aviso: a conta e todos os dados relacionados serão apagados definitivamente."
+                                                  data-confirm-second-helper-title="Esta ação não pode ser desfeita"
+                                                  data-confirm-second-helper-message="Confirme somente se tiver certeza de que este usuário não deve mais permanecer no sistema."
+                                                  data-confirm-second-action-label="Excluir definitivamente">
                                                 <button type="submit" class="action-button danger inline-icon" aria-label="Excluir usuário">
                                                     <i data-lucide="trash-2"></i>
                                                 </button>
