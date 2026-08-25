@@ -10,9 +10,6 @@ import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.ProntuarioSoapEntity;
 import com.fisiogestao.prontuario.TipoRegistroProntuario;
-import com.fisiogestao.prontuario.dto.HistoricoClinicoItemDto;
-import com.fisiogestao.prontuario.dto.ProntuarioAnexoResumoDto;
-import com.fisiogestao.prontuario.dto.TipoHistoricoClinico;
 import com.fisiogestao.prontuario.form.AvaliacaoForm;
 import com.fisiogestao.prontuario.form.EvolucaoEditForm;
 import com.fisiogestao.prontuario.form.EvolucaoForm;
@@ -31,8 +28,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.ArrayList;
-import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +70,8 @@ public class ProntuarioService {
      */
     @Transactional
     public ProntuarioSoapEntity salvarAvaliacao(AvaliacaoForm form, String usuario) {
-        if (!avaliacaoPreenchida(form)) {
+        String texto = form.getTexto() != null ? form.getTexto().trim() : "";
+        if (texto.isEmpty()) {
             throw new BusinessException("A avaliação não pode ficar vazia.");
         }
 
@@ -85,7 +81,7 @@ public class ProntuarioService {
         if (existente.isPresent()) {
             ProntuarioSoapEntity avaliacao = existente.get();
             Map<String, Object> snapshotAnterior = auditService.snapshotOf(avaliacao);
-            aplicarAvaliacaoEstruturada(avaliacao, form);
+            avaliacao.setTextoRegistro(texto);
             ProntuarioSoapEntity salvo = prontuarioSoapRepository.save(avaliacao);
             auditService.recordUpdate(
                     AuditModule.PRONTUARIO,
@@ -104,13 +100,7 @@ public class ProntuarioService {
         ProntuarioSoapEntity avaliacao = ProntuarioSoapEntity.builder()
                 .cliente(cliente)
                 .tipoRegistro(TipoRegistroProntuario.AVALIACAO)
-                .queixaPrincipal(texto(form.getQueixaPrincipal()))
-                .avaliacaoFisica(texto(form.getAvaliacaoFisica()))
-                .regiaoCorporal(texto(form.getRegiaoCorporal()))
-                .avaliacaoFuncional(texto(form.getAvaliacaoFuncional()))
-                .objetivosTratamento(texto(form.getObjetivosTratamento()))
-                .planoTerapeutico(texto(form.getPlanoTerapeutico()))
-                .observacoesAvaliacao(texto(form.getObservacoesAvaliacao()))
+                .textoRegistro(texto)
                 .criadoPor(usuario)
                 .build();
         ProntuarioSoapEntity salvo;
@@ -140,59 +130,6 @@ public class ProntuarioService {
                 AuditEventOrigin.MANUAL
         );
         return salvo;
-    }
-
-    /** Monta a linha cronológica única usada pela aba Histórico Clínico. */
-    public List<HistoricoClinicoItemDto> montarHistoricoClinico(
-            ProntuarioSoapEntity avaliacao,
-            List<ProntuarioSoapEntity> evolucoes,
-            List<ProntuarioAnexoResumoDto> anexos
-    ) {
-        List<HistoricoClinicoItemDto> itens = new ArrayList<>();
-        if (avaliacao != null) {
-            itens.add(new HistoricoClinicoItemDto(avaliacao.getId(), TipoHistoricoClinico.AVALIACAO,
-                    avaliacao.getUpdatedAt(), "Avaliação inicial",
-                    resumoAvaliacao(avaliacao), avaliacao.getCriadoPor(), "clipboard-list"));
-        }
-        for (ProntuarioSoapEntity evolucao : evolucoes) {
-            itens.add(new HistoricoClinicoItemDto(evolucao.getId(), TipoHistoricoClinico.EVOLUCAO,
-                    evolucao.getCreatedAt(), "Evolução clínica", texto(evolucao.getTextoRegistro()),
-                    evolucao.getCriadoPor(), "notebook-pen"));
-        }
-        for (ProntuarioAnexoResumoDto anexo : anexos) {
-            TipoHistoricoClinico tipo = anexo.isFotoClinica() ? TipoHistoricoClinico.FOTO : TipoHistoricoClinico.DOCUMENTO;
-            itens.add(new HistoricoClinicoItemDto(anexo.getId(), tipo, anexo.getCreatedAt(), anexo.getNomeOriginal(),
-                    texto(anexo.getDescricao()), anexo.getCriadoPor(), anexo.isFotoClinica() ? "image" : anexo.getIcone()));
-        }
-        return itens.stream().sorted(Comparator.comparing(HistoricoClinicoItemDto::dataHora,
-                Comparator.nullsLast(Comparator.reverseOrder()))).toList();
-    }
-
-    private boolean avaliacaoPreenchida(AvaliacaoForm form) {
-        return java.util.stream.Stream.of(form.getQueixaPrincipal(), form.getAvaliacaoFisica(), form.getRegiaoCorporal(),
-                        form.getAvaliacaoFuncional(), form.getObjetivosTratamento(), form.getPlanoTerapeutico(),
-                        form.getObservacoesAvaliacao())
-                .anyMatch(valor -> valor != null && !valor.isBlank());
-    }
-
-    private void aplicarAvaliacaoEstruturada(ProntuarioSoapEntity avaliacao, AvaliacaoForm form) {
-        // textoRegistro é o histórico imutável de avaliações antigas; nunca é alterado aqui.
-        avaliacao.setQueixaPrincipal(texto(form.getQueixaPrincipal()));
-        avaliacao.setAvaliacaoFisica(texto(form.getAvaliacaoFisica()));
-        avaliacao.setRegiaoCorporal(texto(form.getRegiaoCorporal()));
-        avaliacao.setAvaliacaoFuncional(texto(form.getAvaliacaoFuncional()));
-        avaliacao.setObjetivosTratamento(texto(form.getObjetivosTratamento()));
-        avaliacao.setPlanoTerapeutico(texto(form.getPlanoTerapeutico()));
-        avaliacao.setObservacoesAvaliacao(texto(form.getObservacoesAvaliacao()));
-    }
-
-    private String resumoAvaliacao(ProntuarioSoapEntity avaliacao) {
-        String resumo = texto(avaliacao.getQueixaPrincipal());
-        return resumo != null ? resumo : texto(avaliacao.getTextoRegistro());
-    }
-
-    private String texto(String valor) {
-        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
     /**

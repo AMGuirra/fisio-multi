@@ -82,34 +82,4 @@ public class ProntuarioSoapEntity extends BaseEntity {
      */
     @Column(name = "obs_evolucao", columnDefinition = "TEXT")
     private String obsEvolucao;
-
-    /** Queixa principal relatada na avaliação inicial. */
-    @Column(name = "queixa_principal", columnDefinition = "TEXT")
-    private String queixaPrincipal;
-
-    /** Achados da avaliação física inicial. */
-    @Column(name = "avaliacao_fisica", columnDefinition = "TEXT")
-    private String avaliacaoFisica;
-
-    /** Achados da avaliação funcional inicial. */
-    @Column(name = "avaliacao_funcional", columnDefinition = "TEXT")
-    private String avaliacaoFuncional;
-
-    /** Objetivos terapêuticos definidos para o tratamento. */
-    @Column(name = "objetivos_tratamento", columnDefinition = "TEXT")
-    private String objetivosTratamento;
-
-    /** Plano terapêutico inicial. */
-    @Column(name = "plano_terapeutico", columnDefinition = "TEXT")
-    private String planoTerapeutico;
-
-    /** Observações complementares da avaliação inicial. */
-    @Column(name = "observacoes_avaliacao", columnDefinition = "TEXT")
-    private String observacoesAvaliacao;
-
-    /** Indica se a avaliação já usa o formato estruturado introduzido na V52. */
-    public boolean isEstruturada() {
-        return queixaPrincipal != null || avaliacaoFisica != null || avaliacaoFuncional != null
-                || objetivosTratamento != null || planoTerapeutico != null || observacoesAvaliacao != null;
-    }
 }

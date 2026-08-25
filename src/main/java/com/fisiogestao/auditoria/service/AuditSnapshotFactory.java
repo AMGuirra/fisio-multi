@@ -198,13 +198,7 @@ public class AuditSnapshotFactory {
         map.put("sessaoId", prontuario.getSessao() != null ? prontuario.getSessao().getId() : null);
         map.put("tipoRegistro", prontuario.getTipoRegistro());
         map.put("conteudoClinicoHash", hashConteudoClinico(prontuario));
-        map.put("possuiConteudoClinico", preenchido(prontuario.getTextoRegistro()) || prontuario.isEstruturada());
-        map.put("possuiQueixaPrincipal", preenchido(prontuario.getQueixaPrincipal()));
-        map.put("possuiAvaliacaoFisica", preenchido(prontuario.getAvaliacaoFisica()));
-        map.put("possuiAvaliacaoFuncional", preenchido(prontuario.getAvaliacaoFuncional()));
-        map.put("possuiObjetivosTratamento", preenchido(prontuario.getObjetivosTratamento()));
-        map.put("possuiPlanoTerapeutico", preenchido(prontuario.getPlanoTerapeutico()));
-        map.put("possuiObservacoesAvaliacao", preenchido(prontuario.getObservacoesAvaliacao()));
+        map.put("possuiConteudoClinico", preenchido(prontuario.getTextoRegistro()));
         map.put("criadoPor", prontuario.getCriadoPor());
         return map;
     }
@@ -266,13 +260,7 @@ public class AuditSnapshotFactory {
                 valorSeguro(prontuario.getTextoRegistro()),
                 valorSeguro(prontuario.getRegiaoCorporal()),
                 valorSeguro(prontuario.getTecnicasUtilizadas()),
-                valorSeguro(prontuario.getObsEvolucao()),
-                valorSeguro(prontuario.getQueixaPrincipal()),
-                valorSeguro(prontuario.getAvaliacaoFisica()),
-                valorSeguro(prontuario.getAvaliacaoFuncional()),
-                valorSeguro(prontuario.getObjetivosTratamento()),
-                valorSeguro(prontuario.getPlanoTerapeutico()),
-                valorSeguro(prontuario.getObservacoesAvaliacao()));
+                valorSeguro(prontuario.getObsEvolucao()));
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(conteudo.getBytes(StandardCharsets.UTF_8));

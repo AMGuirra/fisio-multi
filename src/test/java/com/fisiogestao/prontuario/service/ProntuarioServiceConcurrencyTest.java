@@ -168,7 +168,7 @@ class ProntuarioServiceConcurrencyTest {
     private Resultado salvarEClassificar(String texto) {
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(paciente.getId());
-        form.setQueixaPrincipal(texto);
+        form.setTexto(texto);
         try {
             prontuarioService.salvarAvaliacao(form, "fisio-concorrencia");
             return new Resultado(true, null);

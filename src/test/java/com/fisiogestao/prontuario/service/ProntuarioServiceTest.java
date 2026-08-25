@@ -69,12 +69,12 @@ class ProntuarioServiceTest {
 
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(clienteId);
-        form.setQueixaPrincipal("  Queixa principal: dor lombar.  ");
+        form.setTexto("  Queixa principal: dor lombar.  ");
 
         ProntuarioSoapEntity salvo = service.salvarAvaliacao(form, "fisio1");
 
         assertEquals(TipoRegistroProntuario.AVALIACAO, salvo.getTipoRegistro());
-        assertEquals("Queixa principal: dor lombar.", salvo.getQueixaPrincipal());
+        assertEquals("Queixa principal: dor lombar.", salvo.getTextoRegistro());
         assertEquals("fisio1", salvo.getCriadoPor());
         verify(auditService).recordCreate(any(), any(), any(), any(), any(), any());
         verify(auditService, never()).recordUpdate(any(), any(), any(), any(), any(), any(), any(), any(), any());
@@ -102,12 +102,11 @@ class ProntuarioServiceTest {
 
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(clienteId);
-        form.setQueixaPrincipal("Texto atualizado");
+        form.setTexto("Texto atualizado");
 
         ProntuarioSoapEntity salvo = service.salvarAvaliacao(form, "fisio2");
 
-        assertEquals("Texto atualizado", salvo.getQueixaPrincipal());
-        assertEquals("Texto antigo", salvo.getTextoRegistro());
+        assertEquals("Texto atualizado", salvo.getTextoRegistro());
         verify(auditService, never()).recordCreate(any(), any(), any(), any(), any(), any());
         verify(auditService).recordUpdate(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
@@ -134,7 +133,7 @@ class ProntuarioServiceTest {
 
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(clienteId);
-        form.setQueixaPrincipal("Avaliação enviada duas vezes.");
+        form.setTexto("Avaliação enviada duas vezes.");
 
         BusinessException ex = assertThrows(BusinessException.class, () -> service.salvarAvaliacao(form, "fisio1"));
 
@@ -164,7 +163,7 @@ class ProntuarioServiceTest {
 
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(clienteId);
-        form.setQueixaPrincipal("Avaliação qualquer.");
+        form.setTexto("Avaliação qualquer.");
 
         DataIntegrityViolationException propagada = assertThrows(
                 DataIntegrityViolationException.class,
@@ -184,7 +183,7 @@ class ProntuarioServiceTest {
         UUID clienteId = UUID.randomUUID();
         AvaliacaoForm form = new AvaliacaoForm();
         form.setClienteId(clienteId);
-        form.setQueixaPrincipal("   ");
+        form.setTexto("   ");
 
         BusinessException ex = assertThrows(BusinessException.class, () -> service.salvarAvaliacao(form, "fisio1"));
 

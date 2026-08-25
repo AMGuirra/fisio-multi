@@ -6,7 +6,6 @@ import com.fisiogestao.agenda.service.AgendaService;
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.prontuario.dto.ProntuarioAnexoResumoDto;
-import com.fisiogestao.prontuario.support.EvolucaoEvaStatus;
 import com.fisiogestao.prontuario.form.AvaliacaoForm;
 import com.fisiogestao.prontuario.form.EvolucaoEditForm;
 import com.fisiogestao.prontuario.form.EvolucaoForm;
@@ -36,9 +35,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -325,10 +321,6 @@ public class ProntuarioController {
             model.addAttribute("evolucoes", List.of());
             model.addAttribute("documentos", List.of());
             model.addAttribute("fotosPorEvolucao", Map.of());
-            model.addAttribute("statusEvolucaoPorId", Map.of());
-            model.addAttribute("historicoClinico", List.of());
-            model.addAttribute("proximaSessao", null);
-            model.addAttribute("proximosPassos", List.of());
             model.addAttribute("totalRegistros", 0);
             return;
         }
@@ -346,8 +338,7 @@ public class ProntuarioController {
                 .toList();
 
         List<ProntuarioSoapEntity> evolucoes = prontuarioService.listarEvolucoes(pacienteSelecionadoId);
-        List<ProntuarioAnexoResumoDto> anexos = prontuarioAnexoService.listarPorPaciente(pacienteSelecionadoId);
-        List<ProntuarioAnexoResumoDto> fotos = anexos.stream()
+        List<ProntuarioAnexoResumoDto> fotos = prontuarioAnexoService.listarPorPaciente(pacienteSelecionadoId).stream()
                 .filter(ProntuarioAnexoResumoDto::isFotoClinica)
                 .toList();
 
@@ -358,29 +349,12 @@ public class ProntuarioController {
             }
         }
 
-        ProntuarioSoapEntity avaliacao = prontuarioService.buscarAvaliacao(pacienteSelecionadoId).orElse(null);
-        List<ProntuarioSoapEntity> evolucoesCronologicas = evolucoes.stream()
-                .sorted(Comparator.comparing(ProntuarioSoapEntity::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
-        List<String> proximosPassos = new ArrayList<>();
-        if (avaliacao == null) proximosPassos.add("Avaliação inicial pendente");
-        if (evolucoes.isEmpty()) proximosPassos.add("Nenhuma evolução registrada");
-        if (proximosPassos.isEmpty()) proximosPassos.add("Prontuário clínico atualizado");
-
         model.addAttribute("pacienteSelecionado", pacienteSelecionado);
         model.addAttribute("sessoesPaciente", sessoesPaciente);
-        model.addAttribute("avaliacao", avaliacao);
+        model.addAttribute("avaliacao", prontuarioService.buscarAvaliacao(pacienteSelecionadoId).orElse(null));
         model.addAttribute("evolucoes", evolucoes);
         model.addAttribute("documentos", prontuarioAnexoService.listarDocumentosPorPaciente(pacienteSelecionadoId));
         model.addAttribute("fotosPorEvolucao", fotosPorEvolucao);
-        model.addAttribute("statusEvolucaoPorId", EvolucaoEvaStatus.calcular(evolucoesCronologicas));
-        model.addAttribute("historicoClinico", prontuarioService.montarHistoricoClinico(avaliacao, evolucoes, anexos));
-        model.addAttribute("proximaSessao", sessoesPaciente.stream()
-                .filter(sessao -> sessao.getStatus() == SessaoStatus.AGENDADA)
-                .filter(sessao -> sessao.getDataHoraInicio() != null && sessao.getDataHoraInicio().isAfter(OffsetDateTime.now()))
-                .min(Comparator.comparing(SessaoEntity::getDataHoraInicio)).orElse(null));
-        model.addAttribute("proximosPassos", proximosPassos);
         model.addAttribute("totalRegistros", evolucoes.size());
     }
 

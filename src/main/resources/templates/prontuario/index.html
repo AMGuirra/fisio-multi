@@ -106,26 +106,13 @@
                 </div>
             </section>
 
-            <nav class="prontuario-tabs" th:if="${pacienteSelecionado != null}" role="tablist" aria-label="Seções do prontuário">
-                <button class="prontuario-tab active" type="button" role="tab" aria-selected="true" data-prontuario-tab="visao-geral"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
-                <button class="prontuario-tab" type="button" role="tab" aria-selected="false" data-prontuario-tab="avaliacao"><i data-lucide="clipboard-list"></i> Avaliação</button>
-                <button class="prontuario-tab" type="button" role="tab" aria-selected="false" data-prontuario-tab="evolucoes"><i data-lucide="notebook-pen"></i> Evoluções</button>
-                <button class="prontuario-tab" type="button" role="tab" aria-selected="false" data-prontuario-tab="historico"><i data-lucide="history"></i> Histórico Clínico</button>
-                <button class="prontuario-tab" type="button" role="tab" aria-selected="false" data-prontuario-tab="documentos"><i data-lucide="paperclip"></i> Documentos e Anexos</button>
-            </nav>
-
-            <section class="prontuario-overview" data-prontuario-panel="visao-geral" th:if="${pacienteSelecionado != null}">
-                <article class="section-card"><header class="section-head"><h3 class="section-title"><i data-lucide="list-checks"></i> Próximos passos</h3></header><div class="section-body"><ul class="prontuario-next-steps"><li th:each="passo : ${proximosPassos}" th:text="${passo}">Avaliação inicial pendente</li></ul><p class="helper-text" th:if="${proximaSessao != null}" th:text="'Próxima sessão: ' + ${#temporals.format(proximaSessao.dataHoraInicio, 'dd/MM/yyyy HH:mm')}">Próxima sessão</p></div></article>
-                <article class="section-card"><header class="section-head"><h3 class="section-title"><i data-lucide="contact"></i> Informações rápidas</h3></header><div class="section-body prontuario-quick-info"><p><strong>Telefone:</strong> <span th:text="${pacienteSelecionado.telefone ?: 'Não informado'}">Não informado</span></p><p><strong>E-mail:</strong> <span th:text="${pacienteSelecionado.email ?: 'Não informado'}">Não informado</span></p><p><strong>CPF:</strong> <span th:text="${pacienteSelecionado.cpf ?: 'Não informado'}">Não informado</span></p><p><strong>Convênio:</strong> Não informado</p><p><strong>Contato de emergência:</strong> Não informado</p></div></article>
-            </section>
-
             <!-- ============================================================
                  AVALIAÇÃO (esquerda) + EVOLUÇÃO (direita)
                  ============================================================ -->
             <section class="prontuario-main-grid" th:if="${pacienteSelecionado != null}">
 
                 <!-- ----------------------------- AVALIAÇÃO ----------------------------- -->
-                <article class="section-card prontuario-panel" id="avaliacao" data-prontuario-panel="avaliacao" hidden>
+                <article class="section-card prontuario-panel" id="avaliacao">
                     <header class="section-head">
                         <div>
                             <h3 class="section-title"><i data-lucide="clipboard-list"></i> Avaliação</h3>
@@ -133,25 +120,31 @@
                         </div>
                     </header>
                     <div class="section-body">
-                        <p class="helper-text prontuario-guidance">Registre a avaliação inicial em campos clínicos estruturados.</p>
-                        <div class="flash-message" th:if="${avaliacao != null and !avaliacao.estruturada and avaliacao.textoRegistro != null}"><i data-lucide="info"></i><span>Avaliação legada preservada abaixo. Preencha este formulário para convertê-la ao formato estruturado.</span></div>
+                        <p class="helper-text prontuario-guidance">
+                            Registre livremente queixa, exame físico, avaliação, região corporal, EVA, objetivos e plano terapêutico.
+                        </p>
                         <form th:action="@{/prontuario/avaliacao}" th:object="${avaliacaoForm}" method="post"
                               class="modern-form" id="formAvaliacao" data-submit-guard>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" th:field="*{clienteId}">
 
-                            <nav class="prontuario-avaliacao-nav" aria-label="Seções da avaliação">
-                                <a href="#avaliacaoQueixa">Queixa principal</a><a href="#avaliacaoFisica">Avaliação física</a><a href="#avaliacaoRegiao">Região corporal</a><a href="#avaliacaoFuncional">Avaliação funcional</a><a href="#avaliacaoObjetivos">Objetivos</a><a href="#avaliacaoPlano">Plano terapêutico</a><a href="#avaliacaoObservacoes">Observações</a>
-                            </nav>
-
-                            <div class="form-field"><label for="avaliacaoQueixa">Queixa principal</label><textarea id="avaliacaoQueixa" class="form-control prontuario-textarea" th:field="*{queixaPrincipal}" maxlength="3000" data-autogrow></textarea></div>
-                            <div class="form-row form-row-2col"><div class="form-field"><label for="avaliacaoFisica">Avaliação física</label><textarea id="avaliacaoFisica" class="form-control prontuario-textarea" th:field="*{avaliacaoFisica}" maxlength="4000" data-autogrow></textarea></div><div class="form-field"><label for="avaliacaoRegiao">Região corporal</label><input id="avaliacaoRegiao" class="form-control" th:field="*{regiaoCorporal}" maxlength="200"></div></div>
-                            <div class="form-field"><label for="avaliacaoFuncional">Avaliação funcional</label><textarea id="avaliacaoFuncional" class="form-control prontuario-textarea" th:field="*{avaliacaoFuncional}" maxlength="4000" data-autogrow></textarea></div>
-                            <div class="form-row form-row-2col"><div class="form-field"><label for="avaliacaoObjetivos">Objetivos do tratamento</label><textarea id="avaliacaoObjetivos" class="form-control prontuario-textarea" th:field="*{objetivosTratamento}" maxlength="2000" data-autogrow></textarea></div><div class="form-field"><label for="avaliacaoPlano">Plano terapêutico</label><textarea id="avaliacaoPlano" class="form-control prontuario-textarea" th:field="*{planoTerapeutico}" maxlength="3000" data-autogrow></textarea></div></div>
-                            <div class="form-field"><label for="avaliacaoObservacoes">Observações</label><textarea id="avaliacaoObservacoes" class="form-control prontuario-textarea" th:field="*{observacoesAvaliacao}" maxlength="3000" data-autogrow></textarea></div>
+                            <div class="form-field">
+                                <label for="avaliacaoTexto" class="sr-only-label">Avaliação</label>
+                                <textarea id="avaliacaoTexto" class="form-control prontuario-textarea prontuario-textarea-tall"
+                                          th:field="*{texto}"
+                                          data-autogrow
+                                          data-char-counter="avaliacaoContador"
+                                          maxlength="8000"
+                                          th:attr="data-original=${avaliacao != null ? avaliacao.textoRegistro : ''}"
+                                          placeholder="Descreva a avaliação clínica inicial do paciente..."></textarea>
+                                <div class="prontuario-textarea-footer">
+                                    <p class="form-error" th:if="${#fields.hasErrors('texto')}" th:errors="*{texto}"></p>
+                                    <span class="prontuario-char-counter" id="avaliacaoContador">0 / 8000 caracteres</span>
+                                </div>
+                            </div>
 
                             <div class="prontuario-form-actions">
-                                <button type="reset" class="action-button ghost" id="btnCancelarAvaliacao">
+                                <button type="button" class="action-button ghost" id="btnCancelarAvaliacao" data-cancel-target="avaliacaoTexto">
                                     <i data-lucide="rotate-ccw"></i>
                                     Cancelar
                                 </button>
@@ -161,8 +154,6 @@
                                 </button>
                             </div>
                         </form>
-
-                        <article class="request-card" th:if="${avaliacao != null and !avaliacao.estruturada and avaliacao.textoRegistro != null}"><strong>Registro legado preservado</strong><p th:text="${avaliacao.textoRegistro}">Avaliação anterior</p></article>
 
                         <div class="empty-box prontuario-inline-empty" th:if="${avaliacao == null}">
                             <i data-lucide="info"></i>
@@ -176,7 +167,7 @@
                 </article>
 
                 <!-- ----------------------------- EVOLUÇÃO ----------------------------- -->
-                <article class="section-card prontuario-panel" id="novaEvolucao" data-prontuario-panel="evolucoes" hidden>
+                <article class="section-card prontuario-panel" id="novaEvolucao">
                     <header class="section-head">
                         <div>
                             <h3 class="section-title"><i data-lucide="notebook-pen"></i> Evolução</h3>
@@ -270,7 +261,7 @@
             <!-- ============================================================
                  HISTÓRICO DE EVOLUÇÕES — largura total
                  ============================================================ -->
-            <section class="section-card prontuario-panel-full" data-prontuario-panel="evolucoes" th:if="${pacienteSelecionado != null}" id="historicoEvolucao" hidden>
+            <section class="section-card prontuario-panel-full" th:if="${pacienteSelecionado != null}" id="historicoEvolucao">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="history"></i> Histórico de Evoluções</h3>
@@ -331,8 +322,6 @@
                                           class="chip"
                                           th:classappend="${registro.escalaEvaDor <= 3 ? 'status-approved' : (registro.escalaEvaDor <= 6 ? 'status-warning' : 'status-danger')}"
                                           th:text="'EVA clínica: ' + ${registro.escalaEvaDor}">EVA</span>
-                                    <span th:with="status=${statusEvolucaoPorId.get(registro.id)}" th:if="${status != null and status.cssClass != null}"
-                                          class="chip" th:classappend="${status.cssClass}" th:text="${status.label}">Inicial</span>
                                     <span th:if="${registro.sessao != null and registro.sessao.feedbackEvaPaciente != null}"
                                           class="chip"
                                           th:classappend="${registro.sessao.feedbackEvaPaciente <= 3 ? 'status-approved' : (registro.sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
@@ -404,15 +393,10 @@
                 </div>
             </section>
 
-            <section class="section-card prontuario-panel-full" data-prontuario-panel="historico" th:if="${pacienteSelecionado != null}" hidden>
-                <header class="section-head"><div><h3 class="section-title"><i data-lucide="history"></i> Histórico Clínico</h3><p class="section-subtitle">Linha do tempo de avaliações, evoluções e arquivos.</p></div></header>
-                <div class="section-body"><div class="prontuario-timeline-filters"><button type="button" class="chip active" data-historico-filter="todos">Todos</button><button type="button" class="chip" data-historico-filter="avaliacao">Avaliação</button><button type="button" class="chip" data-historico-filter="evolucao">Evoluções</button><button type="button" class="chip" data-historico-filter="documento">Documentos</button></div><div class="portal-timeline"><article class="timeline-item" th:each="item : ${historicoClinico}" th:attr="data-tipo=${#strings.toLowerCase(item.tipo.name())}"><div class="timeline-icon" th:classappend="${#strings.toLowerCase(item.tipo.name())}"><i th:attr="data-lucide=${item.iconeLucide}"></i></div><div class="timeline-card"><strong th:text="${item.titulo}">Evento</strong><p th:text="${item.resumo ?: 'Sem descrição'}">Resumo</p><small th:text="${#temporals.format(item.dataHora, 'dd/MM/yyyy HH:mm') + ' · ' + (item.autor ?: 'Sistema')}">Data</small></div></article></div><div class="empty-box" th:if="${historicoClinico.empty}"><i data-lucide="history"></i><p>Nenhum evento clínico registrado.</p></div></div>
-            </section>
-
             <!-- ============================================================
                  SEÇÃO DE ANEXOS — Documentos clínicos do paciente
                  ============================================================ -->
-            <section class="section-card prontuario-panel-full" data-prontuario-panel="documentos" th:if="${pacienteSelecionado != null}" id="documentosAnexos" hidden>
+            <section class="section-card prontuario-panel-full" th:if="${pacienteSelecionado != null}" id="documentosAnexos">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="paperclip"></i> Documentos e Anexos</h3>
@@ -561,6 +545,5 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script th:src="@{/js/prontuario.js}"></script>
-    <script th:src="@{/js/prontuario-tabs.js}"></script>
 </body>
 </html>
