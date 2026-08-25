@@ -59,36 +59,6 @@
                     </span>
                     <span class="sidebar-link-label" th:text="${item.label}">Menu</span>
                 </a>
-                <div class="sidebar-preferences" aria-label="Preferências visuais">
-                    <p class="sidebar-preferences-label">Tema da interface</p>
-                    <form th:action="@{/preferencias/tema}" method="post" class="theme-switcher">
-                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                        <button type="submit"
-                                name="tema"
-                                value="LIGHT"
-                                class="theme-option"
-                                th:classappend="${loggedUserTheme.name() == 'LIGHT' ? ' active' : ''}"
-                                th:attr="aria-pressed=${loggedUserTheme.name() == 'LIGHT'}">
-                            <i data-lucide="sun-medium" aria-hidden="true"></i>
-                            <span>Claro</span>
-                        </button>
-                        <button type="submit"
-                                name="tema"
-                                value="DARK"
-                                class="theme-option"
-                                th:classappend="${loggedUserTheme.name() == 'DARK' ? ' active' : ''}"
-                                th:attr="aria-pressed=${loggedUserTheme.name() == 'DARK'}">
-                            <i data-lucide="moon-star" aria-hidden="true"></i>
-                            <span>Escuro</span>
-                        </button>
-                    </form>
-                </div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="sidebar-link sidebar-logout">
-                        <span class="sidebar-link-icon"><i data-lucide="log-out"></i></span>
-                        <span class="sidebar-link-label">Sair</span>
-                    </button>
-                </form>
             </div>
         </aside>
 

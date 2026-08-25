@@ -187,7 +187,8 @@ public class BloqueioAgendaService {
         List<BloqueioAgendaEntity> lista = listarPorFiltro(filtro);
         long ativos = lista.stream().filter(item -> item.getStatus() == BloqueioAgendaStatus.ATIVO).count();
         long diaInteiro = lista.stream().filter(item -> Boolean.TRUE.equals(item.getDiaInteiro())).count();
-        return new ResumoBloqueio(lista.size(), ativos, diaInteiro);
+        long cancelados = lista.stream().filter(item -> item.getStatus() == BloqueioAgendaStatus.CANCELADO).count();
+        return new ResumoBloqueio(lista.size(), ativos, diaInteiro, cancelados);
     }
 
     private List<BloqueioAgendaEntity> salvarLote(
@@ -364,7 +365,7 @@ public class BloqueioAgendaService {
 
     private record Intervalo(OffsetDateTime inicio, OffsetDateTime fim) {}
 
-    public record ResumoBloqueio(long total, long ativos, long diaInteiro) {}
+    public record ResumoBloqueio(long total, long ativos, long diaInteiro, long cancelados) {}
 
     public record BloqueioEdicaoView(BloqueioAgendaEntity entidade, BloqueioAgendaCadastroForm form, List<BloqueioAgendaEntity> grupo) {}
 }

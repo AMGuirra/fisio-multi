@@ -89,6 +89,32 @@
                         <i th:attr="data-lucide=${extraMenuIcon}" aria-hidden="true"></i>
                         <span th:text="${extraMenuLabel}">Item</span>
                     </a>
+                    <hr class="user-menu-divider">
+                    <div class="user-menu-theme" aria-label="Preferências visuais">
+                        <p class="user-menu-theme-label">Tema da interface</p>
+                        <form th:action="@{/preferencias/tema}" method="post" class="theme-switcher">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                            <button type="submit"
+                                    name="tema"
+                                    value="LIGHT"
+                                    class="theme-option"
+                                    th:classappend="${loggedUserTheme.name() == 'LIGHT' ? ' active' : ''}"
+                                    th:attr="aria-pressed=${loggedUserTheme.name() == 'LIGHT'}">
+                                <i data-lucide="sun-medium" aria-hidden="true"></i>
+                                <span>Claro</span>
+                            </button>
+                            <button type="submit"
+                                    name="tema"
+                                    value="DARK"
+                                    class="theme-option"
+                                    th:classappend="${loggedUserTheme.name() == 'DARK' ? ' active' : ''}"
+                                    th:attr="aria-pressed=${loggedUserTheme.name() == 'DARK'}">
+                                <i data-lucide="moon-star" aria-hidden="true"></i>
+                                <span>Escuro</span>
+                            </button>
+                        </form>
+                    </div>
+                    <hr class="user-menu-divider">
                     <form th:action="@{/logout}" method="post">
                         <button type="submit" class="user-menu-item" role="menuitem">
                             <i data-lucide="log-out" aria-hidden="true"></i>

@@ -25,7 +25,9 @@
                     <h2 class="hero-title">Bloqueio de Horários</h2>
                     <p class="hero-subtitle">Cadastre indisponibilidades da clínica com segurança, sem conflitos com agenda interna e agendamento online.</p>
                 </div>
-                <span class="hero-pill">Operação clínica</span>
+                <button type="button" class="action-button primary" data-bloqueio-modal-open>
+                    <i data-lucide="calendar-plus"></i> Novo bloqueio
+                </button>
             </section>
 
             <nav class="page-tabs" aria-label="Seções Administrativas">
@@ -42,21 +44,30 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <section class="summary-grid">
+            <section class="summary-grid grid-4">
                 <article class="summary-card saldo">
                     <div class="summary-icon"><i data-lucide="rows-3"></i></div>
                     <p class="summary-label">Registros Encontrados</p>
                     <p class="summary-value" th:text="${resumoBloqueios.total}">0</p>
+                    <p class="summary-detail">Bloqueios no período filtrado</p>
                 </article>
                 <article class="summary-card receita">
                     <div class="summary-icon"><i data-lucide="shield-check"></i></div>
                     <p class="summary-label">Ativos</p>
                     <p class="summary-value" th:text="${resumoBloqueios.ativos}">0</p>
+                    <p class="summary-detail">Valendo para a agenda</p>
                 </article>
                 <article class="summary-card despesa">
                     <div class="summary-icon"><i data-lucide="sun-medium"></i></div>
                     <p class="summary-label">Dia Inteiro</p>
                     <p class="summary-value" th:text="${resumoBloqueios.diaInteiro}">0</p>
+                    <p class="summary-detail">Ocupam o dia todo</p>
+                </article>
+                <article class="summary-card despesa-pendente">
+                    <div class="summary-icon"><i data-lucide="ban"></i></div>
+                    <p class="summary-label">Cancelados</p>
+                    <p class="summary-value" th:text="${resumoBloqueios.cancelados}">0</p>
+                    <p class="summary-detail">Removidos do período</p>
                 </article>
             </section>
 
@@ -112,101 +123,13 @@
                                 Mostrar apenas ativos
                             </label>
                             <button type="submit" class="action-button primary"><i data-lucide="search"></i>Aplicar filtros</button>
-                            <button type="button" class="action-button primary" data-bloqueio-modal-open><i data-lucide="calendar-plus"></i>Novo bloqueio</button>
                             <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
                         </div>
                     </form>
                 </div>
             </section>
 
-            <section class="crud-layout form-table">
-                <div id="bloqueioFormModal"
-                     class="app-modal"
-                     aria-hidden="true"
-                     th:attr="data-open-on-load=${editMode or bloqueioModalOpen == true}">
-                    <div class="app-modal-backdrop" data-bloqueio-modal-close></div>
-                    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="bloqueioFormModalTitle">
-                        <div class="app-modal-card">
-                    <header class="app-modal-header">
-                        <div>
-                            <h3 id="bloqueioFormModalTitle" class="section-title"><i data-lucide="calendar-plus"></i><span th:text="${editMode ? 'Editar bloqueio' : 'Novo bloqueio'}">Novo bloqueio</span></h3>
-                            <p class="section-subtitle" th:text="${editMode ? 'Atualize um bloqueio futuro ou do grupo selecionado.' : 'Cadastre bloqueios por data, período e motivo com validação centralizada.'}">Formulário</p>
-                        </div>
-                        <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="app-modal-close" aria-label="Fechar modal"><i data-lucide="x"></i></a>
-                        <button th:unless="${editMode}" type="button" class="app-modal-close" data-bloqueio-modal-close aria-label="Fechar modal"><i data-lucide="x"></i></button>
-                    </header>
-                    <div class="app-modal-body">
-                        <form th:action="${editMode} ? @{/bloqueios/{id}/editar(id=${editingId})} : @{/bloqueios}" th:object="${bloqueioForm}" method="post" class="modern-form" id="bloqueioFormPrincipal">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <div class="form-grid form-grid-two">
-                                <div class="form-field">
-                                    <label for="dataInicial">Data inicial</label>
-                                    <input id="dataInicial" type="date" th:field="*{dataInicial}" class="form-control" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataInicial')}" th:errors="*{dataInicial}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="dataFinal">Data final</label>
-                                    <input id="dataFinal" type="date" th:field="*{dataFinal}" class="form-control" required>
-                                    <p class="form-error" th:if="${#fields.hasErrors('dataFinal')}" th:errors="*{dataFinal}"></p>
-                                </div>
-                            </div>
-
-                            <div class="form-field">
-                                <label class="checkbox-inline">
-                                    <input id="bloqueioDiaInteiro" type="checkbox" th:field="*{bloqueioDiaInteiro}">
-                                    Bloquear dia inteiro
-                                </label>
-                            </div>
-
-                            <div class="form-grid form-grid-two" id="horariosGrid">
-                                <div class="form-field">
-                                    <label for="horaInicio">Hora inicial</label>
-                                    <input id="horaInicio" type="time" th:field="*{horaInicio}" class="form-control">
-                                    <p class="form-error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></p>
-                                </div>
-                                <div class="form-field">
-                                    <label for="horaFim">Hora final</label>
-                                    <input id="horaFim" type="time" th:field="*{horaFim}" class="form-control">
-                                    <p class="form-error" th:if="${#fields.hasErrors('horaFim')}" th:errors="*{horaFim}"></p>
-                                </div>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="motivo">Motivo</label>
-                                <input id="motivo" type="text" th:field="*{motivo}" class="form-control" maxlength="255" placeholder="Ex: manutenção, reunião geral, evento externo" required>
-                                <p class="form-error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></p>
-                            </div>
-
-                            <div class="form-field">
-                                <label for="observacao">Observação</label>
-                                <textarea id="observacao" th:field="*{observacao}" class="form-control" rows="4" maxlength="2000" placeholder="Detalhes opcionais para apoio operacional e consulta no calendário."></textarea>
-                                <p class="form-error" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="action-button primary"><i data-lucide="save"></i><span th:text="${editMode ? 'Salvar alterações' : 'Salvar bloqueio'}">Salvar bloqueio</span></button>
-                                <button th:unless="${editMode}" type="reset" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar formulário</button>
-                                <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="x"></i>Cancelar edição</a>
-                            </div>
-                        </form>
-
-                        <div class="section-block" th:if="${editMode and bloqueiosRelacionados != null and !bloqueiosRelacionados.empty}">
-                            <h4 class="mini-title">Ocorrências do grupo</h4>
-                            <div class="timeline-list">
-                                <div class="timeline-item" th:each="item : ${bloqueiosRelacionados}">
-                                    <div>
-                                        <strong th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy')}">01/04/2026</strong>
-                                        <p class="muted-copy" th:text="${item.diaInteiro ? 'Dia inteiro' : (#temporals.format(item.dataHoraInicio, 'HH:mm') + ' às ' + #temporals.format(item.dataHoraFim, 'HH:mm'))}">Dia inteiro</p>
-                                    </div>
-                                    <span class="chip" th:classappend="${item.cancelado ? ' status-danger' : ' status-success'}" th:text="${item.status}">ATIVO</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                        </div>
-                    </div>
-                </div>
-
+            <section class="crud-layout">
                 <article class="section-card">
                     <header class="section-head">
                         <div>
@@ -222,7 +145,7 @@
                     </div>
                     <div class="section-body" th:unless="${bloqueios == null or bloqueios.empty}">
                         <div class="data-table-wrap">
-                            <table class="data-table">
+                            <table class="data-table compact">
                                 <thead>
                                 <tr>
                                     <th>Período</th>
@@ -285,6 +208,93 @@
         </main>
 
         <footer class="app-footer">© 2026 FisioGestao - Sistema de Gestão para Clínicas de Fisioterapia</footer>
+    </div>
+
+    <div id="bloqueioFormModal"
+         class="app-modal"
+         aria-hidden="true"
+         th:attr="data-open-on-load=${editMode or bloqueioModalOpen == true}">
+        <div class="app-modal-backdrop" data-bloqueio-modal-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="bloqueioFormModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div>
+                        <h3 id="bloqueioFormModalTitle" class="section-title"><i data-lucide="calendar-plus"></i><span th:text="${editMode ? 'Editar bloqueio' : 'Novo bloqueio'}">Novo bloqueio</span></h3>
+                        <p class="section-subtitle" th:text="${editMode ? 'Atualize um bloqueio futuro ou do grupo selecionado.' : 'Cadastre bloqueios por data, período e motivo com validação centralizada.'}">Formulário</p>
+                    </div>
+                    <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="app-modal-close" aria-label="Fechar modal"><i data-lucide="x"></i></a>
+                    <button th:unless="${editMode}" type="button" class="app-modal-close" data-bloqueio-modal-close aria-label="Fechar modal"><i data-lucide="x"></i></button>
+                </header>
+                <div class="app-modal-body">
+                    <form th:action="${editMode} ? @{/bloqueios/{id}/editar(id=${editingId})} : @{/bloqueios}" th:object="${bloqueioForm}" method="post" class="modern-form" id="bloqueioFormPrincipal">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="dataInicial">Data inicial</label>
+                                <input id="dataInicial" type="date" th:field="*{dataInicial}" class="form-control" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataInicial')}" th:errors="*{dataInicial}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="dataFinal">Data final</label>
+                                <input id="dataFinal" type="date" th:field="*{dataFinal}" class="form-control" required>
+                                <p class="form-error" th:if="${#fields.hasErrors('dataFinal')}" th:errors="*{dataFinal}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="checkbox-inline">
+                                <input id="bloqueioDiaInteiro" type="checkbox" th:field="*{bloqueioDiaInteiro}">
+                                Bloquear dia inteiro
+                            </label>
+                        </div>
+
+                        <div class="form-grid form-grid-two" id="horariosGrid">
+                            <div class="form-field">
+                                <label for="horaInicio">Hora inicial</label>
+                                <input id="horaInicio" type="time" th:field="*{horaInicio}" class="form-control">
+                                <p class="form-error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="horaFim">Hora final</label>
+                                <input id="horaFim" type="time" th:field="*{horaFim}" class="form-control">
+                                <p class="form-error" th:if="${#fields.hasErrors('horaFim')}" th:errors="*{horaFim}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="motivo">Motivo</label>
+                            <input id="motivo" type="text" th:field="*{motivo}" class="form-control" maxlength="255" placeholder="Ex: manutenção, reunião geral, evento externo" required>
+                            <p class="form-error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></p>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="observacao">Observação</label>
+                            <textarea id="observacao" th:field="*{observacao}" class="form-control" rows="4" maxlength="2000" placeholder="Detalhes opcionais para apoio operacional e consulta no calendário."></textarea>
+                            <p class="form-error" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="action-button primary"><i data-lucide="save"></i><span th:text="${editMode ? 'Salvar alterações' : 'Salvar bloqueio'}">Salvar bloqueio</span></button>
+                            <button th:unless="${editMode}" type="reset" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar formulário</button>
+                            <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="x"></i>Cancelar edição</a>
+                        </div>
+                    </form>
+
+                    <div class="section-block" th:if="${editMode and bloqueiosRelacionados != null and !bloqueiosRelacionados.empty}">
+                        <h4 class="mini-title">Ocorrências do grupo</h4>
+                        <div class="timeline-list">
+                            <div class="timeline-item" th:each="item : ${bloqueiosRelacionados}">
+                                <div>
+                                    <strong th:text="${#temporals.format(item.dataHoraInicio, 'dd/MM/yyyy')}">01/04/2026</strong>
+                                    <p class="muted-copy" th:text="${item.diaInteiro ? 'Dia inteiro' : (#temporals.format(item.dataHoraInicio, 'HH:mm') + ' às ' + #temporals.format(item.dataHoraFim, 'HH:mm'))}">Dia inteiro</p>
+                                </div>
+                                <span class="chip" th:classappend="${item.cancelado ? ' status-danger' : ' status-success'}" th:text="${item.status}">ATIVO</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
