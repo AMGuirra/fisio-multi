@@ -5,7 +5,8 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
 
 app:
-  base-url: ${APP_BASE_URL}
+  # APP_BASE_URL permite domínio próprio; Render disponibiliza RENDER_EXTERNAL_URL automaticamente.
+  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8081}}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY}
     remember-me-key: ${APP_SECURITY_REMEMBER_ME_KEY}

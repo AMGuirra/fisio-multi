@@ -57,7 +57,9 @@ springdoc:
 
 app:
   timezone: America/Campo_Grande
-  base-url: ${APP_BASE_URL:http://localhost:8081}
+  # No Render, usa a URL HTTPS pública fornecida automaticamente pela plataforma.
+  # APP_BASE_URL continua tendo precedência para domínio próprio/canônico.
+  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8081}}
   flyway:
     repair-on-startup: ${APP_FLYWAY_REPAIR_ON_STARTUP:false}
   security:

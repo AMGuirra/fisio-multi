@@ -29,6 +29,7 @@ class ProductionSecurityConfigurationTest {
         assertTrue(config.contains("${SPRING_DATASOURCE_PASSWORD}"));
         assertTrue(config.contains("${APP_ENCRYPTION_KEY}"));
         assertTrue(config.contains("${APP_SECURITY_REMEMBER_ME_KEY}"));
+        assertTrue(config.contains("RENDER_EXTERNAL_URL"));
         assertFalse(config.contains(":postgres"));
     }
 
