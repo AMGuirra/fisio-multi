@@ -49,6 +49,7 @@ public class BloqueiosController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("bloqueioModalOpen", true);
             prepararPagina(model, filtroPadrao(filtroForm), form, null);
             return "bloqueios/index";
         }
@@ -58,6 +59,7 @@ public class BloqueiosController {
             return "redirect:/bloqueios";
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
+            model.addAttribute("bloqueioModalOpen", true);
             prepararPagina(model, filtroPadrao(filtroForm), form, null);
             return "bloqueios/index";
         }

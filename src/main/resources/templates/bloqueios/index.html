@@ -113,6 +113,7 @@
                                 Mostrar apenas ativos
                             </label>
                             <button type="submit" class="action-button primary"><i data-lucide="search"></i>Aplicar filtros</button>
+                            <button type="button" class="action-button primary" data-bloqueio-modal-open><i data-lucide="calendar-plus"></i>Novo bloqueio</button>
                             <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar</a>
                         </div>
                     </form>
@@ -120,15 +121,22 @@
             </section>
 
             <section class="crud-layout form-table">
-                <article class="section-card">
-                    <header class="section-head">
+                <div id="bloqueioFormModal"
+                     class="app-modal"
+                     aria-hidden="true"
+                     th:attr="data-open-on-load=${editMode or bloqueioModalOpen == true}">
+                    <div class="app-modal-backdrop" data-bloqueio-modal-close></div>
+                    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="bloqueioFormModalTitle">
+                        <div class="app-modal-card">
+                    <header class="app-modal-header">
                         <div>
-                            <h3 class="section-title"><i data-lucide="calendar-plus"></i><span th:text="${editMode ? 'Editar bloqueio' : 'Novo bloqueio'}">Novo bloqueio</span></h3>
+                            <h3 id="bloqueioFormModalTitle" class="section-title"><i data-lucide="calendar-plus"></i><span th:text="${editMode ? 'Editar bloqueio' : 'Novo bloqueio'}">Novo bloqueio</span></h3>
                             <p class="section-subtitle" th:text="${editMode ? 'Atualize um bloqueio futuro ou do grupo selecionado.' : 'Cadastre bloqueios por data, período e motivo com validação centralizada.'}">Formulário</p>
                         </div>
-                        <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="x"></i>Cancelar edição</a>
+                        <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="app-modal-close" aria-label="Fechar modal"><i data-lucide="x"></i></a>
+                        <button th:unless="${editMode}" type="button" class="app-modal-close" data-bloqueio-modal-close aria-label="Fechar modal"><i data-lucide="x"></i></button>
                     </header>
-                    <div class="section-body">
+                    <div class="app-modal-body">
                         <form th:action="${editMode} ? @{/bloqueios/{id}/editar(id=${editingId})} : @{/bloqueios}" th:object="${bloqueioForm}" method="post" class="modern-form" id="bloqueioFormPrincipal">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <div class="form-grid form-grid-two">
@@ -178,7 +186,8 @@
 
                             <div class="form-actions">
                                 <button type="submit" class="action-button primary"><i data-lucide="save"></i><span th:text="${editMode ? 'Salvar alterações' : 'Salvar bloqueio'}">Salvar bloqueio</span></button>
-                                <a th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar formulário</a>
+                                <button th:unless="${editMode}" type="reset" class="action-button ghost"><i data-lucide="rotate-ccw"></i>Limpar formulário</button>
+                                <a th:if="${editMode}" th:href="@{/bloqueios}" href="/bloqueios" class="action-button ghost"><i data-lucide="x"></i>Cancelar edição</a>
                             </div>
                         </form>
 
@@ -195,7 +204,9 @@
                             </div>
                         </div>
                     </div>
-                </article>
+                        </div>
+                    </div>
+                </div>
 
                 <article class="section-card">
                     <header class="section-head">
@@ -288,6 +299,24 @@
             const horariosGrid = document.getElementById('horariosGrid');
             const horaInicio = document.getElementById('horaInicio');
             const horaFim = document.getElementById('horaFim');
+            const modal = document.getElementById('bloqueioFormModal');
+
+            const setModalOpen = (open) => {
+                if (!modal) return;
+                modal.classList.toggle('is-open', open);
+                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                document.body.classList.toggle('modal-open', open);
+                if (open) modal.querySelector('#dataInicial')?.focus();
+            };
+
+            document.querySelectorAll('[data-bloqueio-modal-open]').forEach((button) =>
+                button.addEventListener('click', () => setModalOpen(true)));
+            document.querySelectorAll('[data-bloqueio-modal-close]').forEach((button) =>
+                button.addEventListener('click', () => setModalOpen(false)));
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal?.classList.contains('is-open')) setModalOpen(false);
+            });
+            if (modal?.dataset.openOnLoad === 'true') setModalOpen(true);
 
             if (!checkbox || !horariosGrid || !horaInicio || !horaFim) {
                 return;
