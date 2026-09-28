@@ -1735,6 +1735,9 @@ footer.portal-footer {
 .clinica-endereco-cidade { flex: 1; min-width: 160px; }
 .clinica-endereco-estado { flex: 0 0 90px; }
 .clinica-cep-feedback { display: none; margin-top: -8px; }
+.clinica-whatsapp-row { display: flex; gap: 8px; align-items: stretch; }
+.clinica-whatsapp-row > .form-control { flex: 1; min-width: 0; }
+.clinica-whatsapp-row > .action-button { flex: 0 0 auto; }
 .flash-message-highlight { background: var(--brand-50, #e6f7f4) !important; border-color: var(--brand-300, #7dd3c8) !important; }
 .mb-2rem { margin-bottom: 2rem !important; }
 .text-uppercase { text-transform: uppercase !important; }

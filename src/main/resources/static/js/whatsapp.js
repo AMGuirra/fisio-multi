@@ -48,7 +48,7 @@
     function abrirWhatsAppSemApi(telefone, mensagem) {
         const numero = normalizarNumero(telefone);
         if (!numero) {
-            avisar(telefone ? 'Telefone do paciente inválido para WhatsApp.' : 'Paciente não possui telefone cadastrado.');
+            avisar(telefone ? 'Telefone inválido para WhatsApp.' : 'Nenhum telefone informado para o WhatsApp.');
             return;
         }
         const texto = mensagem ? '?text=' + encodeURIComponent(mensagem) : '';

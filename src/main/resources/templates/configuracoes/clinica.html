@@ -156,7 +156,12 @@
                             <div class="form-grid form-grid-two">
                                 <div class="form-field">
                                     <label for="telefoneWhatsapp">Telefone / WhatsApp da clínica</label>
-                                    <input id="telefoneWhatsapp" type="text" class="form-control" th:field="*{telefoneWhatsapp}" maxlength="20" placeholder="(65) 99999-9999">
+                                    <div class="clinica-whatsapp-row">
+                                        <input id="telefoneWhatsapp" type="text" class="form-control" th:field="*{telefoneWhatsapp}" maxlength="20" placeholder="(65) 99999-9999">
+                                        <button type="button" id="btnTestarWhatsapp" class="action-button whatsapp" title="Abre o WhatsApp com uma mensagem de teste para o número informado">
+                                            <i data-lucide="send"></i>Testar
+                                        </button>
+                                    </div>
                                     <p class="helper-text">Exibido no portal do paciente como contato da clínica. As mensagens aos pacientes abrem no WhatsApp de quem clica (wa.me, sem API).</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('telefoneWhatsapp')}" th:errors="*{telefoneWhatsapp}"></p>
                                 </div>
@@ -323,7 +328,20 @@
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script th:src="@{/js/whatsapp.js}" src="/js/whatsapp.js"></script>
     <script th:attr="nonce=${cspNonce}">
+        (() => {
+            // Usa o valor digitado (mesmo sem salvar) para conferir se o número abre no WhatsApp.
+            const telefoneInput = document.getElementById('telefoneWhatsapp');
+            const btnTestar     = document.getElementById('btnTestarWhatsapp');
+            if (!telefoneInput || !btnTestar) return;
+
+            btnTestar.addEventListener('click', () => {
+                window.abrirWhatsAppSemApi(telefoneInput.value.trim(),
+                    'Teste de envio pelo FisioGestao: este é o WhatsApp configurado para a clínica.');
+            });
+        })();
+
         (() => {
             const cepInput     = document.getElementById('cep');
             const btnBuscar    = document.getElementById('btnBuscarCep');
