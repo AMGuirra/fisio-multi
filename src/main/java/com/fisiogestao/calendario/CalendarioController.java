@@ -13,6 +13,7 @@ import com.fisiogestao.solicitacoes.SolicitacaoStatus;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
 import com.fisiogestao.solicitacoes.form.ReagendarSolicitacaoForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
+import com.fisiogestao.whatsapp.WhatsAppMensagemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
@@ -48,6 +49,7 @@ public class CalendarioController {
     private final PacienteService pacienteService;
     private final PlanoSessaoService planoSessaoService;
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
+    private final WhatsAppMensagemService whatsAppMensagemService;
 
     @GetMapping
     public String index(
@@ -189,6 +191,7 @@ public class CalendarioController {
         model.addAttribute("dataMesProximo", ajustarDataParaMes(dataSelecionada, mesSelecionado.plusMonths(1)));
         model.addAttribute("calendarioSemanas", montarSemanas(mesSelecionado, dataSelecionada, sessoesMes, solicitacoesMes, bloqueiosMes));
         model.addAttribute("sessoes", sessoesDia);
+        model.addAttribute("whatsappLinksSessoes", whatsAppMensagemService.linksSessoes(sessoesDia));
         model.addAttribute("pacientes", pacienteService.listarAtivos());
         model.addAttribute("planosAgenda", planoSessaoService.listarDisponiveisParaAgenda());
         List<com.fisiogestao.pacientes.PlanoSessaoEntity> planosDiagnostico = planoSessaoService.listarTodosParaDiagnosticoAgenda();

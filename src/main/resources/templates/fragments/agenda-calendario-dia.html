@@ -65,6 +65,27 @@
                                            th:data-sessao-id="${sessao.id}">
                                             <i data-lucide="square-pen"></i>Editar
                                         </a>
+                                        <details class="patient-action-menu whatsapp-menu"
+                                                 th:if="${whatsappLinksSessoes != null and whatsappLinksSessoes.containsKey(sessao.id)}"
+                                                 th:with="wa=${whatsappLinksSessoes.get(sessao.id)}">
+                                            <summary class="action-button whatsapp" aria-label="Enviar mensagem por WhatsApp">
+                                                <i data-lucide="message-circle"></i>WhatsApp
+                                            </summary>
+                                            <div class="patient-action-popover">
+                                                <a th:href="${wa.agendamento}" target="_blank" rel="noopener noreferrer" class="patient-action-menu-item">
+                                                    <i data-lucide="calendar-check"></i>Agendamento realizado
+                                                </a>
+                                                <a th:href="${wa.lembrete}" target="_blank" rel="noopener noreferrer" class="patient-action-menu-item">
+                                                    <i data-lucide="bell"></i>Lembrete da sessão
+                                                </a>
+                                                <a th:href="${wa.confirmacao}" target="_blank" rel="noopener noreferrer" class="patient-action-menu-item">
+                                                    <i data-lucide="circle-help"></i>Confirmar presença (1/2)
+                                                </a>
+                                                <a th:href="${wa.portal}" target="_blank" rel="noopener noreferrer" class="patient-action-menu-item">
+                                                    <i data-lucide="external-link"></i>Link do portal
+                                                </a>
+                                            </div>
+                                        </details>
                                     </div>
                                     <div class="session-actions-main">
                                         <form th:if="${sessao.status.name() == 'AGENDADA'}"

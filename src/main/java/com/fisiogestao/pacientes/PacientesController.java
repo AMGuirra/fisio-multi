@@ -1,6 +1,7 @@
 package com.fisiogestao.pacientes;
 
 import com.fisiogestao.pacientes.form.PacienteForm;
+import com.fisiogestao.whatsapp.WhatsAppMensagemService;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.shared.web.BusinessException;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ import com.fisiogestao.config.ClinicTimezoneHolder;
 public class PacientesController {
 
     private final PacienteService pacienteService;
+    private final WhatsAppMensagemService whatsAppMensagemService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -146,6 +148,7 @@ public class PacientesController {
     ) {
         model.addAttribute("pacientes", pacienteService.montarListagem(pacientesPage));
         model.addAttribute("pacientesPage", pacientesPage);
+        model.addAttribute("whatsappPortalLinks", whatsAppMensagemService.linksPortal(pacientesPage.getContent()));
         model.addAttribute("busca", busca != null ? busca : "");
         model.addAttribute("status", status);
         model.addAttribute("hoje", ClinicTimezoneHolder.today());

@@ -23,6 +23,7 @@ import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.solicitacoes.SolicitacaoAgendamentoEntity;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.repository.SolicitacaoAgendamentoRepository;
+import com.fisiogestao.whatsapp.WhatsAppMensagemService;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -74,6 +75,7 @@ public class PortalPacienteController {
     private final SolicitacaoAgendamentoRepository solicitacaoAgendamentoRepository;
     private final PacienteService pacienteService;
     private final PlanoSessaoService planoSessaoService;
+    private final WhatsAppMensagemService whatsAppMensagemService;
 
     private static final String SESS_PREFIX = "portalAutenticado_";
 
@@ -239,12 +241,7 @@ public class PortalPacienteController {
                 .findByClienteIdAndTipoAndStatusOrderByDataPagamentoDescDataRecebimentoDescCreatedAtDesc(
                         paciente.getId(), TipoLancamentoFinanceiro.RECEITA, StatusLancamentoFinanceiro.PAGO);
 
-        String whatsappUrl = null;
-        if (clinica != null && clinica.getTelefoneWhatsapp() != null
-                && !clinica.getTelefoneWhatsapp().isBlank()) {
-            String soDigitos = clinica.getTelefoneWhatsapp().replaceAll("[^0-9]", "");
-            whatsappUrl = "https://wa.me/" + soDigitos;
-        }
+        String whatsappUrl = whatsAppMensagemService.linkContatoClinica(clinica, paciente);
 
         model.addAttribute("paciente", paciente);
         model.addAttribute("token", token);

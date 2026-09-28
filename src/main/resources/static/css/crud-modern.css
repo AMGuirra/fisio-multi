@@ -1151,6 +1151,16 @@ body[data-theme='dark'] .summary-card.despesa-pendente .summary-icon {
 .patient-action-menu-item { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text-strong); font: inherit; font-size: .84rem; font-weight: 650; text-align: left; text-decoration: none; cursor: pointer; }
 .patient-action-menu-item:hover, .patient-action-menu-item:focus-visible { background: var(--bg-soft); outline: none; }
 .patient-action-menu-item.danger { color: var(--color-text-danger); }
+/* WhatsApp (links wa.me, sem API) */
+.action-button.whatsapp,
+.btn-whatsapp { color: #fff; border: 1px solid #1da851; background: #25d366; text-decoration: none; }
+.action-button.whatsapp:hover,
+.action-button.whatsapp:focus-visible,
+.btn-whatsapp:hover,
+.btn-whatsapp:focus-visible { background: #1da851; color: #fff; outline: none; }
+.whatsapp-menu > summary.action-button { display: inline-flex; width: auto; height: auto; place-items: initial; color: #fff; border-color: #1da851; background: #25d366; }
+.whatsapp-menu > summary.action-button:hover { background: #1da851; }
+.whatsapp-menu .patient-action-popover { min-width: 240px; }
 .session-hint { display: block; margin-top: 2px; color: var(--brand-600); font-size: var(--text-xs); font-weight: 750; }
 
 @media (max-width: 768px) {

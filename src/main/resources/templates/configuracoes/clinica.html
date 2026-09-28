@@ -157,7 +157,7 @@
                                 <div class="form-field">
                                     <label for="telefoneWhatsapp">Telefone / WhatsApp da clínica</label>
                                     <input id="telefoneWhatsapp" type="text" class="form-control" th:field="*{telefoneWhatsapp}" maxlength="20" placeholder="(65) 99999-9999">
-                                    <p class="helper-text">Usado como destino padrão nas notificações internas da fila de WhatsApp.</p>
+                                    <p class="helper-text">Exibido no portal do paciente como contato da clínica. As mensagens aos pacientes abrem no WhatsApp de quem clica (wa.me, sem API).</p>
                                     <p class="form-error" th:if="${#fields.hasErrors('telefoneWhatsapp')}" th:errors="*{telefoneWhatsapp}"></p>
                                 </div>
                                 <div class="form-field">

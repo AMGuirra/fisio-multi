@@ -130,6 +130,7 @@
                                         <a th:href="@{/prontuario(pacienteId=${paciente.cliente.id})}" class="patient-action-menu-item"><i data-lucide="clipboard-pen-line"></i>Prontuário</a>
                                         <a th:href="@{/planos-consumo(pacienteId=${paciente.cliente.id})}" class="patient-action-menu-item"><i data-lucide="package-open"></i>Plano de tratamento</a>
                                         <a th:href="@{/paciente/{token}(token=${paciente.cliente.portalToken})}" target="_blank" rel="noopener" class="patient-action-menu-item"><i data-lucide="external-link"></i>Portal do paciente</a>
+                                        <a th:if="${whatsappPortalLinks != null and whatsappPortalLinks.containsKey(paciente.cliente.id)}" th:href="${whatsappPortalLinks.get(paciente.cliente.id)}" target="_blank" rel="noopener noreferrer" class="patient-action-menu-item"><i data-lucide="message-circle"></i>Enviar portal por WhatsApp</a>
                                         <button type="button"
                                                 class="patient-action-menu-item"
                                                 data-edit-paciente
