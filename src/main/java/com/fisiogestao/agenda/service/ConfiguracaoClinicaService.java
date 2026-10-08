@@ -75,7 +75,7 @@ public class ConfiguracaoClinicaService {
         entity.setAtivo(true);
 
         ConfiguracaoClinicaEntity salva = configuracaoClinicaRepository.save(entity);
-        ClinicTimezoneHolder.update(salva.getTimezoneId());
+        ClinicTimezoneHolder.registrar(salva.getEmpresaId(), salva.getTimezoneId());
         if (novoCadastro) {
             auditService.recordCreate(
                     AuditModule.CONFIGURACOES,

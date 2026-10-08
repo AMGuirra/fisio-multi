@@ -1,6 +1,6 @@
 package com.fisiogestao.agenda;
 
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -26,7 +26,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class ConfiguracaoClinicaEntity extends BaseEntity {
+public class ConfiguracaoClinicaEntity extends TenantEntity {
 
     private static final Set<DayOfWeek> DIAS_FUNCIONAMENTO_PADRAO =
             EnumSet.of(

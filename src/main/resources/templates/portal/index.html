@@ -10,7 +10,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}" href="/css/dashboard-modern.css">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}" href="/css/crud-modern.css">
 </head>
-<body class="portal-premium" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
+<body class="portal-premium" th:attr="data-theme=${loggedUserTheme.cssValue},data-clinica=${clinicaSlug}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
 <div class="portal-shell">
     <header class="portal-topbar">
         <div class="portal-brand">
@@ -570,7 +570,7 @@
             horarioSelect.disabled = true;
             const atual = horarioSelect.value;
             try {
-                const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}`, {
+                const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}&clinica=${encodeURIComponent(document.body.dataset.clinica || "")}`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!response.ok) {

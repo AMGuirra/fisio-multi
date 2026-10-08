@@ -1,7 +1,7 @@
 package com.fisiogestao.portal;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,7 +25,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class PacientePasswordResetTokenEntity extends BaseEntity {
+public class PacientePasswordResetTokenEntity extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)

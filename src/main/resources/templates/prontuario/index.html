@@ -83,7 +83,7 @@
             </section>
 
             <!-- ============================================================
-                 CONTEXTO DO PACIENTE — nome, último atendimento, total de evoluções
+                 CABEÇALHO DO PACIENTE — nome, último atendimento, total de evoluções
                  ============================================================ -->
             <section class="prontuario-context-bar" th:if="${pacienteSelecionado != null}">
                 <div class="prontuario-context-patient">
@@ -101,28 +101,36 @@
                     </strong>
                 </div>
                 <div class="prontuario-context-stat">
-                    <span class="prontuario-context-stat-label">Total de evoluções</span>
+                    <span class="prontuario-context-stat-label">Evoluções</span>
                     <strong class="prontuario-context-stat-value" th:text="${totalRegistros != null ? totalRegistros : 0}">0</strong>
                 </div>
             </section>
 
             <!-- ============================================================
-                 AVALIAÇÃO (esquerda) + EVOLUÇÃO (direita)
+                 FOLHA DO PRONTUÁRIO — AVALIAÇÃO (esquerda) | EVOLUÇÃO (direita)
+                 A coluna Evolução reúne o novo registro e o histórico, como no prontuário em papel.
                  ============================================================ -->
-            <section class="prontuario-main-grid" th:if="${pacienteSelecionado != null}">
+            <section class="prontuario-sheet" th:if="${pacienteSelecionado != null}">
 
                 <!-- ----------------------------- AVALIAÇÃO ----------------------------- -->
-                <article class="section-card prontuario-panel" id="avaliacao">
+                <article class="section-card prontuario-sheet-col prontuario-col-avaliacao" id="avaliacao">
                     <header class="section-head">
                         <div>
                             <h3 class="section-title"><i data-lucide="clipboard-list"></i> Avaliação</h3>
-                            <p class="section-subtitle">Registro clínico inicial do paciente</p>
+                            <p class="section-subtitle">Avaliação clínica inicial</p>
                         </div>
                     </header>
                     <div class="section-body">
-                        <p class="helper-text prontuario-guidance">
-                            Registre livremente queixa, exame físico, avaliação, região corporal, EVA, objetivos e plano terapêutico.
+                        <p class="prontuario-meta" th:if="${avaliacao != null}">
+                            <span th:text="${'Registrada em ' + #temporals.format(avaliacao.createdAt, 'dd/MM/yyyy') + ' por ' + avaliacao.criadoPor}">Registrada em</span>
+                            <span th:if="${#temporals.format(avaliacao.updatedAt, 'dd/MM/yyyy HH:mm') != #temporals.format(avaliacao.createdAt, 'dd/MM/yyyy HH:mm')}"
+                                  th:text="${'Última atualização em ' + #temporals.format(avaliacao.updatedAt, 'dd/MM/yyyy HH:mm')}">Última atualização</span>
                         </p>
+                        <div class="prontuario-notice" th:if="${avaliacao == null}">
+                            <i data-lucide="info"></i>
+                            <p>Este paciente ainda não possui uma avaliação registrada. Registre a avaliação inicial abaixo.</p>
+                        </div>
+
                         <form th:action="@{/prontuario/avaliacao}" th:object="${avaliacaoForm}" method="post"
                               class="modern-form" id="formAvaliacao" data-submit-guard>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -136,7 +144,7 @@
                                           data-char-counter="avaliacaoContador"
                                           maxlength="8000"
                                           th:attr="data-original=${avaliacao != null ? avaliacao.textoRegistro : ''}"
-                                          placeholder="Descreva a avaliação clínica inicial do paciente..."></textarea>
+                                          placeholder="Queixa, exame físico, região corporal, EVA, objetivos e plano terapêutico..."></textarea>
                                 <div class="prontuario-textarea-footer">
                                     <p class="form-error" th:if="${#fields.hasErrors('texto')}" th:errors="*{texto}"></p>
                                     <span class="prontuario-char-counter" id="avaliacaoContador">0 / 8000 caracteres</span>
@@ -148,33 +156,27 @@
                                     <i data-lucide="rotate-ccw"></i>
                                     Cancelar
                                 </button>
-                                <button type="submit" class="action-button primary" data-submit-label="Salvar avaliação" data-loading-label="Salvando...">
+                                <button type="submit" class="action-button primary" data-loading-label="Salvando...">
                                     <i data-lucide="save"></i>
-                                    <span>Salvar avaliação</span>
+                                    <span th:text="${avaliacao != null ? 'Salvar alterações' : 'Salvar avaliação'}">Salvar avaliação</span>
                                 </button>
                             </div>
                         </form>
-
-                        <div class="empty-box prontuario-inline-empty" th:if="${avaliacao == null}">
-                            <i data-lucide="info"></i>
-                            <p>Este paciente ainda não possui uma avaliação registrada.</p>
-                        </div>
-                        <p class="helper-text prontuario-last-update" th:if="${avaliacao != null}"
-                           th:text="'Última atualização em ' + ${#temporals.format(avaliacao.updatedAt, 'dd/MM/yyyy HH:mm')} + ' por ' + ${avaliacao.criadoPor}">
-                            Última atualização
-                        </p>
                     </div>
                 </article>
 
                 <!-- ----------------------------- EVOLUÇÃO ----------------------------- -->
-                <article class="section-card prontuario-panel" id="novaEvolucao">
+                <article class="section-card prontuario-sheet-col prontuario-col-evolucao" id="evolucao">
                     <header class="section-head">
                         <div>
                             <h3 class="section-title"><i data-lucide="notebook-pen"></i> Evolução</h3>
-                            <p class="section-subtitle">Diário clínico contínuo do tratamento</p>
+                            <p class="section-subtitle">Acompanhamento clínico ao longo do tratamento</p>
                         </div>
                     </header>
-                    <div class="section-body">
+
+                    <!-- Nova evolução -->
+                    <div class="section-body prontuario-evolucao-nova" id="novaEvolucao">
+                        <h4 class="prontuario-subhead"><i data-lucide="plus"></i> Registrar nova evolução</h4>
                         <form th:action="@{/prontuario/evolucao}" th:object="${evolucaoForm}" method="post"
                               enctype="multipart/form-data" class="modern-form" id="formEvolucao" data-submit-guard>
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -193,7 +195,7 @@
                             </div>
 
                             <div class="form-field">
-                                <label for="evolucaoTexto">Nova evolução</label>
+                                <label for="evolucaoTexto">Evolução do atendimento</label>
                                 <textarea id="evolucaoTexto" class="form-control prontuario-textarea"
                                           th:field="*{texto}"
                                           data-autogrow
@@ -248,234 +250,234 @@
                                     <i data-lucide="eraser"></i>
                                     Limpar
                                 </button>
-                                <button type="submit" class="action-button primary" data-submit-label="Salvar evolução" data-loading-label="Salvando...">
+                                <button type="submit" class="action-button primary" data-loading-label="Salvando...">
                                     <i data-lucide="save"></i>
                                     <span>Salvar evolução</span>
                                 </button>
                             </div>
                         </form>
                     </div>
+
+                    <!-- Histórico de evoluções (mais recente primeiro) -->
+                    <div class="section-body prontuario-evolucao-historico" id="historicoEvolucao">
+                        <h4 class="prontuario-subhead">
+                            <i data-lucide="history"></i> Histórico de evoluções
+                            <span class="prontuario-subhead-count" th:text="${totalRegistros + ' registro(s)'}">0 registro(s)</span>
+                        </h4>
+
+                        <div class="empty-box" th:if="${evolucoes == null or evolucoes.empty}">
+                            <i data-lucide="file-search"></i>
+                            <p>Este paciente ainda não possui evoluções registradas.</p>
+                        </div>
+
+                        <ol class="prontuario-timeline" th:unless="${evolucoes == null or evolucoes.empty}">
+                            <li class="prontuario-timeline-item"
+                                th:each="registro : ${evolucoes}"
+                                th:id="${'evolucao-' + registro.id}"
+                                th:with="fotos=${fotosPorEvolucao.get(registro.id)}">
+                                <details class="prontuario-entry">
+                                    <summary class="prontuario-entry-summary">
+                                        <span class="prontuario-entry-line">
+                                            <strong th:text="${#temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm')}">Data</strong>
+                                            <span class="prontuario-entry-sep" aria-hidden="true">•</span>
+                                            <span th:text="${registro.criadoPor}">Profissional</span>
+                                            <span class="chip status-approved" th:if="${registro.sessao != null and registro.sessao.dataHoraInicio != null}"
+                                                  th:text="${'Sessão ' + #temporals.format(registro.sessao.dataHoraInicio, 'dd/MM HH:mm')}">Sessão</span>
+                                            <span class="chip status-info" th:if="${fotos != null and !fotos.empty}"
+                                                  th:text="${fotos.size() + ' foto(s)'}">Fotos</span>
+                                        </span>
+                                        <span class="prontuario-entry-resumo"
+                                              th:text="${registro.textoRegistro != null ? registro.textoRegistro : 'Evolução registrada somente com fotos.'}">Resumo da evolução</span>
+                                        <span class="prontuario-entry-toggle">
+                                            <span class="prontuario-when-closed">Ver detalhes</span>
+                                            <span class="prontuario-when-open">Ocultar detalhes</span>
+                                            <i data-lucide="chevron-down"></i>
+                                        </span>
+                                    </summary>
+
+                                    <div class="prontuario-entry-body">
+                                        <div class="soap-entry-badges">
+                                            <span th:if="${registro.escalaEvaDor != null}"
+                                                  class="chip"
+                                                  th:classappend="${registro.escalaEvaDor <= 3 ? 'status-approved' : (registro.escalaEvaDor <= 6 ? 'status-warning' : 'status-danger')}"
+                                                  th:text="'EVA clínica: ' + ${registro.escalaEvaDor}">EVA</span>
+                                            <span th:if="${registro.sessao != null and registro.sessao.feedbackEvaPaciente != null}"
+                                                  class="chip"
+                                                  th:classappend="${registro.sessao.feedbackEvaPaciente <= 3 ? 'status-approved' : (registro.sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
+                                                  th:title="'Nota informada pelo próprio paciente no portal'"
+                                                  th:text="'EVA paciente: ' + ${registro.sessao.feedbackEvaPaciente}">EVA Paciente</span>
+                                            <span th:if="${registro.regiaoCorporal != null and !#strings.isEmpty(registro.regiaoCorporal)}"
+                                                  class="chip status-info"
+                                                  th:text="${registro.regiaoCorporal}">Região</span>
+                                        </div>
+
+                                        <!-- Texto completo da evolução -->
+                                        <p class="prontuario-history-text" data-role="entry-read" th:text="${registro.textoRegistro}">Texto da evolução</p>
+
+                                        <!-- Edição inline (oculta por padrão) -->
+                                        <form th:action="@{/prontuario/evolucao/{id}/editar(id=${registro.id})}"
+                                              method="post"
+                                              class="modern-form prontuario-entry-edit-form"
+                                              data-role="entry-edit"
+                                              data-submit-guard
+                                              hidden>
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+                                            <div class="form-field">
+                                                <label th:for="${'editarTexto-' + registro.id}" class="sr-only-label">Editar evolução</label>
+                                                <textarea th:id="${'editarTexto-' + registro.id}" name="texto" class="form-control prontuario-textarea"
+                                                          data-autogrow maxlength="8000" th:text="${registro.textoRegistro}"></textarea>
+                                            </div>
+                                            <div class="prontuario-form-actions">
+                                                <button type="button" class="action-button ghost prontuario-entry-edit-cancel"
+                                                        th:attr="data-target=${'evolucao-' + registro.id}">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit" class="action-button primary">
+                                                    <i data-lucide="save"></i>
+                                                    Salvar alterações
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        <div th:if="${registro.tecnicasUtilizadas != null and !#strings.isEmpty(registro.tecnicasUtilizadas)}" class="prontuario-tecnicas">
+                                            <p class="prontuario-label">Técnicas utilizadas</p>
+                                            <p class="prontuario-value" th:text="${registro.tecnicasUtilizadas}">Técnicas</p>
+                                        </div>
+                                        <div th:if="${registro.obsEvolucao != null and !#strings.isEmpty(registro.obsEvolucao)}" class="prontuario-evolucao">
+                                            <p class="prontuario-label">Evolução comparada</p>
+                                            <p class="prontuario-value" th:text="${registro.obsEvolucao}">Observações</p>
+                                        </div>
+
+                                        <!-- Miniaturas das fotos vinculadas a esta evolução -->
+                                        <div class="prontuario-photo-thumbs" th:if="${fotos != null and !fotos.empty}">
+                                            <button type="button" class="prontuario-photo-thumb" th:each="foto : ${fotos}"
+                                                    th:attr="data-lightbox-src=@{/prontuario/anexo/{id}(id=${foto.id})},
+                                                             data-lightbox-download=@{/prontuario/anexo/{id}(id=${foto.id}, download=true)},
+                                                             data-lightbox-regiao=${foto.regiaoCorporal},
+                                                             data-lightbox-observacao=${foto.descricao},
+                                                             data-lightbox-data=${#temporals.format(foto.createdAt, 'dd/MM/yyyy HH:mm')},
+                                                             data-lightbox-autor=${foto.criadoPor}"
+                                                    data-lightbox-group>
+                                                <img th:src="@{/prontuario/foto/{id}/miniatura(id=${foto.id})}"
+                                                     th:alt="${'Foto clínica — ' + (foto.regiaoCorporal != null ? foto.regiaoCorporal : 'acompanhamento') + ' — ' + #temporals.format(foto.createdAt, 'dd/MM/yyyy')}"
+                                                     loading="lazy">
+                                            </button>
+                                        </div>
+
+                                        <div class="prontuario-entry-actions">
+                                            <button type="button" class="action-button ghost prontuario-entry-edit-toggle"
+                                                    th:attr="data-target=${'evolucao-' + registro.id}">
+                                                <i data-lucide="pencil"></i>
+                                                Editar
+                                            </button>
+                                            <form th:action="@{/prontuario/evolucao/{id}/excluir(id=${registro.id})}"
+                                                  method="post"
+                                                  class="d-inline"
+                                                  data-confirm-modal
+                                                  data-confirm-title="Excluir evolução"
+                                                  data-confirm-message="Excluir esta evolução permanentemente? Esta ação não pode ser desfeita."
+                                                  data-confirm-helper-title="Exclusão definitiva"
+                                                  data-confirm-helper-message="O registro será removido do histórico do paciente depois da confirmação."
+                                                  data-confirm-action-label="Excluir">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
+                                                <button type="submit" class="action-button ghost text-danger">
+                                                    <i data-lucide="trash-2"></i>
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </details>
+                            </li>
+                        </ol>
+                    </div>
                 </article>
             </section>
 
             <!-- ============================================================
-                 HISTÓRICO DE EVOLUÇÕES — largura total
+                 DOCUMENTOS E ANEXOS — abaixo da folha do prontuário
                  ============================================================ -->
-            <section class="section-card prontuario-panel-full" th:if="${pacienteSelecionado != null}" id="historicoEvolucao">
-                <header class="section-head">
-                    <div>
-                        <h3 class="section-title"><i data-lucide="history"></i> Histórico de Evoluções</h3>
-                        <p class="section-subtitle" th:text="${totalRegistros + ' registro(s)'}">0 registro(s)</p>
-                    </div>
-                </header>
-
-                <div class="section-body" th:if="${evolucoes == null or evolucoes.empty}">
-                    <div class="empty-box">
-                        <i data-lucide="file-search"></i>
-                        <p>Este paciente ainda não possui evoluções registradas.</p>
-                    </div>
-                </div>
-
-                <div class="section-body" th:unless="${evolucoes == null or evolucoes.empty}">
-                    <div class="soap-history-stack">
-                        <article class="request-card soap-entry-card" th:each="registro : ${evolucoes}" th:id="${'evolucao-' + registro.id}">
-                            <div class="soap-entry-head">
-                                <div class="request-row align-start">
-                                    <span class="entity-avatar"><i data-lucide="notebook-pen"></i></span>
-                                    <div class="request-detail stack-10">
-                                        <div>
-                                            <p class="request-title" th:text="${#temporals.format(registro.createdAt, 'dd/MM/yyyy HH:mm')}">Data</p>
-                                            <p class="request-text" th:text="${'Registrado por ' + registro.criadoPor}">Registrado por</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="prontuario-entry-actions">
-                                    <button type="button" class="action-button ghost prontuario-entry-edit-toggle"
-                                            th:attr="data-target=${'evolucao-' + registro.id}">
-                                        <i data-lucide="pencil"></i>
-                                        Editar
-                                    </button>
-                                    <form th:action="@{/prontuario/evolucao/{id}/excluir(id=${registro.id})}"
-                                          method="post"
-                                          class="d-inline"
-                                          data-confirm-modal
-                                          data-confirm-title="Excluir evolução"
-                                          data-confirm-message="Excluir esta evolução permanentemente? Esta ação não pode ser desfeita."
-                                          data-confirm-helper-title="Exclusão definitiva"
-                                          data-confirm-helper-message="O registro será removido do histórico do paciente depois da confirmação."
-                                          data-confirm-action-label="Excluir">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                        <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
-                                        <button type="submit" class="action-button ghost text-danger">
-                                            <i data-lucide="trash-2"></i>
-                                            Excluir
-                                        </button>
-                                    </form>
-                                </div>
-                                <div class="soap-entry-badges">
-                                    <span class="chip status-approved" th:if="${registro.sessao != null}">Sessão vinculada</span>
-                                    <span class="chip status-success" th:if="${registro.sessao != null}"
-                                          th:text="${#temporals.format(registro.sessao.dataHoraInicio, 'dd/MM HH:mm')}">
-                                        Sessão
-                                    </span>
-                                    <span th:if="${registro.escalaEvaDor != null}"
-                                          class="chip"
-                                          th:classappend="${registro.escalaEvaDor <= 3 ? 'status-approved' : (registro.escalaEvaDor <= 6 ? 'status-warning' : 'status-danger')}"
-                                          th:text="'EVA clínica: ' + ${registro.escalaEvaDor}">EVA</span>
-                                    <span th:if="${registro.sessao != null and registro.sessao.feedbackEvaPaciente != null}"
-                                          class="chip"
-                                          th:classappend="${registro.sessao.feedbackEvaPaciente <= 3 ? 'status-approved' : (registro.sessao.feedbackEvaPaciente <= 6 ? 'status-warning' : 'status-danger')}"
-                                          th:title="'Nota informada pelo próprio paciente no portal'"
-                                          th:text="'EVA paciente: ' + ${registro.sessao.feedbackEvaPaciente}">EVA Paciente</span>
-                                    <span th:if="${registro.regiaoCorporal != null and !#strings.isEmpty(registro.regiaoCorporal)}"
-                                          class="chip status-info"
-                                          th:text="${registro.regiaoCorporal}">Região</span>
-                                </div>
-                            </div>
-
-                            <!-- Texto da evolução, em bloco único -->
-                            <p class="prontuario-history-text" data-role="entry-read" th:text="${registro.textoRegistro}">Texto da evolução</p>
-
-                            <!-- Edição inline (oculta por padrão) -->
-                            <form th:action="@{/prontuario/evolucao/{id}/editar(id=${registro.id})}"
-                                  method="post"
-                                  class="modern-form prontuario-entry-edit-form"
-                                  data-role="entry-edit"
-                                  data-submit-guard
-                                  hidden>
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
-                                <div class="form-field">
-                                    <label th:for="${'editarTexto-' + registro.id}" class="sr-only-label">Editar evolução</label>
-                                    <textarea th:id="${'editarTexto-' + registro.id}" name="texto" class="form-control prontuario-textarea"
-                                              data-autogrow maxlength="8000" th:text="${registro.textoRegistro}"></textarea>
-                                </div>
-                                <div class="prontuario-form-actions">
-                                    <button type="button" class="action-button ghost prontuario-entry-edit-cancel"
-                                            th:attr="data-target=${'evolucao-' + registro.id}">
-                                        Cancelar
-                                    </button>
-                                    <button type="submit" class="action-button primary">
-                                        <i data-lucide="save"></i>
-                                        Salvar alterações
-                                    </button>
-                                </div>
-                            </form>
-
-                            <div th:if="${registro.tecnicasUtilizadas != null and !#strings.isEmpty(registro.tecnicasUtilizadas)}" class="prontuario-tecnicas">
-                                <p class="prontuario-label">Técnicas utilizadas</p>
-                                <p class="prontuario-value" th:text="${registro.tecnicasUtilizadas}">Técnicas</p>
-                            </div>
-                            <div th:if="${registro.obsEvolucao != null and !#strings.isEmpty(registro.obsEvolucao)}" class="prontuario-evolucao">
-                                <p class="prontuario-label">Evolução comparada</p>
-                                <p class="prontuario-value" th:text="${registro.obsEvolucao}">Observações</p>
-                            </div>
-
-                            <!-- Miniaturas de fotos vinculadas a esta evolução -->
-                            <div class="prontuario-photo-thumbs"
-                                 th:if="${fotosPorEvolucao != null and fotosPorEvolucao.get(registro.id) != null and !fotosPorEvolucao.get(registro.id).empty}">
-                                <button type="button" class="prontuario-photo-thumb" th:each="foto,iter : ${fotosPorEvolucao.get(registro.id)}"
-                                        th:attr="data-lightbox-src=@{/prontuario/anexo/{id}(id=${foto.id})},
-                                                 data-lightbox-download=@{/prontuario/anexo/{id}(id=${foto.id}, download=true)},
-                                                 data-lightbox-regiao=${foto.regiaoCorporal},
-                                                 data-lightbox-observacao=${foto.descricao},
-                                                 data-lightbox-data=${#temporals.format(foto.createdAt, 'dd/MM/yyyy HH:mm')},
-                                                 data-lightbox-autor=${foto.criadoPor}"
-                                        data-lightbox-group>
-                                    <img th:src="@{/prontuario/foto/{id}/miniatura(id=${foto.id})}"
-                                         th:alt="${'Foto clínica — ' + (foto.regiaoCorporal != null ? foto.regiaoCorporal : 'acompanhamento') + ' — ' + #temporals.format(foto.createdAt, 'dd/MM/yyyy')}"
-                                         loading="lazy">
-                                </button>
-                                <span class="prontuario-photo-count" th:text="${fotosPorEvolucao.get(registro.id).size() + ' foto(s)'}">0 foto(s)</span>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-                 SEÇÃO DE ANEXOS — Documentos clínicos do paciente
-                 ============================================================ -->
-            <section class="section-card prontuario-panel-full" th:if="${pacienteSelecionado != null}" id="documentosAnexos">
+            <section class="section-card prontuario-docs" th:if="${pacienteSelecionado != null}" id="documentosAnexos">
                 <header class="section-head">
                     <div>
                         <h3 class="section-title"><i data-lucide="paperclip"></i> Documentos e Anexos</h3>
-                        <p class="section-subtitle">Laudos, radiografias, avaliações e outros arquivos clínicos do paciente.</p>
+                        <p class="section-subtitle">Laudos, exames e outros arquivos clínicos do paciente.</p>
                     </div>
                     <span class="chip status-approved"
                           th:text="${(documentos != null ? documentos.size() : 0) + ' arquivo(s)'}">0 arquivo(s)</span>
                 </header>
 
-                <!-- Formulário de upload -->
-                <div class="section-body section-body-divided">
-                    <form th:action="@{/prontuario/anexo}"
-                          method="post"
-                          enctype="multipart/form-data"
-                          class="modern-form">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
-
-                        <div class="form-row form-row-2col">
-                            <div class="form-field">
-                                <label for="arquivo">Arquivo <span class="required-star">*</span></label>
-                                <input type="file"
-                                       id="arquivo"
-                                       name="arquivo"
-                                       class="form-control"
-                                       accept=".pdf,.jpg,.jpeg,.png,.webp,.docx"
-                                       required>
-                                <p class="helper-text">PDF, JPG, PNG, WebP ou DOCX — máx. 15 MB por arquivo.</p>
-                            </div>
-                            <div class="form-field">
-                                <label for="descricaoAnexo">Descrição (opcional)</label>
-                                <input type="text"
-                                       id="descricaoAnexo"
-                                       name="descricao"
-                                       class="form-control"
-                                       maxlength="500"
-                                       placeholder="Ex.: Raio-X coluna lombar, Laudo fisioterapêutico inicial">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="action-button primary">
-                            <i data-lucide="upload"></i>
-                            Enviar Arquivo
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Lista de anexos -->
                 <div class="section-body">
-                    <div th:if="${documentos == null or documentos.empty}" class="empty-box">
-                        <i data-lucide="file-search"></i>
-                        <p>Nenhum documento anexado para este paciente ainda.</p>
-                    </div>
+                    <details class="prontuario-upload">
+                        <summary class="action-button primary">
+                            <i data-lucide="upload"></i>
+                            Adicionar arquivo
+                        </summary>
+                        <form th:action="@{/prontuario/anexo}"
+                              method="post"
+                              enctype="multipart/form-data"
+                              class="modern-form prontuario-upload-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="clienteId" th:value="${pacienteSelecionadoId}">
 
-                    <div th:unless="${documentos == null or documentos.empty}" class="soap-history-stack">
-                        <article class="request-card attachment-card" th:each="anexo : ${documentos}">
+                            <div class="form-row form-row-2col">
+                                <div class="form-field">
+                                    <label for="arquivo">Arquivo <span class="required-star">*</span></label>
+                                    <input type="file"
+                                           id="arquivo"
+                                           name="arquivo"
+                                           class="form-control"
+                                           accept=".pdf,.jpg,.jpeg,.png,.webp,.docx"
+                                           required>
+                                    <p class="helper-text">PDF, JPG, PNG, WebP ou DOCX — máx. 15 MB por arquivo.</p>
+                                </div>
+                                <div class="form-field">
+                                    <label for="descricaoAnexo">Descrição (opcional)</label>
+                                    <input type="text"
+                                           id="descricaoAnexo"
+                                           name="descricao"
+                                           class="form-control"
+                                           maxlength="500"
+                                           placeholder="Ex.: Raio-X coluna lombar, Laudo fisioterapêutico inicial">
+                                </div>
+                            </div>
 
+                            <div class="prontuario-form-actions">
+                                <button type="submit" class="action-button primary">
+                                    <i data-lucide="upload"></i>
+                                    Enviar arquivo
+                                </button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <p class="prontuario-docs-empty" th:if="${documentos == null or documentos.empty}">
+                        Nenhum documento anexado para este paciente ainda.
+                    </p>
+
+                    <ul class="prontuario-doc-list" th:unless="${documentos == null or documentos.empty}">
+                        <li class="prontuario-doc-row" th:each="anexo : ${documentos}">
                             <span class="entity-avatar flex-shrink-0">
                                 <i th:attr="data-lucide=${anexo.icone}"></i>
                             </span>
 
-                            <div class="attachment-body">
-                                <p class="request-title word-break-all" th:text="${anexo.nomeOriginal}">nome-arquivo.pdf</p>
-                                <p class="request-text"
+                            <div class="prontuario-doc-info">
+                                <p class="prontuario-doc-name word-break-all" th:text="${anexo.nomeOriginal}">nome-arquivo.pdf</p>
+                                <p class="prontuario-doc-meta"
                                    th:text="${anexo.tamanhoFormatado + ' · ' + #temporals.format(anexo.createdAt, 'dd/MM/yyyy HH:mm') + ' · ' + anexo.criadoPor}">
                                     Tamanho · Data · Usuário
                                 </p>
-                                <p class="request-text attachment-desc"
+                                <p class="prontuario-doc-meta"
                                    th:if="${anexo.descricao != null and !#strings.isEmpty(anexo.descricao)}"
                                    th:text="${anexo.descricao}">Descrição</p>
-                                <div class="attachment-tags">
-                                    <span class="chip status-approved" th:if="${anexo.pdf}">PDF</span>
-                                    <span class="chip status-info" th:if="${anexo.imagem}">Imagem</span>
-                                </div>
                             </div>
 
-                            <div class="attachment-actions">
+                            <div class="prontuario-doc-actions">
                                 <a th:href="@{/prontuario/anexo/{id}(id=${anexo.id})}"
                                    target="_blank"
+                                   rel="noopener"
                                    class="action-button ghost">
                                     <i data-lucide="eye"></i>
                                     Visualizar
@@ -502,11 +504,11 @@
                                     </button>
                                 </form>
                             </div>
-
-                        </article>
-                    </div>
+                        </li>
+                    </ul>
                 </div>
             </section>
+
 
         </main>
 

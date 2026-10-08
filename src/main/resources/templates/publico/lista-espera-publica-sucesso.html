@@ -18,7 +18,7 @@
             Recebemos seu contato e você foi adicionado à lista de espera.<br>
             Assim que um horário ficar disponível, nossa equipe entrará em contato pelo WhatsApp.
         </p>
-        <a th:href="@{/agendamento-online}" href="/agendamento-online" class="pub-btn-link">
+        <a th:href="@{/agendamento-online(clinica=${clinicaSlug})}" href="/agendamento-online" class="pub-btn-link">
             <i data-lucide="calendar-plus"></i>
             Tentar agendar um horário
         </a>

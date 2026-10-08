@@ -57,7 +57,7 @@ class UserMenuAccessServiceTest {
     @Test
     void sidebarAdminNaoExibeListaDeEsperaSeparada() {
         List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
-                UserRole.ADMIN,
+                UserRole.ADMIN_CLINICA,
                 "/solicitacoes"
         );
 
@@ -72,7 +72,7 @@ class UserMenuAccessServiceTest {
     @Test
     void sidebarAdminExibeSubmenusFinanceiros() {
         List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
-                UserRole.ADMIN,
+                UserRole.ADMIN_CLINICA,
                 "/financeiro/contas-a-receber"
         );
 
@@ -94,7 +94,7 @@ class UserMenuAccessServiceTest {
     @Test
     void sidebarAdminExibeBloqueiosAbaixoDeConfiguracaoClinica() {
         List<UserMenuAccessService.SidebarNavItem> itens = userMenuAccessService.montarSidebarNavItems(
-                UserRole.ADMIN,
+                UserRole.ADMIN_CLINICA,
                 "/bloqueios"
         );
 

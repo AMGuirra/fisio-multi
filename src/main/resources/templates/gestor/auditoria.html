@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Auditoria da plataforma', 'Ações do Gestor, cadastros públicos, suporte e cancelamentos.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="section-card">
+        <form class="filter-bar" th:action="@{/gestor/auditoria}" th:object="${filtro}" method="get">
+            <input type="date" th:field="*{dataInicial}" aria-label="Data inicial">
+            <input type="date" th:field="*{dataFinal}" aria-label="Data final">
+            <input type="search" th:field="*{registroAfetado}" placeholder="Registro afetado" maxlength="120">
+            <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
+        </form>
+    </section>
+    <section class="section-card">
+        <p class="section-subtitle" th:text="${total} + ' evento(s)' + (${total > 300} ? ' — exibindo os 300 mais recentes' : '')">0 eventos</p>
+        <div class="data-table-wrap">
+            <table class="data-table compact">
+                <thead><tr><th>Quando</th><th>Ação</th><th>Entidade</th><th>Registro</th><th>Usuário</th><th>Observação</th></tr></thead>
+                <tbody>
+                <tr th:each="e : ${eventos}">
+                    <td th:text="${#temporals.format(e.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</td>
+                    <td><span class="chip" th:classappend="${' ' + e.tipoAcao.badgeClass}" th:text="${e.tipoAcao.label}">Ação</span></td>
+                    <td th:text="${e.entidade}">empresa</td>
+                    <td th:text="${e.descricaoRegistro}">Registro</td>
+                    <td th:text="${e.usuarioNome != null ? e.usuarioNome : 'sistema'}">usuário</td>
+                    <td th:text="${e.motivo != null ? e.motivo + ' — ' + e.observacao : e.observacao}">obs</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+</body>
+</html>

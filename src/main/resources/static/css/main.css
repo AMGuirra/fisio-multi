@@ -712,6 +712,86 @@ html:has(> body.auth-body) {
     color: var(--text-body, #374151);
 }
 
+/* Painel de busca da listagem de pacientes. */
+.patients-search-panel {
+    display: flex;
+    align-items: end;
+    gap: var(--space-sm);
+    margin: var(--space-lg) 0;
+    padding: var(--space-md);
+    border: 1px solid var(--stroke-soft, #e5e7eb);
+    border-radius: var(--radius-md, 0.75rem);
+    background: var(--bg-surface, #fff);
+    box-shadow: var(--shadow-sm);
+}
+
+.patients-search-panel .search-input-wrap { min-width: 0; }
+
+.patients-search-panel kbd {
+    position: absolute;
+    right: 0.75rem;
+    padding: 0.18rem 0.38rem;
+    border: 1px solid var(--stroke-soft, #e5e7eb);
+    border-radius: 0.3rem;
+    background: var(--bg-soft, #f8fafc);
+    color: var(--text-soft, #64748b);
+    font-family: inherit;
+    font-size: 0.7rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.patients-filter-field {
+    display: grid;
+    gap: 0.35rem;
+    flex: 0 0 9rem;
+}
+
+.patients-filter-field label {
+    color: var(--text-soft, #64748b);
+    font-size: var(--text-xs, 0.75rem);
+    font-weight: 700;
+}
+
+.patients-filter-field select {
+    width: 100%;
+    min-height: 2.625rem;
+    padding: 0 2rem 0 0.75rem;
+    border: 1.5px solid var(--stroke-soft, #e5e7eb);
+    border-radius: 0.625rem;
+    background: var(--bg-surface, #fff);
+    color: var(--text-body, #374151);
+    font: inherit;
+}
+
+.patients-search-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.625rem;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 0.625rem;
+    background: var(--brand-600, #0f8a78);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.patients-search-submit:hover,
+.patients-search-submit:focus-visible {
+    background: var(--brand-700, #0b6f61);
+    outline: none;
+}
+
+@media (max-width: 680px) {
+    .patients-search-panel { align-items: stretch; flex-direction: column; }
+    .patients-filter-field, .patients-search-submit { flex-basis: auto; width: 100%; }
+}
+
 .search-submit-btn {
     display: inline-flex;
     align-items: center;
@@ -2795,4 +2875,74 @@ body.theme-dark .pub-password-toggle {
     body.pub-body:not([data-theme]) .pub-password-toggle {
         color: var(--text-strong);
     }
+}
+
+/* ==========================================================================
+   Multiempresa: área Gestor e páginas públicas de acesso/suporte/cadastro
+   ========================================================================== */
+.gestor-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.gestor-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--color-background-elevated);
+    border: 1px solid var(--color-border);
+    color: var(--text-body);
+    text-decoration: none;
+}
+.gestor-kpi span { font-size: 13px; color: var(--text-soft); }
+.gestor-kpi strong { font-size: 24px; color: var(--text-strong); }
+.gestor-kpi small { color: var(--text-soft); }
+.gestor-kpi.kpi-alerta { border-color: var(--color-border-warning); background: var(--color-background-warning); }
+.gestor-kpi.kpi-perigo { border-color: var(--color-border-danger); background: var(--color-background-danger); }
+a.gestor-kpi:hover { border-color: var(--color-primary); }
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 14px 16px;
+}
+.filter-bar input, .filter-bar select { min-width: 160px; flex: 1 1 180px; }
+
+.gestor-acoes { display: flex; flex-direction: column; gap: 12px; }
+.gestor-acoes form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gestor-acoes form input, .gestor-acoes form select { flex: 1 1 200px; }
+
+.gestor-dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.gestor-dl dt { color: var(--text-soft); font-weight: 600; }
+.gestor-dl dd { margin: 0; color: var(--text-strong); word-break: break-word; }
+.gestor-relato {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--color-background-subtle);
+    white-space: pre-wrap;
+}
+.row-destaque td { background: var(--brand-50); }
+
+.chip.status-empresa-ativo { background: var(--color-background-success); color: #11603d; }
+.chip.status-empresa-teste { background: #e6efff; color: #1f4fb8; }
+.chip.status-empresa-bloqueado { background: var(--color-background-danger); color: #9a2323; }
+.chip.status-empresa-inativo { background: var(--color-background-subtle); color: var(--text-soft); }
+
+.pub-status-card { max-width: 520px; }
+.pub-status-icon-warning { background: var(--color-background-warning); color: var(--yellow-500); }
+.pub-actions-stack { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+.pub-check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; }
+.pub-check input { margin-top: 3px; }
+.pub-footer-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 18px; }
+.checkbox-inline { display: flex; gap: 10px; align-items: flex-start; }
+
+@media (max-width: 640px) {
+    .gestor-dl { grid-template-columns: 1fr; }
+    .filter-bar input, .filter-bar select { min-width: 0; }
 }

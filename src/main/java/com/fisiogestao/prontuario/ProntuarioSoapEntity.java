@@ -2,7 +2,7 @@ package com.fisiogestao.prontuario;
 
 import com.fisiogestao.agenda.SessaoEntity;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,7 +26,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class ProntuarioSoapEntity extends BaseEntity {
+public class ProntuarioSoapEntity extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)

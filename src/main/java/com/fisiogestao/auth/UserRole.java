@@ -4,7 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum UserRole {
-    ADMIN("Administrador"),
+    SUPER_ADMIN("Superadministrador"),
+    ADMIN_CLINICA("Administrador da clínica"),
     FISIOTERAPEUTA("Fisioterapeuta"),
     RECEPCAO("Recepção"),
     ASSESSORIA("Assessoria"),
@@ -22,8 +23,10 @@ public enum UserRole {
 
     public String getDescription() {
         switch (this) {
-            case ADMIN:
-                return "Tem acesso total ao sistema e pode administrar usuarios, configuracoes e permissoes.";
+            case SUPER_ADMIN:
+                return "Usuario global da plataforma: acessa apenas a area Gestor, sem vinculo com clinicas.";
+            case ADMIN_CLINICA:
+                return "Tem acesso total a clinica e pode administrar usuarios, configuracoes e permissoes.";
             case FISIOTERAPEUTA:
                 return "Perfil voltado ao atendimento clinico, evolucao e acompanhamento dos pacientes.";
             case RECEPCAO:
@@ -37,13 +40,25 @@ public enum UserRole {
         }
     }
 
+    /** Administrador da clínica: acesso total aos módulos da própria empresa. */
     public boolean isAdministrador() {
-        return this == ADMIN;
+        return this == ADMIN_CLINICA;
+    }
+
+    public boolean isSuperAdmin() {
+        return this == SUPER_ADMIN;
+    }
+
+    /** Papéis que pertencem a uma clínica (todos, exceto o superadmin da plataforma). */
+    public static List<UserRole> papeisDeClinica() {
+        return Arrays.stream(values())
+                .filter(role -> !role.isSuperAdmin())
+                .toList();
     }
 
     public static List<UserRole> configuraveisPeloAdministrador() {
         return Arrays.stream(values())
-                .filter(role -> !role.isAdministrador())
+                .filter(role -> !role.isAdministrador() && !role.isSuperAdmin())
                 .toList();
     }
 }

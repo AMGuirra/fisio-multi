@@ -24,7 +24,7 @@
                 <span th:text="${errorMessage}"></span>
             </div>
 
-            <form th:action="@{/lista-espera-publica}" method="post" novalidate>
+            <form th:action="@{/lista-espera-publica(clinica=${clinicaSlug})}" method="post" novalidate>
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
                 <div class="pub-form-group">
@@ -68,7 +68,7 @@
             </form>
 
             <div class="pub-footer-links">
-                <a th:href="@{/agendamento-online}"
+                <a th:href="@{/agendamento-online(clinica=${clinicaSlug})}"
                    class="pub-footer-link">
                    Agendar horário online
                 </a>

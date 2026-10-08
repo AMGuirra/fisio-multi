@@ -1,6 +1,6 @@
 package com.fisiogestao.pacientes;
 
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class ClienteEntity extends BaseEntity {
+public class ClienteEntity extends TenantEntity {
 
     @Column(name = "nome_completo", nullable = false, length = 160)
     private String nomeCompleto;

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Solicitações de cancelamento', 'Pedidos de saída enviados pelas clínicas.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="section-card">
+        <form class="filter-bar" th:action="@{/gestor/cancelamentos}" method="get">
+            <select name="status">
+                <option value="">Todos os status</option>
+                <option th:each="s : ${statusOpcoes}" th:value="${s.name()}" th:text="${s.label}" th:selected="${statusSelecionado == s}">Status</option>
+            </select>
+            <select name="empresaId">
+                <option value="">Todas as empresas</option>
+                <option th:each="e : ${empresas}" th:value="${e.key}" th:text="${e.value}" th:selected="${empresaSelecionada == e.key}">Empresa</option>
+            </select>
+            <input type="search" name="responsavel" th:value="${responsavel}" placeholder="Responsável ou e-mail" maxlength="120">
+            <input type="date" name="de" th:value="${de}" aria-label="De">
+            <input type="date" name="ate" th:value="${ate}" aria-label="Até">
+            <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
+        </form>
+    </section>
+    <section class="section-card">
+        <div class="section-body" th:if="${pagina.content.isEmpty()}">
+            <div class="empty-box"><i data-lucide="inbox"></i><p>Nenhuma solicitação encontrada.</p></div>
+        </div>
+        <div class="data-table-wrap" th:unless="${pagina.content.isEmpty()}">
+            <table class="data-table compact">
+                <thead><tr><th>Data</th><th>Empresa</th><th>Responsável</th><th>Motivo</th><th>Origem</th><th>Status</th><th class="text-right">Ações</th></tr></thead>
+                <tbody>
+                <tr th:each="s : ${pagina.content}">
+                    <td th:text="${#temporals.format(s.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</td>
+                    <td th:text="${s.empresaId != null and empresas.containsKey(s.empresaId) ? empresas.get(s.empresaId) : 'Não identificada'}">Empresa</td>
+                    <td><p class="entity-name" th:text="${s.nomeSolicitante}">Nome</p><p class="entity-meta" th:text="${s.emailContato}">email</p></td>
+                    <td th:text="${s.motivo.label}">Motivo</td>
+                    <td th:text="${s.origem.name() == 'SISTEMA' ? 'Sistema' : 'Página pública'}">Sistema</td>
+                    <td><span class="chip" th:text="${s.status.label}">Pendente</span></td>
+                    <td class="text-right"><a th:href="@{/gestor/cancelamentos/{id}(id=${s.id})}" class="action-button ghost inline-icon" aria-label="Abrir"><i data-lucide="arrow-right"></i></a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="pagination-bar" th:if="${pagina.totalPages > 1}">
+            <a th:if="${pagina.hasPrevious()}" th:href="@{/gestor/cancelamentos(status=${statusSelecionado}, empresaId=${empresaSelecionada}, responsavel=${responsavel}, de=${de}, ate=${ate}, pagina=${pagina.number - 1})}" class="action-button ghost">Anterior</a>
+            <span th:text="'Página ' + ${pagina.number + 1} + ' de ' + ${pagina.totalPages}">Página 1</span>
+            <a th:if="${pagina.hasNext()}" th:href="@{/gestor/cancelamentos(status=${statusSelecionado}, empresaId=${empresaSelecionada}, responsavel=${responsavel}, de=${de}, ate=${ate}, pagina=${pagina.number + 1})}" class="action-button ghost">Próxima</a>
+        </nav>
+    </section>
+</div>
+</body>
+</html>

@@ -285,7 +285,7 @@
                                 <p class="quick-action-label">Config. Clínica</p>
                                 <p class="quick-action-hint">Expediente e canais</p>
                             </a>
-                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
+                            <a th:if="${accessibleMenuKeys.contains('AGENDAMENTO_ONLINE')}" th:href="@{/agendamento-online(clinica=${clinicaSlug})}" href="/agendamento-online" target="_blank" rel="noopener" class="quick-action">
                                 <span class="quick-action-icon"><i data-lucide="external-link" aria-hidden="true"></i></span>
                                 <p class="quick-action-label">Agendamento Online</p>
                                 <p class="quick-action-hint">Abrir portal público</p>

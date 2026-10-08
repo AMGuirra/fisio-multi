@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Nova empresa', 'Cadastre uma clínica e defina o status inicial e o período de teste.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="section-card">
+        <form th:action="@{/gestor/empresas/nova}" th:object="${form}" method="post" class="form-grid">
+            <th:block th:replace="~{gestor/empresa-campos :: campos}"></th:block>
+
+            <div class="form-field">
+                <label for="status">Status inicial</label>
+                <select id="status" th:field="*{status}">
+                    <option th:each="s : ${statusOpcoes}" th:value="${s}" th:text="${s.label}">Status</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="quantidadeDiasUteisTeste">Dias úteis de teste (se TESTE)</label>
+                <input type="number" id="quantidadeDiasUteisTeste" th:field="*{quantidadeDiasUteisTeste}" min="1" max="3650">
+            </div>
+            <div class="form-field">
+                <label for="dataInicioTeste">Início do teste (opcional)</label>
+                <input type="date" id="dataInicioTeste" th:field="*{dataInicioTeste}">
+            </div>
+            <div class="form-field">
+                <label for="dataFimTeste">Data final manual (opcional)</label>
+                <input type="date" id="dataFimTeste" th:field="*{dataFimTeste}">
+                <small class="field-help">Se informada, substitui o cálculo pelos dias úteis.</small>
+            </div>
+            <div class="form-field form-field-full">
+                <label for="motivoBloqueio">Motivo (obrigatório para BLOQUEADO/INATIVO)</label>
+                <textarea id="motivoBloqueio" th:field="*{motivoBloqueio}" rows="2" maxlength="1000"></textarea>
+            </div>
+            <div class="form-actions form-field-full">
+                <a th:href="@{/gestor/empresas}" class="action-button ghost">Cancelar</a>
+                <button type="submit" class="action-button primary"><i data-lucide="save"></i> Cadastrar empresa</button>
+            </div>
+        </form>
+    </section>
+</div>
+</body>
+</html>

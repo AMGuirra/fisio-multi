@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="pagina(titulo, subtitulo, conteudo)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo} + ' - Gestor FisioGestao'">Gestor - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+</head>
+<body class="dashboard-app dashboard-loading gestor-app" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
+
+    <th:block th:replace="~{fragments/app-navigation :: sidebar}"></th:block>
+
+    <div class="app-shell">
+        <th:block th:replace="~{fragments/app-header :: header(mostrarUserMenu=true, extraMenuKey=null, extraMenuHref=null, extraMenuLabel=null, extraMenuIcon=null)}"></th:block>
+
+        <main class="dashboard-main crud-main">
+            <section class="hero-card crud-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title" th:text="${titulo}">Gestor</h1>
+                    <p class="hero-subtitle" th:text="${subtitulo}">Área global da plataforma.</p>
+                </div>
+                <span class="hero-pill">Gestor da plataforma</span>
+            </section>
+
+            <div class="flash-stack">
+                <div th:if="${successMessage}" class="flash-message success">
+                    <i data-lucide="circle-check"></i>
+                    <span th:text="${successMessage}">Sucesso</span>
+                </div>
+                <div th:if="${errorMessage}" class="flash-message error">
+                    <i data-lucide="triangle-alert"></i>
+                    <span th:text="${errorMessage}">Erro</span>
+                </div>
+            </div>
+
+            <th:block th:replace="${conteudo}"></th:block>
+        </main>
+
+        <footer class="app-footer">© 2026 FisioGestao - Gestor da plataforma</footer>
+    </div>
+
+    <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
+
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
+    <script th:attr="nonce=${cspNonce}">
+        if (window.lucide && typeof window.lucide.createIcons === "function") { window.lucide.createIcons(); }
+    </script>
+</body>
+</html>

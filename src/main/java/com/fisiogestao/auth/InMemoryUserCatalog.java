@@ -7,10 +7,8 @@ import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.repository.EmailLogRepository;
 import com.fisiogestao.shared.web.BusinessException;
-import jakarta.annotation.PostConstruct;
+import com.fisiogestao.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +18,14 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Catálogo de usuários do sistema. Todas as operações atuam apenas na empresa do
+ * contexto atual ({@link TenantContext}); para o SUPER_ADMIN, o escopo é o dos usuários
+ * sem empresa. Não há como ler ou alterar usuários de outra clínica por aqui.
+ */
 @Component
 @RequiredArgsConstructor
 public class InMemoryUserCatalog {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryUserCatalog.class);
 
     private final PasswordEncoder passwordEncoder;
     private final UsuarioSistemaRepository repository;
@@ -32,50 +33,30 @@ public class InMemoryUserCatalog {
     private final AuditEventRepository auditEventRepository;
     private final EmailLogRepository emailLogRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final BootstrapAdminProperties bootstrapAdminProperties;
-
-    @PostConstruct
-    void seedDefaults() {
-        if (repository.count() > 0) {
-            return;
-        }
-        if (!bootstrapAdminProperties.isEnabled()) {
-            LOGGER.warn("""
-                    Nenhum usuário foi encontrado e o bootstrap do administrador inicial está desabilitado.
-                    Configure APP_BOOTSTRAP_ADMIN_ENABLED=true com APP_BOOTSTRAP_ADMIN_USERNAME,
-                    APP_BOOTSTRAP_ADMIN_EMAIL e APP_BOOTSTRAP_ADMIN_PASSWORD para criar o primeiro acesso.
-                    """.trim());
-            return;
-        }
-
-        try {
-            UsuarioSistemaEntity admin = UsuarioSistemaEntity.builder()
-                    .nome(normalizeNome(bootstrapAdminProperties.getNome()))
-                    .username(normalizeUsername(bootstrapAdminProperties.getUsername()))
-                    .email(normalizeEmail(bootstrapAdminProperties.getEmail()))
-                    .passwordHash(passwordEncoder.encode(PasswordPolicy.normalize(bootstrapAdminProperties.getPassword(), true)))
-                    .role(UserRole.ADMIN)
-                    .build();
-            repository.save(admin);
-            LOGGER.info("Administrador inicial criado via bootstrap seguro.");
-        } catch (BusinessException ex) {
-            throw new IllegalStateException("Não foi possível criar o administrador inicial: " + ex.getMessage(), ex);
-        }
-    }
 
     public List<SystemUserView> listar() {
-        return repository.findAll().stream()
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        if (empresaId == null) {
+            return List.of();
+        }
+        return repository.findByEmpresaIdOrderByNomeAsc(empresaId).stream()
+                .map(this::toView)
+                .toList();
+    }
+
+    /** Uso exclusivo da área Gestor: dados administrativos da equipe de uma empresa. */
+    public List<SystemUserView> listarPorEmpresa(UUID empresaId) {
+        return repository.findByEmpresaIdOrderByNomeAsc(empresaId).stream()
                 .map(this::toView)
                 .toList();
     }
 
     public List<UserRole> listarPerfis() {
-        return List.of(UserRole.values());
+        return UserRole.papeisDeClinica();
     }
 
     public Optional<SystemUserView> buscarPorId(UUID id) {
-        return repository.findById(id)
-                .map(this::toView);
+        return buscarEntidadeNoEscopo(id).map(this::toView);
     }
 
     public Optional<SystemUserCredentials> buscarCredenciais(String username) {
@@ -102,14 +83,35 @@ public class InMemoryUserCatalog {
 
     @Transactional
     public SystemUserView criar(String nome, String username, String email, String password, UserRole role) {
+        UUID empresaId = TenantContext.requireEmpresaId();
+        return toView(criarNaEmpresa(empresaId, nome, username, email, password, role, "Cadastro manual de usuário."));
+    }
+
+    /**
+     * Cria um usuário na empresa informada. Usado pelo cadastro público de clínica (primeiro
+     * ADMIN_CLINICA) e pelo bootstrap; o chamador é responsável por já estar no escopo da empresa.
+     */
+    @Transactional
+    public UsuarioSistemaEntity criarNaEmpresa(
+            UUID empresaId,
+            String nome,
+            String username,
+            String email,
+            String password,
+            UserRole role,
+            String observacaoAuditoria
+    ) {
+        if (empresaId == null) {
+            throw new BusinessException("Usuários de clínica precisam estar vinculados a uma empresa.");
+        }
         String normalizedNome = normalizeNome(nome);
         String normalizedUsername = normalizeUsername(username);
         String normalizedEmail = normalizeEmail(email);
         String normalizedPassword = normalizePassword(password, true);
         UserRole normalizedRole = normalizeRole(role);
 
-        ensureUsernameDisponivel(normalizedUsername, null);
-        ensureEmailDisponivel(normalizedEmail, null);
+        ensureUsernameDisponivel(empresaId, normalizedUsername, null);
+        ensureEmailDisponivel(empresaId, normalizedEmail, null);
 
         UsuarioSistemaEntity user = UsuarioSistemaEntity.builder()
                 .nome(normalizedNome)
@@ -117,17 +119,18 @@ public class InMemoryUserCatalog {
                 .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(normalizedPassword))
                 .role(normalizedRole)
+                .empresaId(empresaId)
                 .build();
         UsuarioSistemaEntity salvo = repository.save(user);
-        auditService.recordCreate(
+        TenantContext.executarComo(empresaId, () -> auditService.recordCreate(
                 AuditModule.USUARIOS,
                 "usuario_sistema",
                 salvo,
                 null,
-                "Cadastro manual de usuário.",
+                observacaoAuditoria,
                 AuditEventOrigin.MANUAL
-        );
-        return toView(salvo);
+        ));
+        return salvo;
     }
 
     @Transactional
@@ -140,7 +143,8 @@ public class InMemoryUserCatalog {
             UserRole role,
             String loggedUsername
     ) {
-        UsuarioSistemaEntity existing = repository.findById(id)
+        UUID empresaId = TenantContext.requireEmpresaId();
+        UsuarioSistemaEntity existing = repository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
         var snapshotAnterior = auditService.snapshotOf(existing);
 
@@ -148,13 +152,13 @@ public class InMemoryUserCatalog {
         String normalizedUsername = normalizeUsername(username);
         String normalizedEmail = normalizeEmail(email);
         UserRole normalizedRole = normalizeRole(role);
-        ensureUsernameDisponivel(normalizedUsername, id);
-        ensureEmailDisponivel(normalizedEmail, id);
+        ensureUsernameDisponivel(empresaId, normalizedUsername, id);
+        ensureEmailDisponivel(empresaId, normalizedEmail, id);
 
-        if (existing.getRole() == UserRole.ADMIN
-                && normalizedRole != UserRole.ADMIN
-                && repository.countByRole(UserRole.ADMIN) == 1) {
-            throw new BusinessException("Não é possível remover o papel de administrador do único admin do sistema.");
+        if (existing.getRole() == UserRole.ADMIN_CLINICA
+                && normalizedRole != UserRole.ADMIN_CLINICA
+                && repository.countByEmpresaIdAndRole(empresaId, UserRole.ADMIN_CLINICA) == 1) {
+            throw new BusinessException("Não é possível remover o papel de administrador do único admin da clínica.");
         }
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
@@ -197,7 +201,8 @@ public class InMemoryUserCatalog {
 
     @Transactional
     public void excluir(UUID id, String loggedUsername) {
-        UsuarioSistemaEntity existing = repository.findById(id)
+        UUID empresaId = TenantContext.requireEmpresaId();
+        UsuarioSistemaEntity existing = repository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
         String normalizedLoggedUsername = normalizeUsernameForLookup(loggedUsername);
@@ -205,60 +210,27 @@ public class InMemoryUserCatalog {
             throw new BusinessException("Você não pode excluir o usuário que está logado.");
         }
 
-        if (existing.getRole() == UserRole.ADMIN && repository.countByRole(UserRole.ADMIN) == 1) {
-            throw new BusinessException("Não é possível excluir o único administrador do sistema.");
+        if (existing.getRole() == UserRole.ADMIN_CLINICA
+                && repository.countByEmpresaIdAndRole(empresaId, UserRole.ADMIN_CLINICA) == 1) {
+            throw new BusinessException("Não é possível excluir o único administrador da clínica.");
         }
 
         // A exclusão é definitiva: remove tokens, e-mails e toda a auditoria em
         // que o usuário aparece como autor ou como registro afetado. Os campos
         // de auditoria filhos são removidos em cascata pela própria entidade.
         passwordResetTokenRepository.deleteByUsuarioId(id);
-        emailLogRepository.deleteByEntidadeTipoAndEntidadeId("usuario_sistema", id);
+        emailLogRepository.deleteByEmpresaIdAndEntidadeTipoAndEntidadeId(empresaId, "usuario_sistema", id);
         auditEventRepository.deleteAll(auditEventRepository
-                .findByUsuarioIdOrEntidadeAndEntidadeId(id, "usuario_sistema", id.toString()));
+                .findDoUsuarioNaEmpresa(empresaId, id, "usuario_sistema", id.toString()));
         repository.delete(existing);
     }
 
-    private void ensureUsernameDisponivel(String username, UUID ignoredId) {
-        boolean usernameEmUso = ignoredId == null
-                ? repository.existsByUsername(username)
-                : repository.existsByUsernameAndIdNot(username, ignoredId);
-        if (usernameEmUso) {
-            throw new BusinessException("Já existe um usuário cadastrado com esse nome.");
-        }
-    }
-
-    private void ensureEmailDisponivel(String email, UUID ignoredId) {
-        boolean emailEmUso = ignoredId == null
-                ? repository.existsByEmailIgnoreCase(email)
-                : repository.existsByEmailIgnoreCaseAndIdNot(email, ignoredId);
-        if (emailEmUso) {
-            throw new BusinessException("Já existe um usuário cadastrado com esse e-mail.");
-        }
-    }
-
-    private UserRole normalizeRole(UserRole role) {
-        if (role == null) {
-            throw new BusinessException("Selecione o tipo de usuário.");
-        }
-        return role;
-    }
-
     public Optional<UserRole> buscarRole(String username) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            return Optional.empty();
-        }
-        return repository.findByUsername(normalized)
-                .map(UsuarioSistemaEntity::getRole);
+        return findByUsernameOrEmail(username).map(UsuarioSistemaEntity::getRole);
     }
 
     public Optional<UserThemePreference> buscarTema(String username) {
-        String normalized = normalizeUsernameForLookup(username);
-        if (normalized == null) {
-            return Optional.empty();
-        }
-        return repository.findByUsername(normalized)
+        return findByUsernameOrEmail(username)
                 .map(UsuarioSistemaEntity::getTemaInterface)
                 .map(UserThemePreference::fallback);
     }
@@ -275,6 +247,44 @@ public class InMemoryUserCatalog {
 
         existing.setTemaInterface(resolvedTheme);
         repository.save(existing);
+    }
+
+    private Optional<UsuarioSistemaEntity> buscarEntidadeNoEscopo(UUID id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        return empresaId == null
+                ? repository.findByIdAndEmpresaIdIsNull(id)
+                : repository.findByIdAndEmpresaId(id, empresaId);
+    }
+
+    private void ensureUsernameDisponivel(UUID empresaId, String username, UUID ignoredId) {
+        boolean usernameEmUso = ignoredId == null
+                ? repository.existsByEmpresaIdAndUsername(empresaId, username)
+                : repository.existsByEmpresaIdAndUsernameAndIdNot(empresaId, username, ignoredId);
+        if (usernameEmUso) {
+            throw new BusinessException("Já existe um usuário cadastrado com esse nome.");
+        }
+    }
+
+    private void ensureEmailDisponivel(UUID empresaId, String email, UUID ignoredId) {
+        boolean emailEmUso = ignoredId == null
+                ? repository.existsByEmpresaIdAndEmailIgnoreCase(empresaId, email)
+                : repository.existsByEmpresaIdAndEmailIgnoreCaseAndIdNot(empresaId, email, ignoredId);
+        if (emailEmUso) {
+            throw new BusinessException("Já existe um usuário cadastrado com esse e-mail.");
+        }
+    }
+
+    private UserRole normalizeRole(UserRole role) {
+        if (role == null) {
+            throw new BusinessException("Selecione o tipo de usuário.");
+        }
+        if (role.isSuperAdmin()) {
+            throw new BusinessException("Tipo de usuário inválido para uma clínica.");
+        }
+        return role;
     }
 
     private String normalizeNome(String nome) {
@@ -296,7 +306,7 @@ public class InMemoryUserCatalog {
         return normalized;
     }
 
-    private String normalizeUsernameForLookup(String username) {
+    static String normalizeUsernameForLookup(String username) {
         if (username == null) {
             return null;
         }
@@ -304,15 +314,21 @@ public class InMemoryUserCatalog {
         return normalized.isBlank() ? null : normalized;
     }
 
+    /** Busca restrita ao escopo atual: empresa do contexto, ou usuários sem empresa (superadmin). */
     private Optional<UsuarioSistemaEntity> findByUsernameOrEmail(String usernameOrEmail) {
         String normalized = normalizeUsernameForLookup(usernameOrEmail);
         if (normalized == null) {
             return Optional.empty();
         }
+        UUID empresaId = TenantContext.empresaIdOuNull();
         if (normalized.contains("@")) {
-            return repository.findByEmailIgnoreCase(normalized);
+            return empresaId == null
+                    ? repository.findByEmpresaIdIsNullAndEmailIgnoreCase(normalized)
+                    : repository.findByEmpresaIdAndEmailIgnoreCase(empresaId, normalized);
         }
-        return repository.findByUsername(normalized);
+        return empresaId == null
+                ? repository.findByEmpresaIdIsNullAndUsername(normalized)
+                : repository.findByEmpresaIdAndUsername(empresaId, normalized);
     }
 
     private String normalizeEmail(String email) {

@@ -133,7 +133,8 @@ public class DashboardMetricasService {
                     COUNT(*) AS total_sessoes,
                     COUNT(*) FILTER (WHERE status = 'FALTA_FATURADA') AS total_faltas_faturadas
                 FROM sessao
-                WHERE status <> 'CANCELADA'
+                WHERE empresa_id = ?
+                  AND status <> 'CANCELADA'
                   AND data_hora_inicio >= ?
                 GROUP BY ano, mes_num
                 ORDER BY ano, mes_num
@@ -150,7 +151,7 @@ public class DashboardMetricasService {
                             rs.getLong("total_faltas_faturadas")
                     )
             );
-        }, inicioJanela);
+        }, empresaId(), inicioJanela);
 
         ConfiguracaoClinicaEntity configuracao = configuracaoClinicaRepository
                 .findFirstByAtivoTrueOrderByCreatedAtAsc()
@@ -185,7 +186,8 @@ public class DashboardMetricasService {
                     COALESCE(SUM(CASE WHEN plano_sessao_id IS NOT NULL THEN valor ELSE 0 END), 0) AS receita_plano,
                     COALESCE(SUM(valor), 0) AS total_receita
                 FROM lancamento_financeiro
-                WHERE tipo = 'RECEITA'
+                WHERE empresa_id = ?
+                  AND tipo = 'RECEITA'
                   AND status = 'PAGO'
                   AND data_recebimento >= ?
                 GROUP BY ano, mes_num
@@ -201,7 +203,7 @@ public class DashboardMetricasService {
                     rs.getBigDecimal("receita_plano"),
                     rs.getBigDecimal("total_receita")
             ));
-        }, inicioJanela);
+        }, empresaId(), inicioJanela);
 
         return meses.stream()
                 .map(mes -> agregados.getOrDefault(
@@ -213,18 +215,21 @@ public class DashboardMetricasService {
 
     private RetencaoPlanos consultarRetencaoPlanos() {
         Long totalAtivos = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM cliente WHERE ativo = true",
-                Long.class
+                "SELECT COUNT(*) FROM cliente WHERE empresa_id = ? AND ativo = true",
+                Long.class,
+                empresaId()
         );
 
         Long comPlano = jdbc.queryForObject(
                 """
                 SELECT COUNT(DISTINCT p.cliente_id)
                 FROM plano_sessao p
-                JOIN cliente c ON c.id = p.cliente_id
-                WHERE c.ativo = true
+                JOIN cliente c ON c.id = p.cliente_id AND c.empresa_id = p.empresa_id
+                WHERE p.empresa_id = ?
+                  AND c.ativo = true
                 """,
-                Long.class
+                Long.class,
+                empresaId()
         );
 
         Long comRenovacao = jdbc.queryForObject(
@@ -232,13 +237,15 @@ public class DashboardMetricasService {
                 SELECT COUNT(*) FROM (
                     SELECT p.cliente_id
                     FROM plano_sessao p
-                    JOIN cliente c ON c.id = p.cliente_id
-                    WHERE c.ativo = true
+                    JOIN cliente c ON c.id = p.cliente_id AND c.empresa_id = p.empresa_id
+                    WHERE p.empresa_id = ?
+                      AND c.ativo = true
                     GROUP BY p.cliente_id
                     HAVING COUNT(*) > 1
                 ) sub
                 """,
-                Long.class
+                Long.class,
+                empresaId()
         );
 
         long ativos = valorOuZero(totalAtivos);
@@ -261,8 +268,9 @@ public class DashboardMetricasService {
                     COUNT(*) FILTER (WHERE s.status = 'REALIZADA') AS total_presencas,
                     COUNT(*) AS total_sessoes
                 FROM sessao s
-                JOIN cliente c ON c.id = s.cliente_id
-                WHERE s.data_hora_inicio >= ?
+                JOIN cliente c ON c.id = s.cliente_id AND c.empresa_id = s.empresa_id
+                WHERE s.empresa_id = ?
+                  AND s.data_hora_inicio >= ?
                   AND s.status <> 'CANCELADA'
                 GROUP BY c.id, c.nome_completo
                 HAVING COUNT(*) FILTER (WHERE s.status = 'REALIZADA') > 0
@@ -277,7 +285,7 @@ public class DashboardMetricasService {
                     rs.getLong("total_presencas"),
                     rs.getLong("total_sessoes")
             ));
-        }, inicioJanela);
+        }, empresaId(), inicioJanela);
         return resultado;
     }
 
@@ -290,8 +298,9 @@ public class DashboardMetricasService {
         String sql = """
                 SELECT c.nome_completo, s.data_hora_inicio, s.status, s.tipo_agendamento
                 FROM sessao s
-                JOIN cliente c ON c.id = s.cliente_id
-                WHERE s.data_hora_inicio >= ?
+                JOIN cliente c ON c.id = s.cliente_id AND c.empresa_id = s.empresa_id
+                WHERE s.empresa_id = ?
+                  AND s.data_hora_inicio >= ?
                   AND s.data_hora_inicio < ?
                   AND s.status <> 'CANCELADA'
                 ORDER BY s.data_hora_inicio ASC
@@ -308,8 +317,13 @@ public class DashboardMetricasService {
                     rs.getString("status"),
                     rs.getString("tipo_agendamento")
             ));
-        }, inicioDia, fimDia);
+        }, empresaId(), inicioDia, fimDia);
         return resultado;
+    }
+
+    /** Toda consulta SQL direta precisa filtrar explicitamente pela empresa do usuário. */
+    private static java.util.UUID empresaId() {
+        return com.fisiogestao.tenant.TenantContext.requireEmpresaId();
     }
 
     private List<YearMonth> ultimosDozeMeses() {

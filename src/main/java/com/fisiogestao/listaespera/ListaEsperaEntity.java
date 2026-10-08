@@ -1,7 +1,7 @@
 package com.fisiogestao.listaespera;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +27,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class ListaEsperaEntity extends BaseEntity {
+public class ListaEsperaEntity extends TenantEntity {
 
     /** Paciente cadastrado no sistema. Nullable para entradas do formulário público. */
     @ManyToOne(fetch = FetchType.LAZY)

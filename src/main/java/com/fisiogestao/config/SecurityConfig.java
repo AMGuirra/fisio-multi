@@ -1,6 +1,14 @@
 package com.fisiogestao.config;
 
-import com.fisiogestao.auth.InMemoryUserCatalog;
+import com.fisiogestao.auth.LoginDetails;
+import com.fisiogestao.auth.LoginFailureHandler;
+import com.fisiogestao.auth.TenantRememberMeServices;
+import com.fisiogestao.auth.UsuarioAuthenticationProvider;
+import com.fisiogestao.auth.UsuarioSistemaRepository;
+import com.fisiogestao.empresa.EmpresaAcessoService;
+import com.fisiogestao.tenant.EmpresaAcessoFilter;
+import com.fisiogestao.tenant.EmpresaPublicaResolver;
+import com.fisiogestao.tenant.PublicTenantFilter;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -10,13 +18,11 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
@@ -42,7 +48,7 @@ public class SecurityConfig {
     @Value("${app.security.remember-me-key:" + DEFAULT_REMEMBER_ME_KEY + "}")
     private String rememberMeKey;
 
-    @Value("${app.base-url:http://localhost:8081}")
+    @Value("${app.base-url:http://localhost:8080}")
     private String appBaseUrl;
 
     private final Environment environment;
@@ -149,8 +155,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuditAuthenticationSuccessHandler auditAuthenticationSuccessHandler,
-            AuditLogoutHandler auditLogoutHandler
+            AuditLogoutHandler auditLogoutHandler,
+            UsuarioAuthenticationProvider usuarioAuthenticationProvider,
+            UsuarioSistemaRepository usuarioSistemaRepository,
+            EmpresaAcessoService empresaAcessoService
     ) throws Exception {
+        TenantRememberMeServices rememberMeServices = new TenantRememberMeServices(
+                rememberMeKey, usuarioSistemaRepository, usuarioAuthenticationProvider);
+        rememberMeServices.setTokenValiditySeconds(7 * 24 * 60 * 60); // 7 dias
+
         http
                 .authorizeHttpRequests(auth -> auth
                         // ── Recursos públicos estáticos e páginas sem autenticação ──────
@@ -165,6 +178,14 @@ public class SecurityConfig {
                                 "/agendamento-online/sucesso",
                                 "/lista-espera-publica",
                                 "/lista-espera-publica/sucesso",
+                                "/cadastro",
+                                "/cadastro/sucesso",
+                                "/suporte/solicitar",
+                                "/suporte/solicitar/sucesso",
+                                "/suporte/cancelamento",
+                                "/suporte/cancelamento/sucesso",
+                                "/acesso-negado",
+                                "/clinica-indisponivel",
                                 "/paciente/**",
                                 "/actuator/health",
                                 "/actuator/health/**",
@@ -175,8 +196,10 @@ public class SecurityConfig {
                         // ── API pública: slots de horário para o formulário de agendamento ──
                         // Não requer login — serve a visitantes anônimos.
                         .requestMatchers("/api/slots").permitAll()
+                        // ── Área Gestor: exclusiva do superadmin da plataforma ──────────────
+                        .requestMatchers("/gestor", "/gestor/**").hasRole("SUPER_ADMIN")
                         // ── Swagger — apenas ADMIN tem visibilidade da documentação ─────────
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN_CLINICA")
                         // ── Administração do sistema: acesso fino controlado por
                         // UserMenuAccessInterceptor / UserMenuAccessService.podeAcessar(),
                         // que respeita as permissões configuradas em Funções de Usuários ──
@@ -191,7 +214,7 @@ public class SecurityConfig {
                         // Contêm receita agregada, ocupação e projeções — dados sensíveis.
                         // "/api/financeiro/**" é reservado preventivamente: nenhum @RestController
                         // usa esse prefixo hoje, mas qualquer endpoint futuro nele já nasce protegido.
-                        .requestMatchers("/api/dashboard/**", "/api/financeiro/**").hasAnyRole("ADMIN", "FINANCEIRO")
+                        .requestMatchers("/api/dashboard/**", "/api/financeiro/**").hasAnyRole("ADMIN_CLINICA", "FINANCEIRO")
                         // ── APIs internas autenticadas ────────────────────────────────────────
                         // Qualquer role válida pode acessar. Explicitado para blindar contra
                         // mudanças acidentais no anyRequest() mais abaixo.
@@ -207,7 +230,9 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .authenticationDetailsSource(LoginDetails::new)
                         .successHandler(auditAuthenticationSuccessHandler)
+                        .failureHandler(new LoginFailureHandler())
                         .permitAll()
                 )
                 // HTTP Basic desabilitado: nao ha uso em app SSR com Thymeleaf e expoe vetor extra
@@ -217,10 +242,10 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
+                // Lembrar-me identifica a conta pelo ID (usernames se repetem entre clínicas)
                 .rememberMe(remember -> remember
-                        // Chave injetada via @Value — configure APP_SECURITY_REMEMBER_ME_KEY em producao
                         .key(rememberMeKey)
-                        .tokenValiditySeconds(7 * 24 * 60 * 60) // 7 dias
+                        .rememberMeServices(rememberMeServices)
                 )
                 // Gestao de sessao: um usuario, uma sessao ativa por vez
                 .sessionManagement(session -> session
@@ -253,19 +278,13 @@ public class SecurityConfig {
                 );
 
         http.addFilterBefore(new CspNonceFilter(), HeaderWriterFilter.class);
+        // Revalida o status da clínica em toda requisição autenticada (sessões existentes inclusive)
+        http.addFilterBefore(
+                new EmpresaAcessoFilter(empresaAcessoService, AbstractRememberMeServices.SPRING_SECURITY_REMEMBER_ME_COOKIE_KEY),
+                AuthorizationFilter.class
+        );
 
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(InMemoryUserCatalog userCatalog) {
-        return username -> userCatalog.buscarCredenciais(username)
-                .map(user -> User.withUsername(user.username())
-                        .password(user.passwordHash())
-                        .roles(user.role().name())
-                        .build())
-                .map(UserDetails.class::cast)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado."));
     }
 
     @Bean
@@ -296,10 +315,26 @@ public class SecurityConfig {
                 "/agendamento-online",
                 "/lista-espera-publica",
                 "/paciente/login",
-                "/paciente/esqueci-minha-senha"
+                "/paciente/esqueci-minha-senha",
+                "/cadastro",
+                "/suporte/solicitar",
+                "/suporte/cancelamento"
         );
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         registration.setName("rateLimitingFilter");
+        return registration;
+    }
+
+    /**
+     * Resolve a clínica das rotas públicas (slug ou token) e abre o escopo de tenant para o
+     * restante da requisição. Executa depois do Spring Security.
+     */
+    @Bean
+    public FilterRegistrationBean<PublicTenantFilter> publicTenantFilterRegistration(EmpresaPublicaResolver resolver) {
+        FilterRegistrationBean<PublicTenantFilter> registration = new FilterRegistrationBean<>(new PublicTenantFilter(resolver));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(0);
+        registration.setName("publicTenantFilter");
         return registration;
     }
 

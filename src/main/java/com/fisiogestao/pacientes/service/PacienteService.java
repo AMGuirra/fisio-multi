@@ -1,5 +1,6 @@
 package com.fisiogestao.pacientes.service;
 
+import com.fisiogestao.tenant.TenantContext;
 import com.fisiogestao.agenda.repository.ConfiguracaoClinicaRepository;
 import com.fisiogestao.agenda.repository.HorarioBloqueadoRepository;
 import com.fisiogestao.agenda.repository.SessaoRepository;
@@ -175,8 +176,8 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public long contarAtivosComTelefone() {
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM cliente WHERE ativo = true AND telefone IS NOT NULL AND telefone <> ''",
-                Long.class);
+                "SELECT COUNT(*) FROM cliente WHERE empresa_id = ? AND ativo = true AND telefone IS NOT NULL AND telefone <> ''",
+                Long.class, TenantContext.requireEmpresaId());
         return count != null ? count : 0L;
     }
 
@@ -184,8 +185,8 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public long contarAtivosComEmail() {
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM cliente WHERE ativo = true AND email IS NOT NULL AND email <> ''",
-                Long.class);
+                "SELECT COUNT(*) FROM cliente WHERE empresa_id = ? AND ativo = true AND email IS NOT NULL AND email <> ''",
+                Long.class, TenantContext.requireEmpresaId());
         return count != null ? count : 0L;
     }
 

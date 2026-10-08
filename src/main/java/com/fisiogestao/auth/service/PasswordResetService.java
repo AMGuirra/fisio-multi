@@ -1,5 +1,6 @@
 package com.fisiogestao.auth.service;
 
+import com.fisiogestao.tenant.TenantContext;
 import com.fisiogestao.auth.PasswordResetTokenEntity;
 import com.fisiogestao.auth.PasswordResetTokenRepository;
 import com.fisiogestao.auth.PasswordPolicy;
@@ -47,33 +48,51 @@ public class PasswordResetService {
     private final PasswordEncoder passwordEncoder;
     private final SystemEmailService systemEmailService;
     private final AuditService auditService;
+    private final com.fisiogestao.empresa.EmpresaRepository empresaRepository;
 
     @Value("${app.base-url}")
     private URI trustedBaseUri;
 
     @Transactional
     public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent) {
-        return solicitarReset(email, requestIp, userAgent, null);
+        return solicitarReset(email, null, requestIp, userAgent);
     }
 
     @Transactional
-    public EmailDispatchResult solicitarReset(String email, String requestIp, String userAgent, String requestBaseUrl) {
-        // Mantido por retrocompatibilidade binaria; bases vindas da requisicao sao deliberadamente ignoradas.
+    /**
+     * Envia o link de redefinição. Com o código da clínica, procura o e-mail apenas naquela empresa;
+     * sem código, envia um link para cada conta com aquele e-mail (superadmin e clínicas). A resposta
+     * é sempre a mesma, exista ou não a conta.
+     */
+    public EmailDispatchResult solicitarReset(String email, String clinicaSlug, String requestIp, String userAgent) {
+        String requestBaseUrl = null;
         if (email == null || email.isBlank()) {
             return EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
         }
 
-        return usuarioSistemaRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
-                .map(usuario -> enviarEmailReset(
-                        usuario,
-                        requestIp,
-                        userAgent,
-                        requestBaseUrl,
-                        EmailLogType.RESET_SENHA,
-                        "email/reset-senha",
-                        "reset-senha"
-                ))
-                .orElseGet(() -> EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação."));
+        String emailNormalizado = email.trim().toLowerCase(java.util.Locale.ROOT);
+        String slug = com.fisiogestao.auth.LoginDetails.normalizarSlug(clinicaSlug);
+        java.util.List<UsuarioSistemaEntity> contas = new java.util.ArrayList<>();
+        if (slug != null) {
+            empresaRepository.findBySlug(slug)
+                    .flatMap(empresa -> usuarioSistemaRepository.findByEmpresaIdAndEmailIgnoreCase(empresa.getId(), emailNormalizado))
+                    .ifPresent(contas::add);
+        } else {
+            usuarioSistemaRepository.findByEmpresaIdIsNullAndEmailIgnoreCase(emailNormalizado).ifPresent(contas::add);
+            contas.addAll(usuarioSistemaRepository.findByEmailIgnoreCaseAndEmpresaIdIsNotNull(emailNormalizado));
+        }
+        for (UsuarioSistemaEntity usuario : contas) {
+            TenantContext.executarComo(usuario.getEmpresaId(), () -> enviarEmailReset(
+                    usuario,
+                    requestIp,
+                    userAgent,
+                    requestBaseUrl,
+                    EmailLogType.RESET_SENHA,
+                    "email/reset-senha",
+                    "reset-senha"
+            ));
+        }
+        return EmailDispatchResult.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
     }
 
     @Transactional
@@ -98,7 +117,7 @@ public class PasswordResetService {
         token.setUsedAt(redefinicao);
         usuarioSistemaRepository.save(usuario);
         passwordResetTokenRepository.save(token);
-        auditService.recordManual(
+        TenantContext.executarComo(usuario.getEmpresaId(), () -> auditService.recordManual(
                 AuditModule.AUTENTICACAO,
                 "usuario_sistema",
                 usuario.getId().toString(),
@@ -109,7 +128,7 @@ public class PasswordResetService {
                 null,
                 "Senha redefinida pelo fluxo de recuperação.",
                 AuditEventOrigin.ONLINE
-        );
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -127,7 +146,7 @@ public class PasswordResetService {
     }
 
     public EmailDispatchResult enviarEmailBoasVindasParaUsuarioId(java.util.UUID usuarioId, String requestIp, String userAgent) {
-        UsuarioSistemaEntity usuario = usuarioSistemaRepository.findById(usuarioId)
+        UsuarioSistemaEntity usuario = usuarioSistemaRepository.findByIdAndEmpresaId(usuarioId, TenantContext.requireEmpresaId())
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado para envio do acesso."));
         return enviarEmailBoasVindas(usuario, requestIp, userAgent);
     }

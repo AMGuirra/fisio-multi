@@ -6,10 +6,15 @@ spring:
 
 app:
   # APP_BASE_URL permite domínio próprio; Render disponibiliza RENDER_EXTERNAL_URL automaticamente.
-  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8081}}
+  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY}
     remember-me-key: ${APP_SECURITY_REMEMBER_ME_KEY}
+  bootstrap-super-admin:
+    # Produção: nunca cria admin/admin. Para criar o primeiro superadmin, defina
+    # APP_BOOTSTRAP_SUPER_ADMIN_ENABLED=true e APP_BOOTSTRAP_SUPER_ADMIN_PASSWORD (senha forte) uma única vez.
+    enabled: ${APP_BOOTSTRAP_SUPER_ADMIN_ENABLED:false}
+    password: ${APP_BOOTSTRAP_SUPER_ADMIN_PASSWORD:}
 
 server:
   servlet:

@@ -28,7 +28,7 @@
                 <div class="hero-actions">
                     <span class="hero-pill">Clínica</span>
                     <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                    <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal público</a>
+                    <a th:href="@{/agendamento-online(clinica=${clinicaSlug})}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button primary"><i data-lucide="external-link"></i>Portal público</a>
                 </div>
             </section>
 
@@ -246,7 +246,7 @@
                             <div class="form-actions">
                                 <button type="submit" class="action-button primary"><i data-lucide="save"></i>Salvar configuração</button>
                                 <a th:href="@{/calendario}" href="/calendario" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir agenda</a>
-                                <a th:href="@{/agendamento-online}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
+                                <a th:href="@{/agendamento-online(clinica=${clinicaSlug})}" href="/agendamento-online" target="_blank" rel="noopener" class="action-button ghost"><i data-lucide="external-link"></i>Portal público</a>
                             </div>
                         </form>
                     </div>
@@ -316,6 +316,68 @@
                         </div>
                     </article>
                 </div>
+            </section>
+
+            <!-- Cancelamento da conta: visível e permitido somente ao administrador da clínica -->
+            <section class="crud-layout" id="cancelamento" th:if="${loggedUserRole == 'ADMIN_CLINICA'}">
+                <article class="section-card">
+                    <header class="section-head">
+                        <h3 class="section-title"><i data-lucide="user-x"></i> Solicitar cancelamento da conta</h3>
+                        <p class="section-subtitle">A solicitação é analisada pela equipe da plataforma. Nenhum dado é apagado e o acesso continua normal até a decisão.</p>
+                    </header>
+                    <div class="section-body">
+                        <div class="data-table-wrap" th:unless="${#lists.isEmpty(solicitacoesCancelamento)}">
+                            <table class="data-table compact">
+                                <thead><tr><th>Data</th><th>Motivo</th><th>Status</th><th>Resposta</th></tr></thead>
+                                <tbody>
+                                <tr th:each="s : ${solicitacoesCancelamento}">
+                                    <td th:text="${#temporals.format(s.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                                    <td th:text="${s.motivo.label}">Motivo</td>
+                                    <td><span class="chip" th:text="${s.status.label}">Pendente</span></td>
+                                    <td th:text="${s.observacaoGestor != null ? s.observacaoGestor : '-'}">-</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <form th:action="@{/configuracoes/clinica/cancelamento}" method="post" class="form-grid mt-12"
+                              data-confirm-modal
+                              data-confirm-title="Enviar solicitação de cancelamento?"
+                              data-confirm-message="A equipe da plataforma vai analisar o pedido e responderá pelo e-mail informado."
+                              data-confirm-helper-title="Os dados da clínica não serão apagados"
+                              data-confirm-helper-message="O acesso continua normal até a decisão final."
+                              data-confirm-action-label="Enviar solicitação">
+                            <div class="form-field">
+                                <label for="cancelNome">Nome do solicitante</label>
+                                <input type="text" id="cancelNome" name="nomeSolicitante" maxlength="160" required
+                                       th:value="${loggedUserDisplayName}">
+                            </div>
+                            <div class="form-field">
+                                <label for="cancelEmail">E-mail de contato</label>
+                                <input type="email" id="cancelEmail" name="emailContato" maxlength="160" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="cancelMotivo">Motivo</label>
+                                <select id="cancelMotivo" name="motivo" required>
+                                    <option value="">Selecione</option>
+                                    <option th:each="m : ${motivosCancelamento}" th:value="${m.name()}" th:text="${m.label}">Motivo</option>
+                                </select>
+                            </div>
+                            <div class="form-field form-field-full">
+                                <label for="cancelDescricao">Descrição (opcional, até 500 caracteres)</label>
+                                <textarea id="cancelDescricao" name="descricao" rows="3" maxlength="500"></textarea>
+                            </div>
+                            <div class="form-field form-field-full">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="confirmacao" value="true" required>
+                                    <span th:text="${textoConfirmacaoCancelamento}">Entendo que o acesso poderá ser encerrado após análise.</span>
+                                </label>
+                            </div>
+                            <div class="form-actions form-field-full">
+                                <button type="submit" class="action-button danger"><i data-lucide="send"></i> Solicitar cancelamento</button>
+                            </div>
+                        </form>
+                    </div>
+                </article>
             </section>
 
         </main>

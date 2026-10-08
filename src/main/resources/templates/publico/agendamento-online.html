@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
 </head>
-<body class="pub-body" data-theme="light">
+<body class="pub-body" data-theme="light" th:attr="data-clinica=${clinicaSlug}">
     <div class="pub-container">
         <div class="pub-card">
             <div class="pub-header">
@@ -28,14 +28,14 @@
                  th:classappend="${slots != null and !slots.empty} ? ' d-none' : ''">
                 <i data-lucide="info"></i>
                 <span>Não há horários disponíveis para a data selecionada. Escolha outra data ou
-                    <a th:href="@{/lista-espera-publica}" href="/lista-espera-publica"
+                    <a th:href="@{/lista-espera-publica(clinica=${clinicaSlug})}" href="/lista-espera-publica"
                        class="pub-link-highlight">
                         entre na lista de espera
                     </a> para ser avisado quando houver vaga.
                 </span>
             </div>
 
-            <form th:action="@{/agendamento-online}" th:object="${form}" method="post" novalidate>
+            <form th:action="@{/agendamento-online(clinica=${clinicaSlug})}" th:object="${form}" method="post" novalidate>
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
                 <div class="pub-form-group">
@@ -295,7 +295,7 @@
                 const horarioSelecionadoAtual = horarioSelect.value;
 
                 try {
-                    const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}`, {
+                    const response = await fetch(`/api/slots?data=${encodeURIComponent(dataIso)}&clinica=${encodeURIComponent(document.body.dataset.clinica || "")}`, {
                         headers: { 'Accept': 'application/json' }
                     });
                     if (!response.ok) {

@@ -49,6 +49,7 @@ import static org.mockito.Mockito.doAnswer;
  * INSERT depois que a primeira já leu "vazio" e ainda não inseriu nada, exatamente a janela
  * de corrida que existe em produção.
  */
+@org.junit.jupiter.api.extension.ExtendWith(com.fisiogestao.support.EmpresaLegadaSetupExtension.class)
 @SpringBootTest
 @ActiveProfiles("test")
 class ProntuarioServiceConcurrencyTest {
@@ -157,8 +158,8 @@ class ProntuarioServiceConcurrencyTest {
                     "Esta avaliação já foi salva em outra requisição. Atualize a página e confira o conteúdo antes de salvar novamente.",
                     conflito.erro().getMessage());
 
-            List<ProntuarioSoapEntity> registrosPersistidos =
-                    prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId());
+            List<ProntuarioSoapEntity> registrosPersistidos = com.fisiogestao.tenant.TenantContext.executarComo(
+                    paciente.getEmpresaId(), () -> prontuarioSoapRepository.findByClienteIdOrderByCreatedAtDesc(paciente.getId()));
             assertEquals(1, registrosPersistidos.size(), "O índice único deve garantir uma única avaliação persistida.");
         } finally {
             executor.shutdownNow();
@@ -170,7 +171,9 @@ class ProntuarioServiceConcurrencyTest {
         form.setClienteId(paciente.getId());
         form.setTexto(texto);
         try {
-            prontuarioService.salvarAvaliacao(form, "fisio-concorrencia");
+            // Threads do executor não herdam o contexto da requisição: abre o escopo da empresa explicitamente.
+            com.fisiogestao.tenant.TenantContext.executarComo(paciente.getEmpresaId(),
+                    () -> prontuarioService.salvarAvaliacao(form, "fisio-concorrencia"));
             return new Resultado(true, null);
         } catch (RuntimeException ex) {
             return new Resultado(false, ex);

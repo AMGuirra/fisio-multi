@@ -32,6 +32,8 @@ import java.util.function.LongSupplier;
  *   <li>/agendamento-online — 5 tentativas por minuto; resposta: JSON 429</li>
  *   <li>/paciente/login — 10 tentativas em 15 minutos; resposta: JSON 429</li>
  *   <li>/paciente/esqueci-minha-senha — 5 tentativas por minuto; resposta: JSON 429</li>
+ *   <li>/cadastro — 5 cadastros em 30 minutos; resposta: JSON 429</li>
+ *   <li>/suporte/solicitar — 5 solicitações em 15 minutos; resposta: JSON 429</li>
  * </ul>
  */
 public class RateLimitingFilter extends OncePerRequestFilter {
@@ -56,7 +58,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         AGENDAMENTO_ONLINE("/agendamento-online", 5, Duration.ofMinutes(1), false),
         LISTA_ESPERA_PUBLICA("/lista-espera-publica", 5, Duration.ofMinutes(1), false),
         PACIENTE_LOGIN("/paciente/login", 10, Duration.ofMinutes(15), false),
-        PACIENTE_ESQUECI_SENHA("/paciente/esqueci-minha-senha", 5, Duration.ofMinutes(1), false);
+        PACIENTE_ESQUECI_SENHA("/paciente/esqueci-minha-senha", 5, Duration.ofMinutes(1), false),
+        CADASTRO_CLINICA("/cadastro", 5, Duration.ofMinutes(30), false),
+        SUPORTE_PUBLICO("/suporte/solicitar", 5, Duration.ofMinutes(15), false),
+        CANCELAMENTO_PUBLICO("/suporte/cancelamento", 3, Duration.ofMinutes(15), false);
 
         final String prefixo;
         final int limite;

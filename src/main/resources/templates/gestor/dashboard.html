@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Painel Gestor', 'Visão global das clínicas, testes e solicitações.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="gestor-kpis">
+        <a class="gestor-kpi" th:href="@{/gestor/empresas}"><span>Total de empresas</span><strong th:text="${painel.totalEmpresas}">0</strong></a>
+        <a class="gestor-kpi" th:href="@{/gestor/empresas(status='ATIVO')}"><span>Ativas</span><strong th:text="${painel.ativas}">0</strong></a>
+        <a class="gestor-kpi" th:href="@{/gestor/empresas(status='TESTE')}"><span>Em teste</span><strong th:text="${painel.emTeste}">0</strong></a>
+        <a class="gestor-kpi kpi-alerta" th:href="@{/gestor/empresas(status='TESTE')}"><span th:text="'Testes vencendo (' + ${painel.diasAvisoVencimento} + ' dias úteis)'">Testes vencendo</span><strong th:text="${painel.testesVencendo}">0</strong></a>
+        <a class="gestor-kpi kpi-perigo" th:href="@{/gestor/empresas(status='TESTE')}"><span>Testes expirados</span><strong th:text="${painel.testesExpirados}">0</strong></a>
+        <a class="gestor-kpi kpi-perigo" th:href="@{/gestor/empresas(status='BLOQUEADO')}"><span>Bloqueadas</span><strong th:text="${painel.bloqueadas}">0</strong></a>
+        <a class="gestor-kpi" th:href="@{/gestor/empresas(status='INATIVO')}"><span>Inativas</span><strong th:text="${painel.inativas}">0</strong></a>
+        <div class="gestor-kpi"><span>Novos cadastros no mês</span><strong th:text="${painel.novosCadastrosMes}">0</strong></div>
+        <a class="gestor-kpi kpi-alerta" th:href="@{/gestor/suporte(status='PENDENTE')}"><span>Suporte pendente</span><strong th:text="${painel.suportePendente}">0</strong></a>
+        <a class="gestor-kpi kpi-alerta" th:href="@{/gestor/cancelamentos}"><span>Cancelamentos em aberto</span><strong th:text="${painel.cancelamentosPendentes}">0</strong></a>
+    </section>
+
+    <section class="crud-layout">
+        <article class="section-card">
+            <header class="section-head">
+                <h3 class="section-title"><i data-lucide="bell"></i> Alertas
+                    <span class="chip" th:if="${painel.notificacoesNaoLidas > 0}" th:text="${painel.notificacoesNaoLidas} + ' novo(s)'">0</span></h3>
+                <form th:action="@{/gestor/notificacoes/lidas}" method="post" th:if="${painel.notificacoesNaoLidas > 0}">
+                    <button type="submit" class="action-button ghost">Marcar todos como lidos</button>
+                </form>
+            </header>
+            <div class="section-body" th:if="${#lists.isEmpty(painel.notificacoes)}">
+                <div class="empty-box"><i data-lucide="bell-off"></i><p>Nenhum alerta.</p></div>
+            </div>
+            <div class="data-table-wrap" th:unless="${#lists.isEmpty(painel.notificacoes)}">
+                <table class="data-table compact">
+                    <thead><tr><th>Quando</th><th>Tipo</th><th>Alerta</th><th class="text-right">Ações</th></tr></thead>
+                    <tbody>
+                    <tr th:each="n : ${painel.notificacoes}" th:classappend="${!n.lida} ? 'row-destaque'">
+                        <td th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</td>
+                        <td><span class="chip" th:text="${n.tipo.label}">Tipo</span></td>
+                        <td>
+                            <p class="entity-name" th:text="${n.titulo}">Título</p>
+                            <p class="entity-meta" th:text="${n.mensagem}">Mensagem</p>
+                        </td>
+                        <td class="text-right">
+                            <div class="table-actions">
+                                <a th:if="${n.link != null}" th:href="@{${n.link}}" class="action-button ghost inline-icon" aria-label="Abrir"><i data-lucide="external-link"></i></a>
+                                <form th:if="${!n.lida}" th:action="@{/gestor/notificacoes/{id}/lida(id=${n.id})}" method="post" class="inline-form">
+                                    <button type="submit" class="action-button ghost inline-icon" aria-label="Marcar como lido"><i data-lucide="check"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="section-card">
+            <header class="section-head">
+                <h3 class="section-title"><i data-lucide="hourglass"></i> Testes próximos de vencer</h3>
+            </header>
+            <div class="section-body" th:if="${#lists.isEmpty(painel.empresasVencendo)}">
+                <div class="empty-box"><i data-lucide="calendar-check"></i><p>Nenhum teste vencendo nos próximos dias úteis.</p></div>
+            </div>
+            <div class="data-table-wrap" th:unless="${#lists.isEmpty(painel.empresasVencendo)}">
+                <table class="data-table compact">
+                    <thead><tr><th>Clínica</th><th>Fim do teste</th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${painel.empresasVencendo}">
+                        <td><a th:href="@{/gestor/empresas/{id}(id=${e.id})}" th:text="${e.nome}">Clínica</a></td>
+                        <td th:text="${#temporals.format(e.dataFimTeste, 'dd/MM/yyyy')}">01/01</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <header class="section-head mt-12">
+                <h3 class="section-title"><i data-lucide="sparkles"></i> Cadastros recentes</h3>
+            </header>
+            <div class="data-table-wrap">
+                <table class="data-table compact">
+                    <thead><tr><th>Clínica</th><th>Status</th><th>Criada em</th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${painel.cadastrosRecentes}">
+                        <td><a th:href="@{/gestor/empresas/{id}(id=${e.id})}" th:text="${e.nome}">Clínica</a></td>
+                        <td><span class="chip" th:classappend="${' status-empresa-' + #strings.toLowerCase(e.status.name())}" th:text="${e.status.label}">Ativo</span></td>
+                        <td th:text="${#temporals.format(e.createdAt, 'dd/MM/yyyy')}">01/01</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+</div>
+</body>
+</html>

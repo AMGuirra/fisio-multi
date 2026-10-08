@@ -55,6 +55,29 @@ public final class DocumentoUtils {
                 && digitos[10] == calcularDigitoVerificadorCpf(digitos, 10);
     }
 
+    /** Valida um CNPJ numérico já normalizado (14 dígitos), conferindo os dígitos verificadores. */
+    public static boolean cnpjValido(String cnpjNormalizado) {
+        if (cnpjNormalizado == null || !cnpjNormalizado.matches("\\d{14}")) {
+            return false;
+        }
+        if (cnpjNormalizado.chars().distinct().count() == 1) {
+            return false;
+        }
+        int[] digitos = cnpjNormalizado.chars().map(c -> c - '0').toArray();
+        int[] pesos1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+        int[] pesos2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+        return digitos[12] == digitoCnpj(digitos, pesos1) && digitos[13] == digitoCnpj(digitos, pesos2);
+    }
+
+    private static int digitoCnpj(int[] digitos, int[] pesos) {
+        int soma = 0;
+        for (int i = 0; i < pesos.length; i++) {
+            soma += digitos[i] * pesos[i];
+        }
+        int resto = soma % 11;
+        return resto < 2 ? 0 : 11 - resto;
+    }
+
     private static int calcularDigitoVerificadorCpf(int[] digitos, int quantidade) {
         int soma = 0;
         int peso = quantidade + 1;

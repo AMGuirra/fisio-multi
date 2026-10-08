@@ -31,7 +31,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/actuator/health/**",
                         "/css/**",
                         "/js/**",
-                        "/favicon.svg"
+                        "/favicon.svg",
+                        "/cadastro",
+                        "/cadastro/**",
+                        "/suporte/**",
+                        "/acesso-negado",
+                        "/clinica-indisponivel"
                 );
     }
 }

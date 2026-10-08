@@ -43,7 +43,7 @@ spring:
     time-zone: ${app.timezone}
 
 server:
-  port: ${PORT:${SERVER_PORT:8081}}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 springdoc:
   api-docs:
@@ -59,12 +59,24 @@ app:
   timezone: America/Campo_Grande
   # No Render, usa a URL HTTPS pública fornecida automaticamente pela plataforma.
   # APP_BASE_URL continua tendo precedência para domínio próprio/canônico.
-  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8081}}
+  base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
   flyway:
     repair-on-startup: ${APP_FLYWAY_REPAIR_ON_STARTUP:false}
   security:
     encryption-key: ${APP_ENCRYPTION_KEY:}
     remember-me-key: ${APP_SECURITY_REMEMBER_ME_KEY:fisiogestao-default-remember-me-key-troque-em-producao}
+  tenant:
+    # Links públicos antigos (sem ?clinica=) continuam apontando para a clínica legada.
+    # Deixe vazio para exigir sempre o código da clínica nas URLs públicas.
+    slug-publico-padrao: ${APP_TENANT_SLUG_PUBLICO_PADRAO:clinica-principal}
+  # Superadmin local admin/admin — EXCLUSIVO PARA DESENVOLVIMENTO. Em produção fica desligado
+  # (application-prod.yml) e a senha padrão "admin" é recusada mesmo se habilitado.
+  bootstrap-super-admin:
+    enabled: ${APP_BOOTSTRAP_SUPER_ADMIN_ENABLED:true}
+    nome: ${APP_BOOTSTRAP_SUPER_ADMIN_NOME:Superadministrador}
+    username: ${APP_BOOTSTRAP_SUPER_ADMIN_USERNAME:admin}
+    email: ${APP_BOOTSTRAP_SUPER_ADMIN_EMAIL:}
+    password: ${APP_BOOTSTRAP_SUPER_ADMIN_PASSWORD:admin}
   bootstrap-admin:
     enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
     nome: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}

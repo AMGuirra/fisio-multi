@@ -92,7 +92,7 @@ public class PlanoService {
      * ainda é enforced pelo Spring Security AOP.
      * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity salvarOuAtualizar(UUID pacienteId, PlanoFormDTO form, String profissionalResponsavel) {
         ClienteEntity paciente = pacienteService.buscarPorId(pacienteId);
@@ -128,7 +128,7 @@ public class PlanoService {
     }
 
     // Segunda linha de defesa (ver comentário completo em salvarOuAtualizar acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity renovarPlano(UUID planoAnteriorId, PlanoFormDTO form, String profissionalResponsavel) {
         PlanoSessaoEntity anterior = planoSessaoRepository.findById(planoAnteriorId)

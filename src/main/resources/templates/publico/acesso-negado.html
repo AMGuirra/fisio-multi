@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${motivo.titulo} + ' - FisioGestao'">Acesso indisponível - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="pub-body pub-centered" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
+    <div class="pub-success-card pub-status-card" th:attr="data-motivo=${motivo.name()}">
+        <div class="pub-success-icon pub-status-icon-warning">
+            <i th:attr="data-lucide=${motivo.name() == 'TESTE_EXPIRADO' ? 'hourglass' : (motivo.name() == 'INATIVO' ? 'circle-pause' : 'shield-ban')}" data-lucide="shield-ban"></i>
+        </div>
+        <h1 class="pub-success-title" th:text="${motivo.titulo}">Acesso indisponível</h1>
+        <p class="pub-success-text">
+            <strong th:text="${motivo.mensagem}">O acesso da sua clínica está bloqueado.</strong><br>
+            <span>Seus dados continuam preservados. Entre em contato com o suporte para regularizar o acesso.</span>
+        </p>
+        <div class="pub-actions-stack">
+            <a th:href="@{/suporte/solicitar}" href="/suporte/solicitar" class="pub-btn-link">
+                <i data-lucide="life-buoy"></i>
+                Solicitar suporte
+            </a>
+            <a th:href="@{/login}" href="/login" class="pub-link-muted">Voltar ao login</a>
+        </div>
+    </div>
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:attr="nonce=${cspNonce}">
+        if (window.lucide && typeof window.lucide.createIcons === 'function') { window.lucide.createIcons(); }
+    </script>
+</body>
+</html>

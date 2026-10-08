@@ -1,6 +1,6 @@
 package com.fisiogestao.pacientes;
 
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +27,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class PlanoSessaoEntity extends BaseEntity {
+public class PlanoSessaoEntity extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)

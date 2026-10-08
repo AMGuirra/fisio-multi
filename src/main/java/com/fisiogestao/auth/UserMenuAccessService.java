@@ -24,8 +24,11 @@ public class UserMenuAccessService {
         if (role == null) {
             return EnumSet.noneOf(AppMenuItem.class);
         }
+        if (role.isSuperAdmin()) {
+            return menusSuperAdmin();
+        }
         EnumSet<AppMenuItem> menus = role.isAdministrador()
-                ? EnumSet.allOf(AppMenuItem.class)
+                ? menusDeClinica()
                 : carregarOuCriarPermissoes(role);
         return normalizarMenusLegados(menus);
     }
@@ -38,9 +41,9 @@ public class UserMenuAccessService {
     public List<RolePermissionsView> listarPermissoesPorFuncao() {
         return List.of(
                 new RolePermissionsView(
-                        UserRole.ADMIN,
-                        UserRole.ADMIN.getLabel(),
-                        filtrarMenusDisponiveisNaInterface(listarMenusLiberados(UserRole.ADMIN)),
+                        UserRole.ADMIN_CLINICA,
+                        UserRole.ADMIN_CLINICA.getLabel(),
+                        filtrarMenusDisponiveisNaInterface(listarMenusLiberados(UserRole.ADMIN_CLINICA)),
                         true
                 ),
                 buildRolePermissionsView(UserRole.FISIOTERAPEUTA),
@@ -85,7 +88,7 @@ public class UserMenuAccessService {
         EnumSet<AppMenuItem> liberados = listarMenusLiberados(role);
         List<SidebarNavItem> result = new ArrayList<>();
         AppMenuItem.MenuSection currentSection = null;
-        for (AppMenuItem menu : AppMenuItem.sidebarPrincipais()) {
+        for (AppMenuItem menu : (role != null && role.isSuperAdmin() ? AppMenuItem.sidebarPlataforma() : AppMenuItem.sidebarPrincipais())) {
             if (!podeVisualizarMenu(role, liberados, menu)) continue;
             AppMenuItem.MenuSection section = menu.getSection();
             if (section != currentSection) {
@@ -131,11 +134,19 @@ public class UserMenuAccessService {
         if (role == null) {
             return false;
         }
+        var menuDaRota = AppMenuItem.fromPath(currentPath);
+        if (role.isSuperAdmin()) {
+            // O superadmin opera apenas a área Gestor (e o SMTP global): nunca páginas de clínica.
+            return menuDaRota.map(menusSuperAdmin()::contains).orElse(false);
+        }
+        if (menuDaRota.map(AppMenuItem::isPlataforma).orElse(false)) {
+            return false;
+        }
         if (role.isAdministrador()) {
             return true;
         }
 
-        return AppMenuItem.fromPath(currentPath)
+        return menuDaRota
                 .map(menu -> {
                     if (menu.isAdminOnly()) {
                         return false;
@@ -150,6 +161,9 @@ public class UserMenuAccessService {
 
     @Transactional
     public String resolverDestinoInicial(UserRole role) {
+        if (role != null && role.isSuperAdmin()) {
+            return "/gestor";
+        }
         if (role == null || role.isAdministrador()) {
             return "/dashboard";
         }
@@ -163,6 +177,17 @@ public class UserMenuAccessService {
                 .orElse("/dashboard");
     }
 
+    /** Todos os menus de clínica (sem os itens da plataforma). */
+    private static EnumSet<AppMenuItem> menusDeClinica() {
+        EnumSet<AppMenuItem> menus = EnumSet.allOf(AppMenuItem.class);
+        menus.removeIf(AppMenuItem::isPlataforma);
+        return menus;
+    }
+
+    private static EnumSet<AppMenuItem> menusSuperAdmin() {
+        return EnumSet.copyOf(AppMenuItem.sidebarPlataforma());
+    }
+
     private RolePermissionsView buildRolePermissionsView(UserRole role) {
         return new RolePermissionsView(
                 role,
@@ -174,6 +199,12 @@ public class UserMenuAccessService {
 
     private boolean podeVisualizarMenu(UserRole role, EnumSet<AppMenuItem> menusLiberados, AppMenuItem menu) {
         if (role == null) {
+            return false;
+        }
+        if (role.isSuperAdmin()) {
+            return menusLiberados.contains(menu);
+        }
+        if (menu.isPlataforma()) {
             return false;
         }
         if (role.isAdministrador()) {
@@ -210,7 +241,8 @@ public class UserMenuAccessService {
 
     private EnumSet<AppMenuItem> defaultsPara(UserRole role) {
         return switch (role) {
-            case ADMIN -> EnumSet.allOf(AppMenuItem.class);
+            case ADMIN_CLINICA -> menusDeClinica();
+            case SUPER_ADMIN -> EnumSet.noneOf(AppMenuItem.class);
             case FISIOTERAPEUTA -> EnumSet.of(
                     AppMenuItem.DASHBOARD,
                     AppMenuItem.AGENDA,

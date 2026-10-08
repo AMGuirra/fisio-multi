@@ -1,6 +1,6 @@
 package com.fisiogestao.agenda;
 
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,7 +26,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class BloqueioAgendaEntity extends BaseEntity {
+public class BloqueioAgendaEntity extends TenantEntity {
 
     @Column(name = "data_hora_inicio", nullable = false)
     private OffsetDateTime dataHoraInicio;

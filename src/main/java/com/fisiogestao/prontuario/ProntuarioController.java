@@ -290,7 +290,7 @@ public class ProntuarioController {
     ) {
         try {
             String usuario = authentication != null ? authentication.getName() : "sistema";
-            prontuarioAnexoService.excluir(id, usuario);
+            prontuarioAnexoService.excluir(id, clienteId, usuario);
             redirectAttributes.addFlashAttribute("successMessage", "Arquivo excluído com sucesso.");
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -349,9 +349,16 @@ public class ProntuarioController {
             }
         }
 
+        ProntuarioSoapEntity avaliacao = prontuarioService.buscarAvaliacao(pacienteSelecionadoId).orElse(null);
+        // O textarea da avaliação é ligado ao form (th:field), não à entidade: sem esta cópia a
+        // avaliação existente nunca aparecia na tela. Texto já submetido (erro de validação) é mantido.
+        if (avaliacao != null && avaliacaoForm.getTexto() == null) {
+            avaliacaoForm.setTexto(avaliacao.getTextoRegistro());
+        }
+
         model.addAttribute("pacienteSelecionado", pacienteSelecionado);
         model.addAttribute("sessoesPaciente", sessoesPaciente);
-        model.addAttribute("avaliacao", prontuarioService.buscarAvaliacao(pacienteSelecionadoId).orElse(null));
+        model.addAttribute("avaliacao", avaliacao);
         model.addAttribute("evolucoes", evolucoes);
         model.addAttribute("documentos", prontuarioAnexoService.listarDocumentosPorPaciente(pacienteSelecionadoId));
         model.addAttribute("fotosPorEvolucao", fotosPorEvolucao);

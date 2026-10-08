@@ -24,3 +24,10 @@ app:
     username: admin
     email: admin@teste.local
     password: AdminTeste123
+  tenant:
+    slug-publico-padrao: clinica-principal
+  bootstrap-super-admin:
+    enabled: true
+    nome: Superadministrador Teste
+    username: superadmin
+    password: admin

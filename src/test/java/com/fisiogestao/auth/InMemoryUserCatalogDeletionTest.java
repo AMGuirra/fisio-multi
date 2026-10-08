@@ -3,6 +3,7 @@ package com.fisiogestao.auth;
 import com.fisiogestao.auditoria.repository.AuditEventRepository;
 import com.fisiogestao.auditoria.service.AuditService;
 import com.fisiogestao.email.repository.EmailLogRepository;
+import com.fisiogestao.tenant.TenantContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +27,6 @@ class InMemoryUserCatalogDeletionTest {
     @Mock private AuditEventRepository auditEventRepository;
     @Mock private EmailLogRepository emailLogRepository;
     @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
-    @Mock private BootstrapAdminProperties bootstrapAdminProperties;
 
     @InjectMocks private InMemoryUserCatalog userCatalog;
 
@@ -40,14 +40,15 @@ class InMemoryUserCatalogDeletionTest {
                 .role(UserRole.RECEPCAO)
                 .build();
         usuario.setId(userId);
-        when(repository.findById(userId)).thenReturn(Optional.of(usuario));
-        when(auditEventRepository.findByUsuarioIdOrEntidadeAndEntidadeId(
-                userId, "usuario_sistema", userId.toString())).thenReturn(List.of());
+        UUID empresaId = UUID.randomUUID();
+        when(repository.findByIdAndEmpresaId(userId, empresaId)).thenReturn(Optional.of(usuario));
+        when(auditEventRepository.findDoUsuarioNaEmpresa(
+                empresaId, userId, "usuario_sistema", userId.toString())).thenReturn(List.of());
 
-        userCatalog.excluir(userId, "administrador");
+        TenantContext.executarComo(empresaId, () -> userCatalog.excluir(userId, "administrador"));
 
         verify(passwordResetTokenRepository).deleteByUsuarioId(userId);
-        verify(emailLogRepository).deleteByEntidadeTipoAndEntidadeId("usuario_sistema", userId);
+        verify(emailLogRepository).deleteByEmpresaIdAndEntidadeTipoAndEntidadeId(empresaId, "usuario_sistema", userId);
         verify(auditEventRepository).deleteAll(List.of());
         verify(repository).delete(usuario);
     }

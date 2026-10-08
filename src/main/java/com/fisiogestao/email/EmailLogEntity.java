@@ -29,6 +29,10 @@ public class EmailLogEntity extends BaseEntity {
     @Column(nullable = false, length = 80)
     private EmailLogType tipo;
 
+    /** Empresa que originou o e-mail; {@code null} para notificações da plataforma. */
+    @Column(name = "empresa_id", updatable = false)
+    private java.util.UUID empresaId;
+
     @Column(name = "destinatario_principal", length = 160)
     private String destinatarioPrincipal;
 

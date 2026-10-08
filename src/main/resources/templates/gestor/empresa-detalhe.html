@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina(${empresa.nome}, 'Dados cadastrais, status, período de teste e equipe da clínica.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="gestor-kpis">
+        <div class="gestor-kpi"><span>Status</span>
+            <strong><span class="chip" th:classappend="${' status-empresa-' + #strings.toLowerCase(empresa.status.name())}" th:text="${empresa.status.label}">Ativo</span></strong></div>
+        <div class="gestor-kpi"><span>Código de acesso</span><strong><code th:text="${empresa.slug}">slug</code></strong></div>
+        <div class="gestor-kpi" th:if="${empresa.dataFimTeste != null}"><span>Teste</span>
+            <strong th:text="${empresa.quantidadeDiasUteisTeste} + ' dias úteis'">15 dias úteis</strong>
+            <small th:text="${#temporals.format(empresa.dataInicioTeste, 'dd/MM/yyyy')} + ' até ' + ${#temporals.format(empresa.dataFimTeste, 'dd/MM/yyyy HH:mm')}">datas</small></div>
+        <div class="gestor-kpi" th:if="${diasRestantes != null}"><span>Dias úteis restantes</span><strong th:text="${diasRestantes}">0</strong></div>
+        <div class="gestor-kpi" th:if="${empresa.motivoBloqueio != null}"><span>Motivo</span><small th:text="${empresa.motivoBloqueio}">motivo</small></div>
+    </section>
+
+    <section class="crud-layout">
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="building"></i> Dados cadastrais</h3></header>
+            <form th:action="@{/gestor/empresas/{id}(id=${empresa.id})}" th:object="${form}" method="post" class="form-grid section-body">
+                <input type="hidden" th:field="*{versao}">
+                <th:block th:replace="~{gestor/empresa-campos :: campos}"></th:block>
+                <div class="form-actions form-field-full">
+                    <button type="submit" class="action-button primary"><i data-lucide="save"></i> Salvar dados</button>
+                </div>
+            </form>
+        </article>
+
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="toggle-right"></i> Status de acesso</h3></header>
+            <div class="section-body gestor-acoes">
+                <form th:action="@{/gestor/empresas/{id}/ativar(id=${empresa.id})}" method="post"
+                      th:unless="${empresa.status.name() == 'ATIVO'}"
+                      data-confirm-modal data-confirm-title="Ativar empresa?"
+                      data-confirm-message="A clínica terá acesso liberado por tempo indeterminado."
+                      data-confirm-action-label="Ativar">
+                    <input type="text" name="observacao" maxlength="500" placeholder="Observação (opcional)">
+                    <button type="submit" class="action-button success"><i data-lucide="circle-check"></i> Ativar / desbloquear</button>
+                </form>
+                <form th:action="@{/gestor/empresas/{id}/bloquear(id=${empresa.id})}" method="post"
+                      th:unless="${empresa.status.name() == 'BLOQUEADO'}"
+                      data-confirm-modal data-confirm-title="Bloquear empresa?"
+                      data-confirm-message="Todos os usuários da clínica perderão o acesso imediatamente. Os dados serão preservados."
+                      data-confirm-action-label="Bloquear">
+                    <input type="text" name="motivo" maxlength="1000" placeholder="Motivo do bloqueio (obrigatório)" required>
+                    <button type="submit" class="action-button danger"><i data-lucide="shield-ban"></i> Bloquear</button>
+                </form>
+                <form th:action="@{/gestor/empresas/{id}/inativar(id=${empresa.id})}" method="post"
+                      th:unless="${empresa.status.name() == 'INATIVO'}"
+                      data-confirm-modal data-confirm-title="Inativar empresa?"
+                      data-confirm-message="A clínica ficará inativa e sem acesso. Os dados serão preservados."
+                      data-confirm-action-label="Inativar">
+                    <input type="text" name="motivo" maxlength="1000" placeholder="Motivo da inativação (obrigatório)" required>
+                    <button type="submit" class="action-button danger"><i data-lucide="circle-pause"></i> Inativar</button>
+                </form>
+            </div>
+
+            <header class="section-head mt-12"><h3 class="section-title"><i data-lucide="hourglass"></i> Período de teste (dias úteis)</h3></header>
+            <div class="section-body gestor-acoes">
+                <form th:action="@{/gestor/empresas/{id}/teste/iniciar(id=${empresa.id})}" method="post"
+                      data-confirm-modal data-confirm-title="Iniciar/reiniciar teste?"
+                      data-confirm-message="A empresa passará para TESTE a partir de hoje, com a quantidade de dias úteis informada."
+                      data-confirm-action-label="Iniciar teste">
+                    <input type="number" name="dias" min="1" max="3650" th:value="${diasTestePadrao}" required>
+                    <button type="submit" class="action-button primary"><i data-lucide="play"></i> Iniciar / reiniciar teste</button>
+                </form>
+                <th:block th:if="${empresa.status.name() == 'TESTE'}">
+                    <form th:action="@{/gestor/empresas/{id}/teste/prorrogar(id=${empresa.id})}" method="post"
+                          data-confirm-modal data-confirm-title="Prorrogar teste?" data-confirm-message="Os dias úteis informados serão somados ao teste atual." data-confirm-action-label="Prorrogar">
+                        <input type="number" name="dias" min="1" max="3650" placeholder="+ dias úteis" required>
+                        <button type="submit" class="action-button ghost"><i data-lucide="calendar-plus"></i> Prorrogar</button>
+                    </form>
+                    <form th:action="@{/gestor/empresas/{id}/teste/dias(id=${empresa.id})}" method="post"
+                          data-confirm-modal data-confirm-title="Alterar total de dias úteis?" data-confirm-message="A data final será recalculada a partir da data de início do teste (serve para prorrogar ou reduzir)." data-confirm-action-label="Alterar">
+                        <input type="number" name="dias" min="1" max="3650" th:value="${empresa.quantidadeDiasUteisTeste}" required>
+                        <button type="submit" class="action-button ghost"><i data-lucide="calculator"></i> Definir total de dias úteis</button>
+                    </form>
+                    <form th:action="@{/gestor/empresas/{id}/teste/data-final(id=${empresa.id})}" method="post"
+                          data-confirm-modal data-confirm-title="Definir nova data final?" data-confirm-message="A quantidade de dias úteis será recalculada até a data escolhida." data-confirm-action-label="Definir">
+                        <input type="date" name="dataFinal" required>
+                        <button type="submit" class="action-button ghost"><i data-lucide="calendar-clock"></i> Definir data final</button>
+                    </form>
+                </th:block>
+            </div>
+        </article>
+    </section>
+
+    <section class="section-card">
+        <header class="section-head">
+            <h3 class="section-title"><i data-lucide="users"></i> Equipe</h3>
+            <p class="section-subtitle">Somente dados administrativos — o Gestor não acessa dados clínicos.</p>
+        </header>
+        <div class="section-body" th:if="${#lists.isEmpty(equipe)}">
+            <div class="empty-box"><i data-lucide="user-x"></i><p>Nenhum usuário cadastrado.</p></div>
+        </div>
+        <div class="data-table-wrap" th:unless="${#lists.isEmpty(equipe)}">
+            <table class="data-table compact">
+                <thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Papel</th></tr></thead>
+                <tbody>
+                <tr th:each="u : ${equipe}">
+                    <td th:text="${u.nome}">Nome</td>
+                    <td th:text="${u.username}">usuario</td>
+                    <td th:text="${u.email}">email</td>
+                    <td><span class="chip" th:text="${u.label}">Papel</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+</body>
+</html>

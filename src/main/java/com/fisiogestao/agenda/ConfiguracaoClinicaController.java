@@ -23,6 +23,7 @@ import java.util.List;
 public class ConfiguracaoClinicaController {
 
     private final ConfiguracaoClinicaService configuracaoClinicaService;
+    private final com.fisiogestao.cancelamento.CancelamentoService cancelamentoService;
 
     @GetMapping
     public String index(Model model) {
@@ -53,6 +54,29 @@ public class ConfiguracaoClinicaController {
         }
     }
 
+    /** Solicitação de cancelamento da conta: somente ADMIN_CLINICA; não altera status nem apaga dados. */
+    @PostMapping("/cancelamento")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN_CLINICA')")
+    public String solicitarCancelamento(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String nomeSolicitante,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String emailContato,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) com.fisiogestao.cancelamento.MotivoCancelamento motivo,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String descricao,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "false") boolean confirmacao,
+            jakarta.servlet.http.HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            cancelamentoService.solicitarPelaClinica(nomeSolicitante, emailContato, motivo, descricao, confirmacao,
+                    request.getRemoteAddr());
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Solicitação de cancelamento enviada. A clínica continua com acesso normal até a análise da nossa equipe; nenhum dado foi alterado.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/configuracoes/clinica#cancelamento";
+    }
+
     private void prepararPagina(Model model, ConfiguracaoClinicaForm form) {
         model.addAttribute("configuracaoClinicaForm", form);
         model.addAttribute("diasSemana", List.of(
@@ -65,6 +89,9 @@ public class ConfiguracaoClinicaController {
                 new DiaSemanaOption(DayOfWeek.SUNDAY, "Domingo")
         ));
         model.addAttribute("timezonesClinica", configuracaoClinicaService.listarTimezonesSuportados());
+        model.addAttribute("motivosCancelamento", com.fisiogestao.cancelamento.MotivoCancelamento.values());
+        model.addAttribute("textoConfirmacaoCancelamento", com.fisiogestao.cancelamento.CancelamentoService.TEXTO_CONFIRMACAO);
+        model.addAttribute("solicitacoesCancelamento", cancelamentoService.listarDaClinicaAtual());
     }
 
     public record DiaSemanaOption(DayOfWeek value, String label) {

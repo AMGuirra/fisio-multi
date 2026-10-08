@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.fisiogestao.support.WithUsuarioClinica;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
@@ -28,6 +28,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,6 +38,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
@@ -46,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Cobre autenticação, permissão por menu (PRONTUARIO), CSRF, IDOR e o fluxo multipart
  * de avaliação/evolução/fotos do prontuário via MockMvc de ponta a ponta (contexto Spring real).
  */
+@org.junit.jupiter.api.extension.ExtendWith(com.fisiogestao.support.EmpresaLegadaSetupExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -91,8 +95,9 @@ class ProntuarioControllerTest {
                 .ativo(true)
                 .build());
 
-        usuarioSistemaRepository.findByUsername(RECEPCAO_USERNAME)
+        usuarioSistemaRepository.findByEmpresaIdAndUsername(empresaLegadaId(), RECEPCAO_USERNAME)
                 .orElseGet(() -> usuarioSistemaRepository.save(UsuarioSistemaEntity.builder()
+                        .empresaId(empresaLegadaId())
                         .nome("Recepção Prontuário Teste")
                         .username(RECEPCAO_USERNAME)
                         .email("recepcao.prontuario.teste@example.com")
@@ -117,7 +122,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void roleSemPermissaoEhRedirecionadaAoAbrirPagina() throws Exception {
         mockMvc.perform(get("/prontuario"))
                 .andExpect(status().is3xxRedirection())
@@ -125,7 +130,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void roleSemPermissaoEhRedirecionadaAoSalvarAvaliacao() throws Exception {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
@@ -142,7 +147,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void salvarAvaliacaoSemCsrfEhBloqueado() throws Exception {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .param("clienteId", paciente.getId().toString())
@@ -158,7 +163,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminAbrePaginaComPacienteSelecionado() throws Exception {
         mockMvc.perform(get("/prontuario").param("paciente", paciente.getId().toString()))
                 .andExpect(status().isOk())
@@ -166,7 +171,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminCriaEDepoisAtualizaAvaliacaoComAuditoriaDeRetificacao() throws Exception {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
@@ -190,7 +195,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminNaoConsegueSalvarAvaliacaoVazia() throws Exception {
         mockMvc.perform(post("/prontuario/avaliacao")
                         .with(csrf())
@@ -217,7 +222,7 @@ class ProntuarioControllerTest {
      * reproduz de verdade.
      */
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void adminAbrePaginaComEvolucaoVinculadaASessaoRealSemErro() throws Exception {
         ClienteEntity pacienteLocal = clienteRepository.save(ClienteEntity.builder()
@@ -254,7 +259,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminRegistraDuasEvolucoesComoRegistrosIndependentes() throws Exception {
         mockMvc.perform(post("/prontuario/evolucao")
                         .with(csrf())
@@ -278,7 +283,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminEditaTextoDeEvolucaoExistente() throws Exception {
         UUID evolucaoId = registrarEvolucao(paciente.getId(), "Texto original.");
 
@@ -294,7 +299,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void adminExcluiEvolucaoExistente() throws Exception {
         UUID evolucaoId = registrarEvolucao(paciente.getId(), "Evolução a ser excluída.");
 
@@ -308,7 +313,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void roleSemPermissaoEhRedirecionadaAoExcluirEvolucao() throws Exception {
         UUID evolucaoId = registrarEvolucaoComoAdmin(paciente.getId(), "Evolução protegida.");
 
@@ -322,7 +327,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void naoPermiteExcluirEvolucaoDeOutroPaciente() throws Exception {
         UUID evolucaoId = registrarEvolucao(paciente.getId(), "Evolução do paciente correto.");
 
@@ -336,7 +341,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void excluirEvolucaoInexistenteNaoLancaErroEMostraFlashDeErro() throws Exception {
         mockMvc.perform(post("/prontuario/evolucao/{id}/excluir", UUID.randomUUID())
                         .with(csrf())
@@ -362,7 +367,7 @@ class ProntuarioControllerTest {
     private UUID registrarEvolucaoComoAdmin(UUID clienteId, String texto) throws Exception {
         mockMvc.perform(post("/prontuario/evolucao")
                         .with(csrf())
-                        .with(user("admin").roles("ADMIN"))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication(adminClinicaLegada()))
                         .param("clienteId", clienteId.toString())
                         .param("texto", texto))
                 .andExpect(status().is3xxRedirection());
@@ -378,7 +383,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void evolucaoComFotoSemConsentimentoEhRejeitada() throws Exception {
         MockMultipartFile foto = new MockMultipartFile("fotos", "joelho.jpg", "image/jpeg", jpegValido());
 
@@ -395,7 +400,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void evolucaoComFotoValidaEConsentimentoPersisteFotoClinicaVinculada() throws Exception {
         MockMultipartFile foto = new MockMultipartFile("fotos", "joelho.jpg", "image/jpeg", jpegValido());
 
@@ -419,7 +424,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void evolucaoRejeitaArquivoComExtensaoFalsificada() throws Exception {
         MockMultipartFile arquivoForjado = new MockMultipartFile(
                 "fotos", "foto.jpg", "image/jpeg", "conteudo que nao e uma imagem jpeg de verdade".getBytes());
@@ -442,7 +447,7 @@ class ProntuarioControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void naoPermiteVincularSessaoDeOutroPacienteNaEvolucao() throws Exception {
         // Sem sessão cadastrada, o service já rejeita qualquer sessaoId inexistente;
         // aqui simulamos o caso de posse cruzada com um UUID aleatório (sessão de outro contexto).
@@ -458,14 +463,14 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void visualizarAnexoInexistenteRetorna404() throws Exception {
         mockMvc.perform(get("/prontuario/anexo/{id}", UUID.randomUUID()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void excluirAnexoInexistenteNaoLancaErroEMostraFlashDeErro() throws Exception {
         mockMvc.perform(post("/prontuario/anexo/{id}/excluir", UUID.randomUUID())
                         .with(csrf())
@@ -475,7 +480,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void miniaturaDeAnexoQueNaoEhFotoClinicaRetorna404() throws Exception {
         MockMultipartFile documento = new MockMultipartFile(
                 "arquivo", "laudo.pdf", "application/pdf", "%PDF-1.4 documento de teste".getBytes());
@@ -494,7 +499,7 @@ class ProntuarioControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void anexoNaoMisturaDocumentosEntrePacientesDiferentes() throws Exception {
         MockMultipartFile documento = new MockMultipartFile(
                 "arquivo", "laudo.pdf", "application/pdf", "%PDF-1.4 documento de teste".getBytes());
@@ -508,6 +513,56 @@ class ProntuarioControllerTest {
         assertFalse(prontuarioAnexoRepository.findResumosByClienteId(paciente.getId()).isEmpty());
     }
 
+    @Test
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
+    void naoPermiteExcluirAnexoDeOutroPaciente() throws Exception {
+        MockMultipartFile documento = new MockMultipartFile(
+                "arquivo", "laudo.pdf", "application/pdf", "%PDF-1.4 documento de teste".getBytes());
+        mockMvc.perform(multipart("/prontuario/anexo")
+                        .file(documento)
+                        .param("clienteId", paciente.getId().toString())
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        UUID anexoId = prontuarioAnexoRepository.findResumosByClienteId(paciente.getId()).get(0).getId();
+
+        mockMvc.perform(post("/prontuario/anexo/{id}/excluir", anexoId)
+                        .with(csrf())
+                        .param("clienteId", outroPaciente.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("errorMessage"));
+
+        assertTrue(prontuarioAnexoRepository.findById(anexoId).isPresent());
+    }
+
+    // -------------------------------------------------------------------------
+    // Renderização: dados existentes chegam à tela
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
+    void avaliacaoExistenteApareceNoCampoDeTexto() throws Exception {
+        mockMvc.perform(post("/prontuario/avaliacao")
+                        .with(csrf())
+                        .param("clienteId", paciente.getId().toString())
+                        .param("texto", "Lombalgia mecanica ha 3 meses <b>sem</b> irradiacao."))
+                .andExpect(status().is3xxRedirection());
+
+        mockMvc.perform(get("/prontuario").param("paciente", paciente.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Lombalgia mecanica ha 3 meses &lt;b&gt;sem&lt;/b&gt; irradiacao.</textarea>")))
+                .andExpect(content().string(not(containsString("ainda não possui uma avaliação registrada"))));
+    }
+
+    @Test
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
+    void pacienteSemAvaliacaoNemEvolucaoMostraEstadoVazio() throws Exception {
+        mockMvc.perform(get("/prontuario").param("paciente", paciente.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("ainda não possui uma avaliação registrada")))
+                .andExpect(content().string(containsString("ainda não possui evoluções registradas")));
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -518,5 +573,19 @@ class ProntuarioControllerTest {
         ByteArrayOutputStream saida = new ByteArrayOutputStream();
         ImageIO.write(imagem, "jpg", saida);
         return saida.toByteArray();
+    }
+
+    @Autowired
+    private com.fisiogestao.empresa.EmpresaRepository empresaRepositoryLegada;
+
+    private org.springframework.security.core.Authentication adminClinicaLegada() {
+        var principal = new com.fisiogestao.auth.UsuarioAutenticado(null, "admin", "x",
+                com.fisiogestao.auth.UserRole.ADMIN_CLINICA, empresaLegadaId(), com.fisiogestao.empresa.EmpresaLegada.SLUG);
+        return org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(
+                principal, null, principal.getAuthorities());
+    }
+
+    private java.util.UUID empresaLegadaId() {
+        return empresaRepositoryLegada.findBySlug(com.fisiogestao.empresa.EmpresaLegada.SLUG).orElseThrow().getId();
     }
 }

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Solicitação de cancelamento', 'Analise o pedido e registre a decisão.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="crud-layout">
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="user-x"></i> Detalhes</h3></header>
+            <div class="section-body">
+                <dl class="gestor-dl">
+                    <dt>Data</dt><dd th:text="${#temporals.format(solicitacao.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</dd>
+                    <dt>Empresa</dt>
+                    <dd>
+                        <a th:if="${empresa != null}" th:href="@{/gestor/empresas/{id}(id=${empresa.id})}" th:text="${empresa.nome + ' (' + empresa.status.label + ')'}">Empresa</a>
+                        <span th:if="${empresa == null}">Não identificada</span>
+                    </dd>
+                    <dt>Origem</dt><dd th:text="${solicitacao.origem.name() == 'SISTEMA' ? 'Sistema (administrador da clínica)' : 'Página pública'}">Sistema</dd>
+                    <dt>Solicitante</dt><dd th:text="${solicitacao.nomeSolicitante}">Nome</dd>
+                    <dt>E-mail</dt><dd th:text="${solicitacao.emailContato}">email</dd>
+                    <dt>CPF / CNPJ</dt><dd th:text="${(solicitacao.cpf != null ? solicitacao.cpf : '-') + ' / ' + (solicitacao.cnpj != null ? solicitacao.cnpj : '-')}">-</dd>
+                    <dt>Motivo</dt><dd th:text="${solicitacao.motivo.label}">Motivo</dd>
+                    <dt>Status</dt><dd><span class="chip" th:text="${solicitacao.status.label}">Pendente</span></dd>
+                    <dt th:if="${solicitacao.dataCancelamentoAgendada != null}">Agendado para</dt>
+                    <dd th:if="${solicitacao.dataCancelamentoAgendada != null}" th:text="${#temporals.format(solicitacao.dataCancelamentoAgendada, 'dd/MM/yyyy')}">01/01</dd>
+                    <dt th:if="${solicitacao.observacaoGestor != null}">Resposta</dt>
+                    <dd th:if="${solicitacao.observacaoGestor != null}" th:text="${solicitacao.observacaoGestor}">obs</dd>
+                </dl>
+                <p class="gestor-relato" th:if="${solicitacao.descricao != null}" th:text="${solicitacao.descricao}">Descrição</p>
+
+                <header class="section-head mt-12"><h3 class="section-title"><i data-lucide="history"></i> Histórico</h3></header>
+                <div class="timeline-list">
+                    <div class="timeline-item" th:each="h : ${solicitacao.historico}">
+                        <div>
+                            <p class="entity-name" th:text="${(h.statusAnterior != null ? h.statusAnterior.label + ' → ' : '') + h.statusNovo.label}">Pendente</p>
+                            <p class="entity-meta" th:text="${#temporals.format(h.createdAt, 'dd/MM/yyyy HH:mm') + ' — ' + (h.usuarioNome != null ? h.usuarioNome : 'sistema') + (h.observacao != null ? ': ' + h.observacao : '')}">detalhe</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="section-card" th:unless="${solicitacao.status.encerrada}">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="gavel"></i> Decisão</h3></header>
+            <div class="section-body gestor-acoes">
+                <form th:if="${empresa == null}" th:action="@{/gestor/cancelamentos/{id}/vincular(id=${solicitacao.id})}" method="post">
+                    <select name="empresaId" required>
+                        <option value="">Vincular à empresa…</option>
+                        <option th:each="e : ${empresas}" th:value="${e.key}" th:text="${e.value}">Empresa</option>
+                    </select>
+                    <button type="submit" class="action-button ghost"><i data-lucide="link"></i> Vincular</button>
+                </form>
+                <form th:if="${solicitacao.status.name() == 'PENDENTE'}" th:action="@{/gestor/cancelamentos/{id}/analise(id=${solicitacao.id})}" method="post">
+                    <input type="text" name="observacao" maxlength="1000" placeholder="Observação (opcional)">
+                    <button type="submit" class="action-button primary"><i data-lucide="search-check"></i> Colocar em análise</button>
+                </form>
+                <form th:action="@{/gestor/cancelamentos/{id}/agendar(id=${solicitacao.id})}" method="post"
+                      data-confirm-modal data-confirm-title="Agendar cancelamento?"
+                      data-confirm-message="Na data escolhida a empresa será inativada automaticamente (dados preservados)."
+                      data-confirm-action-label="Agendar">
+                    <input type="date" name="data" th:attr="min=${hoje}" required>
+                    <input type="text" name="observacao" maxlength="1000" placeholder="Resposta à clínica (opcional)">
+                    <button type="submit" class="action-button ghost"><i data-lucide="calendar-clock"></i> Agendar cancelamento</button>
+                </form>
+                <form th:action="@{/gestor/cancelamentos/{id}/recusar(id=${solicitacao.id})}" method="post"
+                      data-confirm-modal data-confirm-title="Recusar solicitação?"
+                      data-confirm-message="A empresa continuará com o status atual."
+                      data-confirm-action-label="Recusar">
+                    <input type="text" name="observacao" maxlength="1000" placeholder="Resposta/justificativa (obrigatória)" required>
+                    <button type="submit" class="action-button ghost"><i data-lucide="x-circle"></i> Recusar</button>
+                </form>
+                <form th:if="${empresa != null}" th:action="@{/gestor/cancelamentos/{id}/concluir(id=${solicitacao.id})}" method="post"
+                      data-confirm-modal data-confirm-title="Concluir cancelamento?"
+                      data-confirm-message="A empresa será marcada como INATIVA e todos os usuários perderão o acesso imediatamente."
+                      data-confirm-helper-title="Os dados serão preservados"
+                      data-confirm-helper-message="Nada é apagado; a empresa pode ser reativada depois pelo Gestor."
+                      data-confirm-action-label="Continuar"
+                      data-confirm-second-title="Confirmar conclusão do cancelamento?"
+                      data-confirm-second-message="As sessões ativas da clínica serão encerradas na próxima requisição."
+                      data-confirm-second-action-label="Concluir cancelamento">
+                    <input type="text" name="observacao" maxlength="1000" placeholder="Observação final (opcional)">
+                    <button type="submit" class="action-button danger"><i data-lucide="ban"></i> Concluir cancelamento</button>
+                </form>
+            </div>
+        </article>
+    </section>
+</div>
+</body>
+</html>

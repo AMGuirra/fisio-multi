@@ -21,11 +21,11 @@
 
         <aside class="app-sidebar" id="appSidebar" role="navigation" aria-label="Menu lateral principal" aria-hidden="false">
             <div class="sidebar-header">
-                <a th:href="@{/dashboard}" href="/dashboard" class="sidebar-brand">
+                <a th:href="${isSuperAdmin ? '/gestor' : '/dashboard'}" href="/dashboard" class="sidebar-brand">
                     <span class="sidebar-brand-mark"><i data-lucide="heart-pulse"></i></span>
                     <span class="sidebar-brand-copy">
                         <span class="sidebar-brand-title">FisioGestao</span>
-                        <span class="sidebar-brand-subtitle">Painel Clínico</span>
+                        <span class="sidebar-brand-subtitle" th:text="${isSuperAdmin ? 'Gestor da Plataforma' : 'Painel Clínico'}">Painel Clínico</span>
                     </span>
                 </a>
             </div>
@@ -52,7 +52,7 @@
 
             <div class="sidebar-footer">
                 <a th:each="item : ${sidebarFooterMenus}"
-                   th:href="${item.href}"
+                   th:href="${item.external and clinicaSlug != null ? item.href + '?clinica=' + clinicaSlug : item.href}"
                    class="sidebar-link"
                    th:classappend="${item.active ? ' active' : ''}"
                    th:attr="target=${item.external ? '_blank' : null},rel=${item.external ? 'noopener' : null}">

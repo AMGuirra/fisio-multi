@@ -27,8 +27,12 @@ public class UsuarioSistemaEntity extends BaseEntity {
     @Column(nullable = false, length = 160)
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 40)
+    @Column(nullable = false, length = 40)
     private String username;
+
+    /** Empresa do usuário; {@code null} somente para {@link UserRole#SUPER_ADMIN}. */
+    @Column(name = "empresa_id", updatable = false)
+    private java.util.UUID empresaId;
 
     @Column(length = 160)
     private String email;

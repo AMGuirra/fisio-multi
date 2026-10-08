@@ -118,7 +118,7 @@ public class PortalPacienteController {
     @GetMapping("/{token}/sair")
     public String sair(@PathVariable UUID token, HttpSession session) {
         session.removeAttribute(SESS_PREFIX + token);
-        return "redirect:/paciente/login";
+        return "redirect:/paciente/login" + com.fisiogestao.tenant.PublicTenantFilter.parametroClinica();
     }
 
     @GetMapping("/esqueci-minha-senha")
@@ -180,7 +180,7 @@ public class PortalPacienteController {
         }
 
         if (!Boolean.TRUE.equals(session.getAttribute(SESS_PREFIX + token))) {
-            return "redirect:/paciente/login";
+            return "redirect:/paciente/login" + com.fisiogestao.tenant.PublicTenantFilter.parametroClinica();
         }
 
         ConfiguracaoClinicaEntity clinica = configuracaoClinicaRepository
@@ -446,7 +446,7 @@ public class PortalPacienteController {
     }
 
     private String redirectLogin() {
-        return "redirect:/paciente/login";
+        return "redirect:/paciente/login" + com.fisiogestao.tenant.PublicTenantFilter.parametroClinica();
     }
 
     private String buildCalendarUrl(SessaoEntity sessao, String nomeClinica) {

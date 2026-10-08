@@ -14,7 +14,8 @@ public enum AuditModule {
     SOLICITACOES("Solicitações"),
     EMAIL("E-mail"),
     AUDITORIA("Auditoria"),
-    LISTA_ESPERA("Lista de Espera");
+    LISTA_ESPERA("Lista de Espera"),
+    GESTOR("Gestor da plataforma");
 
     private final String label;
 

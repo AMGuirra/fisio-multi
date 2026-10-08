@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.fisiogestao.support.WithUsuarioClinica;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.junit.jupiter.api.extension.ExtendWith(com.fisiogestao.support.EmpresaLegadaSetupExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -92,7 +93,7 @@ class PageSmokeTest {
 
     @BeforeEach
     void setUp() {
-        adminUserId = usuarioSistemaRepository.findByUsername("admin")
+        adminUserId = usuarioSistemaRepository.findByEmpresaIdAndUsername(empresaLegadaId(), "admin")
                 .orElseThrow(() -> new IllegalStateException("Usuário admin não encontrado para os testes."))
                 .getId();
 
@@ -100,6 +101,7 @@ class PageSmokeTest {
                 .findFirst()
                 .map(AuditEventEntity::getId)
                 .orElseGet(() -> auditEventRepository.save(AuditEventEntity.builder()
+                        .empresaId(empresaLegadaId())
                         .modulo(AuditModule.AUDITORIA)
                         .entidade("teste")
                         .entidadeId("page-smoke")
@@ -107,13 +109,14 @@ class PageSmokeTest {
                         .tipoAcao(AuditActionType.CREATE)
                         .origemEvento(AuditEventOrigin.MANUAL)
                         .usuarioNome("Administrador")
-                        .perfilUsuario("ADMIN")
+                        .perfilUsuario("ADMIN_CLINICA")
                         .sucessoOperacao(true)
                         .alteracaoCritica(false)
                         .build()).getId());
 
-        usuarioSistemaRepository.findByUsername(RECEPCAO_USERNAME)
+        usuarioSistemaRepository.findByEmpresaIdAndUsername(empresaLegadaId(), RECEPCAO_USERNAME)
                 .orElseGet(() -> usuarioSistemaRepository.save(UsuarioSistemaEntity.builder()
+                        .empresaId(empresaLegadaId())
                         .nome("Recepção Smoke")
                         .username(RECEPCAO_USERNAME)
                         .email("recepcao.smoke@teste.local")
@@ -189,14 +192,14 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void swaggerUiRequiresAdminRole() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void apiPostRequiresCsrfToken() throws Exception {
         mockMvc.perform(post("/api/dashboard"))
                 .andExpect(status().is3xxRedirection())
@@ -204,7 +207,7 @@ class PageSmokeTest {
     }
 
     @ParameterizedTest
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     @ValueSource(strings = {
             "/dashboard",
             "/calendario",
@@ -231,7 +234,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void relatorioFaturamentoAntigoRedirecionaParaCentralDeRelatorios() throws Exception {
         mockMvc.perform(get("/financeiro/relatorio-faturamento"))
                 .andExpect(status().is3xxRedirection())
@@ -245,7 +248,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void exclusaoPacienteComPlanoApagaTudoEmCascata() throws Exception {
         UUID clienteId = clienteAgenda.getId();
 
@@ -261,7 +264,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void apiCriarPacienteRetornaIdENomeParaSelecaoImediata() throws Exception {
         mockMvc.perform(post("/api/pacientes")
                         .with(csrf())
@@ -277,7 +280,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void apiCriarPacienteComNomeVazioRetorna400() throws Exception {
         mockMvc.perform(post("/api/pacientes")
                         .with(csrf())
@@ -287,7 +290,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void apiCriarPacienteSemCsrfEhBloqueado() throws Exception {
         mockMvc.perform(post("/api/pacientes")
                         .contentType(APPLICATION_JSON)
@@ -300,14 +303,14 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void paginaDeBloqueiosRenderizaSeparada() throws Exception {
         mockMvc.perform(get("/bloqueios"))
                 .andExpect(status().isOk());
     }
 
     @ParameterizedTest
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     @ValueSource(strings = {
             "/calendario",
             "/bloqueios",
@@ -321,7 +324,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void recepcaoNaoPodeAcessarRelatorios() throws Exception {
         mockMvc.perform(get("/relatorios"))
                 .andExpect(status().is3xxRedirection())
@@ -329,7 +332,7 @@ class PageSmokeTest {
     }
 
     @ParameterizedTest
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     @ValueSource(strings = {
             "/usuarios?editar=%s",
             "/auditoria/%s"
@@ -344,7 +347,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaPermiteSessaoRetroativaComPlanoVencido() throws Exception {
         LocalDate dataRetroativa = LocalDate.now().minusDays(5);
         PlanoSessaoEntity planoVencido = planoSessaoRepository.save(PlanoSessaoEntity.builder()
@@ -377,7 +380,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaBloqueiaSessaoFuturaComPlanoVencido() throws Exception {
         LocalDate dataFutura = LocalDate.now().plusDays(5);
         PlanoSessaoEntity planoVencido = planoSessaoRepository.save(PlanoSessaoEntity.builder()
@@ -410,7 +413,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaRenderizaComPlanoESessaoMesmoComOpenInViewDesabilitado() throws Exception {
         mockMvc.perform(get("/calendario")
                         .param("data", agendaDate.toString())
@@ -424,7 +427,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaExibeEditarECancelarParaSessaoRealizada() throws Exception {
         SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
                 .orElseThrow(() -> new IllegalStateException("Sessão da agenda não encontrada."));
@@ -442,7 +445,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaExibeVoltarParaPendenteEExcluirParaSessaoCancelada() throws Exception {
         SessaoEntity sessao = sessaoRepository.findById(sessaoAgendaId)
                 .orElseThrow(() -> new IllegalStateException("Sessão da agenda não encontrada."));
@@ -458,7 +461,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void agendaRedirecionaParaCalendarioUnificado() throws Exception {
         mockMvc.perform(get("/agenda")
                         .param("data", agendaDate.toString()))
@@ -467,7 +470,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void calendarioRenderizaComDomingoPrimeiroEAgendaDoDiaNaMesmaTela() throws Exception {
         mockMvc.perform(get("/calendario"))
                 .andExpect(status().isOk())
@@ -478,7 +481,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void calendarioRenderizaAcoesDeSessaoComTokenCsrf() throws Exception {
         mockMvc.perform(get("/calendario").param("data", agendaDate.toString()))
                 .andExpect(status().isOk())
@@ -487,7 +490,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
+    @WithUsuarioClinica(username = RECEPCAO_USERNAME, roles = "RECEPCAO")
     void recepcaoPodeRegistrarFaltaSemCobranca() throws Exception {
         mockMvc.perform(post("/agenda/sessoes/{id}/falta", sessaoAgendaId)
                         .with(csrf())
@@ -502,7 +505,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void planosConsumoAbreModalDeAgendamentoAoSelecionarPaciente() throws Exception {
         mockMvc.perform(get("/planos-consumo")
                         .param("paciente", clienteAgenda.getId().toString())
@@ -522,7 +525,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void planosConsumoAgendaSessaoEPermaneceNaMesmaTela() throws Exception {
         PlanoSessaoEntity planoAntes = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
@@ -569,7 +572,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void planosConsumoAjustaSessaoRealizadaPendenteEPermaneceNaMesmaTela() throws Exception {
         PlanoSessaoEntity planoAntes = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
@@ -605,7 +608,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void planosConsumoExcluiPlanoComSessaoVinculada() throws Exception {
         PlanoSessaoEntity plano = planoSessaoRepository.findAll().stream()
                 .filter(item -> item.getCliente().getId().equals(clienteAgenda.getId()))
@@ -628,7 +631,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void financeiroExibeMenusDeAcaoParaTodosOsStatusDeLancamento() throws Exception {
         UUID lancamentoId = criarLancamentoFinanceiroPendente().getId();
         LancamentoFinanceiroEntity pago = criarLancamentoFinanceiroPendente();
@@ -656,7 +659,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void relatoriosRenderizamMesmoComReceitaVinculadaAoPaciente() throws Exception {
         lancamentoFinanceiroRepository.save(LancamentoFinanceiroEntity.builder()
                 .tipo(TipoLancamentoFinanceiro.RECEITA)
@@ -675,7 +678,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void salvarPermissoesDaFuncaoRedirecionaSemErro() throws Exception {
         mockMvc.perform(get("/funcoes-usuarios"))
                 .andExpect(status().isOk());
@@ -688,7 +691,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void acessarRotaGetDaFuncaoEspecificaNaoPodeExplodir() throws Exception {
         mockMvc.perform(get("/funcoes-usuarios/FISIOTERAPEUTA"))
                 .andExpect(status().isOk())
@@ -696,7 +699,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void dashboardMostraInformacoesNaNavbarSemCardDuplicado() throws Exception {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
@@ -715,7 +718,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void dashboardExibeSeletorDeTemaNaSidebar() throws Exception {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
@@ -725,7 +728,7 @@ class PageSmokeTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUsuarioClinica(username = "admin", roles = "ADMIN_CLINICA")
     void usuarioPodeAtualizarTemaEscuro() throws Exception {
         mockMvc.perform(post("/preferencias/tema")
                         .with(csrf())
@@ -734,7 +737,7 @@ class PageSmokeTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        UserThemePreference tema = usuarioSistemaRepository.findByUsername("admin")
+        UserThemePreference tema = usuarioSistemaRepository.findByEmpresaIdAndUsername(empresaLegadaId(), "admin")
                 .orElseThrow(() -> new IllegalStateException("Usuário admin não encontrado para validar o tema."))
                 .getTemaInterface();
 
@@ -808,5 +811,12 @@ class PageSmokeTest {
                 .cliente(clienteAgenda)
                 .planoSessao(plano)
                 .build());
+    }
+
+    @Autowired
+    private com.fisiogestao.empresa.EmpresaRepository empresaRepositoryLegada;
+
+    private java.util.UUID empresaLegadaId() {
+        return empresaRepositoryLegada.findBySlug(com.fisiogestao.empresa.EmpresaLegada.SLUG).orElseThrow().getId();
     }
 }

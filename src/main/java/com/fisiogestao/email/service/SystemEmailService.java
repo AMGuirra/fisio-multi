@@ -1,5 +1,6 @@
 package com.fisiogestao.email.service;
 
+import com.fisiogestao.tenant.TenantContext;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditEventCommand;
@@ -41,8 +42,12 @@ public class SystemEmailService {
     private final AuditService auditService;
     private final SmtpEndpointValidator smtpEndpointValidator;
 
+    /**
+     * Envia usando o SMTP da clínica do contexto atual; se a clínica não tiver SMTP ativo,
+     * usa o SMTP global da plataforma. Fora de uma clínica, usa apenas o SMTP global.
+     */
     public EmailDispatchResult send(EmailRequest request) {
-        Optional<EmailConfiguracaoEntity> configuracao = emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
+        Optional<EmailConfiguracaoEntity> configuracao = resolverConfiguracaoAtiva();
         if (configuracao.isEmpty()) {
             String mensagemErro = "Nenhuma configuração SMTP ativa encontrada.";
             registrarLog(null, request, EmailLogStatus.FALHA, mensagemErro);
@@ -50,6 +55,23 @@ public class SystemEmailService {
             return EmailDispatchResult.failure("Nenhuma configuração SMTP ativa encontrada.");
         }
         return sendWithConfiguration(configuracao.get(), request);
+    }
+
+    /** Notificação administrativa da plataforma: sempre pelo SMTP global e com log sem empresa. */
+    public EmailDispatchResult sendPlataforma(EmailRequest request) {
+        return TenantContext.executarSemEmpresa(() -> send(request));
+    }
+
+    public Optional<EmailConfiguracaoEntity> resolverConfiguracaoAtiva() {
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        if (empresaId != null) {
+            Optional<EmailConfiguracaoEntity> daClinica =
+                    emailConfiguracaoRepository.findFirstByEmpresaIdAndAtivoTrueOrderByUpdatedAtDesc(empresaId);
+            if (daClinica.isPresent()) {
+                return daClinica;
+            }
+        }
+        return emailConfiguracaoRepository.findFirstByEmpresaIdIsNullAndAtivoTrueOrderByUpdatedAtDesc();
     }
 
     @Transactional
@@ -164,6 +186,7 @@ public class SystemEmailService {
             String mensagemErro
     ) {
         EmailLogEntity entity = EmailLogEntity.builder()
+                .empresaId(TenantContext.empresaIdOuNull())
                 .tipo(request.type())
                 .destinatarioPrincipal(request.to() == null || request.to().isEmpty()
                         ? null : mascararEmail(request.to().getFirst()))

@@ -66,7 +66,7 @@ public class AgendamentoOnlineController {
             }
 
             redirectAttributes.addFlashAttribute("successMessage", "Sua solicitação foi enviada com sucesso.");
-            return "redirect:/agendamento-online/sucesso";
+            return "redirect:/agendamento-online/sucesso" + com.fisiogestao.tenant.PublicTenantFilter.parametroClinica();
         } catch (BusinessException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             prepararPagina(model, form);

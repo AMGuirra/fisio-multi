@@ -1,7 +1,7 @@
 package com.fisiogestao.solicitacoes;
 
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +27,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class SolicitacaoAgendamentoEntity extends BaseEntity {
+public class SolicitacaoAgendamentoEntity extends TenantEntity {
 
     @Column(name = "nome_paciente", nullable = false, length = 160)
     private String nomePaciente;

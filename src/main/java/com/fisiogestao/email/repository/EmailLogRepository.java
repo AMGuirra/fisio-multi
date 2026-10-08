@@ -8,7 +8,9 @@ import java.util.UUID;
 
 public interface EmailLogRepository extends JpaRepository<EmailLogEntity, UUID> {
 
-    void deleteByEntidadeTipoAndEntidadeId(String entidadeTipo, UUID entidadeId);
+    void deleteByEmpresaIdAndEntidadeTipoAndEntidadeId(UUID empresaId, String entidadeTipo, UUID entidadeId);
 
-    List<EmailLogEntity> findTop50ByOrderByCreatedAtDesc();
+    List<EmailLogEntity> findTop50ByEmpresaIdOrderByCreatedAtDesc(UUID empresaId);
+
+    List<EmailLogEntity> findTop50ByEmpresaIdIsNullOrderByCreatedAtDesc();
 }

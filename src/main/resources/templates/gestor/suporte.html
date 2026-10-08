@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Solicitações de suporte', 'Pedidos enviados pela página pública de suporte.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="section-card">
+        <form class="filter-bar" th:action="@{/gestor/suporte}" method="get">
+            <input type="search" name="termo" th:value="${termo}" placeholder="Buscar por nome, e-mail, documento ou relato" maxlength="120">
+            <select name="status">
+                <option value="">Todos os status</option>
+                <option th:each="s : ${statusOpcoes}" th:value="${s.name()}" th:text="${s.label}" th:selected="${statusSelecionado == s}">Status</option>
+            </select>
+            <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
+        </form>
+    </section>
+    <section class="section-card">
+        <div class="section-body" th:if="${pagina.content.isEmpty()}">
+            <div class="empty-box"><i data-lucide="inbox"></i><p>Nenhuma solicitação encontrada.</p></div>
+        </div>
+        <div class="data-table-wrap" th:unless="${pagina.content.isEmpty()}">
+            <table class="data-table compact">
+                <thead><tr><th>Data</th><th>Solicitante</th><th>Empresa</th><th>Relato</th><th>Status</th><th class="text-right">Ações</th></tr></thead>
+                <tbody>
+                <tr th:each="s : ${pagina.content}">
+                    <td th:text="${#temporals.format(s.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</td>
+                    <td><p class="entity-name" th:text="${s.nome}">Nome</p><p class="entity-meta" th:text="${s.email}">email</p></td>
+                    <td th:text="${s.empresaId != null and empresas.containsKey(s.empresaId) ? empresas.get(s.empresaId) : 'Não identificada'}">Empresa</td>
+                    <td th:text="${#strings.abbreviate(s.descricao, 90)}">Relato</td>
+                    <td><span class="chip" th:text="${s.status.label}">Pendente</span></td>
+                    <td class="text-right"><a th:href="@{/gestor/suporte/{id}(id=${s.id})}" class="action-button ghost inline-icon" aria-label="Abrir"><i data-lucide="arrow-right"></i></a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="pagination-bar" th:if="${pagina.totalPages > 1}">
+            <a th:if="${pagina.hasPrevious()}" th:href="@{/gestor/suporte(termo=${termo}, status=${statusSelecionado}, pagina=${pagina.number - 1})}" class="action-button ghost">Anterior</a>
+            <span th:text="'Página ' + ${pagina.number + 1} + ' de ' + ${pagina.totalPages}">Página 1</span>
+            <a th:if="${pagina.hasNext()}" th:href="@{/gestor/suporte(termo=${termo}, status=${statusSelecionado}, pagina=${pagina.number + 1})}" class="action-button ghost">Próxima</a>
+        </nav>
+    </section>
+</div>
+</body>
+</html>

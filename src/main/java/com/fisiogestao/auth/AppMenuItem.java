@@ -23,14 +23,21 @@ public enum AppMenuItem {
     FUNCOES_USUARIOS("Funções de Usuários", "/funcoes-usuarios", "sliders-horizontal", false, false, true, false, MenuSection.ADMIN, List.of("/funcoes-usuarios")),
     CONFIG_EMAIL("Config. E-mail",   "/configuracoes/email", "mail-check",          false, false, true,  false, MenuSection.ADMIN,   List.of("/configuracoes/email", "/configuracao/email")),
     AUDITORIA("Auditoria",           "/auditoria",           "shield-check",        false, false, true,  false, MenuSection.ADMIN,   List.of("/auditoria")),
-    AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true,  false, MenuSection.NONE,   List.of("/agendamento-online"));
+    AGENDAMENTO_ONLINE("Agendamento Online", "/agendamento-online", "external-link", true, true, true,  false, MenuSection.NONE,   List.of("/agendamento-online")),
+    GESTOR("Painel Gestor",            "/gestor",              "gauge",              false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/dashboard", "/gestor/notificacoes")),
+    GESTOR_EMPRESAS("Empresas",          "/gestor/empresas",     "building",           false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/empresas")),
+    GESTOR_CANCELAMENTOS("Cancelamentos", "/gestor/cancelamentos", "user-x", false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/cancelamentos")),
+    GESTOR_SUPORTE("Suporte",            "/gestor/suporte",      "life-buoy",          false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/suporte")),
+    GESTOR_AUDITORIA("Auditoria global", "/gestor/auditoria",    "shield-check",       false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/auditoria")),
+    GESTOR_CONFIGURACOES("Configurações globais", "/gestor/configuracoes", "settings", false, false, false, false, MenuSection.PLATAFORMA, List.of("/gestor/configuracoes"));
 
     public enum MenuSection {
         NONE(null),
         AGENDA("Agenda"),
         CLINICO("Clínico"),
         GESTAO("Gestão"),
-        ADMIN("Administração");
+        ADMIN("Administração"),
+        PLATAFORMA("Plataforma");
 
         private final String label;
 
@@ -111,6 +118,11 @@ public enum AppMenuItem {
         return section;
     }
 
+    /** Itens da área Gestor: exclusivos do SUPER_ADMIN e nunca liberáveis para clínicas. */
+    public boolean isPlataforma() {
+        return section == MenuSection.PLATAFORMA;
+    }
+
     public boolean isRotaInterna() {
         return !external;
     }
@@ -159,6 +171,18 @@ public enum AppMenuItem {
                 return "Permite consultar o historico de acoes realizadas no sistema.";
             case AGENDAMENTO_ONLINE:
                 return "Disponibiliza o link e o acesso ao agendamento online da clinica.";
+            case GESTOR:
+                return "Painel global da plataforma com indicadores de todas as clinicas.";
+            case GESTOR_EMPRESAS:
+                return "Cadastro, status e periodo de teste das clinicas.";
+            case GESTOR_CANCELAMENTOS:
+                return "Solicitacoes de cancelamento enviadas pelas clinicas.";
+            case GESTOR_SUPORTE:
+                return "Solicitacoes de suporte recebidas pela plataforma.";
+            case GESTOR_AUDITORIA:
+                return "Auditoria das acoes administrativas da plataforma.";
+            case GESTOR_CONFIGURACOES:
+                return "Configuracoes globais da plataforma.";
             default:
                 return label;
         }
@@ -167,6 +191,9 @@ public enum AppMenuItem {
     public boolean matchesPath(String currentPath) {
         if (currentPath == null || currentPath.isBlank()) {
             return false;
+        }
+        if (this == GESTOR && "/gestor".equals(currentPath)) {
+            return true;
         }
         if (this == FINANCEIRO) {
             return "/financeiro".equals(currentPath) || currentPath.startsWith("/financeiro/lancamentos");
@@ -201,6 +228,18 @@ public enum AppMenuItem {
                 FUNCOES_USUARIOS,
                 CONFIG_EMAIL,
                 AUDITORIA
+        );
+    }
+
+    public static List<AppMenuItem> sidebarPlataforma() {
+        return List.of(
+                GESTOR,
+                GESTOR_EMPRESAS,
+                GESTOR_CANCELAMENTOS,
+                GESTOR_SUPORTE,
+                GESTOR_AUDITORIA,
+                GESTOR_CONFIGURACOES,
+                CONFIG_EMAIL
         );
     }
 

@@ -4,6 +4,9 @@ import com.fisiogestao.auth.InMemoryUserCatalog;
 import com.fisiogestao.auth.UserThemePreference;
 import com.fisiogestao.auth.UserMenuAccessService;
 import com.fisiogestao.auth.UserRole;
+import com.fisiogestao.auth.UsuarioAutenticado;
+import com.fisiogestao.tenant.PublicTenantFilter;
+import com.fisiogestao.tenant.TenantContext;
 import com.fisiogestao.listaespera.ListaEsperaRepository;
 import com.fisiogestao.listaespera.StatusListaEspera;
 import jakarta.servlet.http.HttpServletRequest;
@@ -168,9 +171,36 @@ public class GlobalViewAttributes {
         return resolved;
     }
 
+    /**
+     * Código (slug) da clínica para montar links públicos: vem do recurso público resolvido no
+     * servidor (slug/token) ou da empresa do usuário autenticado — nunca de parâmetro livre.
+     */
+    @ModelAttribute("clinicaSlug")
+    public String clinicaSlug(HttpServletRequest request) {
+        Object publica = request != null ? request.getAttribute(PublicTenantFilter.ATRIBUTO_EMPRESA_PUBLICA) : null;
+        if (publica instanceof PublicTenantFilter.EmpresaPublica empresa) {
+            return empresa.slug();
+        }
+        return TenantContext.usuarioAutenticado().map(UsuarioAutenticado::getEmpresaSlug).orElse(null);
+    }
+
+    @ModelAttribute("empresaPublica")
+    public PublicTenantFilter.EmpresaPublica empresaPublica(HttpServletRequest request) {
+        Object publica = request != null ? request.getAttribute(PublicTenantFilter.ATRIBUTO_EMPRESA_PUBLICA) : null;
+        return publica instanceof PublicTenantFilter.EmpresaPublica empresa ? empresa : null;
+    }
+
+    @ModelAttribute("isSuperAdmin")
+    public boolean isSuperAdmin() {
+        return TenantContext.usuarioAutenticado().map(UsuarioAutenticado::isSuperAdmin).orElse(false);
+    }
+
     @ModelAttribute("aguardandoListaEspera")
     public long aguardandoListaEspera(Authentication authentication) {
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return 0;
+        }
+        if (!TenantContext.possuiEmpresa()) {
             return 0;
         }
         try {

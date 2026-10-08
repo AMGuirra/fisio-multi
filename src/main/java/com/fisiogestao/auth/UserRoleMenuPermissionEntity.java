@@ -1,6 +1,6 @@
 package com.fisiogestao.auth;
 
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,7 +17,7 @@ import lombok.Setter;
 @Entity
 @Table(
         name = "user_role_menu_permission",
-        uniqueConstraints = @UniqueConstraint(name = "uk_user_role_menu_permission", columnNames = {"role", "menu_key"})
+        uniqueConstraints = @UniqueConstraint(name = "uk_user_role_menu_permission", columnNames = {"empresa_id", "role", "menu_key"})
 )
 @Getter
 @Setter
@@ -25,7 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class UserRoleMenuPermissionEntity extends BaseEntity {
+public class UserRoleMenuPermissionEntity extends TenantEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

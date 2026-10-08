@@ -29,11 +29,16 @@ public class LembreteAgendadoService {
     private final SessaoRepository sessaoRepository;
     private final SystemEmailService systemEmailService;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
+    private final com.fisiogestao.tenant.EmpresaTaskExecutor empresaTaskExecutor;
 
     /** Executa a cada hora, na marca cheia, para enviar lembretes de sessões nas próximas 24-25 horas. */
     @Scheduled(cron = "0 0 * * * *")
-    @Transactional
     public void enviarLembretes() {
+        empresaTaskExecutor.paraCadaEmpresaAtiva("LembreteSessao", empresa -> enviarLembretesDaEmpresa());
+    }
+
+    /** Lembretes da clínica do contexto atual (executado dentro do escopo/transação da empresa). */
+    void enviarLembretesDaEmpresa() {
         OffsetDateTime agora = ClinicTimezoneHolder.now();
         OffsetDateTime de  = agora.plusHours(24);
         OffsetDateTime ate = agora.plusHours(25);

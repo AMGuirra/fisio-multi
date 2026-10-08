@@ -1,5 +1,7 @@
 package com.fisiogestao.email.service;
 
+import com.fisiogestao.email.EmailScopeType;
+import com.fisiogestao.tenant.TenantContext;
 import com.fisiogestao.auditoria.AuditActionType;
 import com.fisiogestao.auditoria.AuditEventOrigin;
 import com.fisiogestao.auditoria.AuditModule;
@@ -28,21 +30,40 @@ public class EmailConfiguracaoService {
     private final AuditService auditService;
     private final SmtpEndpointValidator smtpEndpointValidator;
 
+    /** SMTP ativo do escopo atual (clínica ou plataforma), sem fallback. */
     public Optional<EmailConfiguracaoEntity> buscarAtiva() {
-        return emailConfiguracaoRepository.findFirstByAtivoTrueOrderByUpdatedAtDesc();
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        return empresaId == null
+                ? emailConfiguracaoRepository.findFirstByEmpresaIdIsNullAndAtivoTrueOrderByUpdatedAtDesc()
+                : emailConfiguracaoRepository.findFirstByEmpresaIdAndAtivoTrueOrderByUpdatedAtDesc(empresaId);
+    }
+
+    /** Indica se o escopo atual usa o SMTP global da plataforma por não ter um próprio. */
+    public boolean usandoSmtpGlobal() {
+        return TenantContext.possuiEmpresa() && buscarAtiva().isEmpty()
+                && emailConfiguracaoRepository.findFirstByEmpresaIdIsNullAndAtivoTrueOrderByUpdatedAtDesc().isPresent();
     }
 
     public List<EmailConfiguracaoEntity> listarConfiguracoes() {
-        return emailConfiguracaoRepository.findAllByOrderByAtivoDescUpdatedAtDesc();
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        return empresaId == null
+                ? emailConfiguracaoRepository.findAllByEmpresaIdIsNullOrderByAtivoDescUpdatedAtDesc()
+                : emailConfiguracaoRepository.findAllByEmpresaIdOrderByAtivoDescUpdatedAtDesc(empresaId);
     }
 
     public EmailConfiguracaoEntity buscarPorId(UUID id) {
-        return emailConfiguracaoRepository.findById(id)
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        return (empresaId == null
+                ? emailConfiguracaoRepository.findByIdAndEmpresaIdIsNull(id)
+                : emailConfiguracaoRepository.findByIdAndEmpresaId(id, empresaId))
                 .orElseThrow(() -> new BusinessException("Configuração de e-mail não encontrada."));
     }
 
     public List<com.fisiogestao.email.EmailLogEntity> listarHistorico() {
-        return emailLogRepository.findTop50ByOrderByCreatedAtDesc();
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        return empresaId == null
+                ? emailLogRepository.findTop50ByEmpresaIdIsNullOrderByCreatedAtDesc()
+                : emailLogRepository.findTop50ByEmpresaIdOrderByCreatedAtDesc(empresaId);
     }
 
     @Transactional
@@ -63,7 +84,7 @@ public class EmailConfiguracaoService {
     ) {
         boolean novoCadastro = id == null;
         EmailConfiguracaoEntity entity = novoCadastro
-                ? new EmailConfiguracaoEntity()
+                ? novaConfiguracaoNoEscopo()
                 : buscarPorId(id);
         var snapshotAnterior = novoCadastro ? null : auditService.snapshotOf(entity);
 
@@ -169,7 +190,7 @@ public class EmailConfiguracaoService {
     }
 
     private void desativarDemaisConfiguracoes(UUID configuracaoAtivaId) {
-        emailConfiguracaoRepository.findAllByOrderByAtivoDescUpdatedAtDesc().stream()
+        listarConfiguracoes().stream()
                 .filter(item -> !item.getId().equals(configuracaoAtivaId))
                 .filter(item -> Boolean.TRUE.equals(item.getAtivo()))
                 .forEach(item -> {
@@ -189,6 +210,15 @@ public class EmailConfiguracaoService {
                             AuditEventOrigin.MANUAL
                     );
                 });
+    }
+
+    private EmailConfiguracaoEntity novaConfiguracaoNoEscopo() {
+        EmailConfiguracaoEntity entity = new EmailConfiguracaoEntity();
+        UUID empresaId = TenantContext.empresaIdOuNull();
+        entity.setEmpresaId(empresaId);
+        entity.setScopeType(empresaId == null ? EmailScopeType.GLOBAL : EmailScopeType.CLINICA);
+        entity.setScopeId(empresaId);
+        return entity;
     }
 
     private String textoObrigatorio(String valor, String mensagem) {

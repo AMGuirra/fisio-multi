@@ -127,7 +127,7 @@ public class PlanoSessaoService {
      * ainda é enforced pelo Spring Security AOP.
      * A primeira linha de defesa é o {@code requestMatchers} em {@code SecurityConfig}.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criar(UUID clienteId, PlanoSessaoForm form) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
@@ -157,13 +157,13 @@ public class PlanoSessaoService {
 
     // Segunda linha de defesa (ver comentário completo em criar acima). Anotado nas duas
     // sobrecargas: autoinvocação entre métodos da mesma classe não passa pelo proxy AOP.
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form) {
         return criarViaCrud(form, null);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public PlanoSessaoEntity criarViaCrud(PlanoConsumoForm form, String profissionalResponsavel) {
         validarPeriodo(form.getDataInicio(), form.getDataValidade());
@@ -237,7 +237,7 @@ public class PlanoSessaoService {
     }
 
     // Segunda linha de defesa (ver comentário completo em criar acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public void cancelar(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
@@ -281,7 +281,7 @@ public class PlanoSessaoService {
     }
 
     // Exclusão física — restrita a ADMIN, mesmo para roles com acesso a criar/cancelar planos.
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN_CLINICA')")
     @Transactional
     public void excluir(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
@@ -428,7 +428,7 @@ public class PlanoSessaoService {
      *
      * Segunda linha de defesa (ver comentário completo em criar acima).
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public void reservarSessaoParaConclusao(UUID planoId) {
         reservarSessao(planoId, true, 1, false);
@@ -662,7 +662,7 @@ public class PlanoSessaoService {
     }
 
     // Segunda linha de defesa (ver comentário completo em criar acima).
-    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
+    @PreAuthorize("hasAnyRole('ADMIN_CLINICA', 'FINANCEIRO', 'RECEPCAO', 'FISIOTERAPEUTA')")
     @Transactional
     public void executarReconciliacao(UUID planoId) {
         PlanoSessaoEntity plano = planoSessaoRepository.findById(planoId)
@@ -674,7 +674,7 @@ public class PlanoSessaoService {
         if (plano.getDataInicio() != null && plano.getDataValidade() != null) {
             OffsetDateTime inicio = plano.getDataInicio().atStartOfDay().atOffset(java.time.ZoneOffset.UTC);
             OffsetDateTime fim = plano.getDataValidade().atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC);
-            sessaoRepository.vincularOrfasAoPlano(planoId, plano.getCliente().getId(), inicio, fim);
+            sessaoRepository.vincularOrfasAoPlano(com.fisiogestao.tenant.TenantContext.requireEmpresaId(), planoId, plano.getCliente().getId(), inicio, fim);
         }
         int totalContratado = valorSeguro(plano.getSessoesContratadas());
         int contabilizaveis = (int) sessaoRepository.countContabilizaveisPorPlano(planoId);

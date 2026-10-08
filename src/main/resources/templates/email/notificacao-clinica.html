@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body th:replace="~{email/base :: layout(${titulo}, ~{::section})}">
+<section>
+    <p>Olá<span th:if="${nomeResponsavel != null}" th:text="', ' + ${nomeResponsavel}"></span>,</p>
+    <p th:text="${mensagem}">Mensagem</p>
+    <p th:if="${link != null}">
+        <a th:href="${link}" style="display:inline-block;background:#0f8f7a;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700;" th:text="${textoLink != null ? textoLink : 'Acessar o sistema'}">Acessar</a>
+    </p>
+    <p style="color:#65808a;font-size:14px;">Em caso de dúvidas, responda a este e-mail ou abra uma solicitação de suporte.</p>
+</section>
+</body>
+</html>

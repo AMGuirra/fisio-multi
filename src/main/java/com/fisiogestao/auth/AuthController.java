@@ -54,6 +54,7 @@ public class AuthController {
 
         passwordResetService.solicitarReset(
                 form.getEmail(),
+                form.getClinica(),
                 request.getRemoteAddr(),
                 request.getHeader("User-Agent")
         );

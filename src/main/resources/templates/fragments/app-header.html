@@ -47,7 +47,7 @@
                     th:attr="data-username=${loggedUserDisplayName}">
                     Bom dia, Usuário
                 </h2>
-                <p class="header-context">Painel clínico em tempo real para a sua rotina.</p>
+                <p class="header-context" th:text="${isSuperAdmin} ? 'Gestão global da plataforma.' : 'Painel clínico em tempo real para a sua rotina.'">Painel clínico em tempo real para a sua rotina.</p>
             </div>
         </div>
 

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página indisponível - FisioGestao</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="pub-body pub-centered" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
+    <div class="pub-success-card pub-status-card">
+        <div class="pub-success-icon pub-status-icon-warning"><i data-lucide="link-2-off"></i></div>
+        <h1 class="pub-success-title" th:text="${naoEncontrada} ? 'Link incompleto ou inválido' : 'Página indisponível'">Página indisponível</h1>
+        <p class="pub-success-text" th:if="${naoEncontrada}">
+            Não encontramos a clínica deste link. Confira o endereço recebido da clínica — ele deve conter o código dela.
+        </p>
+        <p class="pub-success-text" th:unless="${naoEncontrada}">
+            Esta página está temporariamente indisponível. Entre em contato diretamente com a clínica.
+        </p>
+    </div>
+    <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:attr="nonce=${cspNonce}">
+        if (window.lucide && typeof window.lucide.createIcons === 'function') { window.lucide.createIcons(); }
+    </script>
+</body>
+</html>

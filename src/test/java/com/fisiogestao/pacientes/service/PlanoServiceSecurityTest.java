@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.fisiogestao.support.WithUsuarioClinica;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * passaria mesmo se a anotação fosse removida — por isso este teste sobe o
  * contexto real da aplicação.
  */
+@org.junit.jupiter.api.extension.ExtendWith(com.fisiogestao.support.EmpresaLegadaSetupExtension.class)
 @SpringBootTest
 @ActiveProfiles("test")
 class PlanoServiceSecurityTest {
@@ -29,28 +30,28 @@ class PlanoServiceSecurityTest {
     private PlanoService planoService;
 
     @Test
-    @WithMockUser(roles = "ASSESSORIA")
+    @WithUsuarioClinica(roles = "ASSESSORIA")
     void assessoriaNaoPodeSalvarOuAtualizarPlano() {
         assertThrows(AccessDeniedException.class,
                 () -> planoService.salvarOuAtualizar(UUID.randomUUID(), formPlano(), "Equipe"));
     }
 
     @Test
-    @WithMockUser(roles = "RECEPCAO")
+    @WithUsuarioClinica(roles = "RECEPCAO")
     void recepcaoPodeTentarSalvarOuAtualizarPlano() {
         assertThrows(BusinessException.class,
                 () -> planoService.salvarOuAtualizar(UUID.randomUUID(), formPlano(), "Equipe"));
     }
 
     @Test
-    @WithMockUser(roles = "ASSESSORIA")
+    @WithUsuarioClinica(roles = "ASSESSORIA")
     void assessoriaNaoPodeRenovarPlano() {
         assertThrows(AccessDeniedException.class,
                 () -> planoService.renovarPlano(UUID.randomUUID(), formPlano(), "Equipe"));
     }
 
     @Test
-    @WithMockUser(roles = "FISIOTERAPEUTA")
+    @WithUsuarioClinica(roles = "FISIOTERAPEUTA")
     void fisioterapeutaPodeTentarRenovarPlano() {
         assertThrows(BusinessException.class,
                 () -> planoService.renovarPlano(UUID.randomUUID(), formPlano(), "Equipe"));

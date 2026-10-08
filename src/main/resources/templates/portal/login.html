@@ -29,7 +29,7 @@
             </button>
         </div>
 
-        <form th:action="@{/paciente/login}" method="post" class="pub-form-panel" id="formLoginPaciente" novalidate>
+        <form th:action="@{/paciente/login(clinica=${clinicaSlug})}" method="post" class="pub-form-panel" id="formLoginPaciente" novalidate>
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
             <input type="hidden" name="tipoIdentificador" id="tipoIdentificador" th:value="${tipoIdentificador} ?: 'cpf'">
 
@@ -68,7 +68,7 @@
         </form>
 
         <p class="pub-footer-link">
-            <a th:href="@{/paciente/esqueci-minha-senha}" class="pub-link-muted">Esqueci minha senha / primeiro acesso</a>
+            <a th:href="@{/paciente/esqueci-minha-senha(clinica=${clinicaSlug})}" class="pub-link-muted">Esqueci minha senha / primeiro acesso</a>
         </p>
         <p class="pub-help pub-text-tight">
             Não consegue entrar? Entre em contato com a clínica.

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Solicitação de suporte', 'Relato do solicitante e acompanhamento.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="crud-layout">
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="life-buoy"></i> Relato</h3></header>
+            <div class="section-body">
+                <dl class="gestor-dl">
+                    <dt>Data</dt><dd th:text="${#temporals.format(solicitacao.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</dd>
+                    <dt>Solicitante</dt><dd th:text="${solicitacao.nome}">Nome</dd>
+                    <dt>E-mail</dt><dd th:text="${solicitacao.email}">email</dd>
+                    <dt>CPF</dt><dd th:text="${solicitacao.cpf != null ? solicitacao.cpf : '-'}">-</dd>
+                    <dt>CNPJ</dt><dd th:text="${solicitacao.cnpj != null ? solicitacao.cnpj : '-'}">-</dd>
+                    <dt>Empresa</dt>
+                    <dd>
+                        <a th:if="${empresa != null}" th:href="@{/gestor/empresas/{id}(id=${empresa.id})}" th:text="${empresa.nome}">Empresa</a>
+                        <span th:if="${empresa == null}">Não identificada</span>
+                    </dd>
+                    <dt>Status</dt><dd><span class="chip" th:text="${solicitacao.status.label}">Pendente</span></dd>
+                </dl>
+                <p class="gestor-relato" th:text="${solicitacao.descricao}">Relato</p>
+            </div>
+        </article>
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="pencil"></i> Atualizar status</h3></header>
+            <form th:action="@{/gestor/suporte/{id}/status(id=${solicitacao.id})}" method="post" class="form-grid section-body">
+                <div class="form-field">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option th:each="s : ${statusOpcoes}" th:value="${s.name()}" th:text="${s.label}" th:selected="${solicitacao.status == s}">Status</option>
+                    </select>
+                </div>
+                <div class="form-field form-field-full">
+                    <label for="observacao">Observação interna</label>
+                    <textarea id="observacao" name="observacao" rows="4" th:text="${solicitacao.observacaoGestor}"></textarea>
+                </div>
+                <div class="form-actions form-field-full">
+                    <a th:href="@{/gestor/suporte}" class="action-button ghost">Voltar</a>
+                    <button type="submit" class="action-button primary"><i data-lucide="save"></i> Salvar</button>
+                </div>
+            </form>
+        </article>
+    </section>
+</div>
+</body>
+</html>

@@ -21,7 +21,7 @@
 
         <div th:if="${param.error}" class="auth-alert danger">
             <i data-lucide="triangle-alert"></i>
-            Usuário ou senha inválidos
+            Usuário ou senha inválidos. Se você trabalha em mais de uma clínica, informe o código da clínica.
         </div>
 
         <div th:if="${param.bloqueado}" class="auth-alert danger">
@@ -45,6 +45,17 @@
 
         <form action="/login" method="post">
             <input type="hidden" th:name="${csrfParameterName}" th:value="${csrfToken}">
+
+            <div class="auth-field">
+                <label for="clinica">
+                    <i data-lucide="building-2"></i>
+                    Código da clínica <small>(deixe em branco se for o superadmin)</small>
+                </label>
+                <input type="text" id="clinica" name="clinica" maxlength="80"
+                       th:value="${param.clinica != null ? param.clinica[0] : ''}"
+                       placeholder="ex.: clinica-principal" autocomplete="organization"
+                       pattern="[A-Za-z0-9-]*" title="Use letras, números e hífens">
+            </div>
 
             <div class="auth-field">
                 <label for="username">
@@ -75,10 +86,27 @@
                 <i data-lucide="circle-help"></i>
                 Esqueci minha senha
             </a>
+            <a th:href="@{/cadastro}">
+                <i data-lucide="building"></i>
+                Cadastrar minha clínica
+            </a>
+            <a th:href="@{/suporte/solicitar}">
+                <i data-lucide="life-buoy"></i>
+                Falar com o suporte
+            </a>
         </div>
     </div>
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:attr="nonce=${cspNonce}">
+        // Lembra o código da clínica neste navegador (conveniência; o servidor sempre valida).
+        (function () {
+            const campo = document.getElementById('clinica');
+            if (!campo) return;
+            try {
+                if (!campo.value) campo.value = localStorage.getItem('fisio.clinica') || '';
+                campo.form.addEventListener('submit', () => localStorage.setItem('fisio.clinica', campo.value.trim().toLowerCase()));
+            } catch (e) { /* armazenamento indisponível */ }
+        })();
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
         }

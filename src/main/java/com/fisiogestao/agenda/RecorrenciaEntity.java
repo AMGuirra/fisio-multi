@@ -14,9 +14,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.TenantId;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "recorrencia")
@@ -30,6 +32,12 @@ public class RecorrenciaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Empresa da recorrência (preenchida pelo Hibernate a partir do contexto do tenant). */
+    @TenantId
+    @Setter(lombok.AccessLevel.NONE)
+    @Column(name = "empresa_id", nullable = false, updatable = false)
+    private UUID empresaId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

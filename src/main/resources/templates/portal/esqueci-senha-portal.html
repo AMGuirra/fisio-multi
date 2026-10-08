@@ -25,7 +25,7 @@
         </div>
 
         <form th:if="${successMessage == null}"
-              th:action="@{/paciente/esqueci-minha-senha}"
+              th:action="@{/paciente/esqueci-minha-senha(clinica=${clinicaSlug})}"
               method="post" class="pub-form-panel">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}">
 
@@ -42,7 +42,7 @@
         </form>
 
         <p class="pub-footer-link">
-            <a th:href="@{/paciente/login}" class="pub-link-muted">
+            <a th:href="@{/paciente/login(clinica=${clinicaSlug})}" class="pub-link-muted">
                 &larr; Voltar para o login
             </a>
         </p>

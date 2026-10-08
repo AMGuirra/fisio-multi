@@ -248,7 +248,8 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
             UPDATE sessao
                SET plano_sessao_id = :planoId,
                    plano_consumo_registrado = false
-             WHERE cliente_id = :clienteId
+             WHERE empresa_id = :empresaId
+               AND cliente_id = :clienteId
                AND tipo_agendamento = 'PLANO'
                AND status IN ('REALIZADA', 'FALTA_FATURADA')
                AND plano_sessao_id IS NULL
@@ -256,6 +257,7 @@ public interface SessaoRepository extends JpaRepository<SessaoEntity, UUID> {
                AND data_hora_inicio <= :fim
             """, nativeQuery = true)
     int vincularOrfasAoPlano(
+            @Param("empresaId") UUID empresaId,
             @Param("planoId") UUID planoId,
             @Param("clienteId") UUID clienteId,
             @Param("inicio") OffsetDateTime inicio,

@@ -52,17 +52,20 @@ public class NotificacaoClinicaService {
     private final LancamentoFinanceiroRepository  lancamentoRepository;
     private final ConfiguracaoClinicaRepository   configuracaoClinicaRepository;
     private final SystemEmailService              systemEmailService;
+    private final com.fisiogestao.tenant.EmpresaTaskExecutor empresaTaskExecutor;
 
     /**
      * Dispara a cada hora exata. Verifica se é 6h ou 19h no fuso da clínica
      * e aciona a notificação correspondente.
      */
     @Scheduled(cron = "0 0 * * * *")
-    @Transactional
     public void verificarNotificacoes() {
-        int hora = ClinicTimezoneHolder.now().getHour();
-        if (hora == 6)  enviarAgendaDiaria();
-        if (hora == 19) enviarResumoNoturno();
+        // Cada clínica é avaliada no próprio fuso e só recebe os próprios dados.
+        empresaTaskExecutor.paraCadaEmpresaAtiva("NotificacaoClinica", empresa -> {
+            int hora = ClinicTimezoneHolder.now().getHour();
+            if (hora == 6)  enviarAgendaDiaria();
+            if (hora == 19) enviarResumoNoturno();
+        });
     }
 
     // -----------------------------------------------------------------------

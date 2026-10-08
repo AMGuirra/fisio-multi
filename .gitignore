@@ -37,3 +37,6 @@ tmp-validate-transfer.pid
 # Suite de auditoria de responsividade (scripts/responsividade) - saida gerada
 node_modules/
 scripts/responsividade/out/
+
+# Chave local de criptografia gerada por iniciar-local.bat (nao versionar)
+.local-dev/

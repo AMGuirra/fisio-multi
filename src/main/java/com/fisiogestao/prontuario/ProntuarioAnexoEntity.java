@@ -2,7 +2,7 @@ package com.fisiogestao.prontuario;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fisiogestao.pacientes.ClienteEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,7 +39,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class ProntuarioAnexoEntity extends BaseEntity {
+public class ProntuarioAnexoEntity extends TenantEntity {
 
     /** Paciente ao qual o documento pertence. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

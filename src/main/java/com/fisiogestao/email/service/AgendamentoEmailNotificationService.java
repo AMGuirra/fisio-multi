@@ -27,7 +27,7 @@ public class AgendamentoEmailNotificationService {
     private final SystemEmailService systemEmailService;
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
-    @Value("${app.base-url:http://localhost:8081}")
+    @Value("${app.base-url:http://localhost:8080}")
     private String appBaseUrl;
 
     public void notificarAguardandoConfirmacao(SolicitacaoAgendamentoEntity solicitacao) {

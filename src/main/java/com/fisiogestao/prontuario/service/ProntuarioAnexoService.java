@@ -288,11 +288,15 @@ public class ProntuarioAnexoService {
 
     /**
      * Exclui permanentemente um anexo (documento ou foto) e registra o evento na auditoria.
+     * O anexo precisa pertencer ao paciente informado, como já ocorre na exclusão de evolução.
      */
     @Transactional
-    public void excluir(UUID id, String usuario) {
+    public void excluir(UUID id, UUID clienteId, String usuario) {
         ProntuarioAnexoEntity entidade = anexoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Arquivo não encontrado."));
+        if (clienteId == null || !clienteId.equals(entidade.getCliente().getId())) {
+            throw new BusinessException("O arquivo informado não pertence ao paciente selecionado.");
+        }
 
         String nomeOriginal = entidade.getNomeOriginal();
         String entidadeId = id.toString();

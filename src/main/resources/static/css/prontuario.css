@@ -5,8 +5,8 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-lg);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--bg-surface);
+    border: 1px solid var(--stroke-soft);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
     box-shadow: var(--shadow-sm);
@@ -23,13 +23,13 @@
 
 .prontuario-context-name {
     font-weight: 700;
-    color: var(--color-text-primary);
+    color: var(--text-strong);
     margin: 0;
 }
 
 .prontuario-context-sub {
     margin: 0;
-    color: var(--color-text-muted);
+    color: var(--text-soft);
     font-size: 0.85rem;
 }
 
@@ -44,32 +44,108 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--color-text-muted);
+    color: var(--text-soft);
 }
 
 .prontuario-context-stat-value {
     font-size: 1.05rem;
-    color: var(--color-text-primary);
+    color: var(--text-strong);
 }
 
-/* ---- Grid principal: Avaliação | Evolução ---- */
+/* ---- Folha do prontuário: Avaliação (≈38%) | Evolução (≈62%) ---- */
 
-.prontuario-main-grid {
+.prontuario-sheet {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
     gap: var(--space-lg);
     align-items: start;
     margin-bottom: var(--space-lg);
 }
 
-.prontuario-panel {
+.prontuario-sheet-col {
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 
-.prontuario-panel-full {
-    margin-bottom: var(--space-lg);
+/* A avaliação acompanha a rolagem enquanto o profissional lê/escreve evoluções. */
+@media (min-width: 1101px) {
+    .prontuario-col-avaliacao {
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+        max-height: calc(100vh - var(--header-height) - 32px);
+        overflow-y: auto;
+    }
+}
+
+.prontuario-col-avaliacao > .section-head {
+    border-top: 3px solid var(--brand-500);
+}
+
+.prontuario-col-evolucao > .section-head {
+    border-top: 3px solid var(--brand-500);
+}
+
+.prontuario-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--space-sm);
+    margin: 0 0 var(--space-sm);
+    font-size: 0.82rem;
+    color: var(--text-soft);
+}
+
+.prontuario-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--stroke-soft);
+    background: var(--bg-soft);
+    color: var(--text-body);
+    font-size: 0.88rem;
+}
+
+.prontuario-notice p {
+    margin: 0;
+}
+
+.prontuario-notice svg,
+.prontuario-notice i {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.prontuario-subhead {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin: 0 0 var(--space-md);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.prontuario-subhead svg,
+.prontuario-subhead i {
+    width: 18px;
+    height: 18px;
+}
+
+.prontuario-subhead-count {
+    margin-left: auto;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-soft);
+}
+
+.prontuario-evolucao-historico {
+    border-top: 1px solid var(--stroke-soft);
 }
 
 .prontuario-guidance {
@@ -114,7 +190,7 @@
 
 .prontuario-char-counter {
     font-size: 0.78rem;
-    color: var(--color-text-muted);
+    color: var(--text-soft);
     white-space: nowrap;
     margin-left: auto;
 }
@@ -127,39 +203,30 @@
     flex-wrap: wrap;
 }
 
-.prontuario-inline-empty {
-    margin-top: var(--space-md);
-}
-
-.prontuario-last-update {
-    margin-top: var(--space-sm);
-    margin-bottom: 0;
-}
-
 /* ---- Bloco de fotos do acompanhamento ---- */
 
 .prontuario-photo-block {
-    border-top: 1px dashed var(--color-border);
+    border-top: 1px dashed var(--stroke-soft);
     margin-top: var(--space-lg);
     padding-top: var(--space-lg);
 }
 
 .prontuario-photo-head h4 {
     margin: 0 0 2px;
-    color: var(--color-text-primary);
+    color: var(--text-strong);
 }
 
 .prontuario-photo-picker {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    border: 1.5px dashed var(--color-border);
+    border: 1.5px dashed var(--stroke-soft);
     border-radius: var(--radius-md);
     padding: var(--space-md);
     margin: var(--space-sm) 0 var(--space-md);
     cursor: pointer;
-    color: var(--color-text-secondary);
-    background: var(--color-background-subtle);
+    color: var(--text-body);
+    background: var(--bg-soft);
     transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -197,8 +264,8 @@
     border-radius: var(--radius-sm);
     overflow: hidden;
     aspect-ratio: 1 / 1;
-    border: 1px solid var(--color-border);
-    background: var(--color-background-subtle);
+    border: 1px solid var(--stroke-soft);
+    background: var(--bg-soft);
 }
 
 .prontuario-photo-preview img {
@@ -253,32 +320,222 @@
     margin-top: 3px;
 }
 
-/* ---- Histórico ---- */
+/* ---- Histórico de evoluções (linha do tempo compacta dentro da coluna Evolução) ---- */
+
+.prontuario-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.prontuario-timeline-item {
+    min-width: 0;
+}
+
+.prontuario-entry {
+    border: 1px solid var(--stroke-soft);
+    border-left: 3px solid var(--brand-500);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+}
+
+.prontuario-entry-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    list-style: none;
+}
+
+.prontuario-entry-summary::-webkit-details-marker {
+    display: none;
+}
+
+.prontuario-entry-summary:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-md);
+}
+
+.prontuario-entry-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px var(--space-xs);
+    min-width: 0;
+    font-size: 0.88rem;
+    color: var(--text-body);
+}
+
+.prontuario-entry-line strong {
+    color: var(--text-strong);
+}
+
+.prontuario-entry-sep {
+    color: var(--text-soft);
+}
+
+.prontuario-entry-resumo {
+    grid-column: 1 / 2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    color: var(--text-strong);
+    line-height: 1.45;
+    font-size: 0.92rem;
+}
+
+.prontuario-entry-toggle {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brand-600, var(--brand-500));
+    white-space: nowrap;
+}
+
+.prontuario-entry-toggle svg,
+.prontuario-entry-toggle i {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.15s ease;
+}
+
+.prontuario-when-open,
+.prontuario-entry[open] .prontuario-when-closed,
+.prontuario-entry[open] .prontuario-entry-resumo {
+    display: none;
+}
+
+.prontuario-entry[open] .prontuario-when-open {
+    display: inline;
+}
+
+.prontuario-entry[open] .prontuario-entry-toggle svg {
+    transform: rotate(180deg);
+}
+
+.prontuario-entry-body {
+    padding: 0 var(--space-md) var(--space-md);
+    border-top: 1px dashed var(--stroke-soft);
+}
 
 .prontuario-history-text {
     white-space: pre-wrap;
-    color: var(--color-text-primary);
+    overflow-wrap: anywhere;
+    color: var(--text-strong);
     line-height: 1.55;
     margin: var(--space-sm) 0;
 }
 
-.soap-entry-head {
-    flex-wrap: wrap;
+.prontuario-history-text:empty {
+    display: none;
 }
 
 .prontuario-entry-actions {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: var(--space-xs);
-    flex-shrink: 0;
-    margin-left: auto;
+    margin-top: var(--space-sm);
 }
 
 .soap-entry-badges {
-    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
 }
 
 .soap-entry-badges:empty {
     display: none;
+}
+
+/* ---- Documentos e anexos ---- */
+
+.prontuario-docs {
+    margin-bottom: var(--space-lg);
+}
+
+.prontuario-upload {
+    margin-bottom: var(--space-md);
+}
+
+.prontuario-upload > summary {
+    list-style: none;
+}
+
+.prontuario-upload > summary::-webkit-details-marker {
+    display: none;
+}
+
+.prontuario-upload-form {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    border: 1px dashed var(--stroke-soft);
+    border-radius: var(--radius-md);
+    background: var(--bg-soft);
+}
+
+.prontuario-docs-empty {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+}
+
+.prontuario-doc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.prontuario-doc-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-top: 1px solid var(--stroke-soft);
+}
+
+.prontuario-doc-row:first-child {
+    border-top: 0;
+}
+
+.prontuario-doc-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.prontuario-doc-name {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.prontuario-doc-meta {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+}
+
+.prontuario-doc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+    flex-shrink: 0;
 }
 
 .prontuario-entry-edit-form {
@@ -302,10 +559,10 @@
     height: 64px;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--stroke-soft);
     padding: 0;
     cursor: pointer;
-    background: var(--color-background-subtle);
+    background: var(--bg-soft);
 }
 
 .prontuario-photo-thumb img {
@@ -325,7 +582,7 @@
 
 .prontuario-photo-count {
     font-size: 0.78rem;
-    color: var(--color-text-muted);
+    color: var(--text-soft);
 }
 
 /* ---- Lightbox de fotos clínicas ---- */
@@ -435,16 +692,49 @@
 
 /* ---- Responsividade ---- */
 
-@media (max-width: 1024px) {
-    .prontuario-main-grid {
+/* Tablet e abaixo: Avaliação, depois Evolução (nova + histórico), depois Documentos. */
+@media (max-width: 1100px) {
+    .prontuario-sheet {
         grid-template-columns: minmax(0, 1fr);
     }
 }
 
 @media (max-width: 640px) {
     .prontuario-context-bar {
-        flex-direction: column;
-        align-items: flex-start;
+        gap: var(--space-md);
+    }
+
+    /* Nome em linha própria; os dois indicadores lado a lado logo abaixo. */
+    .prontuario-context-patient {
+        flex: 1 1 100%;
+    }
+
+    .prontuario-context-stat {
+        min-width: 0;
+        flex: 1 1 0;
+    }
+
+    .prontuario-entry-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .prontuario-entry-toggle {
+        grid-column: 1 / 2;
+        grid-row: auto;
+        justify-self: start;
+    }
+
+    .prontuario-doc-row {
+        flex-wrap: wrap;
+    }
+
+    .prontuario-doc-actions {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .prontuario-upload > summary {
+        width: 100%;
     }
 
     .prontuario-form-actions {

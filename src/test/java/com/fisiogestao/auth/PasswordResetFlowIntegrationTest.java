@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.junit.jupiter.api.extension.ExtendWith(com.fisiogestao.support.EmpresaLegadaSetupExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -62,7 +63,7 @@ class PasswordResetFlowIntegrationTest {
     @BeforeEach
     void setUp() {
         passwordResetTokenRepository.deleteAll();
-        usuarioSistemaRepository.findByEmailIgnoreCase(TEST_EMAIL)
+        usuarioSistemaRepository.findByEmpresaIdAndEmailIgnoreCase(empresaLegadaId(), TEST_EMAIL)
                 .ifPresent(usuarioSistemaRepository::delete);
     }
 
@@ -140,11 +141,12 @@ class PasswordResetFlowIntegrationTest {
     private UsuarioSistemaEntity criarUsuarioTeste() {
         String username = "rfu" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         return usuarioSistemaRepository.save(UsuarioSistemaEntity.builder()
+                        .empresaId(empresaLegadaId())
                 .nome("Usuário Reset")
                 .username(username)
                 .email(TEST_EMAIL)
                 .passwordHash(passwordEncoder.encode("SenhaAtual123"))
-                .role(UserRole.ADMIN)
+                .role(UserRole.ADMIN_CLINICA)
                 .build());
     }
 
@@ -159,5 +161,12 @@ class PasswordResetFlowIntegrationTest {
                 && request.to().contains(usuario.getEmail())
                 && request.templateVariables().get("linkRedefinicao") instanceof String link
                 && link.startsWith(prefixoEsperado);
+    }
+
+    @Autowired
+    private com.fisiogestao.empresa.EmpresaRepository empresaRepositoryLegada;
+
+    private java.util.UUID empresaLegadaId() {
+        return empresaRepositoryLegada.findBySlug(com.fisiogestao.empresa.EmpresaLegada.SLUG).orElseThrow().getId();
     }
 }

@@ -33,6 +33,10 @@ public class EmailConfiguracaoEntity extends BaseEntity {
     @Column(name = "scope_id")
     private UUID scopeId;
 
+    /** Clínica dona do SMTP; {@code null} para o SMTP global da plataforma. */
+    @Column(name = "empresa_id", updatable = false)
+    private UUID empresaId;
+
     @Column(name = "nome_remetente", nullable = false, length = 120)
     private String nomeRemetente;
 

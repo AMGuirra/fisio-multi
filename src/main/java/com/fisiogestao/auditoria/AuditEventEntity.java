@@ -73,6 +73,10 @@ public class AuditEventEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String observacao;
 
+    /** Empresa do evento; {@code null} para ações da plataforma (Gestor/superadmin). */
+    @Column(name = "empresa_id", updatable = false)
+    private java.util.UUID empresaId;
+
     @Column(name = "usuario_id")
     private java.util.UUID usuarioId;
 

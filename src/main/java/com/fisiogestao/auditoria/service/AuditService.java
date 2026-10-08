@@ -26,6 +26,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.fisiogestao.tenant.TenantContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -82,6 +83,7 @@ public class AuditService {
         String unidadeId = command.unitId() != null ? command.unitId() : resolveClinicUnitId();
 
         AuditEventEntity entity = AuditEventEntity.builder()
+                .empresaId(TenantContext.empresaIdOuNull())
                 .modulo(command.module())
                 .entidade(text(command.entity()))
                 .entidadeId(text(command.entityId()))
@@ -220,7 +222,7 @@ public class AuditService {
     }
 
     public AuditEventEntity detail(UUID id) {
-        return auditEventRepository.findWithFieldChangesById(id)
+        return auditEventRepository.findDetalheNoEscopo(id, TenantContext.empresaIdOuNull())
                 .orElseThrow(() -> new BusinessException("Registro de auditoria não encontrado."));
     }
 
@@ -237,11 +239,11 @@ public class AuditService {
     }
 
     public List<String> availableEntities() {
-        return auditEventRepository.findDistinctEntidades();
+        return auditEventRepository.findDistinctEntidades(TenantContext.empresaIdOuNull());
     }
 
     public List<String> availableUsers() {
-        return auditEventRepository.findDistinctUsuarios();
+        return auditEventRepository.findDistinctUsuarios(TenantContext.empresaIdOuNull());
     }
 
     public AuditDocument export(List<AuditEventEntity> events, AuditExportFormat format) {
@@ -255,9 +257,14 @@ public class AuditService {
         AuditFilterForm effectiveFilter = filter != null ? filter : new AuditFilterForm();
         LocalDate dataInicial = effectiveFilter.getDataInicial();
         LocalDate dataFinal = effectiveFilter.getDataFinal();
+        UUID empresaEscopo = TenantContext.empresaIdOuNull();
 
         return (root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            // Isolamento: eventos da empresa atual, ou só eventos da plataforma para o superadmin.
+            predicates.add(empresaEscopo == null
+                    ? cb.isNull(root.get("empresaId"))
+                    : cb.equal(root.get("empresaId"), empresaEscopo));
             if (dataInicial != null) {
                 OffsetDateTime inicio = dataInicial.atStartOfDay(resolveAppZone()).toOffsetDateTime();
                 predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), inicio));
@@ -434,7 +441,11 @@ public class AuditService {
         if (username == null || username.isBlank()) {
             return null;
         }
-        return usuarioSistemaRepository.findByUsername(username.trim().toLowerCase())
+        var usuarioAutenticado = TenantContext.usuarioAutenticado();
+        var usuario = usuarioAutenticado.isPresent() && usuarioAutenticado.get().getId() != null
+                ? usuarioSistemaRepository.findById(usuarioAutenticado.get().getId())
+                : java.util.Optional.<com.fisiogestao.auth.UsuarioSistemaEntity>empty();
+        return usuario
                 .map(AuditActor::fromUser)
                 .orElse(AuditActor.builder().username(username).userName(username).build());
     }

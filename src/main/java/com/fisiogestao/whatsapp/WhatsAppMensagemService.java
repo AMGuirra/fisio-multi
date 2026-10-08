@@ -32,7 +32,7 @@ public class WhatsAppMensagemService {
 
     private final ConfiguracaoClinicaRepository configuracaoClinicaRepository;
 
-    @Value("${app.base-url:http://localhost:8081}")
+    @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
     /** Links de WhatsApp disponíveis para uma sessão agendada. */
@@ -133,7 +133,7 @@ public class WhatsAppMensagemService {
     }
 
     private String urlPortal(ClienteEntity paciente) {
-        String base = baseUrl == null || baseUrl.isBlank() ? "http://localhost:8081" : baseUrl.trim();
+        String base = baseUrl == null || baseUrl.isBlank() ? "http://localhost:8080" : baseUrl.trim();
         while (base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
         }

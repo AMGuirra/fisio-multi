@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{gestor/layout :: pagina('Configurações globais', 'Parâmetros da plataforma persistidos no banco de dados.', ~{::#conteudo})}">
+<body>
+<div id="conteudo">
+    <section class="crud-layout">
+        <article class="section-card">
+            <header class="section-head"><h3 class="section-title"><i data-lucide="settings"></i> Período de teste e notificações</h3></header>
+            <form th:action="@{/gestor/configuracoes}" method="post" class="form-grid section-body">
+                <div class="form-field">
+                    <label for="diasUteisTestePadrao">Dias úteis de teste no cadastro público</label>
+                    <input type="number" id="diasUteisTestePadrao" name="diasUteisTestePadrao" min="1" max="3650" required
+                           th:value="${config.diasUteisTestePadrao}">
+                    <small class="field-help">Sábados, domingos e feriados nacionais não são contados.</small>
+                </div>
+                <div class="form-field">
+                    <label for="diasUteisAvisoVencimento">Avisar vencimento do teste com antecedência de (dias úteis)</label>
+                    <input type="number" id="diasUteisAvisoVencimento" name="diasUteisAvisoVencimento" min="1" max="3650" required
+                           th:value="${config.diasUteisAvisoVencimento}">
+                </div>
+                <div class="form-field form-field-full">
+                    <label for="emailNotificacoes">E-mail administrativo para notificações</label>
+                    <input type="email" id="emailNotificacoes" name="emailNotificacoes" maxlength="160"
+                           th:value="${config.emailNotificacoes}" placeholder="gestor@suaempresa.com.br">
+                    <small class="field-help">Recebe avisos de novos cadastros, suporte, cancelamentos e testes vencendo/expirados.
+                        O envio usa o <a th:href="@{/configuracoes/email}">SMTP global da plataforma</a>.</small>
+                </div>
+                <div class="form-actions form-field-full">
+                    <button type="submit" class="action-button primary"><i data-lucide="save"></i> Salvar configurações</button>
+                </div>
+            </form>
+        </article>
+    </section>
+</div>
+</body>
+</html>

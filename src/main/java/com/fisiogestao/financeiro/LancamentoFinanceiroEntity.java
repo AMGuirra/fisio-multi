@@ -2,7 +2,7 @@ package com.fisiogestao.financeiro;
 
 import com.fisiogestao.pacientes.ClienteEntity;
 import com.fisiogestao.pacientes.PlanoSessaoEntity;
-import com.fisiogestao.shared.persistence.BaseEntity;
+import com.fisiogestao.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,7 +29,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class LancamentoFinanceiroEntity extends BaseEntity {
+public class LancamentoFinanceiroEntity extends TenantEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
