@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="pub-body" data-theme="light" th:attr="data-clinica=${clinicaSlug}">
     <div class="pub-container">
@@ -183,21 +184,21 @@
 
                 <div class="pub-divider"></div>
                 <p class="pub-help pub-help--section">
-                    Crie uma senha para acessar o portal de acompanhamento
+                    Se quiser consultar sua p&aacute;gina de paciente, crie uma senha. Para acessar depois, voc&ecirc; precisar&aacute; do seu login e senha.
                 </p>
 
                 <div class="pub-form-group">
-                    <label class="pub-label" for="senha">Senha</label>
+                    <label class="pub-label" for="senha">Senha <span class="pub-label-note">(opcional)</span></label>
                     <input type="password" id="senha" class="pub-control" th:field="*{senha}"
-                           placeholder="Mínimo 8 caracteres e 1 número" autocomplete="new-password" minlength="8" maxlength="120">
-                    <p class="pub-help">Mínimo de 8 caracteres com pelo menos 1 número. Use para entrar no seu portal depois.</p>
+                           placeholder="Mínimo 8 caracteres e 1 número (opcional)" autocomplete="new-password" minlength="8" maxlength="120">
+                    <p class="pub-help">Se criar uma senha, use no mínimo 8 caracteres e pelo menos 1 número.</p>
                     <p class="pub-error" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
                 </div>
 
                 <div class="pub-form-group">
-                    <label class="pub-label" for="confirmarSenha">Confirmar senha</label>
+                    <label class="pub-label" for="confirmarSenha">Confirmar senha <span class="pub-label-note">(opcional)</span></label>
                     <input type="password" id="confirmarSenha" class="pub-control" th:field="*{confirmarSenha}"
-                           placeholder="Repita a senha" autocomplete="new-password">
+                           placeholder="Repita a senha, se criou uma" autocomplete="new-password" maxlength="120">
                     <p class="pub-error" th:if="${#fields.hasErrors('confirmarSenha')}" th:errors="*{confirmarSenha}"></p>
                 </div>
 
@@ -214,6 +215,7 @@
     </div>
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+    <script th:src="@{/js/br-mask.js}" src="/js/br-mask.js"></script>
     <script th:attr="nonce=${cspNonce}">
         (() => {
             const dataInput = document.getElementById('data');
@@ -247,30 +249,11 @@
 
             const somenteDigitos = (value) => (value || '').replace(/\D/g, '');
 
-            const aplicarMascaraCpf = (value) => {
-                const digits = somenteDigitos(value).slice(0, 11);
-                return digits
-                    .replace(/^(\d{3})(\d)/, '$1.$2')
-                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
-            };
+            const aplicarMascaraCpf = BrMask.cpf;
 
-            const aplicarMascaraTelefone = (value) => {
-                const digits = somenteDigitos(value).slice(0, 11);
-                if (digits.length <= 10) {
-                    return digits
-                        .replace(/^(\d{2})(\d)/, '($1) $2')
-                        .replace(/(\d{4})(\d)/, '$1-$2');
-                }
-                return digits
-                    .replace(/^(\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{5})(\d)/, '$1-$2');
-            };
+            const aplicarMascaraTelefone = BrMask.telefone;
 
-            const aplicarMascaraCep = (value) => {
-                const digits = somenteDigitos(value).slice(0, 8);
-                return digits.replace(/^(\d{5})(\d)/, '$1-$2');
-            };
+            const aplicarMascaraCep = BrMask.cep;
 
             const limparHorarios = () => {
                 horarioSelect.replaceChildren();
@@ -418,21 +401,15 @@
             });
 
             if (cpfInput) {
-                cpfInput.addEventListener('input', () => {
-                    cpfInput.value = aplicarMascaraCpf(cpfInput.value);
-                });
+                BrMask.bind(cpfInput, BrMask.cpf);
             }
 
             if (telefoneInput) {
-                telefoneInput.addEventListener('input', () => {
-                    telefoneInput.value = aplicarMascaraTelefone(telefoneInput.value);
-                });
+                BrMask.bind(telefoneInput, BrMask.telefone);
             }
 
             if (cepInput) {
-                cepInput.addEventListener('input', () => {
-                    cepInput.value = aplicarMascaraCep(cepInput.value);
-                });
+                BrMask.bind(cepInput, BrMask.cep);
                 cepInput.addEventListener('blur', () => {
                     if (somenteDigitos(cepInput.value).length === 8) {
                         buscarCep();

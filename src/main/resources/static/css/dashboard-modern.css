@@ -2747,6 +2747,106 @@ body[data-theme='dark'] .flash-message.warning {
     }
 }
 
+/* Painel unificado de filtros: recolhido por padrão e aberto quando ativo. */
+.filter-panel {
+    overflow: hidden;
+}
+
+.filter-panel > summary {
+    list-style: none;
+}
+
+.filter-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-panel-summary {
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-panel-summary:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--primary, #2563eb) 35%, transparent);
+    outline-offset: -3px;
+}
+
+.filter-panel-summary-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.filter-panel-summary-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted, #64748b);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.filter-panel.is-filter-active .filter-panel-summary-meta {
+    color: var(--primary, #2563eb);
+}
+
+.filter-panel-chevron {
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--text-muted, #64748b);
+    transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.filter-panel-summary:hover .filter-panel-chevron {
+    background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.filter-panel[open] .filter-panel-chevron {
+    transform: rotate(180deg);
+}
+
+.filter-panel-standalone {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-lg, 16px);
+    background: var(--surface, #fff);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgb(15 23 42 / 0.08));
+}
+
+.filter-panel-standalone > .filter-panel-summary,
+.filter-panel-compact > .filter-panel-summary {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+}
+
+.filter-panel-standalone > .filter-panel-body {
+    padding: 0 1.25rem 1.25rem;
+}
+
+.filter-panel-compact > .filter-panel-body {
+    padding-top: 0;
+}
+
+@media (max-width: 640px) {
+    .filter-panel-standalone > .filter-panel-summary,
+    .filter-panel-compact > .filter-panel-summary {
+        padding-inline: 1rem;
+    }
+
+    .filter-panel-standalone > .filter-panel-body {
+        padding-inline: 1rem;
+    }
+}
+
 /* ===================================================
    Shared polish pass - keeps every authenticated page
    on the same visual language.

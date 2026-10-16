@@ -38,5 +38,7 @@ tmp-validate-transfer.pid
 node_modules/
 scripts/responsividade/out/
 
-# Chave local de criptografia gerada por iniciar-local.bat (nao versionar)
+# Chave local de criptografia gerada por bat/iniciar-local.bat (nao versionar)
 .local-dev/
+
+logs/

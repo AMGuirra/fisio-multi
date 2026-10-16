@@ -13,6 +13,7 @@
         <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -50,58 +51,54 @@
                     </div>
                 </div>
 
-                <section class="metrics-grid">
-                    <article class="metric-card metric-pendencias">
-                        <span class="metric-corner-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
-                        <p class="metric-label">Pendentes</p>
-                        <p class="metric-value pending" th:text="${totalPendentes}">0</p>
-                        <p class="metric-subtext">aguardando ação</p>
+                <section class="summary-grid grid-4 agenda-summary-grid solicitacoes-summary-grid">
+                    <article class="summary-card receita-pendente metric-pendencias">
+                        <span class="summary-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
+                        <p class="summary-label">Pendentes</p>
+                        <p class="summary-value" th:text="${totalPendentes}">0</p>
                     </article>
-                    <article class="metric-card metric-saldo">
-                        <span class="metric-corner-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
-                        <p class="metric-label">Aprovadas (mês)</p>
-                        <p class="metric-value approved" th:text="${totalAprovadas}">0</p>
-                        <p class="metric-subtext">agendamentos gerados</p>
+                    <article class="summary-card receita metric-saldo">
+                        <span class="summary-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
+                        <p class="summary-label">Aprovadas (mês)</p>
+                        <p class="summary-value" th:text="${totalAprovadas}">0</p>
                     </article>
-                    <article class="metric-card metric-despesa">
-                        <span class="metric-corner-icon"><i data-lucide="calendar-x" aria-hidden="true"></i></span>
-                        <p class="metric-label">Negadas (mês)</p>
-                        <p class="metric-value denied" th:text="${totalNegadas}">0</p>
-                        <p class="metric-subtext">pedidos recusados</p>
+                    <article class="summary-card despesa metric-despesa">
+                        <span class="summary-icon"><i data-lucide="calendar-x" aria-hidden="true"></i></span>
+                        <p class="summary-label">Negadas (mês)</p>
+                        <p class="summary-value" th:text="${totalNegadas}">0</p>
                     </article>
-                    <article class="metric-card metric-mensagens">
-                        <span class="metric-corner-icon"><i data-lucide="inbox" aria-hidden="true"></i></span>
-                        <p class="metric-label">Total recebido</p>
-                        <p class="metric-value total" th:text="${totalGeral}">0</p>
-                        <p class="metric-subtext">este mês</p>
+                    <article class="summary-card saldo metric-mensagens">
+                        <span class="summary-icon"><i data-lucide="inbox" aria-hidden="true"></i></span>
+                        <p class="summary-label">Total recebido</p>
+                        <p class="summary-value" th:text="${totalGeral}">0</p>
                     </article>
                 </section>
 
                 <section class="solicitacoes-grid">
                     <div class="solicitacoes-main">
-                        <article class="sol-card">
-                            <header class="sol-card-header">
+                        <article class="sol-card section-card">
+                            <header class="sol-card-header section-head">
                                 <div class="sol-card-title-wrap">
                                     <i data-lucide="circle-check-big"></i>
-                                    <h2 class="sol-card-title">Pendentes</h2>
+                                    <h2 class="sol-card-title section-title">Pendentes</h2>
                                     <span class="count-badge" th:text="${solicitacoesPendentes != null ? solicitacoesPendentes.size() : 0}">0</span>
                                 </div>
                                 <div class="req-actions">
-                                    <button type="button" id="novaSolicitacaoBtn" class="action-button sol-btn sol-btn-primary">
+                                    <button type="button" id="novaSolicitacaoBtn" class="action-button primary">
                                         <i data-lucide="plus"></i> Nova
                                     </button>
-                                    <button type="button" id="bulkApproveBtn" class="action-button sol-btn sol-btn-neutral"
+                                    <button type="button" id="bulkApproveBtn" class="action-button ghost"
                                             th:disabled="${solicitacoesPendentes == null or solicitacoesPendentes.empty}">Aprovar todas</button>
                                 </div>
                             </header>
-                            <div class="sol-card-body">
-                                <div th:if="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="empty-state">
+                            <div class="sol-card-body section-body">
+                                <div th:if="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="empty-state empty-box">
                                     <i data-lucide="inbox"></i>
                                     <p>Nenhuma solicitação pendente.</p>
                                 </div>
 
                                 <div th:unless="${solicitacoesPendentes == null or solicitacoesPendentes.empty}" class="req-list">
-                                    <article th:each="sol : ${solicitacoesPendentes}" class="req-item"
+                                    <article th:each="sol : ${solicitacoesPendentes}" class="req-item request-card request-card-pending"
                                              th:attr="data-sol-id=${sol.id},data-can-auto-approve=${sol.cliente != null}">
                                         <span class="req-avatar" th:text="${sol.iniciaisPaciente}">PA</span>
 
@@ -115,7 +112,9 @@
                                                 <span th:text="${sol.observacoes != null and !#strings.isEmpty(sol.observacoes) ? sol.observacoes : 'Sem observações'}">Sem observações</span>
                                             </p>
                                             <p class="req-note"
-                                               th:text="${sol.cliente != null ? 'Paciente já cadastrado.' : 'Pré-cadastro pendente antes da aprovação.'}">
+                                               th:text="${sol.aguardandoConfirmacaoPaciente
+                                                        ? 'Novo horário enviado; aguardando resposta do paciente.'
+                                                        : (sol.cliente != null ? 'Paciente já cadastrado.' : 'Pré-cadastro pendente antes da aprovação.')}">
                                                 Paciente já cadastrado.
                                             </p>
                                         </div>
@@ -127,7 +126,8 @@
                                             </p>
                                             <div class="req-actions">
                                                 <button type="button"
-                                                        class="action-button sol-btn sol-btn-primary open-wizard"
+                                                        class="action-button success open-wizard"
+                                                        th:unless="${sol.aguardandoConfirmacaoPaciente}"
                                                         th:attr="data-sol-id=${sol.id},
                                                                  data-nome=${sol.nomePaciente},
                                                                  data-telefone=${sol.telefone},
@@ -137,16 +137,16 @@
                                                 <form th:action="@{/solicitacoes/{id}/rejeitar(id=${sol.id})}" method="post" class="inline-form rejeitar-form">
                                                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                                     <button type="submit" name="adicionarListaEspera" value="false"
-                                                            class="action-button sol-btn sol-btn-danger">Negar</button>
+                                                            class="action-button danger">Negar</button>
                                                     <button th:if="${sol.cliente != null}" type="submit"
                                                             name="adicionarListaEspera" value="true"
-                                                            class="action-button sol-btn sol-btn-warning"
+                                                            class="action-button session-action-cancel"
                                                             title="Negar e adicionar à lista de espera">
                                                         <i data-lucide="clock"></i> + Fila
                                                     </button>
                                                 </form>
                                                 <button type="button"
-                                                        class="action-button sol-btn sol-btn-neutral open-editar"
+                                                        class="action-button session-action-edit open-editar"
                                                         th:attr="data-sol-id=${sol.id},
                                                                  data-nome=${sol.nomePaciente},
                                                                  data-telefone=${sol.telefone},
@@ -162,22 +162,22 @@
                             </div>
                         </article>
 
-                        <article class="sol-card">
-                            <header class="sol-card-header">
+                        <article class="sol-card section-card">
+                            <header class="sol-card-header section-head">
                                 <div class="sol-card-title-wrap">
                                     <i data-lucide="history"></i>
-                                    <h2 class="sol-card-title">Histórico</h2>
+                                    <h2 class="sol-card-title section-title">Histórico</h2>
                                 </div>
                             </header>
-                            <div class="sol-card-body">
+                            <div class="sol-card-body section-body">
 
-                                <div th:if="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="empty-state">
+                                <div th:if="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="empty-state empty-box">
                                     <i data-lucide="archive"></i>
                                     <p>Nenhuma solicitação encontrada no histórico.</p>
                                 </div>
 
                                 <div th:unless="${solicitacoesHistorico == null or solicitacoesHistorico.empty}" class="req-list">
-                                    <article th:each="sol : ${solicitacoesHistorico}" class="req-item">
+                                    <article th:each="sol : ${solicitacoesHistorico}" class="req-item request-card">
                                         <span class="req-avatar"
                                               th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' history-approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' history-denied' : ' history-neutral')"
                                               th:text="${sol.iniciaisPaciente}">PA</span>
@@ -203,18 +203,18 @@
                                             <div class="req-actions">
                                                 <span class="status-pill"
                                                       th:classappend="${sol.status != null and sol.status.name() == 'APROVADA'} ? ' approved' : (${sol.status != null and sol.status.name() == 'REJEITADA'} ? ' denied' : ' pending')"
-                                                      th:text="${sol.status != null and sol.status.name() == 'APROVADA' ? 'Aprovada' : (sol.status != null and sol.status.name() == 'REJEITADA' ? 'Negada' : (sol.status != null and sol.status.name() == 'CANCELADA' ? 'Cancelada' : 'Pendente'))}">Aprovada</span>
+                                                      th:text="${sol.status != null and sol.status.name() == 'APROVADA' ? 'Aprovada' : (sol.status != null and sol.status.name() == 'REJEITADA' ? 'Negada' : (sol.status != null and sol.status.name() == 'EM_ESPERA' ? 'Em espera' : (sol.status != null and sol.status.name() == 'CANCELADA' ? 'Cancelada' : 'Pendente')))}">Aprovada</span>
                                                 <button th:if="${sol.status != null and sol.status.name() == 'APROVADA'}"
                                                         type="button"
-                                                        class="action-button sol-btn sol-btn-neutral open-confirmar danger"
+                                                        class="action-button danger open-confirmar"
                                                         th:attr="data-url=@{/solicitacoes/{id}/cancelar(id=${sol.id})},data-title='Cancelar agendamento',data-msg='Deseja cancelar este agendamento aprovado? A sessão associada também será cancelada e o crédito será estornado no plano.'">Cancelar</button>
                                                 <button th:if="${sol.status != null and (sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA')}"
                                                         type="button"
-                                                        class="action-button sol-btn sol-btn-neutral open-confirmar"
+                                                        class="action-button ghost open-confirmar"
                                                         th:attr="data-url=@{/solicitacoes/{id}/restaurar(id=${sol.id})},data-title='Restaurar solicitação',data-msg='Deseja restaurar esta solicitação para pendente? O horário será reservado novamente se estiver disponível.'">Restaurar</button>
                                                 <button th:if="${sol.status != null and (sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA')}"
                                                         type="button"
-                                                        class="action-button sol-btn sol-btn-danger open-confirmar danger"
+                                                        class="action-button danger open-confirmar"
                                                         th:attr="data-url=@{/solicitacoes/{id}/excluir(id=${sol.id})},data-title='Excluir solicitação',data-msg='Deseja excluir esta solicitação permanentemente? Esta ação não pode ser desfeita.'">Excluir</button>
                                             </div>
                                         </div>
@@ -225,52 +225,57 @@
                     </div>
 
                     <aside class="solicitacoes-sidebar">
-                        <article class="sol-card filter-card">
-                            <header class="sol-card-header">
+                        <details class="sol-card section-card filter-card filter-panel" data-filter-panel>
+                            <summary class="sol-card-header section-head filter-panel-summary">
                                 <div class="sol-card-title-wrap">
                                     <i data-lucide="list-filter"></i>
-                                    <h2 class="sol-card-title">Filtrar histórico</h2>
+                                    <span class="filter-panel-summary-copy">
+                                        <span class="sol-card-title section-title">Filtros</span>
+                                        <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                                    </span>
                                 </div>
-                            </header>
-                            <div class="sol-card-body compact">
-                                <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="filter-form" id="filtroHistoricoForm">
-                                    <div class="filter-field">
+                                <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="sol-card-body section-body compact">
+                                <form method="get" th:action="@{/solicitacoes}" action="/solicitacoes" class="filter-form modern-form" id="filtroHistoricoForm">
+                                    <div class="filter-field form-field">
                                         <label for="filtroStatus">Status</label>
                                         <select id="filtroStatus" name="filtroStatus" class="form-control">
                                             <option value="" th:selected="${filtroStatus == null}">Todos</option>
                                             <option value="APROVADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'APROVADA'}">Aprovadas</option>
                                             <option value="REJEITADA" th:selected="${filtroStatus != null and filtroStatus.name() == 'REJEITADA'}">Negadas</option>
+                                            <option value="EM_ESPERA" th:selected="${filtroStatus != null and filtroStatus.name() == 'EM_ESPERA'}">Em espera</option>
                                             <option value="PENDENTE" th:selected="${filtroStatus != null and filtroStatus.name() == 'PENDENTE'}">Pendentes</option>
                                         </select>
                                     </div>
-                                    <div class="filter-field">
+                                    <div class="filter-field form-field">
                                         <label for="filtroInicio">De</label>
                                         <input id="filtroInicio" name="filtroInicio" type="date" class="form-control" th:value="${filtroInicio}">
                                     </div>
-                                    <div class="filter-field">
+                                    <div class="filter-field form-field">
                                         <label for="filtroFim">Até</label>
                                         <input id="filtroFim" name="filtroFim" type="date" class="form-control" th:value="${filtroFim}">
                                     </div>
-                                    <div class="filter-field">
+                                    <div class="filter-field form-field">
                                         <label for="filtroPaciente">Paciente</label>
                                         <input id="filtroPaciente" name="filtroPaciente" type="text" class="form-control" placeholder="Nome ou telefone" th:value="${filtroPaciente}">
                                     </div>
                                     <div class="filter-actions">
-                                        <button type="submit" class="sol-btn sol-btn-primary">Filtrar</button>
-                                        <a th:href="@{/solicitacoes}" href="/solicitacoes" class="sol-btn sol-btn-neutral">Limpar</a>
+                                        <button type="submit" class="action-button primary">Filtrar</button>
+                                        <a th:href="@{/solicitacoes}" href="/solicitacoes" class="action-button ghost">Limpar</a>
                                     </div>
                                 </form>
                             </div>
-                        </article>
+                        </details>
 
-                        <article class="sol-card">
-                            <header class="sol-card-header">
+                        <article class="sol-card section-card">
+                            <header class="sol-card-header section-head">
                                 <div class="sol-card-title-wrap">
                                     <i data-lucide="chart-no-axes-column"></i>
-                                    <h2 class="sol-card-title">Resumo rápido</h2>
+                                    <h2 class="sol-card-title section-title">Resumo rápido</h2>
                                 </div>
                             </header>
-                            <div class="sol-card-body compact">
+                            <div class="sol-card-body section-body compact">
                                 <div class="quick-rate">
                                     <p class="quick-rate-caption">Taxa de aprovação</p>
                                     <p class="quick-rate-value" th:text="${taxaAprovacao + '%'}">0%</p>
@@ -313,8 +318,8 @@
                     </article>
                 </section>
 
-                <section class="waitlist-panel" aria-labelledby="waitlistTitle">
-                    <div class="waitlist-panel-head">
+                <section class="waitlist-panel section-card" aria-labelledby="waitlistTitle">
+                    <div class="waitlist-panel-head section-head">
                         <div>
                             <h2 id="waitlistTitle">Fila de pacientes</h2>
                             <p>Ordenada por entrada mais antiga para facilitar a priorização.</p>
@@ -364,13 +369,13 @@
                             <div class="waitlist-actions">
                                 <form th:action="@{/solicitacoes/fila/{id}/notificar(id=${entrada.id})}" method="post">
                                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                    <button type="submit" class="action-button waitlist-action-success" title="Marcar como notificado">
+                                    <button type="submit" class="action-button success" title="Marcar como notificado">
                                         <i data-lucide="bell"></i> Notificar
                                     </button>
                                 </form>
                                 <form th:action="@{/solicitacoes/fila/{id}/converter(id=${entrada.id})}" method="post">
                                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                    <button type="submit" class="action-button waitlist-action-primary" title="Converter em agendamento">
+                                    <button type="submit" class="action-button primary" title="Converter em agendamento">
                                         <i data-lucide="calendar-check"></i> Converter
                                     </button>
                                 </form>
@@ -382,7 +387,7 @@
                                       data-confirm-helper-message="O registro deixa de aparecer na fila ativa depois da confirmação."
                                       data-confirm-action-label="Remover">
                                     <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                                    <button type="submit" class="action-button waitlist-action-danger" title="Remover da fila">
+                                    <button type="submit" class="action-button danger" title="Remover da fila">
                                         <i data-lucide="x"></i> Remover
                                     </button>
                                 </form>
@@ -751,6 +756,7 @@
 
     <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
     <script th:src="@{/js/dashboard-modern.js}"></script>
+    <script th:src="@{/js/br-mask.js}" src="/js/br-mask.js"></script>
     <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
     <script th:attr="nonce=${cspNonce}">
     (() => {
@@ -782,19 +788,9 @@
         };
 
         // ── máscaras ──────────────────────────────────────────────────────────
-        const maskCpf = v => {
-            const d = (v||'').replace(/\D/g,'').slice(0,11);
-            return d.replace(/^(\d{3})(\d)/,'$1.$2')
-                    .replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
-                    .replace(/\.(\d{3})(\d)/,'.$1-$2');
-        };
-        const maskPhone = v => {
-            const d = (v||'').replace(/\D/g,'').slice(0,11);
-            return d.length<=10
-                ? d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2')
-                : d.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
-        };
-        const maskCep = v => (v||'').replace(/\D/g,'').slice(0,8).replace(/^(\d{5})(\d)/,'$1-$2');
+        const maskCpf = BrMask.cpf;
+        const maskPhone = BrMask.telefone;
+        const maskCep = BrMask.cep;
 
         // ── state ─────────────────────────────────────────────────────────────
         const state = {
@@ -1181,8 +1177,8 @@
         });
 
         // ── máscara nos campos de etapa 1 ─────────────────────────────────────
-        s1Cpf?.addEventListener('input', () => { s1Cpf.value = maskCpf(s1Cpf.value); });
-        s1Telefone?.addEventListener('input', () => { s1Telefone.value = maskPhone(s1Telefone.value); });
+        BrMask.bind(s1Cpf, BrMask.cpf);
+        BrMask.bind(s1Telefone, BrMask.telefone);
 
         // ════════════════════════════════════════════════════════════
         // MODAL — EDITAR SOLICITAÇÃO

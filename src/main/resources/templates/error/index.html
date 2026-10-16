@@ -6,6 +6,7 @@
     <title th:text="${status + ' - ' + title}">Erro - FisioGestao</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="pub-body pub-centered" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <main class="pub-success-card pub-success-card--compact">

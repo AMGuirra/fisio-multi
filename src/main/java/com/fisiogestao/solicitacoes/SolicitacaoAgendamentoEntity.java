@@ -81,6 +81,11 @@ public class SolicitacaoAgendamentoEntity extends TenantEntity {
     @JoinColumn(name = "cliente_id")
     private ClienteEntity cliente;
 
+    /** True quando a clinica alterou o horario e aguarda a decisao do paciente. */
+    @Column(name = "aguardando_confirmacao_paciente", nullable = false)
+    @Builder.Default
+    private Boolean aguardandoConfirmacaoPaciente = Boolean.FALSE;
+
     public boolean isAtendimentoDomiciliar() {
         return "DOMICILIO".equalsIgnoreCase(localAtendimento);
     }

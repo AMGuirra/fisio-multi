@@ -81,8 +81,8 @@ PGPASSWORD=SENHA
 
 Depois disso:
 
-- `iniciar.bat` carrega `render-db.env` automaticamente
-- a aplicacao passa a priorizar essas variaveis antes do fallback local
+- os scripts da pasta `bat/` rodam somente local e **nao** carregam `render-db.env`
+- para usar o banco do Render, defina essas variaveis no ambiente antes de iniciar a aplicacao manualmente
 
 ## Migrar o banco local para o Render
 

@@ -9,6 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}" href="/css/dashboard-modern.css">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}" href="/css/crud-modern.css">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="portal-premium" th:attr="data-theme=${loggedUserTheme.cssValue},data-clinica=${clinicaSlug}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
 <div class="portal-shell">
@@ -148,7 +149,7 @@
                          th:classappend="${sol.status.name() == 'APROVADA'} ? ' agendada'
                                         : (${sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA'} ? ' cancelada' : '')"
                          aria-hidden="true">
-                        <i th:attr="data-lucide=${sol.status.name() == 'APROVADA'} ? 'check' : (${sol.status.name() == 'PENDENTE'} ? 'clock' : 'x')"></i>
+                        <i th:attr="data-lucide=${sol.status.name() == 'APROVADA'} ? 'check' : (${sol.status.name() == 'PENDENTE' or sol.status.name() == 'EM_ESPERA'} ? 'clock' : 'x')"></i>
                     </div>
                     <article class="timeline-card">
                         <div class="timeline-main">
@@ -162,15 +163,36 @@
                                     09:00 - 10:00
                                 </p>
                                 <p class="timeline-meta" th:text="${sol.localAtendimentoDescricao}">Clínica</p>
+                                <p class="timeline-proposal-label"
+                                   th:if="${sol.status.name() == 'PENDENTE' and sol.aguardandoConfirmacaoPaciente}">
+                                    A clínica sugeriu este novo horário. Confirme se ele funciona para você.
+                                </p>
                             </div>
                             <span class="portal-badge"
                                   th:classappend="${sol.status.name() == 'APROVADA'} ? ' confirmada'
                                                 : (${sol.status.name() == 'REJEITADA' or sol.status.name() == 'CANCELADA'} ? ' cancelada' : ' agendada')"
-                                  th:text="${sol.status.name() == 'PENDENTE'} ? 'Aguardando confirmação'
+                                  th:text="${sol.status.name() == 'PENDENTE' and sol.aguardandoConfirmacaoPaciente} ? 'Sua confirmação'
+                                          : (${sol.status.name() == 'PENDENTE'} ? 'Aguardando confirmação'
                                           : (${sol.status.name() == 'APROVADA'} ? 'Confirmada'
-                                          : (${sol.status.name() == 'REJEITADA'} ? 'Não aprovada' : 'Cancelada'))">
+                                          : (${sol.status.name() == 'REJEITADA'} ? 'Não aprovada'
+                                          : (${sol.status.name() == 'EM_ESPERA'} ? 'Em espera' : 'Cancelada'))))">
                                 Aguardando confirmação
                             </span>
+                        </div>
+                        <div class="timeline-proposal-actions"
+                             th:if="${sol.status.name() == 'PENDENTE' and sol.aguardandoConfirmacaoPaciente}">
+                            <form th:action="@{/paciente/{token}/solicitacao/{id}/aceitar-horario(token=${token},id=${sol.id})}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="portal-btn portal-btn-primary">
+                                    <i data-lucide="check"></i> Aceitar novo horário
+                                </button>
+                            </form>
+                            <form th:action="@{/paciente/{token}/solicitacao/{id}/recusar-horario(token=${token},id=${sol.id})}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="portal-btn portal-btn-secondary">
+                                    <i data-lucide="x"></i> Não posso nesse horário
+                                </button>
+                            </form>
                         </div>
                     </article>
                 </li>
@@ -516,6 +538,7 @@
 <th:block th:replace="~{fragments/confirm-modal :: confirmActionModal}"></th:block>
 
 <script th:src="@{/js/vendor/lucide.min.js}" src="/js/vendor/lucide.min.js"></script>
+<script th:src="@{/js/br-mask.js}" src="/js/br-mask.js"></script>
 <script th:src="@{/js/confirm-action-modal.js}" src="/js/confirm-action-modal.js"></script>
 <script th:attr="nonce=${cspNonce}">
     (() => {
@@ -604,18 +627,9 @@
             });
         };
 
-        const mascaraCpf = (value) => somenteDigitos(value).slice(0, 11)
-            .replace(/^(\d{3})(\d)/, '$1.$2')
-            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+        const mascaraCpf = BrMask.cpf;
 
-        const mascaraTelefone = (value) => {
-            const digits = somenteDigitos(value).slice(0, 11);
-            if (digits.length <= 10) {
-                return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
-            }
-            return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
-        };
+        const mascaraTelefone = BrMask.telefone;
 
         document.querySelectorAll('[data-portal-modal-open]').forEach((button) => {
             button.addEventListener('click', abrirModal);
@@ -630,19 +644,13 @@
             localAtendimentoSelect.addEventListener('change', toggleEndereco);
         }
         if (cpfInput) {
-            cpfInput.addEventListener('input', () => {
-                cpfInput.value = mascaraCpf(cpfInput.value);
-            });
+            BrMask.bind(cpfInput, BrMask.cpf);
         }
         if (telefoneInput) {
-            telefoneInput.addEventListener('input', () => {
-                telefoneInput.value = mascaraTelefone(telefoneInput.value);
-            });
+            BrMask.bind(telefoneInput, BrMask.telefone);
         }
         if (cepInput) {
-            cepInput.addEventListener('input', () => {
-                cepInput.value = somenteDigitos(cepInput.value).slice(0, 8).replace(/^(\d{5})(\d)/, '$1-$2');
-            });
+            BrMask.bind(cepInput, BrMask.cep);
         }
 
         // Os valores pré-preenchidos vêm do cadastro do paciente sem máscara (só dígitos);

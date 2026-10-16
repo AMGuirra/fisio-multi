@@ -22,6 +22,46 @@
         container.replaceChildren(element);
     };
 
+    const initializeFilterPanels = () => {
+        const query = new URLSearchParams(window.location.search);
+        const ignoredNames = new Set(['aba', 'page', 'pagina', 'size', 'sort']);
+
+        const isNeutralValue = (field, value) => {
+            if (!value || !value.trim()) return true;
+            if (field instanceof HTMLSelectElement && field.options.length) {
+                return value === field.options[0].value;
+            }
+            return false;
+        };
+
+        document.querySelectorAll('details[data-filter-panel]').forEach((panel) => {
+            const fields = Array.from(panel.querySelectorAll('form[method="get"] [name]'))
+                .filter((field) => field.type !== 'hidden' && !field.disabled && !ignoredNames.has(field.name));
+            const activeNames = new Set();
+
+            fields.forEach((field) => {
+                query.getAll(field.name).forEach((value) => {
+                    if (!isNeutralValue(field, value)) activeNames.add(field.name);
+                });
+            });
+
+            const hasActiveFilters = activeNames.size > 0;
+            const state = panel.querySelector('[data-filter-state]');
+            panel.open = hasActiveFilters;
+            panel.classList.toggle('is-filter-active', hasActiveFilters);
+
+            const updateState = () => {
+                if (!state) return;
+                state.textContent = hasActiveFilters
+                    ? `${activeNames.size} filtro${activeNames.size === 1 ? '' : 's'} ativo${activeNames.size === 1 ? '' : 's'}`
+                    : (panel.open ? 'Ocultar filtros' : 'Mostrar filtros');
+            };
+
+            panel.addEventListener('toggle', updateState);
+            updateState();
+        });
+    };
+
     window.setTimeout(finishDashboardLoading, 380);
 
     try {
@@ -719,6 +759,8 @@ const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', {
         })();
 
         window.toggleSidebar = toggleSidebar;
+
+        initializeFilterPanels();
 
         document.querySelectorAll('.btn-show-more').forEach((btn) => {
             const wrap = btn.closest('.section-block, .section-body, article')?.querySelector('.data-table-wrap');

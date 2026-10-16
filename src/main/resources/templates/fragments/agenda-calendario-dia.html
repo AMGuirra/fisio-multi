@@ -357,13 +357,13 @@
                             <div class="form-field">
                                 <label>Dias da semana</label>
                                 <div class="weekday-grid" id="novaSessaoDiasSemana">
+                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="DOM"><span>Dom</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="SEG"><span>Seg</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="TER"><span>Ter</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="QUA"><span>Qua</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="QUI"><span>Qui</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="SEX"><span>Sex</span></label>
                                     <label><input type="checkbox" name="recorrencia.diasSemana" value="SAB"><span>Sáb</span></label>
-                                    <label><input type="checkbox" name="recorrencia.diasSemana" value="DOM"><span>Dom</span></label>
                                 </div>
                             </div>
                             <div class="form-grid form-grid-two">
@@ -405,8 +405,8 @@
             <div class="app-modal-card">
                 <header class="app-modal-header">
                     <div class="app-modal-title-block">
-                        <h3 id="novaSessaoIncluirPacienteModalTitle"><i data-lucide="user-round-plus"></i> Incluir paciente</h3>
-                        <p>Cadastre rapidamente e volte direto para o agendamento.</p>
+                        <h3 id="novaSessaoIncluirPacienteModalTitle"><i data-lucide="user-round-plus"></i> <span id="novaSessaoIncluirPacienteTitulo">Incluir paciente</span></h3>
+                        <p id="novaSessaoIncluirPacienteSubtitulo">Cadastre rapidamente e volte direto para o agendamento.</p>
                     </div>
                     <button type="button" class="app-modal-close" data-incluir-paciente-close aria-label="Fechar modal">
                         <i data-lucide="x"></i>
@@ -440,6 +440,80 @@
                             <button type="button" class="action-button ghost" data-incluir-paciente-close>Cancelar</button>
                             <button type="submit" class="action-button primary" id="novaSessaoIncluirPacienteSalvar">
                                 <i data-lucide="save"></i>Cadastrar e selecionar
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="novaSessaoIncluirPlanoModal" class="app-modal app-modal-nested" aria-hidden="true">
+        <div class="app-modal-backdrop" data-incluir-plano-close></div>
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="novaSessaoIncluirPlanoModalTitle">
+            <div class="app-modal-card">
+                <header class="app-modal-header">
+                    <div class="app-modal-title-block">
+                        <h3 id="novaSessaoIncluirPlanoModalTitle"><i data-lucide="package-plus"></i> Cadastrar plano rápido</h3>
+                        <p>Crie o plano para o paciente selecionado e continue o agendamento.</p>
+                    </div>
+                    <button type="button" class="app-modal-close" data-incluir-plano-close aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="app-modal-body">
+                    <form id="novaSessaoIncluirPlanoForm" class="modern-form">
+                        <input type="hidden" name="clienteId" id="novaSessaoIncluirPlanoClienteId">
+                        <input type="hidden" name="sessoesConsumidas" value="0">
+                        <input type="hidden" name="status" value="ATIVO">
+
+                        <div id="novaSessaoIncluirPlanoErro" class="flash-message error compact-banner" hidden>
+                            <i data-lucide="triangle-alert"></i>
+                            <span id="novaSessaoIncluirPlanoErroTexto"></span>
+                        </div>
+                        <div class="flash-message success compact-banner">
+                            <i data-lucide="user-round-check"></i>
+                            <span>Paciente: <strong id="novaSessaoIncluirPlanoPacienteNome">Paciente</strong></span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="novaSessaoIncluirPlanoNome">Nome do plano</label>
+                            <input id="novaSessaoIncluirPlanoNome" name="nomePlano" type="text" class="form-control"
+                                   maxlength="120" placeholder="Ex: Plano mensal" required>
+                        </div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPlanoSessoes">Quantidade de sessões</label>
+                                <input id="novaSessaoIncluirPlanoSessoes" name="sessoesContratadas" type="number"
+                                       class="form-control" min="1" value="10" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPlanoValor">Valor total</label>
+                                <input id="novaSessaoIncluirPlanoValor" name="valorTotal" type="number"
+                                       class="form-control" min="0.01" step="0.01" placeholder="0,00" required>
+                            </div>
+                        </div>
+                        <div class="form-grid form-grid-two">
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPlanoInicio">Início da vigência</label>
+                                <input id="novaSessaoIncluirPlanoInicio" name="dataInicio" type="date"
+                                       class="form-control" th:value="${dataSelecionada}" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="novaSessaoIncluirPlanoValidade">Validade (opcional)</label>
+                                <input id="novaSessaoIncluirPlanoValidade" name="dataValidade" type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label for="novaSessaoIncluirPlanoParcelas">Número de parcelas</label>
+                            <input id="novaSessaoIncluirPlanoParcelas" name="numeroParcelas" type="number"
+                                   class="form-control" min="1" max="60" value="1" required>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="action-button ghost" data-incluir-plano-close>Cancelar</button>
+                            <button type="submit" class="action-button primary" id="novaSessaoIncluirPlanoSalvar">
+                                <i data-lucide="package-plus"></i>Criar plano e selecionar
                             </button>
                         </div>
                     </form>
@@ -840,7 +914,9 @@
                             option.hidden = false;
                             return;
                         }
-                        const visivel = !!clienteId && option.getAttribute('data-cliente-id') === clienteId;
+                        const visivel = !!clienteId
+                            && option.getAttribute('data-cliente-id') === clienteId
+                            && !option.disabled;
                         option.hidden = !visivel;
                         if (!visivel) {
                             return;
@@ -869,8 +945,8 @@
                         } else {
                             planoAlert.hidden = false;
                             planoAlertText.textContent = totalDoPaciente > 0
-                                ? primeiroMotivo || 'Nenhum plano deste paciente possui saldo livre para agenda.'
-                                : 'Este paciente não possui plano de tratamento. Cadastre ou renove um plano antes de usar esta opção.';
+                                ? `${primeiroMotivo || 'Nenhum plano deste paciente possui saldo livre para agenda.'} Clique em Plano para cadastrar um novo plano.`
+                                : 'Este paciente não possui plano de tratamento. Clique em Plano para cadastrar um plano rápido.';
                         }
                     }
 
@@ -891,8 +967,19 @@
                 };
 
                 const weekdayFromDate = (value) => {
-                    const date = new Date(`${value}T00:00:00`);
-                    return ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'][date.getDay()];
+                    const [year, month, day] = String(value || '').split('-').map(Number);
+                    if (!year || !month || !day) {
+                        return null;
+                    }
+                    const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+                    return ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'][weekday];
+                };
+
+                const selectDefaultWeekday = () => {
+                    const currentDay = weekdayFromDate(dataInput?.value);
+                    diasInputs.forEach((input) => {
+                        input.checked = input.value === currentDay;
+                    });
                 };
 
                 const ensureDefaultWeekday = () => {
@@ -942,6 +1029,9 @@
                         input.disabled = !active;
                     });
                     if (!active) {
+                        diasInputs.forEach((input) => {
+                            input.checked = false;
+                        });
                         return;
                     }
                     ensureDefaultWeekday();
@@ -962,7 +1052,10 @@
 
                 document.querySelectorAll('.js-btn-nova-sessao').forEach((button) => {
                     button.addEventListener('click', () => {
-                        ensureDefaultWeekday();
+                        // Corrige valores que o navegador possa ter restaurado de outro dia.
+                        if (recorrenteInput?.checked) {
+                            selectDefaultWeekday();
+                        }
                         syncPlanos();
                         setFieldGroupVisible();
                         updateRecurrencePreview();
@@ -1046,8 +1139,59 @@
                 const incluirErroTexto = document.getElementById('novaSessaoIncluirPacienteErroTexto');
                 const incluirSalvarBtn = document.getElementById('novaSessaoIncluirPacienteSalvar');
                 const incluirNomeInput = document.getElementById('novaSessaoIncluirPacienteNome');
+                const incluirPlanoModal = document.getElementById('novaSessaoIncluirPlanoModal');
+                const incluirPlanoForm = document.getElementById('novaSessaoIncluirPlanoForm');
+                const incluirPlanoClienteId = document.getElementById('novaSessaoIncluirPlanoClienteId');
+                const incluirPlanoPacienteNome = document.getElementById('novaSessaoIncluirPlanoPacienteNome');
+                const incluirPlanoErro = document.getElementById('novaSessaoIncluirPlanoErro');
+                const incluirPlanoErroTexto = document.getElementById('novaSessaoIncluirPlanoErroTexto');
+                const incluirPlanoSalvarBtn = document.getElementById('novaSessaoIncluirPlanoSalvar');
+                const incluirPlanoNomeInput = document.getElementById('novaSessaoIncluirPlanoNome');
 
                 if (incluirPacienteBtn && incluirModal && incluirForm) {
+                    const selecionarTipoAgendamento = (tipo) => {
+                        const input = tipoInputs.find((item) => item.value === tipo);
+                        if (input) {
+                            input.checked = true;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    };
+
+                    const pacienteSelecionado = () => clienteSelect?.selectedOptions[0];
+
+                    const pacientePossuiPlanoDisponivel = () => {
+                        const clienteId = clienteSelect?.value;
+                        if (!clienteId || !planoSelect) {
+                            return false;
+                        }
+                        return Array.from(planoSelect.options).slice(1).some((option) =>
+                            option.getAttribute('data-cliente-id') === clienteId
+                            && !option.disabled
+                            && !(option.getAttribute('data-motivo') || '')
+                        );
+                    };
+
+                    const setIncluirPlanoOpen = (open) => {
+                        if (!incluirPlanoModal || !incluirPlanoForm) {
+                            return;
+                        }
+                        incluirPlanoModal.classList.toggle('is-open', open);
+                        incluirPlanoModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+                        if (!open) {
+                            return;
+                        }
+
+                        const paciente = pacienteSelecionado();
+                        incluirPlanoForm.reset();
+                        incluirPlanoClienteId.value = paciente?.value || '';
+                        incluirPlanoPacienteNome.textContent = paciente?.textContent || 'Paciente';
+                        incluirPlanoErro.hidden = true;
+                        window.setTimeout(() => incluirPlanoNomeInput?.focus(), 60);
+                        if (window.lucide) {
+                            lucide.createIcons();
+                        }
+                    };
+
                     const setIncluirOpen = (open) => {
                         incluirModal.classList.toggle('is-open', open);
                         incluirModal.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -1106,13 +1250,79 @@
                             option.textContent = data.nomeCompleto;
                             clienteSelect.appendChild(option);
 
-                            setIncluirOpen(false);
                             selecionarPaciente(data.id, data.nomeCompleto);
+                            setIncluirOpen(false);
+                            tipoInputs.find((input) => input.value === 'PLANO')?.closest('label')?.focus();
                         } catch (error) {
                             incluirErroTexto.textContent = 'Falha de conexão ao cadastrar o paciente. Tente novamente.';
                             incluirErro.hidden = false;
                         } finally {
                             incluirSalvarBtn.disabled = false;
+                        }
+                    });
+
+                    const planoTipoInput = tipoInputs.find((input) => input.value === 'PLANO');
+                    planoTipoInput?.closest('label')?.addEventListener('click', () => {
+                        window.setTimeout(() => {
+                            if (clienteSelect?.value && !pacientePossuiPlanoDisponivel()) {
+                                setIncluirPlanoOpen(true);
+                            }
+                        }, 0);
+                    });
+
+                    incluirPlanoModal?.querySelectorAll('[data-incluir-plano-close]').forEach((element) => {
+                        element.addEventListener('click', () => setIncluirPlanoOpen(false));
+                    });
+                    document.addEventListener('keydown', (event) => {
+                        if (event.key === 'Escape' && incluirPlanoModal?.classList.contains('is-open')) {
+                            event.stopImmediatePropagation();
+                            setIncluirPlanoOpen(false);
+                        }
+                    });
+
+                    incluirPlanoForm?.addEventListener('submit', async (event) => {
+                        event.preventDefault();
+                        incluirPlanoErro.hidden = true;
+                        incluirPlanoSalvarBtn.disabled = true;
+
+                        const csrfInput = form.querySelector('input[name="_csrf"]');
+                        try {
+                            const response = await fetch('/agenda/planos/json', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfInput ? csrfInput.value : ''
+                                },
+                                body: new FormData(incluirPlanoForm)
+                            });
+                            const data = await response.json().catch(() => null);
+
+                            if (!response.ok) {
+                                incluirPlanoErroTexto.textContent = data?.error || data?.message || 'Não foi possível criar o plano.';
+                                incluirPlanoErro.hidden = false;
+                                return;
+                            }
+
+                            const option = document.createElement('option');
+                            option.value = data.id;
+                            option.textContent = `${data.nomePlano} - ${incluirPlanoPacienteNome.textContent} - ${data.sessoesLivres} livre(s)`;
+                            option.setAttribute('data-cliente-id', data.clienteId);
+                            option.setAttribute('data-disponivel', data.sessoesLivres);
+                            option.setAttribute('data-motivo', '');
+                            planoSelect.appendChild(option);
+
+                            selecionarTipoAgendamento('PLANO');
+                            syncPlanos();
+                            planoSelect.value = data.id;
+                            updateRecurrencePreview();
+                            syncSalvar();
+                            setIncluirPlanoOpen(false);
+                            planoSelect.focus();
+                        } catch (error) {
+                            incluirPlanoErroTexto.textContent = 'Falha de conexão ao criar o plano. Tente novamente.';
+                            incluirPlanoErro.hidden = false;
+                        } finally {
+                            incluirPlanoSalvarBtn.disabled = false;
                         }
                     });
                 }
@@ -1124,7 +1334,12 @@
                     input.addEventListener('change', setFieldGroupVisible);
                 });
                 if (recorrenteInput) {
-                    recorrenteInput.addEventListener('change', updateRecurrencePreview);
+                    recorrenteInput.addEventListener('change', () => {
+                        if (recorrenteInput.checked) {
+                            selectDefaultWeekday();
+                        }
+                        updateRecurrencePreview();
+                    });
                 }
                 [...diasInputs, dataFimInput, maxInput].forEach((input) => {
                     if (input) {

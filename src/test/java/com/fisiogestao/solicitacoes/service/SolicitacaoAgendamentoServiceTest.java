@@ -161,6 +161,74 @@ class SolicitacaoAgendamentoServiceTest {
     }
 
     @Test
+    void pacienteDeveAceitarNovoHorarioComoSessaoAvulsaQuandoNaoPossuiPlano() {
+        UUID solicitacaoId = UUID.randomUUID();
+        ClienteEntity cliente = ClienteEntity.builder()
+                .nomeCompleto("Antonio")
+                .telefone("65999990000")
+                .ativo(true)
+                .build();
+        cliente.setId(UUID.randomUUID());
+
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoPendente();
+        solicitacao.setId(solicitacaoId);
+        solicitacao.setCliente(cliente);
+        solicitacao.setAguardandoConfirmacaoPaciente(true);
+        HorarioBloqueadoEntity bloqueio = HorarioBloqueadoEntity.builder()
+                .status(HorarioBloqueadoStatus.PENDENTE)
+                .dataHoraInicio(solicitacao.getDataHoraInicio())
+                .dataHoraFim(solicitacao.getDataHoraFim())
+                .build();
+        bloqueio.setId(UUID.randomUUID());
+
+        when(solicitacaoAgendamentoRepository.findById(solicitacaoId)).thenReturn(Optional.of(solicitacao));
+        when(horarioBloqueadoRepository.findBySolicitacaoId(solicitacaoId)).thenReturn(Optional.of(bloqueio));
+        when(planoSessaoService.buscarPrimeiroLivreParaAgenda(cliente.getId())).thenReturn(Optional.empty());
+        when(sessaoRepository.save(any(SessaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(solicitacaoAgendamentoRepository.save(any(SolicitacaoAgendamentoEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SessaoEntity resultado = solicitacaoAgendamentoService
+                .aceitarPropostaPeloPaciente(solicitacaoId, cliente.getId());
+
+        assertEquals(TipoAgendamento.AVULSO, resultado.getTipoAgendamento());
+        assertEquals(SolicitacaoStatus.APROVADA, solicitacao.getStatus());
+        assertFalse(solicitacao.getAguardandoConfirmacaoPaciente());
+    }
+
+    @Test
+    void pacienteNaoPodeResponderPropostaDeOutroPaciente() {
+        UUID solicitacaoId = UUID.randomUUID();
+        ClienteEntity cliente = ClienteEntity.builder().nomeCompleto("Antonio").build();
+        cliente.setId(UUID.randomUUID());
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoPendente();
+        solicitacao.setCliente(cliente);
+        solicitacao.setAguardandoConfirmacaoPaciente(true);
+        when(solicitacaoAgendamentoRepository.findById(solicitacaoId)).thenReturn(Optional.of(solicitacao));
+
+        assertThrows(BusinessException.class, () -> solicitacaoAgendamentoService
+                .aceitarPropostaPeloPaciente(solicitacaoId, UUID.randomUUID()));
+
+        verifyNoInteractions(horarioBloqueadoRepository, planoSessaoService, sessaoRepository);
+    }
+
+    @Test
+    void adicionarNaFilaDeveUsarStatusEmEsperaSemNotificarRecusa() {
+        UUID solicitacaoId = UUID.randomUUID();
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoPendente();
+        solicitacao.setId(solicitacaoId);
+        when(solicitacaoAgendamentoRepository.findById(solicitacaoId)).thenReturn(Optional.of(solicitacao));
+        when(solicitacaoAgendamentoRepository.save(any(SolicitacaoAgendamentoEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitacaoAgendamentoEntity resultado =
+                solicitacaoAgendamentoService.colocarEmEspera(solicitacaoId);
+
+        assertEquals(SolicitacaoStatus.EM_ESPERA, resultado.getStatus());
+        verify(agendamentoEmailNotificationService, never()).notificarRecusado(any());
+    }
+
+    @Test
     void deveRejeitarCpfInvalidoNoAgendamentoPublico() {
         AgendamentoOnlineForm form = new AgendamentoOnlineForm();
         form.setNomePaciente("Antonio");

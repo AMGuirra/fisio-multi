@@ -3,7 +3,12 @@
       th:replace="~{gestor/layout :: pagina('Solicitações de suporte', 'Pedidos enviados pela página pública de suporte.', ~{::#conteudo})}">
 <body>
 <div id="conteudo">
-    <section class="section-card">
+    <details class="section-card filter-panel filter-panel-compact" data-filter-panel>
+        <summary class="filter-panel-summary">
+            <span class="filter-panel-summary-copy"><span class="section-title"><i data-lucide="list-filter"></i> Filtros</span><span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span></span>
+            <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+        </summary>
+        <div class="filter-panel-body">
         <form class="filter-bar" th:action="@{/gestor/suporte}" method="get">
             <input type="search" name="termo" th:value="${termo}" placeholder="Buscar por nome, e-mail, documento ou relato" maxlength="120">
             <select name="status">
@@ -12,7 +17,8 @@
             </select>
             <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
         </form>
-    </section>
+        </div>
+    </details>
     <section class="section-card">
         <div class="section-body" th:if="${pagina.content.isEmpty()}">
             <div class="empty-box"><i data-lucide="inbox"></i><p>Nenhuma solicitação encontrada.</p></div>

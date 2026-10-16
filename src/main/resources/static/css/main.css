@@ -1098,6 +1098,12 @@ html:has(> body.auth-body) {
     color: rgba(96, 121, 136, 0.72);
 }
 
+/* Mantem o botao nativo do calendario visivel quando o sistema operacional
+   esta em modo escuro, mas a pagina publica foi fixada no tema claro. */
+.pub-body[data-theme='light'] .pub-control[type='date'] {
+    color-scheme: light;
+}
+
 .pub-error {
     margin-top: 0.35rem;
     font-size: 0.8rem;
@@ -2396,6 +2402,26 @@ body.portal-premium .modal-title {
     margin: 0.25rem 0 0;
     font-size: var(--text-sm);
     line-height: 1.5;
+}
+
+.timeline-proposal-label {
+    margin: 0.75rem 0 0;
+    color: var(--text-strong);
+    font-size: var(--text-sm);
+    font-weight: 650;
+}
+
+.timeline-proposal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--stroke-soft);
+}
+
+.timeline-proposal-actions form {
+    margin: 0;
 }
 
 .portal-badge {

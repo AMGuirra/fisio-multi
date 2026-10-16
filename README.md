@@ -35,41 +35,24 @@ Padrões locais (já configurados em `src/main/resources/application.yml`):
 
 ### Scripts para Windows (recomendado)
 
-Na pasta do projeto (funcionam também se chamados de outro diretório):
+Na pasta `bat/` (funcionam também se chamados de outro diretório). Todos rodam somente localmente, sem git e sem o banco do Render:
 
-| Passo | Script | O que faz |
-|-------|--------|-----------|
-| 1 | `criar-banco-local.bat` | Cria o banco `fisio` em `localhost:5432` **somente se não existir** (nunca apaga nem recria) |
-| 2 | `iniciar-local.bat` | Verifica Java, Maven Wrapper, PostgreSQL, banco e porta; define as variáveis locais e roda `.\mvnw.cmd spring-boot:run` |
-| 3 | — | Acesse http://localhost:8080 com `admin` / `admin` (código da clínica em branco) |
+| Script | O que faz |
+|--------|-----------|
+| `bat/iniciar-segundo-plano.bat` | Inicia o sistema em segundo plano (janela oculta), sem depender do terminal aberto. Compila se ainda não houver JAR. Logs em `logs/` |
+| `bat/atualizar.bat` | Aplica as últimas alterações do código: encerra a instância, recompila e inicia de novo em segundo plano |
+| `bat/parar-local.bat` | Mostra o PID que está usando a porta 8080 e pede confirmação antes de encerrá-lo (não toca em outros processos) |
 
-Outros scripts:
-
-- `iniciar-local-nova-janela.bat`: abre o `iniciar-local.bat` numa nova janela; recusa se a porta 8080 já estiver em uso.
-- `parar-local.bat`: mostra o PID que está usando a porta 8080 e pede confirmação antes de encerrá-lo (não toca em outros processos).
-- `verificar-local.bat`: diagnóstico somente leitura (Java, Maven Wrapper, PostgreSQL, login, banco, versão do Flyway, porta 8080) com orientações de correção.
-
-```powershell
-cd D:\Antonio\Documents\Antonio\1_dev\fisio_multi
-.\criar-banco-local.bat
-.\iniciar-local.bat
-# outra janela, quando quiser:
-.\verificar-local.bat
-.\parar-local.bat
-```
+Depois de iniciar, acesse http://localhost:8080 com `admin` / `admin` (código da clínica em branco).
 
 Observações:
 
+- O banco `fisio` precisa existir antes (veja "Execução manual", passo 1). As tabelas são criadas e atualizadas pelo Flyway na inicialização.
 - A senha padrão do PostgreSQL usada pelos scripts é `postgres`. Para outra senha, defina antes:
   `set FISIO_DB_PASSWORD=sua_senha` (CMD) ou `$env:FISIO_DB_PASSWORD='sua_senha'` (PowerShell). A senha não é exibida.
-- `criar-banco-local.bat` e `verificar-local.bat` exigem o `psql` no PATH
-  (ex.: `C:\Program Files\PostgreSQL\16\bin`).
-- `iniciar-local.bat` força `jdbc:postgresql://localhost:5432/fisio`, porta `8080` e `APP_BASE_URL=http://localhost:8080`,
-  e limpa (só naquela janela) variáveis de produção como `DATABASE_URL` e `RENDER`. As tabelas são criadas e
-  atualizadas pelo Flyway na inicialização.
+- Os scripts forçam `jdbc:postgresql://localhost:5432/fisio`, porta `8080` e `APP_BASE_URL=http://localhost:8080`,
+  e limpam (só naquele processo) variáveis de produção como `DATABASE_URL` e `RENDER`.
 - O superadmin `admin/admin` só é criado se ainda não existir; uma senha alterada depois não é sobrescrita.
-- Os scripts antigos `iniciar.bat`/`reiniciar.bat` continuam no projeto, mas `iniciar.bat` carrega `render-db.env`
-  (banco remoto) quando esse arquivo existe. Para desenvolvimento local, use os scripts `*-local.bat`.
 
 ### Execução manual
 

@@ -253,6 +253,7 @@ public class RelatorioAnalyticsBuilder {
                         new SliceInput("Pendentes",  BigDecimal.valueOf(contarSolicitacoesPorStatus(solicitacoes, SolicitacaoStatus.PENDENTE)),  "#d19a10", false),
                         new SliceInput("Aprovadas",  BigDecimal.valueOf(contarSolicitacoesPorStatus(solicitacoes, SolicitacaoStatus.APROVADA)),  "#0f8f7a", false),
                         new SliceInput("Rejeitadas", BigDecimal.valueOf(contarSolicitacoesPorStatus(solicitacoes, SolicitacaoStatus.REJEITADA)), "#cf5b5b", false),
+                        new SliceInput("Em espera", BigDecimal.valueOf(contarSolicitacoesPorStatus(solicitacoes, SolicitacaoStatus.EM_ESPERA)), "#d19a10", false),
                         new SliceInput("Canceladas", BigDecimal.valueOf(contarSolicitacoesPorStatus(solicitacoes, SolicitacaoStatus.CANCELADA)), "#7b8794", false)
                 ));
     }

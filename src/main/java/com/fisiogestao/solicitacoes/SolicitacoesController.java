@@ -2,6 +2,7 @@ package com.fisiogestao.solicitacoes;
 
 import com.fisiogestao.listaespera.ListaEsperaService;
 import com.fisiogestao.solicitacoes.form.AprovacaoSolicitacaoForm;
+import com.fisiogestao.solicitacoes.service.RejeicaoSolicitacaoService;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
 import com.fisiogestao.shared.web.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class SolicitacoesController {
 
     private final SolicitacaoAgendamentoService solicitacaoAgendamentoService;
+    private final RejeicaoSolicitacaoService rejeicaoSolicitacaoService;
     private final ListaEsperaService listaEsperaService;
 
     @GetMapping
@@ -107,11 +109,10 @@ public class SolicitacoesController {
             @RequestParam(value = "adicionarListaEspera", defaultValue = "false") boolean adicionarListaEspera,
             RedirectAttributes redirectAttributes) {
         try {
-            var solicitacao = solicitacaoAgendamentoService.rejeitarSolicitacao(id);
+            var solicitacao = rejeicaoSolicitacaoService.rejeitar(id, adicionarListaEspera);
             if (adicionarListaEspera && solicitacao.getCliente() != null) {
-                listaEsperaService.adicionarDaRejeicao(solicitacao.getCliente());
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Solicitação rejeitada. " + solicitacao.getNomePaciente()
+                        "Solicitação colocada em espera. " + solicitacao.getNomePaciente()
                         + " foi adicionado à lista de espera e será avisado quando houver vaga.");
             } else {
                 redirectAttributes.addFlashAttribute("successMessage", "Solicitação rejeitada e horário liberado.");

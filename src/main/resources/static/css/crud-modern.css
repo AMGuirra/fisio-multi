@@ -32,6 +32,27 @@
     min-width: 0;
 }
 
+@media (min-width: 1361px) {
+    .agenda-desktop-shell > .agenda-workspace {
+        display: contents;
+    }
+
+    .agenda-panel-month {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .agenda-panel-day {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+
+    .agenda-support-grid {
+        grid-column: 1;
+        grid-row: 2;
+    }
+}
+
 .agenda-workspace {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -2209,6 +2230,65 @@ body[data-theme='dark'] .metric-badge.tone-danger {
     justify-content: flex-end;
 }
 
+/* Agenda: keep pending-request cards dense enough to scan several at once. */
+@media (min-width: 921px) {
+    .agenda-requests-card .section-head {
+        padding: 14px 18px;
+    }
+
+    .agenda-requests-card .section-body {
+        padding: 14px;
+    }
+
+    .agenda-requests-card .request-list {
+        gap: 8px;
+    }
+
+    .agenda-requests-card .request-card {
+        padding: 10px;
+    }
+
+    .agenda-requests-card .request-detail.stack-10 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 12px;
+    }
+
+    .agenda-requests-card .request-detail > .request-actions {
+        align-self: start;
+    }
+
+    .agenda-requests-card .request-detail > .modern-form {
+        grid-column: 1 / -1;
+        gap: 10px;
+    }
+
+    .agenda-requests-card .form-field {
+        gap: 4px;
+    }
+
+    .agenda-requests-card .form-field label {
+        font-size: 0.8rem;
+    }
+
+    .agenda-requests-card .modern-form .form-control,
+    .agenda-requests-card .modern-form input {
+        padding: 9px 12px;
+        font-size: 0.9rem;
+    }
+
+    .agenda-requests-card .action-button {
+        min-height: 38px;
+        padding: 7px 12px;
+        font-size: 0.84rem;
+    }
+
+    .agenda-requests-card .action-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
 .session-actions {
     display: flex;
     flex-wrap: wrap;
@@ -2470,6 +2550,56 @@ body[data-theme='dark'] .metric-badge.tone-danger {
 .calendar-link:focus-visible {
     text-decoration: underline;
     outline: none;
+}
+
+.calendar-link-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    opacity: 0.65;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.calendar-link-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.calendar-link-icon:hover,
+.calendar-link-icon:focus-visible {
+    opacity: 1;
+    background: rgba(15, 127, 108, 0.1);
+    text-decoration: none;
+}
+
+.calendar-link-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #12302a;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease;
+    z-index: 20;
+}
+
+.calendar-link-icon:hover::after,
+.calendar-link-icon:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* ── Calendar Event Chips (Google Calendar style) ─────────────────────── */
@@ -6203,6 +6333,10 @@ body[data-theme='dark'] .cp-key kbd {
     background: var(--bg-soft);
 }
 
+.recorrencia-box.initially-hidden {
+    display: none;
+}
+
 .weekday-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -6400,5 +6534,242 @@ body[data-theme='dark'] .weekday-grid input:checked + span {
 
     .data-table.responsive-data-table tbody td::before {
         letter-spacing: 0.04em;
+    }
+}
+
+/* Central de Solicitações: reutiliza a linguagem visual da Agenda. */
+.solicitacoes-page .solicitacoes-content {
+    gap: var(--app-page-gap, 18px);
+    padding-bottom: 0;
+}
+
+.solicitacoes-page .solicitacoes-summary-grid {
+    grid-template-columns: repeat(4, minmax(132px, 180px));
+    justify-content: start;
+    gap: 12px;
+}
+
+.solicitacoes-page .solicitacoes-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    gap: 16px;
+}
+
+.solicitacoes-page .solicitacoes-main {
+    grid-column: 1;
+}
+
+.solicitacoes-page .solicitacoes-sidebar {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.solicitacoes-page .sol-card {
+    border-radius: var(--app-card-radius, 14px);
+}
+
+.solicitacoes-page .sol-card-header {
+    min-height: 54px;
+    padding: 14px 18px;
+}
+
+.solicitacoes-page .sol-card-title {
+    color: var(--text-strong);
+    font-size: 0.97rem;
+    font-weight: 720;
+}
+
+.solicitacoes-page .sol-card-title-wrap {
+    gap: 10px;
+}
+
+.solicitacoes-page .sol-card-title-wrap i,
+.solicitacoes-page .sol-card-title-wrap svg {
+    width: 18px;
+    height: 18px;
+    color: var(--brand-700);
+}
+
+.solicitacoes-page .sol-card-body,
+.solicitacoes-page .sol-card-body.compact,
+.solicitacoes-page .filter-card .sol-card-body.compact {
+    padding: 14px;
+}
+
+.solicitacoes-page .filter-card .sol-card-header {
+    padding: 14px 18px;
+    background: var(--bg-surface);
+}
+
+.solicitacoes-page .filter-card .sol-card-title {
+    color: var(--text-strong);
+}
+
+.solicitacoes-page .req-list {
+    gap: 10px;
+}
+
+.solicitacoes-page .req-item {
+    padding: 12px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 13px;
+    background: #fbfefd;
+}
+
+.solicitacoes-page .req-item.request-card-pending {
+    border-color: #f0cd72;
+    background: linear-gradient(180deg, #fffdfa 0%, #ffffff 100%);
+}
+
+.solicitacoes-page .req-item:last-child {
+    border-bottom: 1px solid var(--stroke-soft);
+}
+
+.solicitacoes-page .req-item.request-card-pending:last-child {
+    border-bottom-color: #f0cd72;
+}
+
+.solicitacoes-page .req-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 0.9rem;
+}
+
+.solicitacoes-page .req-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.solicitacoes-page .req-meta,
+.solicitacoes-page .req-note,
+.solicitacoes-page .req-datetime {
+    font-size: 0.83rem;
+}
+
+.solicitacoes-page .empty-state {
+    min-height: 160px;
+    padding: 24px 16px;
+    border: 1px dashed var(--stroke-soft);
+    border-radius: 13px;
+}
+
+.solicitacoes-page .empty-state i,
+.solicitacoes-page .empty-state svg {
+    width: 50px;
+    height: 50px;
+    padding: 12px;
+    border-radius: 14px;
+    color: var(--brand-700);
+    background: #dff4ef;
+}
+
+.solicitacoes-page .action-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+}
+
+.solicitacoes-page .filter-form {
+    gap: 12px;
+}
+
+.solicitacoes-page .filter-actions {
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.solicitacoes-page .filter-actions .action-button {
+    flex: 1;
+}
+
+.solicitacoes-page .quick-rate {
+    gap: 12px;
+}
+
+.solicitacoes-page .quick-rate-value {
+    color: var(--text-strong);
+    font-size: 1.5rem;
+    font-weight: 760;
+}
+
+.solicitacoes-page .quick-rate-track {
+    height: 8px;
+}
+
+.solicitacoes-page .waitlist-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+}
+
+.solicitacoes-page .waitlist-section .section-title {
+    margin-bottom: 0;
+}
+
+.solicitacoes-page .waitlist-panel-head {
+    min-height: 54px;
+    padding: 14px 18px;
+}
+
+.solicitacoes-page .waitlist-empty {
+    min-height: 180px;
+    padding: 32px 22px;
+}
+
+body[data-theme='dark'] .solicitacoes-page .req-item,
+body[data-theme='dark'] .solicitacoes-page .req-item.request-card-pending,
+body[data-theme='dark'] .solicitacoes-page .filter-card .sol-card-header {
+    background: rgba(12, 22, 28, 0.94);
+    border-color: var(--stroke-soft);
+}
+
+body[data-theme='dark'] .solicitacoes-page .empty-state svg {
+    background: rgba(55, 200, 170, 0.14);
+    color: #74e7cc;
+}
+
+@media (max-width: 1180px) {
+    .solicitacoes-page .solicitacoes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .solicitacoes-page .solicitacoes-main,
+    .solicitacoes-page .solicitacoes-sidebar {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .solicitacoes-page .solicitacoes-sidebar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+        align-items: start;
+    }
+}
+
+@media (max-width: 760px) {
+    .solicitacoes-page .solicitacoes-summary-grid,
+    .solicitacoes-page .solicitacoes-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .solicitacoes-page .sol-card-header {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .solicitacoes-page .sol-card-header .req-actions,
+    .solicitacoes-page .filter-actions {
+        width: 100%;
+    }
+
+    .solicitacoes-page .sol-card-header .req-actions .action-button,
+    .solicitacoes-page .filter-actions .action-button {
+        flex: 1;
+    }
+
+    .solicitacoes-page .req-side {
+        padding-left: 0;
     }
 }

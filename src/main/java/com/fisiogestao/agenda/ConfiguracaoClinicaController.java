@@ -80,13 +80,13 @@ public class ConfiguracaoClinicaController {
     private void prepararPagina(Model model, ConfiguracaoClinicaForm form) {
         model.addAttribute("configuracaoClinicaForm", form);
         model.addAttribute("diasSemana", List.of(
+                new DiaSemanaOption(DayOfWeek.SUNDAY, "Domingo"),
                 new DiaSemanaOption(DayOfWeek.MONDAY, "Segunda-feira"),
                 new DiaSemanaOption(DayOfWeek.TUESDAY, "Terça-feira"),
                 new DiaSemanaOption(DayOfWeek.WEDNESDAY, "Quarta-feira"),
                 new DiaSemanaOption(DayOfWeek.THURSDAY, "Quinta-feira"),
                 new DiaSemanaOption(DayOfWeek.FRIDAY, "Sexta-feira"),
-                new DiaSemanaOption(DayOfWeek.SATURDAY, "Sábado"),
-                new DiaSemanaOption(DayOfWeek.SUNDAY, "Domingo")
+                new DiaSemanaOption(DayOfWeek.SATURDAY, "Sábado")
         ));
         model.addAttribute("timezonesClinica", configuracaoClinicaService.listarTimezonesSuportados());
         model.addAttribute("motivosCancelamento", com.fisiogestao.cancelamento.MotivoCancelamento.values());

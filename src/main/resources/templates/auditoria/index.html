@@ -12,6 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
     <link rel="stylesheet" th:href="@{/css/auditoria.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -67,10 +68,14 @@
                 </article>
             </section>
 
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros da Auditoria</h3>
-                </header>
+            <details class="section-card filter-panel" data-filter-panel>
+                <summary class="section-head filter-panel-summary">
+                    <span class="filter-panel-summary-copy">
+                        <span class="section-title"><i data-lucide="filter"></i> Filtros</span>
+                        <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                    </span>
+                    <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                </summary>
                 <div class="section-body">
                     <form th:action="@{/auditoria}" method="get" th:object="${filtroForm}" class="modern-form">
                         <div class="audit-filter-grid audit-filter-grid--compact">
@@ -110,7 +115,7 @@
                         </div>
                     </form>
                 </div>
-            </section>
+            </details>
 
             <section class="section-card">
                 <header class="section-head">
@@ -169,8 +174,5 @@
     <script th:src="@{/js/dashboard-modern.js}"></script>
 </body>
 </html>
-
-
-
 
 

@@ -63,8 +63,7 @@ public class AgendamentoOnlineForm {
     @Size(max = 2000)
     private String observacoes;
 
-    @NotBlank(message = "Crie uma senha para acessar o portal.")
-    @Size(min = PasswordPolicy.MIN_LENGTH, max = PasswordPolicy.MAX_LENGTH, message = PasswordPolicy.RANGE_MESSAGE)
+    @Size(max = PasswordPolicy.MAX_LENGTH, message = PasswordPolicy.RANGE_MESSAGE)
     private String senha;
 
     private String confirmarSenha;

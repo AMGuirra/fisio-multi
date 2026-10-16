@@ -3,6 +3,7 @@ package com.fisiogestao.agenda;
 import com.fisiogestao.agenda.dto.SessaoEdicaoDto;
 import com.fisiogestao.agenda.form.AgendaManualForm;
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.pacientes.PlanoSessaoEntity;
 import com.fisiogestao.pacientes.form.PlanoConsumoForm;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
@@ -93,6 +94,45 @@ public class AgendaController {
         } catch (BusinessException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return construirDestinoCalendario(dataOuHoje(agendaData));
+        }
+    }
+
+    @PostMapping("/planos/json")
+    @ResponseBody
+    public ResponseEntity<?> criarPlanoPelaAgendaJson(
+            @Valid @ModelAttribute("planoAgendaForm") PlanoConsumoForm form,
+            BindingResult bindingResult,
+            Authentication authentication
+    ) {
+        if (bindingResult.hasErrors()) {
+            String mensagem = bindingResult.getFieldErrors().stream()
+                    .map(erro -> erro.getDefaultMessage())
+                    .filter(mensagemErro -> mensagemErro != null && !mensagemErro.isBlank())
+                    .findFirst()
+                    .orElse("Revise os dados do plano antes de salvar.");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", mensagem
+            ));
+        }
+
+        try {
+            PlanoSessaoEntity plano = planoSessaoService.criarViaCrud(
+                    form,
+                    authentication != null ? authentication.getName() : "Equipe da clínica"
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "success", true,
+                    "id", plano.getId(),
+                    "clienteId", plano.getCliente().getId(),
+                    "nomePlano", plano.getNomePlano(),
+                    "sessoesLivres", planoSessaoService.calcularSessoesDisponiveisParaAgenda(plano)
+            ));
+        } catch (BusinessException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", ex.getMessage()
+            ));
         }
     }
 

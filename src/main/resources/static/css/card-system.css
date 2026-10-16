@@ -1,0 +1,237 @@
+/* ===================================================
+   FisioGestao - padrao transversal de cards
+   Carregado por ultimo para consolidar tamanho e estilo
+   sem remover as cores e os estados proprios de cada tela.
+   =================================================== */
+
+:root {
+    --card-radius: 14px;
+    --card-inner-radius: 12px;
+    --card-border: 1px solid var(--stroke-soft, #dde7e4);
+    --card-shadow: 0 8px 22px rgba(15, 23, 32, 0.06);
+    --card-shadow-hover: 0 14px 30px rgba(15, 23, 32, 0.1);
+    --card-padding: clamp(16px, 1.4vw, 20px);
+    --card-header-padding: 14px clamp(16px, 1.4vw, 20px);
+    --card-header-min-height: 54px;
+    --card-kpi-min-height: 126px;
+    --card-grid-gap: 14px;
+}
+
+body[data-theme='dark'],
+body.theme-dark {
+    --card-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
+/* Cards estruturais: paineis, formularios, tabelas e areas de conteudo. */
+:is(
+    .pub-card,
+    .pub-success-card,
+    .portal-card,
+    .portal-next-card,
+    .portal-panel,
+    .portal-address-card,
+    .pub-address-card,
+    .hero-card,
+    .section-card,
+    .panel,
+    .sol-card,
+    .waitlist-panel,
+    .filter-panel-standalone,
+    .period-filter-card,
+    .pub-status-card,
+    .report-period-card,
+    .donut-card,
+    .audit-payload-card,
+    .permissions-card,
+    .patients-search-panel,
+    .helper-card,
+    .metrics-strip-card,
+    .admin-module-card,
+    .lm-card,
+    .form-card,
+    .current-status-card
+) {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+}
+
+/* Cabecalhos dos cards seguem a mesma altura e o mesmo alinhamento. */
+:is(
+    .section-head,
+    .panel-head,
+    .sol-card-header,
+    .waitlist-panel-head
+) {
+    box-sizing: border-box;
+    min-height: var(--card-header-min-height);
+    padding: var(--card-header-padding);
+}
+
+/* Indicadores: mesma altura, respiro e distribuicao em todas as paginas. */
+:is(
+    .metric-card,
+    .summary-card,
+    .waitlist-metric,
+    .report-kpi-card,
+    .portal-kpi-card,
+    .audit-summary-card,
+    .gestor-kpi,
+    .patient-metric-card,
+    .prontuario-context-stat,
+    .workflow-step
+) {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--card-kpi-min-height);
+    height: 100%;
+    padding: var(--card-padding);
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+/* Cards internos preservam densidade, mas usam o mesmo acabamento. */
+:is(
+    .request-card,
+    .session-card,
+    .sessao-card,
+    .timeline-card,
+    .attachment-card,
+    .choice-card,
+    .modal-helper-card,
+    .wizard-status-card,
+    .permission-option-static,
+    .empty-state,
+    .prontuario-empty-state
+) {
+    box-sizing: border-box;
+    min-width: 0;
+    border: var(--card-border);
+    border-radius: var(--card-inner-radius);
+}
+
+/* Todo card que ocupa uma celula acompanha a altura dos irmaos da linha. */
+:is(
+    .metrics-grid,
+    .summary-grid,
+    .portal-kpi-grid,
+    .report-kpi-grid,
+    .gestor-kpis,
+    .waitlist-metrics,
+    .workflow-strip,
+    .panels-grid,
+    .finance-report-grid,
+    .auto-grid
+) {
+    gap: var(--card-grid-gap);
+    align-items: stretch;
+}
+
+:is(
+    .metrics-grid,
+    .summary-grid,
+    .portal-kpi-grid,
+    .report-kpi-grid,
+    .gestor-kpis,
+    .waitlist-metrics,
+    .workflow-strip,
+    .panels-grid,
+    .finance-report-grid,
+    .auto-grid
+) > :is(
+    .metric-card,
+    .summary-card,
+    .portal-kpi-card,
+    .report-kpi-card,
+    .gestor-kpi,
+    .waitlist-metric,
+    .workflow-step,
+    .panel,
+    .section-card,
+    .sol-card
+) {
+    height: 100%;
+}
+
+/* Interacao uniforme apenas nos cards que ja sao links/acoes. */
+:is(
+    .metric-card-link,
+    a.gestor-kpi,
+    .admin-module-card,
+    .lm-card,
+    .choice-card
+) {
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+:is(
+    .metric-card-link,
+    a.gestor-kpi,
+    .admin-module-card,
+    .lm-card,
+    .choice-card
+):is(:hover, :focus-visible) {
+    border-color: var(--stroke-strong, #c8d8d3);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+/* Utilitarios para novos cards, evitando novos tamanhos isolados. */
+.card-standard {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: var(--card-padding);
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    background: var(--bg-surface, #fff);
+    box-shadow: var(--card-shadow);
+}
+
+.card-standard--kpi {
+    min-height: var(--card-kpi-min-height);
+    height: 100%;
+}
+
+@media (max-width: 760px) {
+    :root {
+        --card-padding: 14px;
+        --card-header-padding: 13px 14px;
+        --card-kpi-min-height: 112px;
+        --card-grid-gap: 12px;
+    }
+
+    :is(
+        .metrics-grid,
+        .summary-grid,
+        .portal-kpi-grid,
+        .report-kpi-grid,
+        .gestor-kpis,
+        .waitlist-metrics,
+        .workflow-strip
+    ) {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(
+        .metric-card-link,
+        a.gestor-kpi,
+        .admin-module-card,
+        .lm-card,
+        .choice-card
+    ) {
+        transition: none;
+    }
+}

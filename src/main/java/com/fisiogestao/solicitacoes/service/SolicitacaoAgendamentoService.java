@@ -351,6 +351,29 @@ public class SolicitacaoAgendamentoService {
 
     @Transactional
     public SessaoEntity aprovarSolicitacao(UUID solicitacaoId, AprovacaoSolicitacaoForm form) {
+        return aprovarSolicitacaoInterna(solicitacaoId, form, false);
+    }
+
+    @Transactional
+    public SessaoEntity aceitarPropostaPeloPaciente(UUID solicitacaoId, UUID clienteId) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Proposta de horário não encontrada."));
+        validarPropostaDoPaciente(solicitacao, clienteId);
+        return aprovarSolicitacaoInterna(solicitacaoId, new AprovacaoSolicitacaoForm(), true);
+    }
+
+    @Transactional
+    public void recusarPropostaPeloPaciente(UUID solicitacaoId, UUID clienteId) {
+        SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Proposta de horário não encontrada."));
+        validarPropostaDoPaciente(solicitacao, clienteId);
+        rejeitarSolicitacao(solicitacaoId);
+    }
+
+    private SessaoEntity aprovarSolicitacaoInterna(
+            UUID solicitacaoId,
+            AprovacaoSolicitacaoForm form,
+            boolean permitirSessaoAvulsa) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
         var snapshotSolicitacaoAnterior = auditService.snapshotOf(solicitacao);
@@ -376,10 +399,12 @@ public class SolicitacaoAgendamentoService {
 
         ClienteEntity cliente = solicitacao.getCliente();
 
-        PlanoSessaoEntity plano = planoSessaoService.resolverPlanoParaSessao(
-                cliente.getId(),
-                form != null ? form.getPlanoSessaoId() : null,
-                null);
+        PlanoSessaoEntity plano = permitirSessaoAvulsa
+                ? planoSessaoService.buscarPrimeiroLivreParaAgenda(cliente.getId()).orElse(null)
+                : planoSessaoService.resolverPlanoParaSessao(
+                        cliente.getId(),
+                        form != null ? form.getPlanoSessaoId() : null,
+                        null);
 
         SessaoEntity sessao = SessaoEntity.builder()
                 .cliente(cliente)
@@ -387,7 +412,7 @@ public class SolicitacaoAgendamentoService {
                 .dataHoraInicio(solicitacao.getDataHoraInicio())
                 .dataHoraFim(solicitacao.getDataHoraFim())
                 .status(SessaoStatus.AGENDADA)
-                .tipoAgendamento(TipoAgendamento.PLANO)
+                .tipoAgendamento(plano != null ? TipoAgendamento.PLANO : TipoAgendamento.AVULSO)
                 .tipoAtendimento(solicitacao.getLocalAtendimentoDescricao())
                 .observacoes(montarObservacoesSessao(solicitacao))
                 .planoConsumoRegistrado(Boolean.FALSE)
@@ -403,6 +428,7 @@ public class SolicitacaoAgendamentoService {
 
         solicitacao.setCliente(cliente);
         solicitacao.setStatus(SolicitacaoStatus.APROVADA);
+        solicitacao.setAguardandoConfirmacaoPaciente(false);
         SolicitacaoAgendamentoEntity solicitacaoSalva = solicitacaoAgendamentoRepository.save(solicitacao);
         auditService.recordManual(
                 AuditModule.SOLICITACOES,
@@ -423,8 +449,42 @@ public class SolicitacaoAgendamentoService {
         return salva;
     }
 
+    private void validarPropostaDoPaciente(SolicitacaoAgendamentoEntity solicitacao, UUID clienteId) {
+        boolean pertenceAoPaciente = solicitacao.getCliente() != null
+                && solicitacao.getCliente().getId().equals(clienteId);
+        if (!pertenceAoPaciente
+                || solicitacao.getStatus() != SolicitacaoStatus.PENDENTE
+                || !Boolean.TRUE.equals(solicitacao.getAguardandoConfirmacaoPaciente())) {
+            throw new BusinessException("Esta proposta de horário não está disponível para resposta.");
+        }
+    }
+
     @Transactional
     public SolicitacaoAgendamentoEntity rejeitarSolicitacao(UUID solicitacaoId) {
+        return finalizarSolicitacaoPendente(
+                solicitacaoId,
+                SolicitacaoStatus.REJEITADA,
+                AuditActionType.REJECT,
+                "Solicitação rejeitada pela clínica.",
+                true);
+    }
+
+    @Transactional
+    public SolicitacaoAgendamentoEntity colocarEmEspera(UUID solicitacaoId) {
+        return finalizarSolicitacaoPendente(
+                solicitacaoId,
+                SolicitacaoStatus.EM_ESPERA,
+                AuditActionType.UPDATE,
+                "Solicitação direcionada para a lista de espera.",
+                false);
+    }
+
+    private SolicitacaoAgendamentoEntity finalizarSolicitacaoPendente(
+            UUID solicitacaoId,
+            SolicitacaoStatus novoStatus,
+            AuditActionType auditAction,
+            String detalhesAuditoria,
+            boolean notificarRecusa) {
         SolicitacaoAgendamentoEntity solicitacao = solicitacaoAgendamentoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
         var snapshotAnterior = auditService.snapshotOf(solicitacao);
@@ -437,21 +497,24 @@ public class SolicitacaoAgendamentoService {
             horarioBloqueadoRepository.save(bloqueio);
         });
 
-        solicitacao.setStatus(SolicitacaoStatus.REJEITADA);
+        solicitacao.setStatus(novoStatus);
+        solicitacao.setAguardandoConfirmacaoPaciente(false);
         SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
         auditService.recordManual(
                 AuditModule.SOLICITACOES,
                 "solicitacao_agendamento",
                 salva.getId().toString(),
                 auditService.describeOf(salva),
-                AuditActionType.REJECT,
+                auditAction,
                 snapshotAnterior,
                 auditService.snapshotOf(salva),
                 null,
-                "Solicitação rejeitada pela clínica.",
+                detalhesAuditoria,
                 AuditEventOrigin.MANUAL);
 
-        agendamentoEmailNotificationService.notificarRecusado(solicitacao);
+        if (notificarRecusa) {
+            agendamentoEmailNotificationService.notificarRecusado(solicitacao);
+        }
         return salva;
     }
 
@@ -505,6 +568,7 @@ public class SolicitacaoAgendamentoService {
                 AuditEventOrigin.MANUAL);
 
         if (horarioAlterado) {
+            solicitacao.setAguardandoConfirmacaoPaciente(solicitacao.getCliente() != null);
             bloqueio.setDataHoraInicio(novoIntervalo.inicio());
             bloqueio.setDataHoraFim(novoIntervalo.fim());
             bloqueio.setStatus(HorarioBloqueadoStatus.PENDENTE);
@@ -530,6 +594,7 @@ public class SolicitacaoAgendamentoService {
 
         solicitacao.setDataHoraInicio(novoIntervalo.inicio());
         solicitacao.setDataHoraFim(novoIntervalo.fim());
+        solicitacao.setAguardandoConfirmacaoPaciente(solicitacao.getCliente() != null);
         if (texto(form.getMotivo()) != null) {
             String historico = solicitacao.getObservacoes() == null ? "" : solicitacao.getObservacoes().trim() + "\n";
             solicitacao.setObservacoes((historico + "Reagendado: " + form.getMotivo().trim()).trim());
@@ -633,6 +698,7 @@ public class SolicitacaoAgendamentoService {
         });
 
         solicitacao.setStatus(SolicitacaoStatus.PENDENTE);
+        solicitacao.setAguardandoConfirmacaoPaciente(false);
         SolicitacaoAgendamentoEntity salva = solicitacaoAgendamentoRepository.save(solicitacao);
         auditService.recordManual(
                 AuditModule.SOLICITACOES,

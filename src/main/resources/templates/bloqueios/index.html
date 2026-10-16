@@ -11,6 +11,7 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -71,14 +72,18 @@
                 </article>
             </section>
 
-            <section class="section-card">
-                <header class="section-head">
-                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros e Navegação</h3>
+            <details class="section-card filter-panel" data-filter-panel>
+                <summary class="section-head filter-panel-summary">
+                    <span class="filter-panel-summary-copy">
+                        <span class="section-title"><i data-lucide="filter"></i> Filtros</span>
+                        <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                    </span>
+                    <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="section-body">
                     <div class="form-actions">
                         <a th:href="@{/calendario(data=${bloqueioForm.dataInicial})}" class="action-button ghost"><i data-lucide="calendar-days"></i>Abrir Agenda e Calendário</a>
                     </div>
-                </header>
-                <div class="section-body">
                     <form th:action="@{/bloqueios}" th:object="${filtroForm}" method="get" class="modern-form">
                         <div class="form-grid form-grid-two form-grid-three">
                             <div class="form-field">
@@ -127,7 +132,7 @@
                         </div>
                     </form>
                 </div>
-            </section>
+            </details>
 
             <section class="crud-layout">
                 <article class="section-card">

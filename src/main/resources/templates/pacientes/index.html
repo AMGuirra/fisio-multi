@@ -11,6 +11,7 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -37,8 +38,17 @@
                 <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
             </div>
 
-            <form method="get" th:action="@{/pacientes}" class="patients-search-panel" id="searchForm">
-                <div class="search-input-wrap">
+            <details class="filter-panel filter-panel-standalone" data-filter-panel>
+                <summary class="filter-panel-summary">
+                    <span class="filter-panel-summary-copy">
+                        <span class="section-title"><i data-lucide="list-filter"></i> Filtros</span>
+                        <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                    </span>
+                    <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="filter-panel-body">
+                <form method="get" th:action="@{/pacientes}" class="patients-search-panel" id="searchForm">
+                    <div class="search-input-wrap">
                     <span class="search-input-icon"><i data-lucide="search"></i></span>
                     <label class="sr-only" for="searchInput">Buscar pacientes</label>
                     <input type="search" id="searchInput" name="busca" th:value="${busca}"
@@ -46,17 +56,19 @@
                     <kbd aria-hidden="true">Enter</kbd>
                     <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/pacientes(status=${status})}"
                        class="search-clear-btn" title="Limpar busca" aria-label="Limpar busca"><i data-lucide="x"></i></a>
-                </div>
-                <div class="patients-filter-field">
+                    </div>
+                    <div class="patients-filter-field">
                     <label for="statusFilter">Status</label>
                     <select id="statusFilter" name="status">
                         <option value="TODOS" th:selected="${status == 'TODOS'}">Todos</option>
                         <option value="ATIVOS" th:selected="${status == 'ATIVOS'}">Ativos</option>
                         <option value="INATIVOS" th:selected="${status == 'INATIVOS'}">Inativos</option>
                     </select>
+                    </div>
+                    <button type="submit" class="patients-search-submit"><i data-lucide="search"></i><span>Buscar</span></button>
+                </form>
                 </div>
-                <button type="submit" class="patients-search-submit"><i data-lucide="search"></i><span>Buscar</span></button>
-            </form>
+            </details>
 
             <section class="summary-grid grid-4" aria-label="Indicadores de pacientes">
                 <article class="summary-card receita patient-metric-card">

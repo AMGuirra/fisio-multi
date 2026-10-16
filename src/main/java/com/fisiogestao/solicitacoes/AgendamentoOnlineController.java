@@ -1,6 +1,7 @@
 package com.fisiogestao.solicitacoes;
 
 import com.fisiogestao.agenda.service.AgendaService;
+import com.fisiogestao.auth.PasswordPolicy;
 import com.fisiogestao.shared.web.BusinessException;
 import com.fisiogestao.solicitacoes.form.AgendamentoOnlineForm;
 import com.fisiogestao.solicitacoes.service.SolicitacaoAgendamentoService;
@@ -83,6 +84,9 @@ public class AgendamentoOnlineController {
         String senha = form.getSenha();
         if (senha == null || senha.isBlank()) {
             return;
+        }
+        if (senha.length() < PasswordPolicy.MIN_LENGTH) {
+            bindingResult.rejectValue("senha", "senha.tamanho", PasswordPolicy.RANGE_MESSAGE);
         }
         if (!senha.matches(".*\\d.*")) {
             bindingResult.rejectValue("senha", "senha.semNumero", "A senha deve conter pelo menos 1 número.");

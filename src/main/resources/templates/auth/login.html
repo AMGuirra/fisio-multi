@@ -8,6 +8,7 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="auth-body" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <div class="auth-card">
@@ -49,8 +50,7 @@
             <div class="auth-field">
                 <label for="clinica">
                     <i data-lucide="building-2"></i>
-                    Código da clínica <small>(deixe em branco se for o superadmin)</small>
-                </label>
+                    Código da clínica                </label>
                 <input type="text" id="clinica" name="clinica" maxlength="80"
                        th:value="${param.clinica != null ? param.clinica[0] : ''}"
                        placeholder="ex.: clinica-principal" autocomplete="organization"

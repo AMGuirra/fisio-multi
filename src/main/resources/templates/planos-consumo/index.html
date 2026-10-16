@@ -13,6 +13,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
     <link rel="stylesheet" th:href="@{/css/planos-consumo.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -50,16 +51,27 @@
                             </div>
                         </div>
 
-                        <div class="searchbox">
-                            <i data-lucide="search" aria-hidden="true"></i>
-                            <input id="si" type="search" placeholder="Nome, telefone ou e-mail">
-                        </div>
+                        <details class="filter-panel filter-panel-standalone filter-panel-compact" data-filter-panel>
+                            <summary class="filter-panel-summary">
+                                <span class="filter-panel-summary-copy">
+                                    <span class="section-title"><i data-lucide="list-filter"></i> Filtros</span>
+                                    <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                                </span>
+                                <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="filter-panel-body">
+                                <div class="searchbox">
+                                    <i data-lucide="search" aria-hidden="true"></i>
+                                    <input id="si" type="search" placeholder="Nome, telefone ou e-mail">
+                                </div>
 
-                        <div class="filter-row">
-                            <button type="button" class="fbtn on" data-filter="todos">Todos</button>
-                            <button type="button" class="fbtn" data-filter="plano">Com plano</button>
-                            <button type="button" class="fbtn" data-filter="sem">Sem plano</button>
-                        </div>
+                                <div class="filter-row">
+                                    <button type="button" class="fbtn on" data-filter="todos">Todos</button>
+                                    <button type="button" class="fbtn" data-filter="plano">Com plano</button>
+                                    <button type="button" class="fbtn" data-filter="sem">Sem plano</button>
+                                </div>
+                            </div>
+                        </details>
 
                         <div th:replace="~{planos-consumo/fragmentos :: lista-pacientes}"></div>
                     </aside>

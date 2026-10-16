@@ -298,6 +298,54 @@ public class PortalPacienteController {
         return "redirect:/paciente/" + token;
     }
 
+    @PostMapping("/{token}/solicitacao/{solicitacaoId}/aceitar-horario")
+    public String aceitarHorarioProposto(
+            @PathVariable UUID token,
+            @PathVariable UUID solicitacaoId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
+        }
+
+        try {
+            solicitacaoAgendamentoService.aceitarPropostaPeloPaciente(solicitacaoId, paciente.getId());
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Novo horário aceito e sessão confirmada.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/paciente/" + token;
+    }
+
+    @PostMapping("/{token}/solicitacao/{solicitacaoId}/recusar-horario")
+    public String recusarHorarioProposto(
+            @PathVariable UUID token,
+            @PathVariable UUID solicitacaoId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        ClienteEntity paciente = clienteRepository.findByPortalToken(token).orElse(null);
+        if (paciente == null) {
+            return "redirect:/paciente/" + token;
+        }
+        if (!portalAutenticado(token, session)) {
+            return redirectLogin();
+        }
+
+        try {
+            solicitacaoAgendamentoService.recusarPropostaPeloPaciente(solicitacaoId, paciente.getId());
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Horário recusado. A clínica poderá combinar uma nova opção com você.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/paciente/" + token;
+    }
+
     @PostMapping("/{token}/sessao/{sessaoId}/confirmar")
     public String confirmarPresenca(
             @PathVariable UUID token,

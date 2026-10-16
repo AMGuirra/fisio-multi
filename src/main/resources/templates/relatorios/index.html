@@ -12,6 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
     <link rel="stylesheet" th:href="@{/css/relatorios-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
 <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -58,13 +59,14 @@
             <div th:if="${errorMessage}" class="flash-message error"><i data-lucide="triangle-alert"></i><span th:text="${errorMessage}">Erro</span></div>
         </div>
 
-        <article class="section-card">
-            <header class="section-head">
+        <details class="section-card filter-panel" data-filter-panel>
+            <summary class="section-head filter-panel-summary">
                 <div>
-                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros do relatório</h3>
-                    <p class="section-subtitle">O período abaixo é único e vale para todas as abas: visão geral, faturamento detalhado e dados filtrados.</p>
+                    <h3 class="section-title"><i data-lucide="filter"></i> Filtros</h3>
+                    <p class="section-subtitle"><span data-filter-state>Mostrar filtros</span> · O período vale para todas as abas.</p>
                 </div>
-            </header>
+                <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+            </summary>
             <div class="section-body">
                 <form th:action="@{/relatorios}" th:object="${filtroRelatorioForm}" method="get" class="modern-form" id="filtroGlobalForm">
                     <input type="hidden" name="aba" th:value="${activeTab}" id="filtroGlobalAba">
@@ -84,7 +86,7 @@
                     </div>
                 </form>
             </div>
-        </article>
+        </details>
 
         <!-- ═══ ABA: VISÃO GERAL ═══ -->
         <div data-tab-panel="visao-geral">
@@ -337,7 +339,15 @@
 
         <!-- ═══ ABA: FATURAMENTO DETALHADO ═══ -->
         <div data-tab-panel="faturamento" th:if="${faturamentoDetalhado != null}">
-            <div class="section-card period-filter-card">
+            <details class="section-card period-filter-card filter-panel filter-panel-compact" data-filter-panel>
+                <summary class="filter-panel-summary">
+                    <span class="filter-panel-summary-copy">
+                        <span class="section-title"><i data-lucide="calendar-range"></i> Filtros</span>
+                        <span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span>
+                    </span>
+                    <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="filter-panel-body">
                 <div class="period-filter-bar">
                     <div class="period-quick-btns">
                         <button type="button" class="period-quick-btn" data-periodo="mes-atual">Este mês</button>
@@ -372,7 +382,8 @@
                         </button>
                     </form>
                 </div>
-            </div>
+                </div>
+            </details>
 
             <section class="summary-grid grid-5">
                 <article class="summary-card receita">

@@ -3,14 +3,20 @@
       th:replace="~{gestor/layout :: pagina('Auditoria da plataforma', 'Ações do Gestor, cadastros públicos, suporte e cancelamentos.', ~{::#conteudo})}">
 <body>
 <div id="conteudo">
-    <section class="section-card">
+    <details class="section-card filter-panel filter-panel-compact" data-filter-panel>
+        <summary class="filter-panel-summary">
+            <span class="filter-panel-summary-copy"><span class="section-title"><i data-lucide="list-filter"></i> Filtros</span><span class="filter-panel-summary-meta" data-filter-state>Mostrar filtros</span></span>
+            <span class="filter-panel-chevron"><i data-lucide="chevron-down"></i></span>
+        </summary>
+        <div class="filter-panel-body">
         <form class="filter-bar" th:action="@{/gestor/auditoria}" th:object="${filtro}" method="get">
             <input type="date" th:field="*{dataInicial}" aria-label="Data inicial">
             <input type="date" th:field="*{dataFinal}" aria-label="Data final">
             <input type="search" th:field="*{registroAfetado}" placeholder="Registro afetado" maxlength="120">
             <button type="submit" class="action-button primary"><i data-lucide="search"></i> Filtrar</button>
         </form>
-    </section>
+        </div>
+    </details>
     <section class="section-card">
         <p class="section-subtitle" th:text="${total} + ' evento(s)' + (${total > 300} ? ' — exibindo os 300 mais recentes' : '')">0 eventos</p>
         <div class="data-table-wrap">

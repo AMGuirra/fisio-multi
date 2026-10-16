@@ -13,6 +13,7 @@
         <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-modern.css}">
     <link rel="stylesheet" th:href="@{/css/crud-modern.css}">
+    <link rel="stylesheet" th:href="@{/css/card-system.css}" href="/css/card-system.css">
 </head>
 <body class="dashboard-app dashboard-loading" th:attr="data-theme=${loggedUserTheme.cssValue}" th:classappend="${loggedUserTheme.name() == 'DARK' ? ' theme-dark' : ''}">
     <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral" aria-hidden="true"></button>
@@ -172,13 +173,17 @@
                                                        th:if="${dia.solicitacoesPendentes > 0}"
                                                        th:href="@{/calendario(data=${dia.data})}"
                                                        th:text="${dia.solicitacoesPendentes + ' pendente' + (dia.solicitacoesPendentes > 1 ? 's' : '')}">1 pendente</a>
-                                                    <a class="calendar-link"
-                                                       th:href="@{/bloqueios(data=${dia.data})}">
-                                                        Bloquear
+                                                    <a class="calendar-link calendar-link-icon"
+                                                       th:href="@{/bloqueios(data=${dia.data})}"
+                                                       data-tooltip="Bloquear"
+                                                       aria-label="Bloquear">
+                                                        <i data-lucide="ban"></i>
                                                     </a>
-                                                    <a class="calendar-link"
-                                                       th:href="@{/calendario(data=${dia.data},agendar=true)}">
-                                                        Agendar
+                                                    <a class="calendar-link calendar-link-icon"
+                                                       th:href="@{/calendario(data=${dia.data},agendar=true)}"
+                                                       data-tooltip="Agendar"
+                                                       aria-label="Agendar">
+                                                        <i data-lucide="calendar-plus"></i>
                                                     </a>
                                                 </div>
                                             </th:block>

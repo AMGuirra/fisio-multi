@@ -20,6 +20,7 @@ import com.fisiogestao.pacientes.PlanoSessaoStatus;
 import com.fisiogestao.pacientes.service.PacienteService;
 import com.fisiogestao.pacientes.service.PlanoSessaoService;
 import com.fisiogestao.shared.web.BusinessException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +28,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -41,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,8 +85,16 @@ class AgendaServiceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private Clock systemClock;
+
     @InjectMocks
     private AgendaService agendaService;
+
+    @BeforeEach
+    void configurarRelogio() {
+        lenient().when(systemClock.instant()).thenReturn(Instant.now());
+    }
 
     @Test
     void devePermitirCancelarSessaoRealizadaEstornandoPlano() {
@@ -327,6 +339,51 @@ class AgendaServiceTest {
         when(bloqueioAgendaService.listarAtivosDoDia(data)).thenReturn(List.of(bloqueio));
 
         assertEquals(List.of(), agendaService.gerarSlotsDisponiveis(data));
+    }
+
+    @Test
+    void deveOferecerSomenteSlotsComUmaSessaoDeAntecedencia() {
+        ZoneId zoneId = ZoneId.of("America/Campo_Grande");
+        OffsetDateTime agora = LocalDate.of(2026, 10, 16)
+                .atTime(10, 19)
+                .atZone(zoneId)
+                .toOffsetDateTime();
+        ConfiguracaoClinicaEntity configuracao = criarConfiguracao();
+        configuracao.setHorarioAbertura(LocalTime.of(7, 0));
+
+        when(systemClock.instant()).thenReturn(agora.toInstant());
+        when(configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()).thenReturn(Optional.of(configuracao));
+        when(sessaoRepository.findByDataHoraInicioBetweenOrderByDataHoraInicioAsc(any(), any())).thenReturn(List.of());
+        when(horarioBloqueadoRepository.findByStatusInAndDataHoraInicioLessThanAndDataHoraFimGreaterThan(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bloqueioAgendaService.listarAtivosDoDia(agora.toLocalDate())).thenReturn(List.of());
+
+        List<String> horarios = agendaService.gerarSlotsDisponiveis(agora.toLocalDate()).stream()
+                .map(slot -> slot.inicio())
+                .toList();
+
+        assertEquals(List.of("11:10", "12:00", "12:50", "13:40", "14:30", "15:20", "16:10", "17:00"), horarios);
+    }
+
+    @Test
+    void deveRecusarEnvioDiretoDeHorarioSemAntecedencia() {
+        ZoneId zoneId = ZoneId.of("America/Campo_Grande");
+        OffsetDateTime agora = LocalDate.of(2026, 10, 16)
+                .atTime(10, 19)
+                .atZone(zoneId)
+                .toOffsetDateTime();
+        OffsetDateTime inicio = agora.toLocalDate()
+                .atTime(10, 20)
+                .atZone(zoneId)
+                .toOffsetDateTime();
+
+        when(systemClock.instant()).thenReturn(agora.toInstant());
+        when(configuracaoClinicaRepository.findFirstByAtivoTrueOrderByCreatedAtAsc()).thenReturn(Optional.of(criarConfiguracao()));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> agendaService.validarHorarioDisponivel(inicio, inicio.plusMinutes(50), null, null));
+
+        assertEquals("O agendamento deve ser feito com pelo menos uma sessão de antecedência.", ex.getMessage());
     }
 
     @Test

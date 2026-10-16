@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -62,6 +63,7 @@ public class AgendaService {
     private final BloqueioAgendaService bloqueioAgendaService;
     private final RecorrenciaService recorrenciaService;
     private final AuditService auditService;
+    private final Clock systemClock;
 
     public record IntervaloAgenda(OffsetDateTime inicio, OffsetDateTime fim) {
     }
@@ -102,7 +104,8 @@ public class AgendaService {
         List<BloqueioAgendaEntity> bloqueiosAgenda = bloqueioAgendaService.listarAtivosDoDia(data);
 
         ZoneId zoneId = zoneId(configuracao);
-        OffsetDateTime agora = OffsetDateTime.now(zoneId);
+        OffsetDateTime agora = agora(zoneId);
+        OffsetDateTime primeiroHorarioPermitido = agora.plusMinutes(configuracao.getDuracaoSessaoMinutos());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
         ArrayList<SlotDisponivelDto> slots = new ArrayList<>();
@@ -116,7 +119,7 @@ public class AgendaService {
             OffsetDateTime inicioSlot = data.atTime(cursor).atZone(zoneId).toOffsetDateTime();
             OffsetDateTime fimSlot = data.atTime(fim).atZone(zoneId).toOffsetDateTime();
 
-            if (filtrarPassados && inicioSlot.isBefore(agora)) {
+            if (filtrarPassados && inicioSlot.isBefore(primeiroHorarioPermitido)) {
                 cursor = fim.plusMinutes(gapMinutos);
                 continue;
             }
@@ -185,8 +188,10 @@ public class AgendaService {
             throw new BusinessException("A clínica não funciona nesse dia.");
         }
 
-        if (!permitirHorarioPassado && inicio.isBefore(OffsetDateTime.now(zoneId))) {
-            throw new BusinessException("Não é permitido agendar horários no passado.");
+        OffsetDateTime primeiroHorarioPermitido = agora(zoneId)
+                .plusMinutes(configuracao.getDuracaoSessaoMinutos());
+        if (!permitirHorarioPassado && inicio.isBefore(primeiroHorarioPermitido)) {
+            throw new BusinessException("O agendamento deve ser feito com pelo menos uma sessão de antecedência.");
         }
 
         LocalTime horaInicio = inicio.atZoneSameInstant(zoneId).toLocalTime();
@@ -715,6 +720,10 @@ public class AgendaService {
 
     private ZoneId zoneId(ConfiguracaoClinicaEntity configuracao) {
         return ZoneId.of(configuracao.getTimezoneId());
+    }
+
+    private OffsetDateTime agora(ZoneId zoneId) {
+        return OffsetDateTime.ofInstant(systemClock.instant(), zoneId);
     }
 
     private boolean overlap(OffsetDateTime inicioA, OffsetDateTime fimA, OffsetDateTime inicioB, OffsetDateTime fimB) {

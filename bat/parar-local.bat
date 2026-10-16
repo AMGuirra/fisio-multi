@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 title FisioGestao - Parar aplicacao local
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 rem ===============================================================
 rem  Encerra SOMENTE o processo que esta escutando a porta 8080,
